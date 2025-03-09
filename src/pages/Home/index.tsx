@@ -1,15 +1,24 @@
 import BasePages from '@/components/shared/base-pages.js';
-import Footer from '@/components/shared/footer';
-
+import Footer from '@/components/shared/footer-home';
+import Partner from '@/pages/Home/Partner';
+import Background from '@/pages/Home/Background';
+import RegisterChoiceHome from './RegisterChoiceHome';
+import Model from './Model';
 export default function HomePage() {
   return (
-    <div className="bg-white">
-      <BasePages
-        className="relative mx-auto w-[90%] flex-1 overflow-y-auto bg-white p-4"
-        pageHead="Trang chủ"
-      >
-        <Footer />
-      </BasePages>
-    </div>
+    <BasePages
+      className="relative mx-auto w-full flex-1 overflow-y-auto"
+      pageHead="Home Page"
+    >
+      {/* Background Section */}
+      <Background />
+      {/* Register Choice */}
+      <RegisterChoiceHome />
+      {/* Model */}
+      <Model />
+      {/* Partner */}
+      <Partner />
+      <Footer />
+    </BasePages>
   );
 }
