@@ -1,4 +1,4 @@
-import DashboardNav from '@/components/shared/header-nav';
+import DashboardNav from '@/components/shared/header-home';
 import { Sheet, SheetContent } from '@/components/ui/sheet';
 import { navItems } from '@/constants/data';
 import { Dispatch, SetStateAction } from 'react';
@@ -34,7 +34,7 @@ export default function MobileSidebar({
                 Logo
               </Link>
               <div className="space-y-1 px-2">
-                <DashboardNav items={navItems} setOpen={setSidebarOpen} />
+                {/* <DashboardNav items={navItems} setOpen={setSidebarOpen} /> */}
               </div>
             </div>
           </div>

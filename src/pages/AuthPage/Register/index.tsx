@@ -1,6 +1,6 @@
 import { useRouter } from '@/routes/hooks/use-router';
 import BasePages from '@/components/shared/base-pages.js';
-import Footer from '@/components/shared/footer';
+import Footer from '@/components/shared/footer-home';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useState } from 'react';
@@ -239,8 +239,8 @@ export default function RegisterPage() {
             </div>
           </div>
         </div>
-        <Footer />
       </BasePages>
+      <Footer />
     </>
   );
 }

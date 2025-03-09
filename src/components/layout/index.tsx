@@ -42,10 +42,9 @@ export default function DashboardLayout({
     if (token) {
       dispatch(login());
     }
-  }, []);
+  }, [dispatch, token]);
 
-  useEffect(() => {
-  }, []);
+  useEffect(() => {}, []);
 
   return (
     <div className="flex h-screen flex-col overflow-hidden bg-secondary ">
