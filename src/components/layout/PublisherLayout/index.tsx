@@ -21,7 +21,6 @@ const PublisherLayout: React.FC = () => {
           ml-64
           mt-[64px] 
           h-[calc(100vh-64px-64px)]
-          overflow-auto
           bg-white
           p-6
         "

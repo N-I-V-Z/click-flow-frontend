@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
-import { Form, Select, Button, Pagination, Modal } from 'antd';
-import type { FormInstance } from 'antd/es/form';
+import { Form, Select, Button, Modal } from 'antd';
+import { useNavigate } from 'react-router-dom';
+
+import PaginationSection from '@/components/shared/pagination-section';
 
 const { Option } = Select;
 
@@ -12,7 +14,7 @@ interface Campaign {
   locked: boolean; // true = đã bị khóa
   isRunning: boolean; // true = đang chạy
   isRegistered: boolean; // true = đã đăng ký
-  industryGroup: string; // nhóm ngành hàng (VD: "Thực phẩm & đồ uống")
+  industryGroup: string; // Nhóm ngành hàng (VD: "Thực phẩm & đồ uống")
   industryStatus: string; // "Đang chạy" hoặc "Chưa chạy"
   type: string; // Loại hình (CPC, CPA, CPS)
 }
@@ -48,7 +50,7 @@ const fakeCampaigns: Campaign[] = [
     name: 'Chiến dịch C',
     commission: '5%',
     conversion: 78,
-    locked: true, // Bị khóa
+    locked: true,
     isRunning: false,
     isRegistered: false,
     industryGroup: 'Khác',
@@ -162,11 +164,214 @@ const fakeCampaigns: Campaign[] = [
     industryGroup: 'Khác',
     industryStatus: 'Đang chạy',
     type: 'CPS'
+  },
+  {
+    id: 14,
+    name: 'Chiến dịch N',
+    commission: '7%',
+    conversion: 80,
+    locked: false,
+    isRunning: false,
+    isRegistered: false,
+    industryGroup: 'Du lịch & nghỉ dưỡng',
+    industryStatus: 'Chưa chạy',
+    type: 'CPS'
+  },
+  {
+    id: 15,
+    name: 'Chiến dịch O',
+    commission: '5%',
+    conversion: 110,
+    locked: false,
+    isRunning: true,
+    isRegistered: false,
+    industryGroup: 'Khác',
+    industryStatus: 'Đang chạy',
+    type: 'CPC'
+  },
+  {
+    id: 16,
+    name: 'Chiến dịch P',
+    commission: '10.000 VNĐ',
+    conversion: 60,
+    locked: true,
+    isRunning: false,
+    isRegistered: false,
+    industryGroup: 'Thực phẩm & đồ uống',
+    industryStatus: 'Chưa chạy',
+    type: 'CPA'
+  },
+  {
+    id: 17,
+    name: 'Chiến dịch Q',
+    commission: '8%',
+    conversion: 200,
+    locked: false,
+    isRunning: true,
+    isRegistered: true,
+    industryGroup: 'Du lịch & nghỉ dưỡng',
+    industryStatus: 'Đang chạy',
+    type: 'CPS'
+  },
+  {
+    id: 18,
+    name: 'Chiến dịch R',
+    commission: '5%',
+    conversion: 95,
+    locked: false,
+    isRunning: false,
+    isRegistered: false,
+    industryGroup: 'Khác',
+    industryStatus: 'Chưa chạy',
+    type: 'CPC'
+  },
+  {
+    id: 19,
+    name: 'Chiến dịch S',
+    commission: '6%',
+    conversion: 120,
+    locked: false,
+    isRunning: true,
+    isRegistered: false,
+    industryGroup: 'Thực phẩm & đồ uống',
+    industryStatus: 'Đang chạy',
+    type: 'CPA'
+  },
+  {
+    id: 20,
+    name: 'Chiến dịch T',
+    commission: '7%',
+    conversion: 75,
+    locked: false,
+    isRunning: false,
+    isRegistered: false,
+    industryGroup: 'Du lịch & nghỉ dưỡng',
+    industryStatus: 'Chưa chạy',
+    type: 'CPS'
+  },
+  {
+    id: 21,
+    name: 'Chiến dịch U',
+    commission: '5%',
+    conversion: 85,
+    locked: false,
+    isRunning: true,
+    isRegistered: true,
+    industryGroup: 'Khác',
+    industryStatus: 'Đang chạy',
+    type: 'CPC'
+  },
+  {
+    id: 22,
+    name: 'Chiến dịch V',
+    commission: '10.000 VNĐ',
+    conversion: 65,
+    locked: true,
+    isRunning: false,
+    isRegistered: false,
+    industryGroup: 'Thực phẩm & đồ uống',
+    industryStatus: 'Chưa chạy',
+    type: 'CPA'
+  },
+  {
+    id: 23,
+    name: 'Chiến dịch W',
+    commission: '8%',
+    conversion: 130,
+    locked: false,
+    isRunning: true,
+    isRegistered: false,
+    industryGroup: 'Du lịch & nghỉ dưỡng',
+    industryStatus: 'Đang chạy',
+    type: 'CPS'
+  },
+  {
+    id: 24,
+    name: 'Chiến dịch X',
+    commission: '5%',
+    conversion: 100,
+    locked: false,
+    isRunning: false,
+    isRegistered: false,
+    industryGroup: 'Khác',
+    industryStatus: 'Chưa chạy',
+    type: 'CPC'
+  },
+  {
+    id: 25,
+    name: 'Chiến dịch Y',
+    commission: '6%',
+    conversion: 140,
+    locked: false,
+    isRunning: true,
+    isRegistered: true,
+    industryGroup: 'Thực phẩm & đồ uống',
+    industryStatus: 'Đang chạy',
+    type: 'CPA'
+  },
+  {
+    id: 26,
+    name: 'Chiến dịch Z',
+    commission: '7%',
+    conversion: 90,
+    locked: false,
+    isRunning: false,
+    isRegistered: false,
+    industryGroup: 'Du lịch & nghỉ dưỡng',
+    industryStatus: 'Chưa chạy',
+    type: 'CPS'
+  },
+  {
+    id: 27,
+    name: 'Chiến dịch 27',
+    commission: '5%',
+    conversion: 110,
+    locked: false,
+    isRunning: true,
+    isRegistered: false,
+    industryGroup: 'Khác',
+    industryStatus: 'Đang chạy',
+    type: 'CPC'
+  },
+  {
+    id: 28,
+    name: 'Chiến dịch 28',
+    commission: '8%',
+    conversion: 70,
+    locked: true,
+    isRunning: false,
+    isRegistered: false,
+    industryGroup: 'Thực phẩm & đồ uống',
+    industryStatus: 'Chưa chạy',
+    type: 'CPA'
+  },
+  {
+    id: 29,
+    name: 'Chiến dịch 29',
+    commission: '10.000 VNĐ',
+    conversion: 95,
+    locked: false,
+    isRunning: true,
+    isRegistered: true,
+    industryGroup: 'Du lịch & nghỉ dưỡng',
+    industryStatus: 'Đang chạy',
+    type: 'CPS'
+  },
+  {
+    id: 30,
+    name: 'Chiến dịch 30',
+    commission: '6%',
+    conversion: 85,
+    locked: false,
+    isRunning: false,
+    isRegistered: false,
+    industryGroup: 'Khác',
+    industryStatus: 'Chưa chạy',
+    type: 'CPC'
   }
-  // ...có thể thêm nhiều hơn để test phân trang
 ];
 
-const PAGE_SIZE = 18; // 3 dòng x 6 cột
+const PAGE_SIZE = 8;
 
 const CampaignsPage: React.FC = () => {
   const [form] = Form.useForm();
@@ -178,6 +383,8 @@ const CampaignsPage: React.FC = () => {
   const [selectedCampaignId, setSelectedCampaignId] = useState<number | null>(
     null
   );
+
+  const navigate = useNavigate();
 
   // Xử lý bấm nút "Đăng ký"
   const handleRegisterClick = (campaignId: number) => {
@@ -206,11 +413,6 @@ const CampaignsPage: React.FC = () => {
     setSelectedCampaignId(null);
   };
 
-  // Xử lý phân trang
-  const handlePageChange = (page: number) => {
-    setCurrentPage(page);
-  };
-
   // Lấy dữ liệu chiến dịch thuộc trang hiện tại
   const startIndex = (currentPage - 1) * PAGE_SIZE;
   const endIndex = startIndex + PAGE_SIZE;
@@ -218,33 +420,23 @@ const CampaignsPage: React.FC = () => {
 
   // Xử lý form filter
   const onFinish = (values: any) => {
-    // values: { status, group, industry, type }
     let filtered = [...fakeCampaigns];
-
-    // Trạng thái (đang hoạt động hoặc bị khóa)
     if (values.status === 'active') {
       filtered = filtered.filter((c) => !c.locked);
     } else if (values.status === 'locked') {
       filtered = filtered.filter((c) => c.locked);
     }
-
-    // Nhóm ngành hàng
     if (values.group && values.group !== 'all') {
       filtered = filtered.filter((c) => c.industryGroup === values.group);
     }
-
-    // Ngành hàng (đang chạy / chưa chạy)
     if (values.industryStatus === 'running') {
       filtered = filtered.filter((c) => c.isRunning === true);
     } else if (values.industryStatus === 'not_running') {
       filtered = filtered.filter((c) => c.isRunning === false);
     }
-
-    // Loại hình
     if (values.type && values.type !== 'all') {
       filtered = filtered.filter((c) => c.type === values.type);
     }
-
     setCampaigns(filtered);
     setCurrentPage(1);
   };
@@ -257,52 +449,49 @@ const CampaignsPage: React.FC = () => {
   };
 
   return (
-    <div className="p-4">
+    // BỎ overflow-auto ở đây
+    <div className="bg-gray-100 p-6">
+      <h1 className="mb-6 text-center text-2xl font-bold text-gray-800">
+        Danh sách Chiến dịch
+      </h1>
+
       {/* Form Lọc chiến dịch */}
-      <div className="mb-4 rounded-lg border bg-white p-4">
+      <div className="mb-6 rounded-lg bg-white p-6 shadow">
         <Form
           form={form}
           layout="vertical"
           onFinish={onFinish}
-          className="grid grid-cols-1 gap-4 md:grid-cols-4"
+          className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-4"
         >
-          {/* Trạng thái */}
           <Form.Item name="status" label="Trạng thái">
-            <Select placeholder="Chọn trạng thái">
+            <Select placeholder="Chọn trạng thái" allowClear>
               <Option value="active">Đang hoạt động</Option>
               <Option value="locked">Đã bị khóa</Option>
             </Select>
           </Form.Item>
-
-          {/* Nhóm ngành hàng */}
           <Form.Item name="group" label="Nhóm ngành hàng">
-            <Select placeholder="Chọn nhóm ngành hàng">
+            <Select placeholder="Chọn nhóm ngành hàng" allowClear>
               <Option value="all">Tất cả</Option>
               <Option value="Thực phẩm & đồ uống">Thực phẩm & đồ uống</Option>
               <Option value="Du lịch & nghỉ dưỡng">Du lịch & nghỉ dưỡng</Option>
               <Option value="Khác">Khác</Option>
             </Select>
           </Form.Item>
-
-          {/* Ngành hàng (Đang chạy / Chưa chạy) */}
-          <Form.Item name="industryStatus" label="Ngành hàng">
-            <Select placeholder="Chọn trạng thái chạy">
+          <Form.Item name="industryStatus" label="Trạng thái chạy">
+            <Select placeholder="Chọn trạng thái chạy" allowClear>
               <Option value="running">Đang chạy</Option>
               <Option value="not_running">Chưa chạy</Option>
             </Select>
           </Form.Item>
-
-          {/* Loại hình */}
           <Form.Item name="type" label="Loại hình">
-            <Select placeholder="Chọn loại hình">
+            <Select placeholder="Chọn loại hình" allowClear>
               <Option value="all">Tất cả</Option>
               <Option value="CPC">CPC</Option>
               <Option value="CPA">CPA</Option>
               <Option value="CPS">CPS</Option>
             </Select>
           </Form.Item>
-
-          <div className="col-span-1 flex gap-2 md:col-span-4">
+          <div className="col-span-1 flex items-end gap-2 sm:col-span-4">
             <Button onClick={onReset}>Đặt lại</Button>
             <Button type="primary" htmlType="submit">
               Áp dụng
@@ -311,16 +500,12 @@ const CampaignsPage: React.FC = () => {
         </Form>
       </div>
 
-      {/* Danh sách chiến dịch (3 dòng x 6 cột = 18 item/trang) */}
-      <div className="grid grid-cols-1 gap-4 md:grid-cols-6">
+      {/* Danh sách chiến dịch */}
+      <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6">
         {currentCampaigns.map((campaign) => {
           const isLocked = campaign.locked;
           const isRegistered = campaign.isRegistered;
           const isRunning = campaign.isRunning;
-
-          // Giả lập rating, ratingCount, conversions hiển thị như ảnh mẫu
-          // (4,28 ★ (323) | 577.866)
-          // Bạn có thể thay logic này bằng data thật nếu có
           const rating = 4.28;
           const ratingCount = 323;
           const totalConversion = 577866;
@@ -328,33 +513,32 @@ const CampaignsPage: React.FC = () => {
           return (
             <div
               key={campaign.id}
-              className={`flex flex-col items-center rounded-lg border bg-white p-4 
-                ${isLocked ? 'pointer-events-none opacity-50' : ''}`}
+              className={`flex flex-col items-center rounded-lg bg-white p-4 shadow transition-transform duration-300 
+              ${!isLocked ? 'cursor-pointer hover:scale-105 hover:shadow-xl' : 'pointer-events-none opacity-50'}`}
+              onClick={() =>
+                navigate(`/publisher/campaign-detail/${campaign.id}`)
+              }
             >
-              {/* Logo 4x4 */}
-              <div className="h-40 w-40 overflow-hidden rounded-full">
+              {/* Logo */}
+              <div className="mb-4 h-32 w-32 overflow-hidden rounded-full">
                 <img
                   src="https://content.accesstrade.vn/adv/1735897487_avatar_1735897487.png"
                   alt="logo"
                   className="h-full w-full object-cover"
                 />
               </div>
-
               {/* Tên chiến dịch */}
-              <h3 className="mt-2 line-clamp-2 text-center text-sm font-semibold text-gray-800">
+              <h3 className="mb-2 line-clamp-2 text-center text-sm font-semibold text-gray-800">
                 {campaign.name}
               </h3>
-
               {/* Hoa hồng */}
-              <div className="mt-2 text-sm text-gray-600">Hoa hồng</div>
-              <div className="text-lg font-bold text-[#8229B0]">
+              <div className="mb-1 text-sm text-gray-600">Hoa hồng</div>
+              <div className="mb-2 text-lg font-bold text-[#8229B0]">
                 {campaign.commission}
               </div>
-
-              {/* Rating + conversions (4,28 ★ (323) | 577.866) */}
-              <div className="mt-2 flex items-center gap-1 text-sm text-gray-600">
+              {/* Rating + conversions */}
+              <div className="mb-3 flex items-center gap-1 text-sm text-gray-600">
                 <span>{rating.toFixed(2).replace('.', ',')}</span>
-                {/* Icon ngôi sao */}
                 <svg
                   className="text-yellow-400 h-4 w-4"
                   fill="currentColor"
@@ -364,20 +548,18 @@ const CampaignsPage: React.FC = () => {
                 </svg>
                 <span>({ratingCount})</span>
                 <span className="mx-1 text-gray-400">|</span>
-                <span>
-                  {totalConversion.toLocaleString('vi-VN')} {/* 577.866 */}
-                </span>
+                <span>{totalConversion.toLocaleString('vi-VN')}</span>
               </div>
-
               {/* Nút hành động */}
               {isLocked ? (
-                <p className="text-red-500 mt-3">Đã bị khóa</p>
+                <p className="text-red-500 mt-2 font-medium">Đã bị khóa</p>
               ) : (
-                <div className="mt-3 w-full">
+                <div className="w-full">
                   {isRegistered && isRunning ? (
                     <Button
                       type="default"
                       className="w-full border-none bg-[#8229B0] text-white hover:bg-[#6f2395]"
+                      onClick={(e) => e.stopPropagation()}
                     >
                       Tạo link
                     </Button>
@@ -385,7 +567,10 @@ const CampaignsPage: React.FC = () => {
                     <Button
                       type="default"
                       className="w-full border-none bg-[#8229B0] text-white hover:bg-[#6f2395]"
-                      onClick={() => handleRegisterClick(campaign.id)}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleRegisterClick(campaign.id);
+                      }}
                     >
                       Đăng ký
                     </Button>
@@ -397,13 +582,13 @@ const CampaignsPage: React.FC = () => {
         })}
       </div>
 
-      {/* Phân trang */}
-      <div className="mt-4 flex justify-center">
-        <Pagination
-          current={currentPage}
-          pageSize={PAGE_SIZE}
-          total={campaigns.length}
-          onChange={handlePageChange}
+      {/* Phân trang với component PaginationSection */}
+      <div className="mb-8 mt-4">
+        <PaginationSection
+          totalPosts={campaigns.length}
+          postsPerPage={PAGE_SIZE}
+          currentPage={currentPage}
+          setCurrentPage={setCurrentPage}
         />
       </div>
 
