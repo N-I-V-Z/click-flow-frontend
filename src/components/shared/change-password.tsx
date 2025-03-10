@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { FaEye, FaEyeSlash, FaLock, FaTimes, FaEnvelope } from 'react-icons/fa';
 import { motion } from 'framer-motion';
-
+import { ToastContainer, toast } from 'react-toastify';
 const ChangePassword: React.FC = () => {
   const [formData, setFormData] = useState({
     email: '',
@@ -72,10 +72,11 @@ const ChangePassword: React.FC = () => {
       console.log('Password reset submitted');
       // Thêm xử lý reset hoặc thông báo thành công tại đây.
     }
+    toast.success(`Đổi mật khẩu thành công!`);
   };
 
   return (
-    <div className="mx-80 flex max-h-screen items-center p-1">
+    <div className="mx-80 mt-5 flex max-h-screen items-center p-1">
       <motion.div
         className="w-full max-w-md overflow-hidden rounded-2xl bg-white shadow-xl"
         initial={{ opacity: 0, scale: 0.95 }}
@@ -198,6 +199,18 @@ const ChangePassword: React.FC = () => {
           </motion.button>
         </form>
       </motion.div>
+      <ToastContainer
+        position="top-center"
+        autoClose={3000}
+        hideProgressBar={false}
+        newestOnTop={false}
+        closeOnClick={false}
+        rtl={false}
+        pauseOnFocusLoss
+        draggable
+        pauseOnHover
+        theme="colored"
+      />
     </div>
   );
 };

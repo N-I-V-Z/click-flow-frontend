@@ -38,7 +38,10 @@ const AdvertiserProfile: React.FC = () => {
             <li className="text-blue-600 cursor-pointer font-semibold">
               Thông tin cá nhân
             </li>
-            <li className="hover:text-blue-500 cursor-pointer text-gray-600">
+            <li
+              className="hover:text-blue-500 cursor-pointer text-gray-600"
+              onClick={() => router.push('/advertiser/wallet')}
+            >
               Ví cá nhân
             </li>
             <li
