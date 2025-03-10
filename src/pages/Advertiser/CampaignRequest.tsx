@@ -2,6 +2,8 @@ import { useState } from 'react';
 import { Pencil, Trash2 } from 'lucide-react';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+import PaginationSection from '@/components/shared/pagination-section';
+import TableSearchInput from '@/components/shared/table-search-input';
 
 const projects = Array.from({ length: 50 }, (_, i) => ({
   id: i + 1,
@@ -16,27 +18,26 @@ const PAGE_SIZE = 6;
 const CampaignRequest = () => {
   const [allProjects, setAllProjects] = useState(projects);
   const [currentPage, setCurrentPage] = useState(1);
-  const [searchTerm, setSearchTerm] = useState('');
+  const [searchTerm] = useState('');
 
   // State cho modal chỉnh sửa
   const [isEditOpen, setIsEditOpen] = useState(false);
   const [selectedProject, setSelectedProject] = useState<any>(null);
 
-  // State cho modal xóa (nếu cần)
+  // State cho modal xóa
   const [isDeleteOpen, setIsDeleteOpen] = useState(false);
   const [deleteProject, setDeleteProject] = useState<any>(null);
 
   const filteredProjects = allProjects.filter((project) =>
     project.name.toLowerCase().includes(searchTerm.toLowerCase())
   );
-  const totalPages = Math.ceil(filteredProjects.length / PAGE_SIZE);
   const currentData = filteredProjects.slice(
     (currentPage - 1) * PAGE_SIZE,
     currentPage * PAGE_SIZE
   );
 
   // Khi mở modal chỉnh sửa, tách executionTime thành executionStart & executionEnd
-  const openEditModal = (project) => {
+  const openEditModal = (project: any) => {
     let executionStart = '';
     let executionEnd = '';
     if (project.executionTime) {
@@ -59,7 +60,9 @@ const CampaignRequest = () => {
     closeDeleteModal();
   };
 
-  const handleEditChange = (e) => {
+  const handleEditChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+  ) => {
     setSelectedProject({ ...selectedProject, [e.target.name]: e.target.value });
   };
 
@@ -76,7 +79,7 @@ const CampaignRequest = () => {
     closeEditModal();
   };
 
-  const openDeleteModal = (project) => {
+  const openDeleteModal = (project: any) => {
     setDeleteProject(project);
     setIsDeleteOpen(true);
   };
@@ -90,13 +93,7 @@ const CampaignRequest = () => {
     <div className="mb-20 rounded-xl bg-white p-6">
       <div className="mb-4 flex items-center justify-between">
         <h2 className="text-xl font-semibold">Danh sách yêu cầu</h2>
-        <input
-          type="text"
-          placeholder="Tìm kiếm..."
-          className="rounded-lg border px-3 py-2 shadow-sm"
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-        />
+        <TableSearchInput />
       </div>
       <div className="overflow-hidden rounded-lg border bg-white shadow-md">
         <div className="max-h-[400px] overflow-y-auto">
@@ -145,30 +142,15 @@ const CampaignRequest = () => {
             </tbody>
           </table>
         </div>
-        <div className="flex items-center justify-center gap-4 p-4">
-          <button
-            onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
-            disabled={currentPage === 1}
-            className="rounded bg-gray-200 px-4 py-2 hover:bg-gray-300 disabled:bg-gray-100"
-          >
-            Previous
-          </button>
-          <span className="text-md rounded-lg bg-white px-4 py-2 font-medium">
-            Trang {currentPage} / {totalPages}
-          </span>
-          <button
-            onClick={() =>
-              setCurrentPage((prev) => Math.min(prev + 1, totalPages))
-            }
-            disabled={currentPage === totalPages}
-            className="rounded bg-gray-200 px-4 py-2 hover:bg-gray-300 disabled:bg-gray-100"
-          >
-            Next
-          </button>
-        </div>
+        <PaginationSection
+          totalPosts={filteredProjects.length}
+          postsPerPage={PAGE_SIZE}
+          currentPage={currentPage}
+          setCurrentPage={setCurrentPage}
+        />
       </div>
 
-      {/* Modal chỉnh sửa với layout nằm ngang */}
+      {/* Modal chỉnh sửa */}
       {isEditOpen && selectedProject && (
         <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
           <div className="w-full max-w-4xl rounded-lg bg-white p-6 shadow-lg">
@@ -187,7 +169,7 @@ const CampaignRequest = () => {
                   onChange={handleEditChange}
                 />
               </div>
-              {/* Thời gian thực hiện: 2 lịch riêng cho bắt đầu & kết thúc */}
+              {/* Thời gian thực hiện: bắt đầu & kết thúc */}
               <div className="col-span-2 grid grid-cols-2 gap-4">
                 <div className="flex items-center space-x-4">
                   <label className="w-40 text-sm font-medium">Bắt đầu</label>
@@ -265,6 +247,7 @@ const CampaignRequest = () => {
           </div>
         </div>
       )}
+
       <ToastContainer
         position="top-center"
         autoClose={5000}

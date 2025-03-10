@@ -1,3 +1,4 @@
+import React from 'react';
 import {
   Pagination,
   PaginationContent,
@@ -19,11 +20,6 @@ type TPaginationSectionProps = {
 
 /**
  * Thành phần phân trang hiển thị các trang và điều khiển phân trang.
- *
- * @param totalPosts - Tổng số bài viết cần phân trang.
- * @param postsPerPage - Số bài viết trên mỗi trang.
- * @param currentPage - Trang hiện tại đang được hiển thị.
- * @param setCurrentPage - Hàm để cập nhật trang hiện tại.
  */
 export default function PaginationSection({
   totalPosts,
@@ -36,8 +32,9 @@ export default function PaginationSection({
     pageNumbers.push(i);
   }
 
-  const maxPageNum = 2; // Maximum page numbers to display at once
-  const pageNumLimit = Math.floor(maxPageNum / 2); // Current page should be in the middle if possible
+  // Số trang hiển thị tối đa tại một thời điểm
+  const maxPageNum = 2;
+  const pageNumLimit = Math.floor(maxPageNum / 2);
 
   const activePages = pageNumbers.slice(
     Math.max(0, currentPage - 1 - pageNumLimit),
@@ -68,7 +65,7 @@ export default function PaginationSection({
     }
   };
 
-  // Function to render page numbers with ellipsis
+  // Hàm render số trang và hiển thị dấu "..."
   const renderPages = () => {
     const renderedPages = activePages.map((page, idx) => (
       <PaginationItem
@@ -84,7 +81,7 @@ export default function PaginationSection({
       </PaginationItem>
     ));
 
-    // Add ellipsis at the start if necessary
+    // Nếu trang đầu tiên của activePages > 1 thì thêm dấu "..."
     if (activePages[0] > 1) {
       renderedPages.unshift(
         <PaginationEllipsis
@@ -94,7 +91,7 @@ export default function PaginationSection({
       );
     }
 
-    // Add ellipsis at the end if necessary
+    // Nếu trang cuối của activePages < tổng số trang thì thêm dấu "..."
     if (activePages[activePages.length - 1] < pageNumbers.length) {
       renderedPages.push(
         <PaginationEllipsis

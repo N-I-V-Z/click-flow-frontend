@@ -1,35 +1,68 @@
+import React from 'react';
+import { Menu } from 'antd';
+import { HomeOutlined, UserOutlined, LogoutOutlined } from '@ant-design/icons';
 import { NavLink } from 'react-router-dom';
-import { Home, User } from 'lucide-react';
+import { ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
-const AdvertiserSidebar = () => {
+const SidebarAdvertiser: React.FC = () => {
   return (
-    <div className="flex h-screen w-64 flex-col bg-white p-6 text-black shadow-lg">
-      <nav className="flex flex-col gap-4">
-        <NavLink
-          to="/advertiser/dashboard"
-          className={({ isActive }) =>
-            `flex items-center gap-3 rounded-lg p-3 ${
-              isActive ? 'bg-gray-400 text-black' : 'hover:bg-gray-300'
-            }`
-          }
-        >
-          <Home size={20} />
-          <span>Trang chủ</span>
-        </NavLink>
-        <NavLink
-          to="/advertiser/campaigns"
-          className={({ isActive }) =>
-            `flex items-center gap-3 rounded-lg p-3 ${
-              isActive ? 'bg-gray-400 text-black' : 'hover:bg-gray-300 '
-            }`
-          }
-        >
-          <User size={20} />
-          <span>Chiến dịch</span>
-        </NavLink>
-      </nav>
+    <div
+      className="
+        mt-[35px] flex
+        h-[calc(87vh-60px)]
+        w-60 flex-col
+        border-r
+        border-gray-200
+      "
+    >
+      {/* Menu chính */}
+      <Menu
+        mode="inline"
+        defaultSelectedKeys={['overview']}
+        className="flex-grow border-r-0"
+      >
+        <Menu.Item key="overview" icon={<HomeOutlined />}>
+          <NavLink to="/advertiser/dashboard">Tổng quan</NavLink>
+        </Menu.Item>
+        <Menu.Item key="campaign" icon={<HomeOutlined />}>
+          <NavLink to="/advertiser/campaigns">Chiến dịch</NavLink>
+        </Menu.Item>
+      </Menu>
+
+      {/* Khu vực dưới cùng (Hồ sơ, Đăng xuất) */}
+      <div className="border-t">
+        <Menu mode="inline" className="border-r-0">
+          <Menu.Item key="profile" icon={<UserOutlined />}>
+            <NavLink to="/advertiser/advertiser-profile">Hồ sơ</NavLink>
+          </Menu.Item>
+          <Menu.Item
+            key="logout"
+            icon={<LogoutOutlined />}
+            style={{ color: 'red' }}
+          >
+            {/* Khi click vào Đăng xuất, hiển thị modal xác nhận */}
+            <a href="#" style={{ color: 'red' }}>
+              Đăng xuất
+            </a>
+          </Menu.Item>
+        </Menu>
+      </div>
+      {/* Toast Notifications */}
+      <ToastContainer
+        position="top-center"
+        autoClose={5000}
+        hideProgressBar={false}
+        newestOnTop={false}
+        closeOnClick={false}
+        rtl={false}
+        pauseOnFocusLoss
+        draggable
+        pauseOnHover
+        theme="colored"
+      />
     </div>
   );
 };
 
-export default AdvertiserSidebar;
+export default SidebarAdvertiser;
