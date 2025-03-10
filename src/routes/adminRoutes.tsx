@@ -1,0 +1,29 @@
+// src/routes/adminRoutes.tsx
+import { Navigate } from 'react-router-dom';
+import { Suspense, lazy } from 'react';
+
+const AdminLayout = lazy(() => import('@/components/layout/AdminLayout'));
+const AdminDashboard = lazy(() => import('@/pages/Admin/index'));
+// Nếu có các trang khác, lazy load tiếp:
+// const AdminCampaign = lazy(() => import('@/pages/Admin/Campaign'));
+// ...
+
+const adminRoutes = [
+  {
+    path: '/admin',
+    element: (
+      <Suspense fallback={<div>Loading Admin Layout...</div>}>
+        <AdminLayout />
+      </Suspense>
+    ),
+    children: [
+      // Nếu gõ "/admin" thì tự chuyển sang "/admin/dashboard"
+      { index: true, element: <Navigate to="dashboard" replace /> },
+      { path: 'dashboard', element: <AdminDashboard /> }
+      // { path: 'campaign', element: <AdminCampaign /> },
+      // ...
+    ]
+  }
+];
+
+export default adminRoutes;

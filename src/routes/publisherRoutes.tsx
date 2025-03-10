@@ -1,4 +1,3 @@
-// src/routes/publicRoutes.tsx
 import { Navigate } from 'react-router-dom';
 import NotFound from '@/pages/NotFound';
 

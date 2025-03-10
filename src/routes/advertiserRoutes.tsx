@@ -1,4 +1,3 @@
-// src/routes/advertiserRoutes.tsx
 import { Navigate } from 'react-router-dom';
 import { Suspense, lazy } from 'react';
 
@@ -13,6 +12,7 @@ const AdvertiserProfile = lazy(
 const ChangePassword = lazy(
   () => import('@/components/shared/change-password')
 );
+const Wallet = lazy(() => import('@/pages/Advertiser/Wallet'));
 
 const advertiserRoutes = [
   {
@@ -27,7 +27,8 @@ const advertiserRoutes = [
       { path: 'dashboard', element: <AdvertiserDashboard /> },
       { path: 'campaigns', element: <AdvertiserCampaigns /> },
       { path: 'advertiser-profile', element: <AdvertiserProfile /> },
-      { path: 'change-password', element: <ChangePassword /> }
+      { path: 'change-password', element: <ChangePassword /> },
+      { path: 'wallet', element: <Wallet /> }
     ]
   }
 ];

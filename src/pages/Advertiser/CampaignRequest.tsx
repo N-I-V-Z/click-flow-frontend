@@ -36,7 +36,7 @@ const CampaignRequest = () => {
   );
 
   // Khi mở modal chỉnh sửa, tách executionTime thành executionStart & executionEnd
-  const openEditModal = (project: any) => {
+  const openEditModal = (project) => {
     let executionStart = '';
     let executionEnd = '';
     if (project.executionTime) {
@@ -59,13 +59,11 @@ const CampaignRequest = () => {
     closeDeleteModal();
   };
 
-  const handleEditChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
-  ) => {
+  const handleEditChange = (e) => {
     setSelectedProject({ ...selectedProject, [e.target.name]: e.target.value });
   };
 
-  // Khi lưu, kết hợp executionStart & executionEnd thành executionTime
+  // Khi lưu, kết hợp executionStart & executionEnd thành executionTime, và hiển thị popup thành công
   const handleEditSave = () => {
     const updatedProject = {
       ...selectedProject,
@@ -74,10 +72,11 @@ const CampaignRequest = () => {
     setAllProjects((prev) =>
       prev.map((p) => (p.id === updatedProject.id ? updatedProject : p))
     );
+    toast.success(`Cập nhật chiến dịch ${updatedProject.name} thành công!`);
     closeEditModal();
   };
 
-  const openDeleteModal = (project: any) => {
+  const openDeleteModal = (project) => {
     setDeleteProject(project);
     setIsDeleteOpen(true);
   };
