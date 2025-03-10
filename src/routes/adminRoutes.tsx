@@ -4,6 +4,10 @@ import { Suspense, lazy } from 'react';
 
 const AdminLayout = lazy(() => import('@/components/layout/AdminLayout'));
 const AdminDashboard = lazy(() => import('@/pages/Admin/index'));
+const AdminCampaignRequest = lazy(
+  () => import('@/pages/Admin/CampaignRequest')
+);
+const AdminCampaignList = lazy(() => import('@/pages/Admin/CampaignList'));
 // Nếu có các trang khác, lazy load tiếp:
 // const AdminCampaign = lazy(() => import('@/pages/Admin/Campaign'));
 // ...
@@ -19,7 +23,9 @@ const adminRoutes = [
     children: [
       // Nếu gõ "/admin" thì tự chuyển sang "/admin/dashboard"
       { index: true, element: <Navigate to="dashboard" replace /> },
-      { path: 'dashboard', element: <AdminDashboard /> }
+      { path: 'dashboard', element: <AdminDashboard /> },
+      { path: 'campaignlist', element: <AdminCampaignList /> },
+      { path: 'campaignrequest', element: <AdminCampaignRequest /> }
       // { path: 'campaign', element: <AdminCampaign /> },
       // ...
     ]
