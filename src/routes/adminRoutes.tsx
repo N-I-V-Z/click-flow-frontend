@@ -12,6 +12,7 @@ const AdminCampaignList = lazy(() => import('@/pages/Admin/CampaignList'));
 const AdminAdvertiserList = lazy(
   () => import('@/pages/Admin/ManageAdvertiser')
 );
+const AdminManageReport = lazy(() => import('@/pages/Admin/ManageReport'));
 // Nếu có các trang khác, lazy load tiếp:
 // const AdminCampaign = lazy(() => import('@/pages/Admin/Campaign'));
 // ...
@@ -31,7 +32,8 @@ const adminRoutes = [
       { path: 'campaignlist', element: <AdminCampaignList /> },
       { path: 'campaignrequest', element: <AdminCampaignRequest /> },
       { path: 'managepublisher', element: <AdminPublisherList /> },
-      { path: 'manageadvertiser', element: <AdminAdvertiserList /> }
+      { path: 'manageadvertiser', element: <AdminAdvertiserList /> },
+      { path: 'managereport', element: <AdminManageReport /> }
       // { path: 'campaign', element: <AdminCampaign /> },
       // ...
     ]
