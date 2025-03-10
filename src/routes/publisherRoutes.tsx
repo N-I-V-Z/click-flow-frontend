@@ -21,7 +21,7 @@ const PublisherRoutes = [
       { index: true, element: <Navigate to="dashboard" replace /> },
       { path: 'dashboard', element: <PublisherDashboard /> },
       { path: 'campaign', element: <PublisherCampaignPage /> },
-      { path: 'campaign-detail', element: <PublisherCampaignDetailPage /> }
+      { path: 'campaign-detail/:id', element: <PublisherCampaignDetailPage /> }
       // Các route con khác nếu có...
     ]
   }
