@@ -2,7 +2,7 @@ import React from 'react';
 import { Outlet } from 'react-router-dom';
 import { Layout } from 'antd';
 import HeaderAd from '@/components/shared/header-advertiser';
-import SidebarAd from '@/components/shared/sidebar-advertiser';
+import SidebarAdmin from '@/components/shared/sidebar-admin';
 
 const { Content, Footer } = Layout;
 
@@ -14,7 +14,7 @@ const AdminLayout: React.FC = () => {
 
       {/* Sidebar cố định bên trái, ngay dưới Header 64px */}
       <div className="fixed left-0 top-[64px]">
-        <SidebarAd />
+        <SidebarAdmin />
       </div>
 
       {/* Nội dung chính (scroll) */}
