@@ -1,20 +1,10 @@
 import { useState } from 'react';
-import { Link, NavLink } from 'react-router-dom';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger
-} from '@/components/ui/dropdown-menu';
-import { Icons } from '@/components/ui/icons';
-import { useRouter } from '@/routes/hooks';
-
+import { Link } from 'react-router-dom';
 // Import react-toastify
 import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 
 export default function HeaderAd() {
-  const route = useRouter();
   const [isLogoutOpen, setIsLogoutOpen] = useState(false);
 
   // Hàm xử lý đăng xuất
@@ -50,28 +40,6 @@ export default function HeaderAd() {
               className="h-[80px] w-[120px] rounded-lg"
             />
           </Link>
-        </div>
-
-        {/* Icon user nằm bên phải */}
-        <div className="ml-auto">
-          <DropdownMenu>
-            <DropdownMenuTrigger className="flex cursor-pointer items-center gap-2 rounded-lg bg-gray-300 p-2 font-bold">
-              <Icons.user className="text-black" />
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <NavLink to="/advertiser/advertiser-profile">
-                <DropdownMenuItem
-                  onClick={() => route.push('/advertiser-profile')}
-                >
-                  Hồ sơ
-                </DropdownMenuItem>
-              </NavLink>
-              {/* Nhấn "Đăng xuất" sẽ hiển thị modal confirm */}
-              <DropdownMenuItem onClick={() => setIsLogoutOpen(true)}>
-                Đăng xuất
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
         </div>
       </nav>
 
