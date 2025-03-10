@@ -31,7 +31,7 @@ const initialReports: Report[] = [
 
 export default function ReportTable() {
   const [search, setSearch] = useState('');
-  const [reports, setReports] = useState(initialReports);
+  const [reports] = useState(initialReports);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedReport, setSelectedReport] = useState<Report | null>(null);
   const [form] = Form.useForm();
