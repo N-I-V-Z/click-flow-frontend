@@ -57,7 +57,7 @@ const SidebarAdmin: React.FC = () => {
 
         {/* Báo cáo */}
         <Menu.Item key="report" icon={<FileTextOutlined />}>
-          <NavLink to="/admin/report">Báo cáo</NavLink>
+          <NavLink to="/admin/managereport">Báo cáo</NavLink>
         </Menu.Item>
       </Menu>
 
