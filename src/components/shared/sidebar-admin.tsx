@@ -9,6 +9,7 @@ import {
   PullRequestOutlined
 } from '@ant-design/icons';
 import { NavLink } from 'react-router-dom';
+import { BiBuildings } from 'react-icons/bi';
 
 const { SubMenu } = Menu;
 
@@ -45,13 +46,13 @@ const SidebarAdmin: React.FC = () => {
         </SubMenu>
 
         {/* Nhà quảng cáo */}
-        <Menu.Item key="advertiser" icon={<UserOutlined />}>
-          <NavLink to="/admin/advertiser">Nhà quảng cáo</NavLink>
+        <Menu.Item key="advertiser" icon={<BiBuildings />}>
+          <NavLink to="/admin/manageadvertiser">Nhà quảng cáo</NavLink>
         </Menu.Item>
 
         {/* Nhà tiếp thị */}
         <Menu.Item key="publisher" icon={<UserOutlined />}>
-          <NavLink to="/admin/publisher">Nhà tiếp thị</NavLink>
+          <NavLink to="/admin/managepublisher">Nhà tiếp thị</NavLink>
         </Menu.Item>
 
         {/* Báo cáo */}
