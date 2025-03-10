@@ -26,7 +26,7 @@ const SidebarPublisher: React.FC = () => {
           <NavLink to="/publisher/dashboard">Tổng quan</NavLink>
         </Menu.Item>
         <Menu.Item key="campaign" icon={<HomeOutlined />}>
-          <NavLink to="/publisher/campaigns">Chiến dịch</NavLink>
+          <NavLink to="/publisher/campaign">Chiến dịch</NavLink>
         </Menu.Item>
       </Menu>
 
