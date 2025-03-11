@@ -134,7 +134,7 @@ const CampaignDetailPage: React.FC = () => {
             <Button
               type="primary"
               onClick={handleRegister}
-              className="mt-4 rounded-full border-none bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500"
+              className="mt-4 rounded-full border-none bg-[#9B52BF] bg-gradient-to-r from-purple-600 to-indigo-600 text-white hover:!border-[#9B52BF] hover:!bg-white hover:!text-[#9B52BF]"
             >
               Đăng ký
             </Button>

@@ -463,7 +463,7 @@ const CampaignsPage: React.FC = () => {
           onFinish={onFinish}
           className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-4"
         >
-          <Form.Item name="status" label="Trạng thái">
+          <Form.Item name="status " label="Trạng thái">
             <Select placeholder="Chọn trạng thái" allowClear>
               <Option value="active">Đang hoạt động</Option>
               <Option value="locked">Đã bị khóa</Option>
@@ -492,8 +492,16 @@ const CampaignsPage: React.FC = () => {
             </Select>
           </Form.Item>
           <div className="col-span-1 flex items-end gap-2 sm:col-span-4">
-            <Button onClick={onReset}>Đặt lại</Button>
-            <Button type="primary" htmlType="submit">
+            <Button
+              className="hover:!border-[#9B52BF] hover:bg-white hover:!text-[#9B52BF]"
+              onClick={onReset}
+            >
+              Đặt lại
+            </Button>
+            <Button
+              className="bg-[#9B52BF] text-white hover:!border-[#9B52BF] hover:bg-white hover:!text-[#9B52BF]"
+              htmlType="submit"
+            >
               Áp dụng
             </Button>
           </div>
@@ -558,7 +566,7 @@ const CampaignsPage: React.FC = () => {
                   {isRegistered && isRunning ? (
                     <Button
                       type="default"
-                      className="w-full border-none bg-[#8229B0] text-white hover:bg-[#6f2395]"
+                      className="w-full bg-[#8229B0] text-white hover:!border-[#9B52BF] hover:bg-white hover:!text-[#9B52BF]"
                       onClick={(e) => e.stopPropagation()}
                     >
                       Tạo link
@@ -566,7 +574,7 @@ const CampaignsPage: React.FC = () => {
                   ) : (
                     <Button
                       type="default"
-                      className="w-full border-none bg-[#8229B0] text-white hover:bg-[#6f2395]"
+                      className="w-full bg-[#8229B0] text-white hover:!border-[#9B52BF] hover:bg-white hover:!text-[#9B52BF]"
                       onClick={(e) => {
                         e.stopPropagation();
                         handleRegisterClick(campaign.id);
@@ -600,6 +608,10 @@ const CampaignsPage: React.FC = () => {
         onCancel={handleCancelRegister}
         okText="Đồng ý"
         cancelText="Hủy"
+        //9B52BF
+        okButtonProps={{
+          className: 'bg-[#9B52BF] text-white border-[#9B52BF]'
+        }}
       >
         <p>Bạn có chắc muốn đăng ký chiến dịch này không?</p>
       </Modal>
