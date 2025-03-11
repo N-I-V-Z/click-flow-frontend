@@ -9,18 +9,22 @@ import {
   CartesianGrid,
   Tooltip,
   Legend,
-  ResponsiveContainer
+  ResponsiveContainer,
+  PieChart,
+  Pie,
+  Cell
 } from 'recharts';
 
 const PublisherDashboard: React.FC = () => {
-  // Dữ liệu mẫu cho thống kê
+  // -------------------- DỮ LIỆU MẪU --------------------
+  // Dữ liệu thống kê
   const stats = {
     totalClicks: 1200,
     totalClicksCompleted: 950,
     activeUsers: 300
   };
 
-  // Dữ liệu mẫu cho trình duyệt
+  // Dữ liệu cho bảng Trình duyệt
   const browserData = [
     { name: 'Chrome', clicks: 800 },
     { name: 'Firefox', clicks: 200 },
@@ -32,14 +36,14 @@ const PublisherDashboard: React.FC = () => {
     0
   );
 
-  // Dữ liệu mẫu cho nền tảng thiết bị
+  // Dữ liệu cho bảng Nền tảng thiết bị
   const devicePlatforms = [
     { platform: 'Máy tính', count: 700 },
     { platform: 'Điện thoại', count: 400 },
     { platform: 'Máy tính bảng', count: 100 }
   ];
 
-  // Dữ liệu mẫu cho biểu đồ
+  // Dữ liệu biểu đồ đường về Clicks
   const chartData = [
     { time: '08:00', clicks: 100 },
     { time: '09:00', clicks: 200 },
@@ -52,6 +56,41 @@ const PublisherDashboard: React.FC = () => {
     { time: '16:00', clicks: 500 },
     { time: '17:00', clicks: 550 },
     { time: '18:00', clicks: 600 }
+  ];
+
+  // --------- Dữ liệu MỚI: Biểu đồ tròn về số tiền chuyển đổi ---------
+  // Giả sử số tiền chuyển đổi theo từng chiến dịch
+  const conversionData = [
+    { name: 'Chiến dịch A', value: 1200000 },
+    { name: 'Chiến dịch B', value: 800000 },
+    { name: 'Chiến dịch C', value: 600000 },
+    { name: 'Chiến dịch D', value: 300000 }
+  ];
+
+  // Mảng màu cho các lát cắt
+  const COLORS = [
+    '#0088FE',
+    '#00C49F',
+    '#FFBB28',
+    '#FF8042',
+    '#AA66CC',
+    '#F75C03'
+  ];
+
+  // --------- Dữ liệu MỚI: Biểu đồ đường về số tiền theo thời gian ---------
+  // Giả sử thống kê tiền (VNĐ) mỗi giờ (hoặc mỗi ngày tuỳ bạn)
+  const moneyChartData = [
+    { time: '08:00', amount: 100000 },
+    { time: '09:00', amount: 200000 },
+    { time: '10:00', amount: 350000 },
+    { time: '11:00', amount: 500000 },
+    { time: '12:00', amount: 550000 },
+    { time: '13:00', amount: 700000 },
+    { time: '14:00', amount: 850000 },
+    { time: '15:00', amount: 900000 },
+    { time: '16:00', amount: 1000000 },
+    { time: '17:00', amount: 1100000 },
+    { time: '18:00', amount: 1200000 }
   ];
 
   // Animation variants dùng cho framer-motion
@@ -120,7 +159,7 @@ const PublisherDashboard: React.FC = () => {
           ))}
         </div>
 
-        {/* Biểu đồ */}
+        {/* Biểu đồ đường: Clicks */}
         <motion.div
           initial="initial"
           animate="animate"
@@ -153,7 +192,7 @@ const PublisherDashboard: React.FC = () => {
         </motion.div>
 
         {/* Bảng thông tin */}
-        <div className="mb-20 grid grid-cols-1 gap-6 md:grid-cols-2">
+        <div className="mb-5 grid grid-cols-1 gap-6 md:grid-cols-2">
           {/* Bảng Trình duyệt */}
           <motion.div
             initial="initial"
@@ -225,6 +264,80 @@ const PublisherDashboard: React.FC = () => {
             </table>
           </motion.div>
         </div>
+
+        {/* =============== PHẦN MỚI: BIỂU ĐỒ VỀ SỐ TIỀN CHUYỂN ĐỔI =============== */}
+        <div className="mb-20 grid grid-cols-1 gap-6 md:grid-cols-2">
+          {/* Biểu đồ tròn: tiền chuyển đổi theo chiến dịch */}
+          <motion.div
+            initial="initial"
+            animate="animate"
+            variants={fadeInUp}
+            className="rounded-lg bg-white p-6 shadow-2xl transition-transform duration-300 hover:scale-105"
+          >
+            <h2 className="mb-4 text-lg font-semibold text-gray-700">
+              Tiền chuyển đổi theo chiến dịch
+            </h2>
+            <div className="h-[400px] w-full">
+              <ResponsiveContainer width="100%" height="100%">
+                <PieChart>
+                  <Pie
+                    data={conversionData}
+                    dataKey="value"
+                    nameKey="name"
+                    cx="50%"
+                    cy="50%"
+                    // Tạo donut bằng cách tăng innerRadius
+                    innerRadius={80}
+                    outerRadius={120}
+                    label
+                    paddingAngle={3}
+                  >
+                    {conversionData.map((entry, index) => (
+                      <Cell
+                        key={`cell-${index}`}
+                        fill={COLORS[index % COLORS.length]}
+                      />
+                    ))}
+                  </Pie>
+                  <Tooltip />
+                  <Legend />
+                </PieChart>
+              </ResponsiveContainer>
+            </div>
+          </motion.div>
+
+          {/* Biểu đồ đường: số tiền theo thời gian */}
+          <motion.div
+            initial="initial"
+            animate="animate"
+            variants={fadeInUp}
+            className="rounded-lg bg-white p-6 shadow-2xl transition-transform duration-300 hover:scale-105"
+          >
+            <h2 className="mb-4 text-lg font-semibold text-gray-700">
+              Biểu đồ đường: Số tiền chuyển đổi
+            </h2>
+            <div className="h-72">
+              <ResponsiveContainer width="100%" height="100%">
+                <LineChart data={moneyChartData}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#ccc" />
+                  <XAxis dataKey="time" />
+                  <YAxis />
+                  <Tooltip />
+                  <Legend />
+                  <Line
+                    type="monotone"
+                    dataKey="amount"
+                    stroke="#82ca9d"
+                    strokeWidth={3}
+                    activeDot={{ r: 8 }}
+                    animationDuration={1500}
+                  />
+                </LineChart>
+              </ResponsiveContainer>
+            </div>
+          </motion.div>
+        </div>
+        {/* =============== KẾT THÚC PHẦN MỚI =============== */}
       </motion.div>
     </div>
   );

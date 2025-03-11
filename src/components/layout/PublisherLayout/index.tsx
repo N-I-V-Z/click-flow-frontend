@@ -18,18 +18,20 @@ const PublisherLayout: React.FC = () => {
       {/* Nội dung chính (scroll) có khoảng trắng trên-dưới */}
       <Content
         className="
-          ml-64
-          mt-[64px] 
-          h-[calc(100vh-64px-64px)]
-          bg-white
-          p-6
+           relative
+    ml-64
+    mt-[64px] 
+    h-[calc(100vh-64px-64px-30px)] 
+    bg-white
+    p-6
+    pb-8
         "
       >
         <Outlet />
       </Content>
 
       {/* Footer cố định dưới cùng */}
-      <Footer className="fixed bottom-0 left-0 w-full bg-gray-200 p-4 text-center">
+      <Footer className="fixed bottom-0 left-0 z-10 w-full bg-gray-200 p-4 text-center">
         © {new Date().getFullYear()} ClickFlow. All rights reserved.
       </Footer>
     </Layout>
