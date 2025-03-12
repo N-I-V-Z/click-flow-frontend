@@ -107,7 +107,7 @@ const BaseRequest = {
           }
         }
       );
-      return response.data;
+      return response;
     } catch (error) {
       console.error('Error uploading stock photo:', error);
       throw error; // Bắn lỗi ra ngoài để xử lý tại nơi sử dụng
