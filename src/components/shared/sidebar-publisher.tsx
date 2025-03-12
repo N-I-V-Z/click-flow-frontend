@@ -1,11 +1,14 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Menu } from 'antd';
 import { HomeOutlined, UserOutlined, LogoutOutlined } from '@ant-design/icons';
-import { NavLink } from 'react-router-dom';
+import { NavLink, useLocation } from 'react-router-dom';
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 
-const SidebarAdvertiser: React.FC = () => {
+const SidebarPublisher: React.FC = () => {
+  const location = useLocation();
+  const [selectedKey, setSelectedKey] = useState(location.pathname);
+
   return (
     <div
       className="
@@ -19,29 +22,47 @@ const SidebarAdvertiser: React.FC = () => {
       {/* Menu chính */}
       <Menu
         mode="inline"
-        defaultSelectedKeys={['overview']}
+        selectedKeys={[selectedKey]}
         className="flex-grow border-r-0"
+        onClick={(e) => setSelectedKey(e.key)}
       >
-        <Menu.Item key="overview" icon={<HomeOutlined />}>
-          <NavLink to="/advertiser/dashboard">Tổng quan</NavLink>
+        <Menu.Item
+          key="/publisher/dashboard"
+          icon={<HomeOutlined />}
+          className={`
+            hover:!border-[#9B52BF] hover:bg-white hover:!text-[#9B52BF] 
+            ${selectedKey === '/publisher/dashboard' ? '!bg-[#9B52BF] !text-white' : ''}
+          `}
+        >
+          <NavLink to="/publisher/dashboard">Tổng quan</NavLink>
         </Menu.Item>
-        <Menu.Item key="campaign" icon={<HomeOutlined />}>
-          <NavLink to="/advertiser/campaigns">Chiến dịch</NavLink>
+        <Menu.Item
+          key="/publisher/campaign"
+          icon={<HomeOutlined />}
+          className={`
+            hover:!border-[#9B52BF] hover:bg-white hover:!text-[#9B52BF] 
+            ${selectedKey === '/publisher/campaign' ? '!bg-[#9B52BF] !text-white' : ''}
+          `}
+        >
+          <NavLink to="/publisher/campaign">Chiến dịch</NavLink>
         </Menu.Item>
       </Menu>
 
       {/* Khu vực dưới cùng (Hồ sơ, Đăng xuất) */}
       <div className="border-t">
         <Menu mode="inline" className="border-r-0">
-          <Menu.Item key="profile" icon={<UserOutlined />}>
-            <NavLink to="/advertiser/advertiser-profile">Hồ sơ</NavLink>
+          <Menu.Item
+            key="profile"
+            icon={<UserOutlined />}
+            className="hover:!border-[#9B52BF] hover:bg-white hover:!text-[#9B52BF]"
+          >
+            <NavLink to="">Hồ sơ</NavLink>
           </Menu.Item>
           <Menu.Item
             key="logout"
             icon={<LogoutOutlined />}
             style={{ color: 'red' }}
           >
-            {/* Khi click vào Đăng xuất, hiển thị modal xác nhận */}
             <a href="#" style={{ color: 'red' }}>
               Đăng xuất
             </a>
@@ -65,4 +86,4 @@ const SidebarAdvertiser: React.FC = () => {
   );
 };
 
-export default SidebarAdvertiser;
+export default SidebarPublisher;

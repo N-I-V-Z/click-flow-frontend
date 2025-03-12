@@ -4,6 +4,15 @@ import { Suspense, lazy } from 'react';
 
 const AdminLayout = lazy(() => import('@/components/layout/AdminLayout'));
 const AdminDashboard = lazy(() => import('@/pages/Admin/index'));
+const AdminCampaignRequest = lazy(
+  () => import('@/pages/Admin/CampaignRequest')
+);
+const AdminPublisherList = lazy(() => import('@/pages/Admin/ManagePublisher'));
+const AdminCampaignList = lazy(() => import('@/pages/Admin/CampaignList'));
+const AdminAdvertiserList = lazy(
+  () => import('@/pages/Admin/ManageAdvertiser')
+);
+const AdminManageReport = lazy(() => import('@/pages/Admin/ManageReport'));
 // Nếu có các trang khác, lazy load tiếp:
 // const AdminCampaign = lazy(() => import('@/pages/Admin/Campaign'));
 // ...
@@ -19,7 +28,12 @@ const adminRoutes = [
     children: [
       // Nếu gõ "/admin" thì tự chuyển sang "/admin/dashboard"
       { index: true, element: <Navigate to="dashboard" replace /> },
-      { path: 'dashboard', element: <AdminDashboard /> }
+      { path: 'dashboard', element: <AdminDashboard /> },
+      { path: 'campaignlist', element: <AdminCampaignList /> },
+      { path: 'campaignrequest', element: <AdminCampaignRequest /> },
+      { path: 'managepublisher', element: <AdminPublisherList /> },
+      { path: 'manageadvertiser', element: <AdminAdvertiserList /> },
+      { path: 'managereport', element: <AdminManageReport /> }
       // { path: 'campaign', element: <AdminCampaign /> },
       // ...
     ]

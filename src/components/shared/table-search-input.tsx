@@ -18,30 +18,33 @@ export default function TableSearchInput({
   const [searchTerm, setSearchTerm] = React.useState(country);
   // debounce the search input
   const [debouncedValue] = useDebounce(searchTerm, 1000);
-  const handleSettingSearchParams = useCallback((newSearchValue: string) => {
-    // Update the URL with the new search value
-    if (
-      newSearchValue === '' ||
-      newSearchValue === undefined ||
-      !newSearchValue
-    ) {
-      searchParams.delete('search');
-      setSearchParams(searchParams);
-      return;
-    }
-    setSearchParams({
-      ...Object.fromEntries(searchParams),
-      page: '1', // Spread the existing search params
-      search: newSearchValue // Update the search value
-    });
-  }, []);
+  const handleSettingSearchParams = useCallback(
+    (newSearchValue: string) => {
+      // Update the URL with the new search value
+      if (
+        newSearchValue === '' ||
+        newSearchValue === undefined ||
+        !newSearchValue
+      ) {
+        searchParams.delete('search');
+        setSearchParams(searchParams);
+        return;
+      }
+      setSearchParams({
+        ...Object.fromEntries(searchParams),
+        page: '1', // Spread the existing search params
+        search: newSearchValue // Update the search value
+      });
+    },
+    [searchParams, setSearchParams]
+  );
 
   React.useEffect(() => {
     handleSettingSearchParams(debouncedValue);
   }, [debouncedValue, handleSettingSearchParams]);
   return (
     <Input
-      placeholder={placeholder || `Search country...`}
+      placeholder={placeholder || `Tìm kiếm chiến dịch...`}
       value={searchTerm}
       onChange={(event) => setSearchTerm(event.target.value)}
       className="w-full md:max-w-sm"

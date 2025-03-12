@@ -2,12 +2,12 @@ import { Outlet } from 'react-router-dom';
 import { Layout } from 'antd';
 import HeaderAd from '@/components/shared/header-advertiser';
 import SidebarAd from '@/components/shared/sidebar-advertiser';
-
-const { Content, Footer } = Layout;
+import Footer from '@/components/shared/footer';
+const { Content } = Layout;
 
 const AdvertiserLayout: React.FC = () => {
   return (
-    <Layout className="h-screen bg-white">
+    <Layout className="bg-white">
       {/* Header cố định trên cùng */}
       <HeaderAd />
       {/* Sidebar cố định bên trái */}
@@ -19,9 +19,7 @@ const AdvertiserLayout: React.FC = () => {
         <Outlet />
       </Content>
       {/* Footer cố định dưới cùng, full width */}
-      <Footer className="fixed bottom-0 left-0 w-full bg-gray-200 p-4 text-center">
-        © {new Date().getFullYear()} Advertiser Platform. All rights reserved.
-      </Footer>
+      <Footer />
     </Layout>
   );
 };

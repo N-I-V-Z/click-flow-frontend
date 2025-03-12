@@ -1,5 +1,7 @@
 import { useState } from 'react';
 import { Pencil, Trash2, Eye } from 'lucide-react';
+import PaginationSection from '@/components/shared/pagination-section';
+import TableSearchInput from '@/components/shared/table-search-input';
 // Thư viện Recharts
 import {
   LineChart,
@@ -14,8 +16,22 @@ import {
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 
+interface Project {
+  id: number;
+  name: string;
+  createdDate: string;
+  advertiser: string;
+  status:
+    | 'Cần phê duyệt'
+    | 'Đang thực hiện'
+    | 'Hoàn thành'
+    | 'Tạm dừng'
+    | 'Đã từ chối';
+  deadline: string;
+}
+
 // Tạo nhiều dữ liệu giả
-const initialProjects = Array.from({ length: 50 }, (_, i) => ({
+const initialProjects: Project[] = Array.from({ length: 50 }, (_, i) => ({
   id: i + 1,
   name: `Project ${String.fromCharCode(65 + (i % 26))}`,
   createdDate: `2025-0${(i % 9) + 1}-0${(i % 9) + 1}`,
@@ -26,7 +42,7 @@ const initialProjects = Array.from({ length: 50 }, (_, i) => ({
     'Hoàn thành',
     'Tạm dừng',
     'Đã từ chối'
-  ][i % 5],
+  ][i % 5] as Project['status'], // ✅ Chắc chắn kiểu đúng
   deadline: `2025-0${(i % 9) + 2}-1${(i % 9) + 1}`
 }));
 
@@ -67,19 +83,19 @@ const AdvertiserCampaigns = () => {
 
   // Phân trang, tìm kiếm
   const [currentPage, setCurrentPage] = useState(1);
-  const [searchTerm, setSearchTerm] = useState('');
+  const [searchTerm] = useState<string>('');
 
   // Modal sửa
   const [isOpen, setIsOpen] = useState(false);
-  const [selectedProject, setSelectedProject] = useState<any>(null);
+  const [selectedProject, setSelectedProject] = useState<Project | null>(null);
 
   // Modal xem chi tiết
   const [isViewOpen, setIsViewOpen] = useState(false);
-  const [viewProject, setViewProject] = useState<any>(null);
+  const [viewProject, setViewProject] = useState<Project | null>(null);
 
   // Modal xóa
   const [isDeleteOpen, setIsDeleteOpen] = useState(false);
-  const [deleteProject, setDeleteProject] = useState<any>(null);
+  const [deleteProject, setDeleteProject] = useState<Project | null>(null);
 
   // Lọc theo tên
   const filteredProjects = allProjects.filter((project) =>
@@ -87,14 +103,14 @@ const AdvertiserCampaigns = () => {
   );
 
   // Tính toán phân trang
-  const totalPages = Math.ceil(filteredProjects.length / PAGE_SIZE);
+
   const currentData = filteredProjects.slice(
     (currentPage - 1) * PAGE_SIZE,
     currentPage * PAGE_SIZE
   );
 
   // Mở modal edit
-  const openEditModal = (project: any) => {
+  const openEditModal = (project: Project) => {
     setSelectedProject({ ...project });
     setIsOpen(true);
   };
@@ -106,7 +122,7 @@ const AdvertiserCampaigns = () => {
   };
 
   // Mở modal xem chi tiết
-  const openViewModal = (project: any) => {
+  const openViewModal = (project: Project) => {
     setViewProject(project);
     setIsViewOpen(true);
   };
@@ -118,7 +134,7 @@ const AdvertiserCampaigns = () => {
   };
 
   // Mở modal xóa
-  const openDeleteModal = (project: any) => {
+  const openDeleteModal = (project: Project) => {
     setDeleteProject(project);
     setIsDeleteOpen(true);
   };
@@ -144,35 +160,33 @@ const AdvertiserCampaigns = () => {
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
   ) => {
-    setSelectedProject({ ...selectedProject, [e.target.name]: e.target.value });
+    if (selectedProject) {
+      setSelectedProject({
+        ...selectedProject,
+        [e.target.name]: e.target.value
+      });
+    }
   };
 
   // Lưu dữ liệu
   const handleSave = () => {
-    console.log('Lưu dữ liệu:', selectedProject);
-
-    // Cập nhật trong mảng (nếu cần)
     if (selectedProject) {
       setAllProjects((prev) =>
         prev.map((p) => (p.id === selectedProject.id ? selectedProject : p))
       );
+      toast.success(
+        `Cập nhật chiến dịch "${selectedProject.name}" thành công!`
+      );
     }
-    toast.success(`Cập nhật chiến dịch "${selectedProject.name}" thành công!`);
     closeEditModal();
   };
 
   return (
-    <div className="p-6">
+    <div className="p-6 ">
       {/* Thanh tìm kiếm */}
       <div className="mb-4 flex items-center justify-between">
         <h2 className="text-xl font-semibold">Quản lí chiến dịch</h2>
-        <input
-          type="text"
-          placeholder="Tìm kiếm chiến dịch..."
-          className="rounded-lg border px-3 py-2 shadow-sm"
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-        />
+        <TableSearchInput />
       </div>
 
       {/* Bảng danh sách */}
@@ -236,27 +250,12 @@ const AdvertiserCampaigns = () => {
           </table>
 
           {/* Phân trang */}
-          <div className="flex items-center justify-center gap-4 bg-gray-100 p-4">
-            <button
-              onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
-              disabled={currentPage === 1}
-              className="rounded bg-gray-200 px-4 py-2 hover:bg-gray-300 disabled:bg-gray-100"
-            >
-              Previous
-            </button>
-            <span className="text-md rounded-lg bg-white px-4 py-2 font-medium">
-              Page {currentPage} of {totalPages}
-            </span>
-            <button
-              onClick={() =>
-                setCurrentPage((prev) => Math.min(prev + 1, totalPages))
-              }
-              disabled={currentPage === totalPages}
-              className="rounded bg-gray-200 px-4 py-2 hover:bg-gray-300 disabled:bg-gray-100"
-            >
-              Next
-            </button>
-          </div>
+          <PaginationSection
+            totalPosts={filteredProjects.length}
+            postsPerPage={PAGE_SIZE}
+            currentPage={currentPage}
+            setCurrentPage={setCurrentPage}
+          />
         </div>
       </div>
 
