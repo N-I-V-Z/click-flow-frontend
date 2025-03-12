@@ -1,7 +1,7 @@
 import axios from 'axios';
 import helpers from '../helpers';
 
-const baseURL = 'https://localhost:7093/';
+const baseURL = 'https://localhost:7087/';
 const token = helpers.cookie_get('AT');
 
 /**
@@ -63,7 +63,7 @@ const BaseRequest = {
   Get: async (url: string) => {
     try {
       const response = await axios.get(url);
-      return response.data;
+      return response;
     } catch (err) {
       console.log('err', err);
     }
@@ -71,7 +71,7 @@ const BaseRequest = {
   Post: async (url: string, data?: any) => {
     try {
       const response = await axios.post<any>(url, data);
-      return response.data;
+      return response;
     } catch (err) {
       console.log('err', err);
     }
@@ -79,7 +79,7 @@ const BaseRequest = {
   Put: async (url: string, data: any) => {
     try {
       const response = await axios.put<any>(url, data);
-      return response.data;
+      return response;
     } catch (err) {
       console.log('err', err);
     }
@@ -87,7 +87,7 @@ const BaseRequest = {
   Delete: async (url: string) => {
     try {
       const response = await axios.delete(url);
-      return response.data;
+      return response;
     } catch (err) {
       console.log('err', err);
     }
