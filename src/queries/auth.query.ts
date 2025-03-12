@@ -1,15 +1,16 @@
 import BaseRequest from '@/config/axios.config';
 import { useMutation } from '@tanstack/react-query';
 
-const SUB_URL = `api/v1/Account`;
-const BUSINESS_SUB_URL = `api/v1/Business`; // Endpoint cho đăng ký doanh nghiệp
-
+const SUB_URL = `api/Accounts`;
 export const useLogin = () => {
   return useMutation({
     mutationKey: ['login'],
-    // mutationFn: async (model: any) => {
-    mutationFn: async (model: unknown) => {
-      return BaseRequest.Post(`/${SUB_URL}/login`, model);
+    mutationFn: async (model: {
+      userNameOrEmail: string;
+      password: string;
+    }) => {
+      console.log(model);
+      return BaseRequest.Post(`/${SUB_URL}/authen`, model);
     }
   });
 };
@@ -17,9 +18,17 @@ export const useLogin = () => {
 export const useRegister = () => {
   return useMutation({
     mutationKey: ['register'],
-    // mutationFn: async (model: any) => {
     mutationFn: async (model: unknown) => {
-      return BaseRequest.Post(`/${SUB_URL}/register`, model);
+      return BaseRequest.Post(`/${SUB_URL}/sign-up`, model);
+    }
+  });
+};
+
+export const Logout = () => {
+  return useMutation({
+    mutationKey: ['register'],
+    mutationFn: async (model: { refreshToken: string }) => {
+      return BaseRequest.Post(`/${SUB_URL}/sign-out`, model);
     }
   });
 };
@@ -27,25 +36,42 @@ export const useRegister = () => {
 export const useResetPassword = () => {
   return useMutation({
     mutationKey: ['reset-password'],
-    mutationFn: async (model: { email: string; newPassword: string }) => {
+    mutationFn: async (model: {
+      email: string;
+      newPassword: string;
+      confirmedNewPassword: string;
+    }) => {
       return BaseRequest.Post(`/${SUB_URL}/reset-password`, model);
     }
   });
 };
 
-export const useRegisterBusiness = () => {
+export const useRegisterAdvertiser = () => {
   return useMutation({
-    mutationKey: ['register-business'],
+    mutationKey: ['register-advetiser'],
     mutationFn: async (model: {
       companyName: string;
-      website: string;
+      introductionWebsite: string;
       industry: string;
-      companySize: string;
+      staffSize: string;
       fullName: string;
-      contactEmail: string;
-      contactPhone: string;
+      email: string;
+      phoneNumber: 'user@example.com';
     }) => {
-      return BaseRequest.Post(`/${BUSINESS_SUB_URL}/register`, model);
+      return BaseRequest.Post(`/${SUB_URL}/register`, model);
+    }
+  });
+};
+
+export const useRegisterPublisher = () => {
+  return useMutation({
+    mutationKey: ['register-publisher'],
+    mutationFn: async (model: {
+      fullName: string;
+      email: string;
+      phoneNumber: 'user@example.com';
+    }) => {
+      return BaseRequest.Post(`/${SUB_URL}/register`, model);
     }
   });
 };
