@@ -6,6 +6,8 @@ import {
   EllipsisOutlined
 } from '@ant-design/icons';
 import { useNavigate } from 'react-router-dom';
+
+// Import DataTable mới sửa
 import DataTable from '@/components/shared/data-table';
 import { ColumnDef } from '@tanstack/react-table';
 
@@ -111,8 +113,7 @@ const initialRequests: RequestCampaign[] = [
 ];
 
 const CampaignRequest: React.FC = () => {
-  const [dataSource, setDataSource] =
-    useState<RequestCampaign[]>(initialRequests);
+  const [dataSource] = useState<RequestCampaign[]>(initialRequests);
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [modalAction, setModalAction] = useState<'accept' | 'reject' | null>(
     null
@@ -177,6 +178,7 @@ const CampaignRequest: React.FC = () => {
           const record = row.original;
           return (
             <div className="flex justify-center gap-3">
+              {/* Duyệt */}
               <CheckCircleOutlined
                 onClick={() => {
                   setSelectedCampaign(record);
@@ -185,6 +187,7 @@ const CampaignRequest: React.FC = () => {
                 }}
                 className="cursor-pointer rounded-full p-1 text-xl text-green-500 transition-colors hover:bg-green-500 hover:text-white"
               />
+              {/* Từ chối */}
               <CloseCircleOutlined
                 onClick={() => {
                   setSelectedCampaign(record);
@@ -193,6 +196,7 @@ const CampaignRequest: React.FC = () => {
                 }}
                 className="cursor-pointer rounded-full p-1 text-xl text-[#DC0E0E] transition-colors hover:bg-[#DC0E0E] hover:text-white"
               />
+              {/* Chi tiết */}
               <EllipsisOutlined
                 onClick={() =>
                   navigate(`/admin/campaign-request-detail/${record.id}`)
@@ -211,12 +215,18 @@ const CampaignRequest: React.FC = () => {
     <div className="mb-10 p-4">
       <h2 className="mb-4 text-xl font-semibold">Yêu cầu chiến dịch</h2>
 
-      {/* DataTable có sẵn chức năng search và phân trang */}
+      {/* 
+        DataTable của bạn hiện yêu cầu prop `pageCount`.
+        - Nếu muốn phân trang client-side (để bảng tự tính số trang),
+          bạn có thể truyền `pageCount={-1}` hoặc bỏ hẳn (nếu sửa interface cho optional).
+        - Ở đây ta truyền -1 để bảng hiểu là không giới hạn, 
+          nó sẽ tự chia trang dựa trên dữ liệu và state pagination.
+      */}
       <DataTable
         columns={columns}
         data={dataSource}
-        pageCount={1}
-        pageSizeOptions={[10, 20, 50, 100]}
+        pageCount={-1}
+        pageSizeOptions={[10, 20, 30, 40, 50]}
         showAdd={false}
       />
 

@@ -1,17 +1,17 @@
-import { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import {
-  Table,
-  Input,
   Button,
   Modal,
   Form,
   Radio,
   Descriptions,
   Card,
-  Tag
+  Tag,
+  Input
 } from 'antd';
 import { EditOutlined } from '@ant-design/icons';
-import type { ColumnsType } from 'antd/es/table';
+import DataTable from '@/components/shared/data-table'; // Điều chỉnh path theo dự án của bạn
+import { ColumnDef } from '@tanstack/react-table';
 
 interface Report {
   id: string;
@@ -39,8 +39,8 @@ const initialReports: Report[] = [
   }
 ];
 
-// Option: gán màu Tag tương ứng với từng status
-const statusTagColor = {
+// Gán màu cho Tag theo status
+const statusTagColor: Record<string, string> = {
   'Đã duyệt': 'green',
   'Đang chờ': 'blue',
   'Từ chối': 'red'
@@ -51,19 +51,14 @@ export default function ReportTable() {
   const [reports, setReports] = useState(initialReports);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedReport, setSelectedReport] = useState<Report | null>(null);
-
-  // Form chứa cả trạng thái và phản hồi
   const [form] = Form.useForm();
 
   const handleOpenModal = (record: Report) => {
     setSelectedReport(record);
-
-    // Gán giá trị mặc định cho form
     form.setFieldsValue({
       status: record.status,
       response: ''
     });
-
     setIsModalOpen(true);
   };
 
@@ -74,8 +69,6 @@ export default function ReportTable() {
         newStatus: values.status,
         response: values.response
       });
-
-      // Ví dụ: cập nhật luôn trong state (nếu muốn)
       if (selectedReport) {
         setReports((prev) =>
           prev.map((r) =>
@@ -87,75 +80,68 @@ export default function ReportTable() {
     });
   };
 
-  const filteredReports = reports.filter(
-    (report) =>
-      report.id.includes(search) ||
-      report.reporter.toLowerCase().includes(search.toLowerCase())
+  const filteredReports = useMemo(() => {
+    const lower = search.toLowerCase();
+    return reports.filter(
+      (report) =>
+        report.id.includes(search) ||
+        report.reporter.toLowerCase().includes(lower)
+    );
+  }, [reports, search]);
+
+  // Định nghĩa cột theo chuẩn ColumnDef của tanstack/react-table
+  const columns = useMemo<ColumnDef<Report>[]>(
+    () => [
+      {
+        accessorKey: 'id',
+        header: 'Mã báo cáo'
+      },
+      {
+        accessorKey: 'reporter',
+        header: 'Tên người báo cáo'
+      },
+      {
+        accessorKey: 'date',
+        header: 'Ngày tạo'
+      },
+      {
+        accessorKey: 'status',
+        header: 'Trạng thái',
+        cell: ({ row }) => {
+          const status = row.original.status;
+          const color = statusTagColor[status] || 'default';
+          return <Tag color={color}>{status}</Tag>;
+        }
+      },
+      {
+        id: 'action',
+        header: 'Hành động',
+        cell: ({ row }) => {
+          const record = row.original;
+          return (
+            <Button
+              type="link"
+              icon={<EditOutlined />}
+              onClick={() => handleOpenModal(record)}
+            />
+          );
+        }
+      }
+    ],
+    []
   );
 
-  const columns: ColumnsType<Report> = [
-    {
-      title: 'Mã báo cáo',
-      dataIndex: 'id',
-      key: 'id',
-      sorter: (a, b) => a.id.localeCompare(b.id)
-    },
-    {
-      title: 'Tên người báo cáo',
-      dataIndex: 'reporter',
-      key: 'reporter',
-      sorter: (a, b) => a.reporter.localeCompare(b.reporter)
-    },
-    {
-      title: 'Ngày tạo',
-      dataIndex: 'date',
-      key: 'date',
-      sorter: (a, b) => new Date(a.date).getTime() - new Date(b.date).getTime()
-    },
-    {
-      title: 'Trạng thái',
-      dataIndex: 'status',
-      key: 'status',
-      filters: [
-        { text: 'Đã duyệt', value: 'Đã duyệt' },
-        { text: 'Đang chờ', value: 'Đang chờ' },
-        { text: 'Từ chối', value: 'Từ chối' }
-      ],
-      onFilter: (value, record) => record.status === value,
-      render: (status) => {
-        // Hiển thị Tag màu tương ứng
-        const color = statusTagColor[status] || 'default';
-        return <Tag color={color}>{status}</Tag>;
-      }
-    },
-    {
-      title: 'Hành động',
-      key: 'action',
-      render: (_, record) => (
-        <Button
-          type="link"
-          icon={<EditOutlined />}
-          onClick={() => handleOpenModal(record)}
-        />
-      )
-    }
-  ];
-
   return (
-    <div className="p-4">
-      <div className="mb-4 flex justify-end">
-        <Input
-          placeholder="Tìm kiếm theo mã báo cáo hoặc tên người báo cáo"
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          className="w-1/3"
-        />
-      </div>
-      <Table
+    <div className="mb-10 p-4">
+      <h2 className="mb-4 text-xl font-semibold">Quản lý báo cáo</h2>
+
+      {/* Sử dụng DataTable mới để hiển thị báo cáo với phân trang và tìm kiếm client-side */}
+      <DataTable
         columns={columns}
-        dataSource={filteredReports}
-        rowKey="id"
-        pagination={{ pageSize: 5 }}
+        data={filteredReports}
+        pageCount={-1} // -1 để DataTable tự tính số trang dựa trên dữ liệu
+        pageSizeOptions={[5, 10, 20]}
+        showAdd={false}
       />
 
       <Modal
@@ -163,10 +149,8 @@ export default function ReportTable() {
         open={isModalOpen}
         onOk={handleSendResponse}
         onCancel={() => setIsModalOpen(false)}
-        // Đưa popup lên cao hơn
         style={{ top: 80 }}
         width={1000}
-        // Tạo scroll riêng bên trong popup
         bodyStyle={{
           padding: 24,
           maxHeight: '70vh',
@@ -188,13 +172,13 @@ export default function ReportTable() {
               bordered={false}
               className="rounded-md bg-gray-50 shadow-sm"
               style={{ flex: 1 }}
-              bodyStyle={{ padding: '16px' }}
+              bodyStyle={{ padding: 16 }}
             >
               <Descriptions
                 bordered
                 size="small"
                 column={1}
-                labelStyle={{ width: '30%', fontWeight: 'bold' }}
+                labelStyle={{ fontWeight: 'bold' }}
               >
                 <Descriptions.Item label="Mã báo cáo">
                   {selectedReport.id}
@@ -230,12 +214,12 @@ export default function ReportTable() {
               </Descriptions>
             </Card>
 
-            {/* Cột phải: Trạng thái + Phản hồi */}
+            {/* Cột phải: Trạng thái & Phản hồi */}
             <Card
               bordered={false}
               className="rounded-md bg-gray-50 shadow-sm"
               style={{ flex: 1 }}
-              bodyStyle={{ padding: '16px' }}
+              bodyStyle={{ padding: 16 }}
             >
               <Form form={form} layout="vertical">
                 <Form.Item
@@ -248,7 +232,7 @@ export default function ReportTable() {
                   <Radio.Group>
                     <Radio.Button
                       value="Đang chờ"
-                      className=" bg-[#F6B93B] text-white hover:border-[#F6B93B] hover:bg-white hover:text-[#F6B93B]"
+                      className="bg-[#F6B93B] text-white hover:border-[#F6B93B] hover:bg-white hover:text-[#F6B93B]"
                     >
                       Pending
                     </Radio.Button>
@@ -266,7 +250,6 @@ export default function ReportTable() {
                     </Radio.Button>
                   </Radio.Group>
                 </Form.Item>
-
                 <Form.Item
                   name="response"
                   label="Phản hồi"
