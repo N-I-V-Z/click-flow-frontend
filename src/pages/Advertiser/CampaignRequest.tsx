@@ -1,10 +1,10 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { Pencil, Trash2 } from 'lucide-react';
-import { ToastContainer, toast } from 'react-toastify';
+import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
-import PaginationSection from '@/components/shared/pagination-section';
-import TableSearchInput from '@/components/shared/table-search-input';
+import DataTable from '@/components/shared/data-table';
 
+// Dữ liệu mẫu
 const projects = Array.from({ length: 50 }, (_, i) => ({
   id: i + 1,
   name: `Project ${String.fromCharCode(65 + (i % 26))}`,
@@ -13,30 +13,23 @@ const projects = Array.from({ length: 50 }, (_, i) => ({
   executionTime: `2025-0${(i % 9) + 2}-0${(i % 9) + 1} to 2025-0${(i % 9) + 3}-1${(i % 9) + 1}`
 }));
 
-const PAGE_SIZE = 6;
-
 const CampaignRequest = () => {
   const [allProjects, setAllProjects] = useState(projects);
-  const [currentPage, setCurrentPage] = useState(1);
-  const [searchTerm] = useState('');
 
   // State cho modal chỉnh sửa
   const [isEditOpen, setIsEditOpen] = useState(false);
   const [selectedProject, setSelectedProject] = useState<any>(null);
 
-  // State cho modal xóa
+  // State cho modal xóa đơn
   const [isDeleteOpen, setIsDeleteOpen] = useState(false);
   const [deleteProject, setDeleteProject] = useState<any>(null);
 
-  const filteredProjects = allProjects.filter((project) =>
-    project.name.toLowerCase().includes(searchTerm.toLowerCase())
-  );
-  const currentData = filteredProjects.slice(
-    (currentPage - 1) * PAGE_SIZE,
-    currentPage * PAGE_SIZE
-  );
+  // State quản lý row selection của DataTable (được truyền từ DataTable)
+  const [rowSelection, setRowSelection] = useState<Record<string, boolean>>({});
+  // State chứa danh sách các dòng được chọn (dữ liệu gốc)
+  const [selectedRows, setSelectedRows] = useState<any[]>([]);
 
-  // Khi mở modal chỉnh sửa, tách executionTime thành executionStart & executionEnd
+  // Mở modal chỉnh sửa: tách executionTime thành executionStart & executionEnd
   const openEditModal = (project: any) => {
     let executionStart = '';
     let executionEnd = '';
@@ -54,19 +47,13 @@ const CampaignRequest = () => {
     setIsEditOpen(false);
   };
 
-  const handleDeleteConfirm = () => {
-    setAllProjects((prev) => prev.filter((p) => p.id !== deleteProject.id));
-    toast.success(`Đã xóa chiến dịch ${deleteProject.name} thành công!`);
-    closeDeleteModal();
-  };
-
   const handleEditChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
   ) => {
     setSelectedProject({ ...selectedProject, [e.target.name]: e.target.value });
   };
 
-  // Khi lưu, kết hợp executionStart & executionEnd thành executionTime, và hiển thị popup thành công
+  // Khi lưu, kết hợp executionStart & executionEnd thành executionTime
   const handleEditSave = () => {
     const updatedProject = {
       ...selectedProject,
@@ -89,66 +76,121 @@ const CampaignRequest = () => {
     setIsDeleteOpen(false);
   };
 
+  const handleDeleteConfirm = () => {
+    setAllProjects((prev) => prev.filter((p) => p.id !== deleteProject.id));
+    toast.success(`Đã xóa chiến dịch ${deleteProject.name} thành công!`);
+    closeDeleteModal();
+  };
+
+  // Định nghĩa các cột cho DataTable
+  const columns = useMemo(
+    () => [
+      {
+        id: 'select',
+        header: ({ table }: any) => (
+          <input
+            type="checkbox"
+            checked={table.getIsAllRowsSelected()}
+            onChange={(e) => table.toggleAllRowsSelected(e.target.checked)}
+          />
+        ),
+        cell: ({ row }: any) => (
+          <input
+            type="checkbox"
+            checked={row.getIsSelected()}
+            onChange={(e) => row.toggleSelected(e.target.checked)}
+          />
+        )
+      },
+      {
+        // Cột số thứ tự (STT): tính theo trang hiện tại
+        header: 'STT',
+        cell: ({ row, table }: any) => {
+          const { pageIndex, pageSize } = table.getState().pagination;
+          return pageIndex * pageSize + row.index + 1;
+        }
+      },
+      {
+        header: 'Tên chiến dịch & Ngày tạo',
+        cell: ({ row }: any) => (
+          <div>
+            <div>{row.original.name}</div>
+            <div className="text-sm text-gray-500">
+              Ngày tạo: {row.original.createdDate}
+            </div>
+          </div>
+        )
+      },
+      {
+        header: 'Mô tả',
+        accessorKey: 'description'
+      },
+      {
+        header: 'Thời gian thực hiện',
+        accessorKey: 'executionTime'
+      },
+      {
+        header: 'Thao tác',
+        cell: ({ row }: any) => (
+          <div className="flex gap-3">
+            <button
+              onClick={() => openEditModal(row.original)}
+              className="text-yellow hover:text-gray-400"
+            >
+              <Pencil size={18} />
+            </button>
+            <button
+              onClick={() => openDeleteModal(row.original)}
+              className="text-red hover:text-gray-400"
+            >
+              <Trash2 size={18} />
+            </button>
+          </div>
+        )
+      }
+    ],
+    [openEditModal, openDeleteModal]
+  );
+
+  // Hàm xóa các dòng được chọn (bulk delete)
+  const handleBulkDelete = () => {
+    if (selectedRows.length === 0) return;
+    setAllProjects((prev) =>
+      prev.filter(
+        (project) =>
+          !selectedRows.some((selected: any) => selected.id === project.id)
+      )
+    );
+    toast.success(`Đã xóa ${selectedRows.length} chiến dịch thành công!`);
+    // Reset row selection
+    setRowSelection({});
+  };
+
   return (
     <div className="mb-20 rounded-xl bg-white p-6">
       <div className="mb-4 flex items-center justify-between">
         <h2 className="text-xl font-semibold">Danh sách yêu cầu</h2>
-        <TableSearchInput />
+        {selectedRows.length > 0 && (
+          <button
+            onClick={handleBulkDelete}
+            className="hover:bg-red-600 rounded bg-red px-4 py-2 text-white"
+          >
+            Xóa đã chọn ({selectedRows.length})
+          </button>
+        )}
       </div>
-      <div className="overflow-hidden rounded-lg border bg-white shadow-md">
-        <div className="max-h-[400px] overflow-y-auto">
-          <table className="min-w-full border-collapse">
-            <thead className="sticky top-0 bg-gray-100 shadow">
-              <tr>
-                <th className="px-4 py-2 text-left">STT</th>
-                <th className="px-4 py-2 text-left">
-                  Tên chiến dịch & Ngày tạo
-                </th>
-                <th className="px-4 py-2 text-left">Mô tả</th>
-                <th className="px-4 py-2 text-left">Thời gian thực hiện</th>
-                <th className="px-4 py-2 text-center">Thao tác</th>
-              </tr>
-            </thead>
-            <tbody>
-              {currentData.map((project, index) => (
-                <tr key={project.id} className="border-t hover:bg-gray-50">
-                  <td className="px-4 py-2">
-                    {(currentPage - 1) * PAGE_SIZE + index + 1}
-                  </td>
-                  <td className="px-4 py-2">
-                    <div>{project.name}</div>
-                    <div className="text-sm text-gray-500">
-                      Ngày tạo: {project.createdDate}
-                    </div>
-                  </td>
-                  <td className="px-4 py-2">{project.description}</td>
-                  <td className="px-4 py-2">{project.executionTime}</td>
-                  <td className="mt-3 flex justify-center gap-3 px-4 py-2 text-center">
-                    <button
-                      className="text-yellow hover:text-gray-400"
-                      onClick={() => openEditModal(project)}
-                    >
-                      <Pencil size={18} />
-                    </button>
-                    <button
-                      className="text-red hover:text-gray-400"
-                      onClick={() => openDeleteModal(project)}
-                    >
-                      <Trash2 size={18} />
-                    </button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-        <PaginationSection
-          totalPosts={filteredProjects.length}
-          postsPerPage={PAGE_SIZE}
-          currentPage={currentPage}
-          setCurrentPage={setCurrentPage}
-        />
-      </div>
+      <DataTable
+        columns={columns}
+        data={allProjects}
+        pageCount={Math.ceil(allProjects.length / 10)}
+        pageSizeOptions={[10, 20, 30, 40, 50]}
+        heightTable="80dvh"
+        // Cho DataTable nhận rowSelection và callback cập nhật rowSelection
+        rowSelection={rowSelection}
+        onRowSelectionChange={setRowSelection}
+        // Callback để DataTable gửi về danh sách các dòng được chọn (dữ liệu gốc)
+        onSelectedRowsChange={setSelectedRows}
+      />
 
       {/* Modal chỉnh sửa */}
       {isEditOpen && selectedProject && (
@@ -156,7 +198,6 @@ const CampaignRequest = () => {
           <div className="w-full max-w-4xl rounded-lg bg-white p-6 shadow-lg">
             <h2 className="mb-4 text-xl font-semibold">Chỉnh sửa chiến dịch</h2>
             <div className="grid grid-cols-2 gap-4">
-              {/* Tên chiến dịch */}
               <div className="flex items-center space-x-4">
                 <label className="w-40 text-sm font-medium">
                   Tên chiến dịch
@@ -169,7 +210,6 @@ const CampaignRequest = () => {
                   onChange={handleEditChange}
                 />
               </div>
-              {/* Thời gian thực hiện: bắt đầu & kết thúc */}
               <div className="col-span-2 grid grid-cols-2 gap-4">
                 <div className="flex items-center space-x-4">
                   <label className="w-40 text-sm font-medium">Bắt đầu</label>
@@ -192,7 +232,6 @@ const CampaignRequest = () => {
                   />
                 </div>
               </div>
-              {/* Mô tả */}
               <div className="col-span-2 flex items-center space-x-4">
                 <label className="w-40 text-sm font-medium">Mô tả</label>
                 <textarea
@@ -221,7 +260,7 @@ const CampaignRequest = () => {
         </div>
       )}
 
-      {/* Modal xác nhận xóa */}
+      {/* Modal xác nhận xóa đơn */}
       {isDeleteOpen && deleteProject && (
         <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
           <div className="w-full max-w-sm rounded-lg bg-white p-4 shadow-lg">
@@ -247,7 +286,6 @@ const CampaignRequest = () => {
           </div>
         </div>
       )}
-
       <ToastContainer
         position="top-center"
         autoClose={5000}

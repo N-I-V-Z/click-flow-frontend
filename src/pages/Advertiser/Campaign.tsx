@@ -1,20 +1,11 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { Pencil, Trash2, Eye } from 'lucide-react';
-import PaginationSection from '@/components/shared/pagination-section';
-import TableSearchInput from '@/components/shared/table-search-input';
-// Thư viện Recharts
-import {
-  LineChart,
-  Line,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  Legend
-} from 'recharts';
-// Thư viện Toast
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+import { ColumnDef } from '@tanstack/react-table';
+
+import DataTable from '@/components/shared/data-table';
+import { Button } from '@/components/ui/button';
 
 interface Project {
   id: number;
@@ -30,7 +21,6 @@ interface Project {
   deadline: string;
 }
 
-// Tạo nhiều dữ liệu giả
 const initialProjects: Project[] = Array.from({ length: 50 }, (_, i) => ({
   id: i + 1,
   name: `Project ${String.fromCharCode(65 + (i % 26))}`,
@@ -42,404 +32,295 @@ const initialProjects: Project[] = Array.from({ length: 50 }, (_, i) => ({
     'Hoàn thành',
     'Tạm dừng',
     'Đã từ chối'
-  ][i % 5] as Project['status'], // ✅ Chắc chắn kiểu đúng
+  ][i % 5] as Project['status'],
   deadline: `2025-0${(i % 9) + 2}-1${(i % 9) + 1}`
 }));
 
-// Đổi màu dựa theo trạng thái
-const getStatusClass = (status: string) => {
-  switch (status) {
-    case 'Cần phê duyệt':
-      return 'bg-yellow';
-    case 'Đang thực hiện':
-      return 'bg-blue';
-    case 'Hoàn thành':
-      return 'bg-green-500';
-    case 'Tạm dừng':
-      return 'bg-orange';
-    case 'Đã từ chối':
-      return 'bg-red';
-    default:
-      return 'bg-gray';
-  }
-};
-
-// Số item mỗi trang
-const PAGE_SIZE = 7;
-
-// Data demo cho biểu đồ
-const chartData = [
-  { name: 'Jan', value: 120 },
-  { name: 'Feb', value: 240 },
-  { name: 'Mar', value: 180 },
-  { name: 'Apr', value: 300 },
-  { name: 'May', value: 250 },
-  { name: 'Jun', value: 400 }
-];
-
 const AdvertiserCampaigns = () => {
-  // Dữ liệu gốc (dùng state để có thể xóa)
   const [allProjects, setAllProjects] = useState(initialProjects);
+  const [selectedRows, setSelectedRows] = useState<any[]>([]);
+  // Từ khóa tìm kiếm
+  const [searchTerm, setSearchTerm] = useState('');
 
-  // Phân trang, tìm kiếm
-  const [currentPage, setCurrentPage] = useState(1);
-  const [searchTerm] = useState<string>('');
+  // Lưu trạng thái chọn nhiều dòng (rowSelection) của bảng
+  // Dạng: { '1': true, '2': false, ... } => true nghĩa là dòng đó được chọn
+  const [rowSelection, setRowSelection] = useState<Record<string, boolean>>({});
 
-  // Modal sửa
-  const [isOpen, setIsOpen] = useState(false);
+  // Modal states (xem, sửa, xóa đơn lẻ)
   const [selectedProject, setSelectedProject] = useState<Project | null>(null);
-
-  // Modal xem chi tiết
   const [isViewOpen, setIsViewOpen] = useState(false);
-  const [viewProject, setViewProject] = useState<Project | null>(null);
-
-  // Modal xóa
+  const [isEditOpen, setIsEditOpen] = useState(false);
   const [isDeleteOpen, setIsDeleteOpen] = useState(false);
-  const [deleteProject, setDeleteProject] = useState<Project | null>(null);
 
-  // Lọc theo tên
-  const filteredProjects = allProjects.filter((project) =>
-    project.name.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  // Lọc dữ liệu theo từ khóa tìm kiếm
+  const filteredData = useMemo(() => {
+    return allProjects.filter((project) =>
+      project.name.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+  }, [searchTerm, allProjects]);
 
-  // Tính toán phân trang
+  // Cột cho DataTable
+  const columns: ColumnDef<Project>[] = [
+    // Cột checkbox để chọn nhiều
+    {
+      id: 'select',
+      header: ({ table }) => (
+        <input
+          type="checkbox"
+          checked={table.getIsAllRowsSelected()}
+          onChange={(e) => table.toggleAllRowsSelected(e.target.checked)}
+        />
+      ),
+      cell: ({ row }) => (
+        <input
+          type="checkbox"
+          checked={row.getIsSelected()}
+          onChange={(e) => row.toggleSelected(e.target.checked)}
+        />
+      )
+    },
+    // Cột STT (tự tính theo chỉ số dòng)
+    {
+      id: 'stt',
+      header: 'STT',
+      cell: ({ row }) => row.index + 1
+    },
+    {
+      accessorKey: 'name',
+      header: 'Tên chiến dịch'
+    },
+    {
+      accessorKey: 'advertiser',
+      header: 'Nhà quảng cáo'
+    },
+    {
+      accessorKey: 'status',
+      header: 'Trạng thái',
+      cell: ({ row }) => {
+        const status = row.original.status;
+        return (
+          <span
+            className={`rounded px-2 py-1 text-white ${getStatusClass(status)}`}
+          >
+            {status}
+          </span>
+        );
+      }
+    },
+    {
+      accessorKey: 'deadline',
+      header: 'Ngày kết thúc'
+    },
+    {
+      id: 'actions',
+      header: 'Thao tác',
+      cell: ({ row }) => (
+        <div className="-ml-6 flex">
+          {/* Xem chi tiết */}
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => {
+              setSelectedProject(row.original);
+              setIsViewOpen(true);
+            }}
+          >
+            <Eye size={18} className="text-blue" />
+          </Button>
+          {/* Sửa */}
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => {
+              setSelectedProject(row.original);
+              setIsEditOpen(true);
+            }}
+          >
+            <Pencil size={18} className="text-yellow" />
+          </Button>
+          {/* Xóa đơn lẻ */}
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => {
+              setSelectedProject(row.original);
+              setIsDeleteOpen(true);
+            }}
+          >
+            <Trash2 size={18} className="text-red" />
+          </Button>
+        </div>
+      )
+    }
+  ];
 
-  const currentData = filteredProjects.slice(
-    (currentPage - 1) * PAGE_SIZE,
-    currentPage * PAGE_SIZE
-  );
-
-  // Mở modal edit
-  const openEditModal = (project: Project) => {
-    setSelectedProject({ ...project });
-    setIsOpen(true);
-  };
-
-  // Đóng modal edit
-  const closeEditModal = () => {
-    setIsOpen(false);
+  // Xử lý xóa đơn lẻ (trong modal xác nhận)
+  const handleDeleteSingle = () => {
+    if (selectedProject) {
+      setAllProjects((prev) => prev.filter((p) => p.id !== selectedProject.id));
+      toast.success(`Xóa chiến dịch "${selectedProject.name}" thành công!`);
+    }
+    setIsDeleteOpen(false);
     setSelectedProject(null);
   };
 
-  // Mở modal xem chi tiết
-  const openViewModal = (project: Project) => {
-    setViewProject(project);
-    setIsViewOpen(true);
-  };
-
-  // Đóng modal xem chi tiết
-  const closeViewModal = () => {
-    setViewProject(null);
-    setIsViewOpen(false);
-  };
-
-  // Mở modal xóa
-  const openDeleteModal = (project: Project) => {
-    setDeleteProject(project);
-    setIsDeleteOpen(true);
-  };
-
-  // Đóng modal xóa
-  const closeDeleteModal = () => {
-    setDeleteProject(null);
-    setIsDeleteOpen(false);
-  };
-
-  // Xác nhận xóa
-  const handleDelete = () => {
-    if (deleteProject) {
-      setAllProjects((prev) =>
-        prev.filter((item) => item.id !== deleteProject.id)
-      );
-      toast.success(`Xóa chiến dịch "${deleteProject.name}" thành công!`);
+  // Xử lý xóa nhiều (bằng checkbox)
+  const handleDeleteMulti = () => {
+    // Lấy các id dòng đã chọn
+    const selectedIds = Object.keys(rowSelection).filter(
+      (key) => rowSelection[key]
+    );
+    if (selectedIds.length === 0) {
+      toast.info('Không có chiến dịch nào được chọn!');
+      return;
     }
-    closeDeleteModal();
+    // Xóa các project có id trong selectedIds
+    setAllProjects((prev) =>
+      prev.filter((p) => !selectedIds.includes(p.id.toString()))
+    );
+    toast.success(`Đã xóa ${selectedIds.length} chiến dịch thành công!`);
+    // Reset rowSelection
+    setRowSelection({});
   };
 
-  // Xử lý khi thay đổi input
-  const handleChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
-  ) => {
-    if (selectedProject) {
-      setSelectedProject({
-        ...selectedProject,
-        [e.target.name]: e.target.value
-      });
-    }
-  };
-
-  // Lưu dữ liệu
-  const handleSave = () => {
-    if (selectedProject) {
-      setAllProjects((prev) =>
-        prev.map((p) => (p.id === selectedProject.id ? selectedProject : p))
-      );
-      toast.success(
-        `Cập nhật chiến dịch "${selectedProject.name}" thành công!`
-      );
-    }
-    closeEditModal();
+  const handleBulkDelete = () => {
+    if (selectedRows.length === 0) return;
+    setAllProjects((prev) =>
+      prev.filter(
+        (project) =>
+          !selectedRows.some((selected: any) => selected.id === project.id)
+      )
+    );
+    toast.success(`Đã xóa ${selectedRows.length} chiến dịch thành công!`);
+    // Reset row selection
+    setRowSelection({});
   };
 
   return (
-    <div className="p-6 ">
-      {/* Thanh tìm kiếm */}
+    <div className="p-6">
+      {/* Tiêu đề & thanh công cụ */}
       <div className="mb-4 flex items-center justify-between">
-        <h2 className="text-xl font-semibold">Quản lí chiến dịch</h2>
-        <TableSearchInput />
+        <h2 className="text-xl font-semibold">Danh sách yêu cầu</h2>
+        {selectedRows.length > 0 && (
+          <button
+            onClick={handleBulkDelete}
+            className="hover:bg-red-600 rounded bg-red px-4 py-2 text-white"
+          >
+            Xóa đã chọn ({selectedRows.length})
+          </button>
+        )}
       </div>
+      {/* Bảng dữ liệu */}
+      <DataTable
+        columns={columns}
+        data={filteredData}
+        pageCount={Math.ceil(filteredData.length / 10)}
+        // Quan trọng: Truyền rowSelection và callback
+        rowSelection={rowSelection}
+        onRowSelectionChange={setRowSelection}
+        onSelectedRowsChange={setSelectedRows}
+      />
 
-      {/* Bảng danh sách */}
-      <div className="overflow-hidden rounded-lg border bg-white shadow-md">
-        <div className="max-h-[400px] overflow-y-auto">
-          <table className="min-w-full border-collapse">
-            <thead className="sticky top-0 bg-gray-100 shadow">
-              <tr>
-                <th className="px-4 py-2 text-left">STT</th>
-                <th className="px-4 py-2 text-left">Tên chiến dịch</th>
-                <th className="px-4 py-2 text-left">Nhà quảng cáo</th>
-                <th className="px-4 py-2 text-left">Trạng thái</th>
-                <th className="px-4 py-2 text-left">Ngày kết thúc</th>
-                <th className="px-4 py-2 text-center">Thao tác</th>
-              </tr>
-            </thead>
-            <tbody>
-              {currentData.map((project, index) => (
-                <tr key={project.id} className="border-t hover:bg-gray-50">
-                  <td className="px-4 py-2 text-center">
-                    {(currentPage - 1) * PAGE_SIZE + index + 1}
-                  </td>
-                  <td className="px-4 py-2">{project.name}</td>
-                  <td className="px-4 py-2">{project.advertiser}</td>
-                  <td className="px-4 py-2">
-                    <span
-                      className={`rounded px-2 py-1 text-sm text-white ${getStatusClass(
-                        project.status
-                      )}`}
-                    >
-                      {project.status}
-                    </span>
-                  </td>
-                  <td className="px-4 py-2">{project.deadline}</td>
-                  <td className="flex justify-center gap-3 px-4 py-2 text-center">
-                    {/* Nút xem chi tiết */}
-                    <button
-                      className="text-blue hover:text-gray-400"
-                      onClick={() => openViewModal(project)}
-                    >
-                      <Eye size={18} />
-                    </button>
-                    {/* Nút edit */}
-                    <button
-                      onClick={() => openEditModal(project)}
-                      className="text-yellow hover:text-gray-400"
-                    >
-                      <Pencil size={18} />
-                    </button>
-                    {/* Nút xóa */}
-                    <button
-                      className="text-red hover:text-gray-400"
-                      onClick={() => openDeleteModal(project)}
-                    >
-                      <Trash2 size={18} />
-                    </button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-
-          {/* Phân trang */}
-          <PaginationSection
-            totalPosts={filteredProjects.length}
-            postsPerPage={PAGE_SIZE}
-            currentPage={currentPage}
-            setCurrentPage={setCurrentPage}
-          />
-        </div>
-      </div>
-
-      {/* Modal xem chi tiết (View Detail) */}
-      {isViewOpen && viewProject && (
-        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
-          <div className="mt-7 w-full max-w-4xl rounded-lg bg-white p-5 shadow-lg">
-            {/* Tiêu đề */}
-            <div className="mb-4 flex items-center justify-between">
-              <h2 className="text-xl font-semibold">
-                Tên chiến dịch: {viewProject.name}
-              </h2>
-              <button
-                onClick={closeViewModal}
-                className="rounded bg-gray-300 px-3 py-1 text-sm hover:bg-gray-400"
-              >
-                Đóng
-              </button>
-            </div>
-
-            {/* Các chỉ số */}
-            <div className="mb-6 grid grid-cols-3 gap-4">
-              {/* Visits */}
-              <div className="rounded-lg bg-gray-100 p-4 text-center">
-                <div className="text-2xl font-bold">3,671</div>
-                <div className="text-sm">Visits</div>
-                <div className="text-xs text-green-500">+0.3%</div>
-              </div>
-              {/* New Users */}
-              <div className="rounded-lg bg-gray-100 p-4 text-center">
-                <div className="text-2xl font-bold">256</div>
-                <div className="text-sm">New Users</div>
-                <div className="text-xs text-green-500">+15.3%</div>
-              </div>
-              {/* Active Users */}
-              <div className="rounded-lg bg-gray-100 p-4 text-center">
-                <div className="text-2xl font-bold">2,318</div>
-                <div className="text-sm">Active Users</div>
-                <div className="text-xs text-green-500">+0.8%</div>
-              </div>
-            </div>
-
-            {/* Biểu đồ đường (Line Chart) */}
-            <div className="flex items-center justify-between">
-              <h3 className="text-md font-semibold">Users</h3>
-              {/* Bộ chọn (tuần, tháng,...) chỉ là ví dụ tĩnh */}
-              <select className="rounded border px-2 py-1 text-sm">
-                <option value="week">Week</option>
-                <option value="month">Month</option>
-              </select>
-            </div>
-            <div className="mt-4 flex w-full justify-center">
-              <LineChart width={600} height={300} data={chartData}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="name" />
-                <YAxis />
-                <Tooltip />
-                <Legend />
-                <Line
-                  type="monotone"
-                  dataKey="value"
-                  stroke="#8884d8"
-                  activeDot={{ r: 8 }}
-                />
-              </LineChart>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Modal chỉnh sửa (Edit) */}
-      {isOpen && selectedProject && (
-        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
-          <div className="w-full max-w-3xl rounded-lg bg-white p-6 shadow-lg">
-            <h2 className="mb-4 text-lg font-semibold">Chỉnh sửa chiến dịch</h2>
-
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm font-medium">
-                  Tên chiến dịch
-                </label>
-                <input
-                  type="text"
-                  name="name"
-                  className="w-full rounded-lg border p-2"
-                  value={selectedProject.name}
-                  onChange={handleChange}
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium">
-                  Nhà quảng cáo
-                </label>
-                <input
-                  type="text"
-                  name="advertiser"
-                  className="w-full rounded-lg border p-2"
-                  value={selectedProject.advertiser}
-                  onChange={handleChange}
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium">Ngày tạo</label>
-                <input
-                  type="date"
-                  name="createdDate"
-                  className="w-full rounded-lg border p-2"
-                  value={selectedProject.createdDate}
-                  onChange={handleChange}
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium">Trạng thái</label>
-                <select
-                  name="status"
-                  className="w-full rounded-lg border p-2"
-                  value={selectedProject.status}
-                  onChange={handleChange}
-                >
-                  <option value="Cần phê duyệt">Cần phê duyệt</option>
-                  <option value="Đang thực hiện">Đang thực hiện</option>
-                  <option value="Hoàn thành">Hoàn thành</option>
-                  <option value="Tạm dừng">Tạm dừng</option>
-                  <option value="Đã từ chối">Đã từ chối</option>
-                </select>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium">
-                  Ngày kết thúc
-                </label>
-                <input
-                  type="date"
-                  name="deadline"
-                  className="w-full rounded-lg border p-2"
-                  value={selectedProject.deadline}
-                  onChange={handleChange}
-                />
-              </div>
-            </div>
-
-            <div className="mt-4 flex justify-end gap-2">
-              <button
-                onClick={closeEditModal}
-                className="rounded bg-gray-300 px-4 py-2 hover:bg-gray-400"
-              >
-                Hủy
-              </button>
-              <button
-                onClick={handleSave}
-                className="hover:bg-blue-600 rounded bg-blue px-4 py-2 text-white"
-              >
-                Lưu
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Modal xác nhận xóa */}
-      {isDeleteOpen && deleteProject && (
+      {/* Modal Xóa (đơn lẻ) */}
+      {isDeleteOpen && selectedProject && (
         <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
           <div className="w-full max-w-md rounded-lg bg-white p-6 shadow-lg">
             <h2 className="mb-4 text-lg font-semibold">Xác nhận xóa</h2>
             <p className="mb-6 text-sm">
               Bạn có chắc chắn muốn xóa chiến dịch{' '}
-              <span className="font-medium">{deleteProject.name}</span>?
+              <span className="font-medium">{selectedProject.name}</span>?
             </p>
             <div className="flex justify-end gap-2">
-              <button
-                onClick={closeDeleteModal}
-                className="rounded bg-gray-300 px-4 py-2 hover:bg-gray-400"
-              >
+              <Button variant="outline" onClick={() => setIsDeleteOpen(false)}>
                 Hủy
-              </button>
-              <button
-                onClick={handleDelete}
-                className="hover:bg-red-600 rounded bg-red px-4 py-2 text-white"
-              >
+              </Button>
+              <Button variant="destructive" onClick={handleDeleteSingle}>
                 Xóa
-              </button>
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal Xem chi tiết (demo) */}
+      {isViewOpen && selectedProject && (
+        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
+          <div className="w-full max-w-md rounded-lg bg-white p-6 shadow-lg">
+            <h2 className="mb-4 text-lg font-semibold">
+              Chi tiết: {selectedProject.name}
+            </h2>
+            <p>Nhà quảng cáo: {selectedProject.advertiser}</p>
+            <p>Trạng thái: {selectedProject.status}</p>
+            <p>Ngày tạo: {selectedProject.createdDate}</p>
+            <p>Deadline: {selectedProject.deadline}</p>
+            <div className="mt-4 flex justify-end">
+              <Button onClick={() => setIsViewOpen(false)}>Đóng</Button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal Sửa (demo) */}
+      {isEditOpen && selectedProject && (
+        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
+          <div className="w-full max-w-md rounded-lg bg-white p-6 shadow-lg">
+            <h2 className="mb-4 text-lg font-semibold">
+              Sửa: {selectedProject.name}
+            </h2>
+            <div className="flex flex-col gap-2">
+              <label>Tên chiến dịch</label>
+              <input
+                type="text"
+                value={selectedProject.name}
+                onChange={(e) =>
+                  setSelectedProject((prev) =>
+                    prev ? { ...prev, name: e.target.value } : null
+                  )
+                }
+                className="rounded border p-2"
+              />
+              <label>Trạng thái</label>
+              <select
+                value={selectedProject.status}
+                onChange={(e) =>
+                  setSelectedProject((prev) =>
+                    prev
+                      ? {
+                          ...prev,
+                          status: e.target.value as Project['status']
+                        }
+                      : null
+                  )
+                }
+                className="rounded border p-2"
+              >
+                <option value="Cần phê duyệt">Cần phê duyệt</option>
+                <option value="Đang thực hiện">Đang thực hiện</option>
+                <option value="Hoàn thành">Hoàn thành</option>
+                <option value="Tạm dừng">Tạm dừng</option>
+                <option value="Đã từ chối">Đã từ chối</option>
+              </select>
+            </div>
+            <div className="mt-4 flex justify-end gap-2">
+              <Button variant="outline" onClick={() => setIsEditOpen(false)}>
+                Hủy
+              </Button>
+              <Button
+                onClick={() => {
+                  // Lưu thay đổi vào allProjects
+                  if (selectedProject) {
+                    setAllProjects((prev) =>
+                      prev.map((p) =>
+                        p.id === selectedProject.id ? selectedProject : p
+                      )
+                    );
+                    toast.success(`Đã cập nhật "${selectedProject.name}"!`);
+                  }
+                  setIsEditOpen(false);
+                }}
+              >
+                Lưu
+              </Button>
             </div>
           </div>
         </div>
@@ -450,16 +331,27 @@ const AdvertiserCampaigns = () => {
         position="top-center"
         autoClose={5000}
         hideProgressBar={false}
-        newestOnTop={false}
-        closeOnClick={false}
-        rtl={false}
-        pauseOnFocusLoss
-        draggable
-        pauseOnHover
-        theme="colored"
       />
     </div>
   );
+};
+
+// Hàm đổi màu trạng thái
+const getStatusClass = (status: string) => {
+  switch (status) {
+    case 'Cần phê duyệt':
+      return 'bg-yellow';
+    case 'Đang thực hiện':
+      return 'bg-blue';
+    case 'Hoàn thành':
+      return 'bg-[#00AE72]';
+    case 'Tạm dừng':
+      return 'bg-orange';
+    case 'Đã từ chối':
+      return 'bg-red';
+    default:
+      return 'bg-gray';
+  }
 };
 
 export default AdvertiserCampaigns;
