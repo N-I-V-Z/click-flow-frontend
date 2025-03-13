@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Menu } from 'antd';
 import {
   HomeOutlined,
@@ -8,12 +8,15 @@ import {
   OrderedListOutlined,
   PullRequestOutlined
 } from '@ant-design/icons';
-import { NavLink } from 'react-router-dom';
+import { NavLink, useLocation } from 'react-router-dom';
 import { BiBuildings } from 'react-icons/bi';
 
 const { SubMenu } = Menu;
 
 const SidebarAdmin: React.FC = () => {
+  const location = useLocation();
+  const [selectedKey, setSelectedKey] = useState(location.pathname);
+
   return (
     <div
       className="
@@ -24,53 +27,111 @@ const SidebarAdmin: React.FC = () => {
         border-gray-200
       "
     >
-      {/* Menu chính */}
       <Menu
         mode="inline"
-        defaultSelectedKeys={['overview']}
+        selectedKeys={[selectedKey]}
+        onClick={(e) => setSelectedKey(e.key)}
         className="flex-grow border-r-0"
       >
-        {/* Tổng quan */}
-        <Menu.Item key="overview" icon={<HomeOutlined />}>
+        <Menu.Item
+          key="/admin/dashboard"
+          icon={<HomeOutlined />}
+          className={`
+            hover:!border-[#9B52BF] hover:bg-white hover:!text-[#9B52BF]
+            ${selectedKey === '/admin/dashboard' ? '!bg-[#9B52BF] !text-white' : ''}
+          `}
+        >
           <NavLink to="/admin/dashboard">Tổng quan</NavLink>
         </Menu.Item>
 
-        {/* Submenu Chiến dịch */}
-        <SubMenu key="campaign" icon={<FileTextOutlined />} title="Chiến dịch">
-          <Menu.Item key="campaign-list" icon={<OrderedListOutlined />}>
+        <SubMenu
+          key="campaign"
+          icon={<FileTextOutlined />}
+          title="Chiến dịch"
+          className="hover:!border-[#9B52BF] hover:bg-white hover:!text-[#9B52BF]"
+        >
+          <Menu.Item
+            key="/admin/campaignlist"
+            icon={<OrderedListOutlined />}
+            className={`
+              hover:!border-[#9B52BF] hover:bg-white hover:!text-[#9B52BF]
+              ${selectedKey === '/admin/campaignlist' ? '!bg-[#9B52BF] !text-white' : ''}
+            `}
+          >
             <NavLink to="/admin/campaignlist">Danh sách chiến dịch</NavLink>
           </Menu.Item>
-          <Menu.Item key="campaign-request" icon={<PullRequestOutlined />}>
+          <Menu.Item
+            key="/admin/campaignrequest"
+            icon={<PullRequestOutlined />}
+            className={`
+              hover:!border-[#9B52BF] hover:bg-white hover:!text-[#9B52BF]
+              ${selectedKey === '/admin/campaignrequest' ? '!bg-[#9B52BF] !text-white' : ''}
+            `}
+          >
             <NavLink to="/admin/campaignrequest">Yêu cầu chiến dịch</NavLink>
           </Menu.Item>
         </SubMenu>
 
-        {/* Nhà quảng cáo */}
-        <Menu.Item key="advertiser" icon={<BiBuildings />}>
+        <Menu.Item
+          key="/admin/manageadvertiser"
+          icon={<BiBuildings />}
+          className={`
+            hover:!border-[#9B52BF] hover:bg-white hover:!text-[#9B52BF]
+            ${selectedKey === '/admin/manageadvertiser' ? '!bg-[#9B52BF] !text-white' : ''}
+          `}
+        >
           <NavLink to="/admin/manageadvertiser">Nhà quảng cáo</NavLink>
         </Menu.Item>
 
-        {/* Nhà tiếp thị */}
-        <Menu.Item key="publisher" icon={<UserOutlined />}>
+        <Menu.Item
+          key="/admin/managepublisher"
+          icon={<UserOutlined />}
+          className={`
+            hover:!border-[#9B52BF] hover:bg-white hover:!text-[#9B52BF]
+            ${selectedKey === '/admin/managepublisher' ? '!bg-[#9B52BF] !text-white' : ''}
+          `}
+        >
           <NavLink to="/admin/managepublisher">Nhà tiếp thị</NavLink>
         </Menu.Item>
 
-        {/* Báo cáo */}
-        <Menu.Item key="report" icon={<FileTextOutlined />}>
+        <Menu.Item
+          key="/admin/managereport"
+          icon={<FileTextOutlined />}
+          className={`
+            hover:!border-[#9B52BF] hover:bg-white hover:!text-[#9B52BF]
+            ${selectedKey === '/admin/managereport' ? '!bg-[#9B52BF] !text-white' : ''}
+          `}
+        >
           <NavLink to="/admin/managereport">Báo cáo</NavLink>
         </Menu.Item>
       </Menu>
 
       {/* Khu vực dưới cùng (Hồ sơ, Đăng xuất) */}
       <div className="bg-gray-100 p-3">
-        <Menu mode="inline" className="border-r-0">
-          <Menu.Item key="profile" icon={<UserOutlined />}>
+        <Menu
+          mode="inline"
+          selectedKeys={[selectedKey]}
+          onClick={(e) => setSelectedKey(e.key)}
+          className="border-r-0"
+        >
+          <Menu.Item
+            key="/admin/profile"
+            icon={<UserOutlined />}
+            className={`
+              hover:!border-[#9B52BF] hover:bg-white hover:!text-[#9B52BF]
+              ${selectedKey === '/admin/profile' ? '!bg-[#9B52BF] !text-white' : ''}
+            `}
+          >
             <NavLink to="/admin/profile">Hồ sơ</NavLink>
           </Menu.Item>
           <Menu.Item
-            key="logout"
+            key="/logout"
             icon={<LogoutOutlined />}
             style={{ color: 'red' }}
+            className={`
+              hover:!border-[#9B52BF] hover:bg-white hover:!text-[#9B52BF]
+              ${selectedKey === '/logout' ? '!bg-[#9B52BF] !text-white' : ''}
+            `}
           >
             <NavLink to="/logout" style={{ color: 'red' }}>
               Đăng xuất

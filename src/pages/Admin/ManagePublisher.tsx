@@ -1,12 +1,12 @@
-import React, { useState, useEffect } from 'react';
-import { Table, Input, Modal, Button } from 'antd';
-import type { ColumnsType } from 'antd/es/table';
+import React, { useState, useMemo } from 'react';
+import { Modal, Button, Input } from 'antd';
 import {
   EyeOutlined,
   CloseCircleOutlined,
-  SearchOutlined,
   UserOutlined
 } from '@ant-design/icons';
+import DataTable from '@/components/shared/data-table'; // Điều chỉnh đường dẫn theo dự án của bạn
+import { ColumnDef } from '@tanstack/react-table';
 
 interface Publisher {
   id: number;
@@ -82,21 +82,16 @@ const initialPublishers: Publisher[] = [
     bankName: 'Agribank',
     status: 'Hoạt động'
   }
-  // ... (các dữ liệu khác)
 ];
 
 const PublisherList: React.FC = () => {
-  const [searchValue, setSearchValue] = useState('');
   const [dataSource, setDataSource] = useState<Publisher[]>(initialPublishers);
 
-  // Modal xem chi tiết
+  // --- Modal "Xem chi tiết" ---
   const [isViewModalVisible, setIsViewModalVisible] = useState(false);
   const [selectedPublisher, setSelectedPublisher] = useState<Publisher | null>(
     null
   );
-
-  // Modal khóa/mở khóa
-  const [isLockModalVisible, setIsLockModalVisible] = useState(false);
 
   const handleView = (record: Publisher) => {
     setSelectedPublisher(record);
@@ -107,6 +102,9 @@ const PublisherList: React.FC = () => {
     setIsViewModalVisible(false);
     setSelectedPublisher(null);
   };
+
+  // --- Modal "Khóa/Mở khóa" ---
+  const [isLockModalVisible, setIsLockModalVisible] = useState(false);
 
   const handleLockUnlock = (record: Publisher) => {
     setSelectedPublisher(record);
@@ -135,115 +133,73 @@ const PublisherList: React.FC = () => {
     setSelectedPublisher(null);
   };
 
-  const columns: ColumnsType<Publisher> = [
-    {
-      title: 'MÃ',
-      dataIndex: 'code',
-      key: 'code'
-    },
-    {
-      title: 'TÊN NHÀ TIẾP THỊ',
-      dataIndex: 'name',
-      key: 'name'
-    },
-    {
-      title: 'NGÀY TẠO',
-      dataIndex: 'createdAt',
-      key: 'createdAt'
-    },
-    {
-      title: 'TRẠNG THÁI',
-      dataIndex: 'status',
-      key: 'status',
-      render: (status: string) =>
-        status === 'Hoạt động' ? (
-          <span className="font-semibold text-green-600">{status}</span>
-        ) : (
-          <span className="font-semibold text-[#DC0E0E]">{status}</span>
-        )
-    },
-    {
-      title: 'HÀNH ĐỘNG',
-      key: 'action',
-      render: (_, record) => (
-        <div className="flex justify-center gap-3">
-          {/* Xem chi tiết */}
-          <EyeOutlined
-            className="
-              cursor-pointer rounded-full p-1
-              text-xl text-[#1570EF]
-              transition-colors hover:bg-[#1570EF] hover:text-white
-            "
-            onClick={() => handleView(record)}
-          />
-          {/* Khóa/Mở khóa */}
-          <CloseCircleOutlined
-            className="
-              cursor-pointer rounded-full p-1
-              text-xl text-[#DC0E0E]
-              transition-colors hover:bg-[#DC0E0E] hover:text-white
-            "
-            onClick={() => handleLockUnlock(record)}
-          />
-        </div>
-      )
-    }
-  ];
-
-  // Lọc theo mã hoặc tên
-  useEffect(() => {
-    const lower = searchValue.toLowerCase();
-    const filtered = initialPublishers.filter(
-      (item) =>
-        item.code.toLowerCase().includes(lower) ||
-        item.name.toLowerCase().includes(lower)
-    );
-    setDataSource(filtered);
-  }, [searchValue]);
+  // --- Định nghĩa cột cho DataTable ---
+  const columns = useMemo<ColumnDef<Publisher>[]>(
+    () => [
+      { accessorKey: 'code', header: 'MÃ' },
+      { accessorKey: 'name', header: 'TÊN NHÀ TIẾP THỊ' },
+      { accessorKey: 'createdAt', header: 'NGÀY TẠO' },
+      {
+        accessorKey: 'status',
+        header: 'TRẠNG THÁI',
+        cell: ({ row }) =>
+          row.original.status === 'Hoạt động' ? (
+            <span className="font-semibold text-green-600">
+              {row.original.status}
+            </span>
+          ) : (
+            <span className="font-semibold text-[#DC0E0E]">
+              {row.original.status}
+            </span>
+          )
+      },
+      {
+        id: 'action',
+        header: 'HÀNH ĐỘNG',
+        cell: ({ row }) => {
+          const record = row.original;
+          return (
+            <div className="flex justify-center gap-3">
+              <EyeOutlined
+                onClick={() => handleView(record)}
+                className="cursor-pointer rounded-full p-1 text-xl text-[#1570EF] transition-colors hover:bg-[#1570EF] hover:text-white"
+              />
+              <CloseCircleOutlined
+                onClick={() => handleLockUnlock(record)}
+                className="cursor-pointer rounded-full p-1 text-xl text-[#DC0E0E] transition-colors hover:bg-[#DC0E0E] hover:text-white"
+              />
+            </div>
+          );
+        }
+      }
+    ],
+    []
+  );
 
   return (
-    <div className="p-4">
+    <div className="mb-10 p-4">
       <h2 className="mb-4 text-xl font-semibold">Nhà tiếp thị</h2>
 
-      {/* Thanh tìm kiếm (bên phải) */}
-      <div className="mb-4 flex justify-end">
-        <Input
-          placeholder="Tìm kiếm theo mã hoặc tên"
-          prefix={<SearchOutlined />}
-          style={{ width: 250 }}
-          value={searchValue}
-          onChange={(e) => setSearchValue(e.target.value)}
-        />
-      </div>
-
-      {/* Bảng */}
-      <Table
+      {/* Sử dụng DataTable mới (tích hợp tìm kiếm, phân trang, sắp xếp client-side) */}
+      <DataTable
         columns={columns}
-        dataSource={dataSource}
-        rowKey="id"
-        pagination={{
-          pageSize: 10,
-          position: ['bottomCenter']
-        }}
+        data={dataSource}
+        pageCount={-1} // -1 để DataTable tự tính số trang dựa trên dữ liệu
+        pageSizeOptions={[10, 20, 30, 40, 50]}
+        showAdd={false}
       />
 
-      {/* Modal xem chi tiết */}
+      {/* Modal "Xem chi tiết" */}
       <Modal
         open={isViewModalVisible}
         onCancel={closeViewModal}
-        footer={
-          <Button onClick={closeViewModal} className="border">
-            Đóng
-          </Button>
-        }
-        // Xóa title gốc để dùng header tùy chỉnh
+        footer={<Button onClick={closeViewModal}>Đóng</Button>}
         title={null}
       >
         {selectedPublisher && (
           <div>
             {/* Header tùy chỉnh */}
             <div className="flex items-center gap-3">
-              {/* Icon đại diện */}
               <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-gray-200 text-2xl text-gray-600">
                 <UserOutlined />
               </div>
@@ -254,11 +210,7 @@ const PublisherList: React.FC = () => {
                 <p className="text-sm text-gray-500">Nhà tiếp thị</p>
               </div>
             </div>
-
-            {/* Dòng mờ ngăn cách */}
             <hr className="my-4 border-gray-300" />
-
-            {/* Thông tin chi tiết */}
             <div className="space-y-3">
               <div>
                 <label className="block font-semibold text-gray-600">
@@ -301,7 +253,7 @@ const PublisherList: React.FC = () => {
         )}
       </Modal>
 
-      {/* Modal khóa/mở khóa */}
+      {/* Modal "Khóa/Mở khóa" */}
       <Modal
         title={
           selectedPublisher?.status === 'Hoạt động'
@@ -316,9 +268,8 @@ const PublisherList: React.FC = () => {
         okButtonProps={{
           className: 'bg-[#1570EF] text-white border-none'
         }}
-        // Tùy chỉnh nút Hủy
         cancelButtonProps={{
-          className: 'text-[#DC0E0E] border-[#DC0E0E]  hover:text-white'
+          className: 'text-[#DC0E0E] border-[#DC0E0E] hover:text-white'
         }}
       >
         <p>

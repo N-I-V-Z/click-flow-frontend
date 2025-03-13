@@ -1,7 +1,17 @@
-import { useState } from 'react';
-import { Table, Input, Button, Modal, Form } from 'antd';
+import React, { useState, useMemo } from 'react';
+import {
+  Button,
+  Modal,
+  Form,
+  Radio,
+  Descriptions,
+  Card,
+  Tag,
+  Input
+} from 'antd';
 import { EditOutlined } from '@ant-design/icons';
-import type { ColumnsType } from 'antd/es/table';
+import DataTable from '@/components/shared/data-table'; // Điều chỉnh path theo dự án của bạn
+import { ColumnDef } from '@tanstack/react-table';
 
 interface Report {
   id: string;
@@ -29,15 +39,26 @@ const initialReports: Report[] = [
   }
 ];
 
+// Gán màu cho Tag theo status
+const statusTagColor: Record<string, string> = {
+  'Đã duyệt': 'green',
+  'Đang chờ': 'blue',
+  'Từ chối': 'red'
+};
+
 export default function ReportTable() {
   const [search, setSearch] = useState('');
-  const [reports] = useState(initialReports);
+  const [reports, setReports] = useState(initialReports);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedReport, setSelectedReport] = useState<Report | null>(null);
   const [form] = Form.useForm();
 
   const handleOpenModal = (record: Report) => {
     setSelectedReport(record);
+    form.setFieldsValue({
+      status: record.status,
+      response: ''
+    });
     setIsModalOpen(true);
   };
 
@@ -45,76 +66,82 @@ export default function ReportTable() {
     form.validateFields().then((values) => {
       console.log('Phản hồi gửi đi:', {
         ...selectedReport,
+        newStatus: values.status,
         response: values.response
       });
+      if (selectedReport) {
+        setReports((prev) =>
+          prev.map((r) =>
+            r.id === selectedReport.id ? { ...r, status: values.status } : r
+          )
+        );
+      }
       setIsModalOpen(false);
     });
   };
 
-  const filteredReports = reports.filter(
-    (report) =>
-      report.id.includes(search) ||
-      report.reporter.toLowerCase().includes(search.toLowerCase())
+  const filteredReports = useMemo(() => {
+    const lower = search.toLowerCase();
+    return reports.filter(
+      (report) =>
+        report.id.includes(search) ||
+        report.reporter.toLowerCase().includes(lower)
+    );
+  }, [reports, search]);
+
+  // Định nghĩa cột theo chuẩn ColumnDef của tanstack/react-table
+  const columns = useMemo<ColumnDef<Report>[]>(
+    () => [
+      {
+        accessorKey: 'id',
+        header: 'Mã báo cáo'
+      },
+      {
+        accessorKey: 'reporter',
+        header: 'Tên người báo cáo'
+      },
+      {
+        accessorKey: 'date',
+        header: 'Ngày tạo'
+      },
+      {
+        accessorKey: 'status',
+        header: 'Trạng thái',
+        cell: ({ row }) => {
+          const status = row.original.status;
+          const color = statusTagColor[status] || 'default';
+          return <Tag color={color}>{status}</Tag>;
+        }
+      },
+      {
+        id: 'action',
+        header: 'Hành động',
+        cell: ({ row }) => {
+          const record = row.original;
+          return (
+            <Button
+              type="link"
+              icon={<EditOutlined />}
+              onClick={() => handleOpenModal(record)}
+            />
+          );
+        }
+      }
+    ],
+    []
   );
 
-  const columns: ColumnsType<Report> = [
-    {
-      title: 'Mã báo cáo',
-      dataIndex: 'id',
-      key: 'id',
-      sorter: (a, b) => a.id.localeCompare(b.id)
-    },
-    {
-      title: 'Tên người báo cáo',
-      dataIndex: 'reporter',
-      key: 'reporter',
-      sorter: (a, b) => a.reporter.localeCompare(b.reporter)
-    },
-    {
-      title: 'Ngày tạo',
-      dataIndex: 'date',
-      key: 'date',
-      sorter: (a, b) => new Date(a.date).getTime() - new Date(b.date).getTime()
-    },
-    {
-      title: 'Trạng thái',
-      dataIndex: 'status',
-      key: 'status',
-      filters: [
-        { text: 'Đã duyệt', value: 'Đã duyệt' },
-        { text: 'Đang chờ', value: 'Đang chờ' },
-        { text: 'Từ chối', value: 'Từ chối' }
-      ],
-      onFilter: (value, record) => record.status === value
-    },
-    {
-      title: 'Hành động',
-      key: 'action',
-      render: (_, record) => (
-        <Button
-          type="link"
-          icon={<EditOutlined />}
-          onClick={() => handleOpenModal(record)}
-        />
-      )
-    }
-  ];
-
   return (
-    <div className="p-4">
-      <div className="mb-4 flex justify-end">
-        <Input
-          placeholder="Tìm kiếm theo mã báo cáo hoặc tên người báo cáo"
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          className="w-1/3"
-        />
-      </div>
-      <Table
+    <div className="mb-10 p-4">
+      <h2 className="mb-4 text-xl font-semibold">Quản lý báo cáo</h2>
+
+      {/* Sử dụng DataTable mới để hiển thị báo cáo với phân trang và tìm kiếm client-side */}
+      <DataTable
         columns={columns}
-        dataSource={filteredReports}
-        rowKey="id"
-        pagination={{ pageSize: 5 }}
+        data={filteredReports}
+        pageCount={-1} // -1 để DataTable tự tính số trang dựa trên dữ liệu
+        pageSizeOptions={[5, 10, 20]}
+        showAdd={false}
       />
 
       <Modal
@@ -122,56 +149,122 @@ export default function ReportTable() {
         open={isModalOpen}
         onOk={handleSendResponse}
         onCancel={() => setIsModalOpen(false)}
+        style={{ top: 80 }}
+        width={1000}
+        bodyStyle={{
+          padding: 24,
+          maxHeight: '70vh',
+          overflowY: 'auto',
+          display: 'flex',
+          gap: 16
+        }}
         okButtonProps={{
-          className: 'bg-[#7F56D9] text-white border-none'
+          className: 'bg-[#7F56D9] text-white border-none hover:opacity-90'
+        }}
+        cancelButtonProps={{
+          className: 'hover:opacity-80'
         }}
       >
         {selectedReport && (
-          <div className="space-y-2">
-            <div className="text-gray-500">
-              {selectedReport.id} - {selectedReport.date}
-            </div>
-            <div>
-              <strong>Người báo cáo:</strong> {selectedReport.reporter} (ID:{' '}
-              {selectedReport.reporterId})
-            </div>
-            <div>
-              <strong>Bị cáo:</strong> {selectedReport.accused} (ID:{' '}
-              {selectedReport.accusedId})
-            </div>
-            <div>
-              <strong>Lý do:</strong> {selectedReport.reason}
-            </div>
-            <div>
-              <strong>Bằng chứng:</strong>
-            </div>
-            {typeof selectedReport.evidence === 'string' ? (
-              <img
-                src={selectedReport.evidence}
-                alt="Bằng chứng"
-                className="max-h-60 w-full rounded-lg border border-gray-300 object-contain"
-              />
-            ) : (
-              <a
-                href={URL.createObjectURL(selectedReport.evidence)}
-                className="text-[#7F56D9] underline"
+          <>
+            {/* Cột trái: Thông tin báo cáo */}
+            <Card
+              bordered={false}
+              className="rounded-md bg-gray-50 shadow-sm"
+              style={{ flex: 1 }}
+              bodyStyle={{ padding: 16 }}
+            >
+              <Descriptions
+                bordered
+                size="small"
+                column={1}
+                labelStyle={{ fontWeight: 'bold' }}
               >
-                Tải xuống bằng chứng
-              </a>
-            )}
-            <Form form={form} layout="vertical" className="mt-4">
-              <Form.Item
-                name="response"
-                label="Phản hồi"
-                rules={[{ required: true, message: 'Vui lòng nhập phản hồi' }]}
-              >
-                <Input.TextArea
-                  rows={3}
-                  placeholder="Viết phản hồi của bạn về báo cáo này..."
-                />
-              </Form.Item>
-            </Form>
-          </div>
+                <Descriptions.Item label="Mã báo cáo">
+                  {selectedReport.id}
+                </Descriptions.Item>
+                <Descriptions.Item label="Ngày tạo">
+                  {selectedReport.date}
+                </Descriptions.Item>
+                <Descriptions.Item label="Người báo cáo">
+                  {selectedReport.reporter} (ID: {selectedReport.reporterId})
+                </Descriptions.Item>
+                <Descriptions.Item label="Bị cáo">
+                  {selectedReport.accused} (ID: {selectedReport.accusedId})
+                </Descriptions.Item>
+                <Descriptions.Item label="Lý do">
+                  {selectedReport.reason}
+                </Descriptions.Item>
+                <Descriptions.Item label="Bằng chứng">
+                  {typeof selectedReport.evidence === 'string' ? (
+                    <img
+                      src={selectedReport.evidence}
+                      alt="Bằng chứng"
+                      className="max-h-60 w-full rounded-lg border border-gray-300 object-contain"
+                    />
+                  ) : (
+                    <a
+                      href={URL.createObjectURL(selectedReport.evidence)}
+                      className="text-[#7F56D9] underline"
+                    >
+                      Tải xuống bằng chứng
+                    </a>
+                  )}
+                </Descriptions.Item>
+              </Descriptions>
+            </Card>
+
+            {/* Cột phải: Trạng thái & Phản hồi */}
+            <Card
+              bordered={false}
+              className="rounded-md bg-gray-50 shadow-sm"
+              style={{ flex: 1 }}
+              bodyStyle={{ padding: 16 }}
+            >
+              <Form form={form} layout="vertical">
+                <Form.Item
+                  name="status"
+                  label="Trạng thái"
+                  rules={[
+                    { required: true, message: 'Vui lòng chọn trạng thái' }
+                  ]}
+                >
+                  <Radio.Group>
+                    <Radio.Button
+                      value="Đang chờ"
+                      className="bg-[#F6B93B] text-white hover:border-[#F6B93B] hover:bg-white hover:text-[#F6B93B]"
+                    >
+                      Pending
+                    </Radio.Button>
+                    <Radio.Button
+                      value="Đã duyệt"
+                      className="bg-[#24A503] text-white hover:border-[#24A503] hover:bg-white hover:text-[#24A503]"
+                    >
+                      Approve
+                    </Radio.Button>
+                    <Radio.Button
+                      value="Từ chối"
+                      className="bg-[#E45959] text-white hover:border-[#E45959] hover:bg-white hover:text-[#E45959]"
+                    >
+                      Reject
+                    </Radio.Button>
+                  </Radio.Group>
+                </Form.Item>
+                <Form.Item
+                  name="response"
+                  label="Phản hồi"
+                  rules={[
+                    { required: true, message: 'Vui lòng nhập phản hồi' }
+                  ]}
+                >
+                  <Input.TextArea
+                    rows={6}
+                    placeholder="Viết phản hồi của bạn về báo cáo này..."
+                  />
+                </Form.Item>
+              </Form>
+            </Card>
+          </>
         )}
       </Modal>
     </div>

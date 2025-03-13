@@ -1,12 +1,15 @@
-import React, { useState, useEffect } from 'react';
-import { Table, Input, Modal } from 'antd';
-import type { ColumnsType } from 'antd/es/table';
+import React, { useState, useMemo } from 'react';
+import { Modal } from 'antd';
 import {
   CheckCircleOutlined,
   CloseCircleOutlined,
-  EllipsisOutlined,
-  SearchOutlined
+  EllipsisOutlined
 } from '@ant-design/icons';
+import { useNavigate } from 'react-router-dom';
+
+// Import DataTable mới sửa
+import DataTable from '@/components/shared/data-table';
+import { ColumnDef } from '@tanstack/react-table';
 
 interface RequestCampaign {
   id: number;
@@ -17,7 +20,7 @@ interface RequestCampaign {
   status: string;
 }
 
-// 11 dữ liệu mẫu
+// Dữ liệu mẫu
 const initialRequests: RequestCampaign[] = [
   {
     id: 1,
@@ -107,18 +110,10 @@ const initialRequests: RequestCampaign[] = [
     advertiser: 'FPT',
     status: 'Chờ duyệt'
   }
-  // ... (các item khác)
 ];
 
 const CampaignRequest: React.FC = () => {
-  // State cho tìm kiếm
-  const [searchValue, setSearchValue] = useState('');
-
-  // State cho dữ liệu bảng (lọc theo search)
-  const [dataSource, setDataSource] =
-    useState<RequestCampaign[]>(initialRequests);
-
-  // State quản lý Modal
+  const [dataSource] = useState<RequestCampaign[]>(initialRequests);
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [modalAction, setModalAction] = useState<'accept' | 'reject' | null>(
     null
@@ -126,7 +121,9 @@ const CampaignRequest: React.FC = () => {
   const [selectedCampaign, setSelectedCampaign] =
     useState<RequestCampaign | null>(null);
 
-  // Xử lý khi bấm OK trên Modal
+  const navigate = useNavigate();
+
+  // Xử lý xác nhận Modal
   const handleOk = () => {
     if (selectedCampaign && modalAction) {
       if (modalAction === 'accept') {
@@ -140,122 +137,97 @@ const CampaignRequest: React.FC = () => {
     setSelectedCampaign(null);
   };
 
-  // Xử lý khi bấm Cancel trên Modal
   const handleCancel = () => {
     setIsModalVisible(false);
     setModalAction(null);
     setSelectedCampaign(null);
   };
 
-  // Cấu hình cột cho bảng
-  const columns: ColumnsType<RequestCampaign> = [
-    {
-      title: 'TÊN CHIẾN DỊCH',
-      dataIndex: 'name',
-      key: 'name'
-    },
-    {
-      title: 'NGÀY TẠO',
-      dataIndex: 'createdAt',
-      key: 'createdAt'
-    },
-    {
-      title: 'NGÀY KẾT THÚC',
-      dataIndex: 'endAt',
-      key: 'endAt'
-    },
-    {
-      title: 'NHÀ QUẢNG CÁO',
-      dataIndex: 'advertiser',
-      key: 'advertiser'
-    },
-    {
-      title: 'TRẠNG THÁI',
-      dataIndex: 'status',
-      key: 'status',
-      render: (status: string) => (
-        <span className="text-orange-600 font-semibold">{status}</span>
-      )
-    },
-    {
-      title: 'HÀNH ĐỘNG',
-      key: 'action',
-      render: (_, record) => (
-        <div className="flex justify-center gap-3">
-          {/* Duyệt */}
-          <CheckCircleOutlined
-            className="
-              cursor-pointer rounded-full p-1
-              text-xl text-green-500
-              transition-colors hover:bg-green-500 hover:text-white
-            "
-            onClick={() => {
-              setSelectedCampaign(record);
-              setModalAction('accept');
-              setIsModalVisible(true);
-            }}
-          />
-
-          {/* Từ chối */}
-          <CloseCircleOutlined
-            className="
-              cursor-pointer rounded-full p-1
-              text-xl text-[#DC0E0E]
-              transition-colors hover:bg-[#DC0E0E] hover:text-white
-            "
-            onClick={() => {
-              setSelectedCampaign(record);
-              setModalAction('reject');
-              setIsModalVisible(true);
-            }}
-          />
-
-          {/* Khác / Menu */}
-          <EllipsisOutlined
-            className="
-              cursor-pointer rounded-full p-1
-              text-xl text-[#FFBF00]
-              transition-colors hover:bg-[#FFBF00] hover:text-white
-            "
-            onClick={() => alert(`Thao tác khác cho: ${record.name}`)}
-          />
-        </div>
-      )
-    }
-  ];
-
-  // Lọc dữ liệu khi searchValue thay đổi
-  useEffect(() => {
-    const filtered = initialRequests.filter((item) =>
-      item.name.toLowerCase().includes(searchValue.toLowerCase())
-    );
-    setDataSource(filtered);
-  }, [searchValue]);
+  // Định nghĩa cột theo chuẩn ColumnDef của tanstack/react-table
+  const columns = useMemo<ColumnDef<RequestCampaign>[]>(
+    () => [
+      {
+        accessorKey: 'name',
+        header: 'TÊN CHIẾN DỊCH'
+      },
+      {
+        accessorKey: 'createdAt',
+        header: 'NGÀY TẠO'
+      },
+      {
+        accessorKey: 'endAt',
+        header: 'NGÀY KẾT THÚC'
+      },
+      {
+        accessorKey: 'advertiser',
+        header: 'NHÀ QUẢNG CÁO'
+      },
+      {
+        accessorKey: 'status',
+        header: 'TRẠNG THÁI',
+        cell: ({ row }) => (
+          <span className="text-orange-600 font-semibold">
+            {row.original.status}
+          </span>
+        )
+      },
+      {
+        id: 'actions',
+        header: 'HÀNH ĐỘNG',
+        cell: ({ row }) => {
+          const record = row.original;
+          return (
+            <div className="flex justify-center gap-3">
+              {/* Duyệt */}
+              <CheckCircleOutlined
+                onClick={() => {
+                  setSelectedCampaign(record);
+                  setModalAction('accept');
+                  setIsModalVisible(true);
+                }}
+                className="cursor-pointer rounded-full p-1 text-xl text-green-500 transition-colors hover:bg-green-500 hover:text-white"
+              />
+              {/* Từ chối */}
+              <CloseCircleOutlined
+                onClick={() => {
+                  setSelectedCampaign(record);
+                  setModalAction('reject');
+                  setIsModalVisible(true);
+                }}
+                className="cursor-pointer rounded-full p-1 text-xl text-[#DC0E0E] transition-colors hover:bg-[#DC0E0E] hover:text-white"
+              />
+              {/* Chi tiết */}
+              <EllipsisOutlined
+                onClick={() =>
+                  navigate(`/admin/campaign-request-detail/${record.id}`)
+                }
+                className="cursor-pointer rounded-full p-1 text-xl text-[#FFBF00] transition-colors hover:bg-[#FFBF00] hover:text-white"
+              />
+            </div>
+          );
+        }
+      }
+    ],
+    [navigate]
+  );
 
   return (
-    <div className="p-4">
+    <div className="mb-10 p-4">
       <h2 className="mb-4 text-xl font-semibold">Yêu cầu chiến dịch</h2>
 
-      {/* Thanh tìm kiếm (bên phải) */}
-      <div className="mb-4 flex justify-end">
-        <Input
-          placeholder="Tìm kiếm chiến dịch"
-          prefix={<SearchOutlined />}
-          style={{ width: 250 }}
-          value={searchValue}
-          onChange={(e) => setSearchValue(e.target.value)}
-        />
-      </div>
-
-      {/* Bảng (pagination giữa) */}
-      <Table
+      {/* 
+        DataTable của bạn hiện yêu cầu prop `pageCount`.
+        - Nếu muốn phân trang client-side (để bảng tự tính số trang),
+          bạn có thể truyền `pageCount={-1}` hoặc bỏ hẳn (nếu sửa interface cho optional).
+        - Ở đây ta truyền -1 để bảng hiểu là không giới hạn, 
+          nó sẽ tự chia trang dựa trên dữ liệu và state pagination.
+      */}
+      <DataTable
         columns={columns}
-        dataSource={dataSource}
-        rowKey="id"
-        pagination={{
-          pageSize: 10,
-          position: ['bottomCenter']
-        }}
+        data={dataSource}
+        pageCount={-1}
+        pageSizeOptions={[10, 20, 30, 40, 50]}
+        showAdd={false}
       />
 
       {/* Modal xác nhận Duyệt / Từ chối */}
@@ -272,32 +244,23 @@ const CampaignRequest: React.FC = () => {
         onCancel={handleCancel}
         okText="Xác nhận"
         cancelText="Hủy"
-        // Tùy chỉnh nút OK
         okButtonProps={{
           className: 'bg-[#1570EF] text-white border-none'
         }}
-        // Tùy chỉnh nút Hủy
         cancelButtonProps={{
-          className: 'text-[#DC0E0E] border-[#DC0E0E]  hover:text-white'
+          className: 'text-[#DC0E0E] border-[#DC0E0E] hover:text-white'
         }}
       >
         {modalAction === 'accept' && selectedCampaign && (
           <p>
             Bạn có chắc muốn <b className="text-green-600">duyệt</b> chiến dịch
-            <span className="ml-1 font-semibold">
-              "{selectedCampaign.name}"
-            </span>
-            ?
+            "{selectedCampaign.name}" không?
           </p>
         )}
         {modalAction === 'reject' && selectedCampaign && (
           <p>
             Bạn có chắc muốn <b className="text-[#DC0E0E]">từ chối</b> chiến
-            dịch
-            <span className="ml-1 font-semibold">
-              "{selectedCampaign.name}"
-            </span>
-            ?
+            dịch "{selectedCampaign.name}" không?
           </p>
         )}
       </Modal>

@@ -1,18 +1,16 @@
-import React, { useState, useEffect } from 'react';
-import { Table, Input, Modal, Button } from 'antd';
-import type { ColumnsType } from 'antd/es/table';
-import {
-  EyeOutlined,
-  CloseCircleOutlined,
-  SearchOutlined
-} from '@ant-design/icons';
+import React, { useState, useMemo } from 'react';
+import { Modal, Button, Input } from 'antd';
+import { EyeOutlined, CloseCircleOutlined } from '@ant-design/icons';
 import { BiBuildings } from 'react-icons/bi';
+import DataTable from '@/components/shared/data-table'; // Điều chỉnh path cho phù hợp
+import { ColumnDef } from '@tanstack/react-table';
+
 interface Advertiser {
   id: number;
   code: string; // Mã nhà quảng cáo
   name: string; // Tên hiển thị
   phone: string; // Số điện thoại
-  userName: string; // Tên người dùng (username)
+  userName: string; // Username
   createdAt: string; // Ngày tạo
   email: string;
   company: string; // Tên công ty
@@ -84,19 +82,18 @@ const initialAdvertisers: Advertiser[] = [
 ];
 
 const AdvertiserList: React.FC = () => {
-  const [searchValue, setSearchValue] = useState('');
   const [dataSource, setDataSource] =
     useState<Advertiser[]>(initialAdvertisers);
 
-  // -- 1) State cho popup "Xem chi tiết"
+  // State cho modal "Xem chi tiết"
   const [isViewModalVisible, setIsViewModalVisible] = useState(false);
   const [selectedAdvertiser, setSelectedAdvertiser] =
     useState<Advertiser | null>(null);
 
-  // -- 2) State cho popup "Khóa/Mở khóa"
+  // State cho modal "Khóa/Mở khóa"
   const [isLockModalVisible, setIsLockModalVisible] = useState(false);
 
-  // (1) Xử lý "Xem chi tiết"
+  // Xử lý "Xem chi tiết"
   const handleView = (record: Advertiser) => {
     setSelectedAdvertiser(record);
     setIsViewModalVisible(true);
@@ -106,14 +103,13 @@ const AdvertiserList: React.FC = () => {
     setSelectedAdvertiser(null);
   };
 
-  // (2) Xử lý "Khóa/Mở khóa"
+  // Xử lý "Khóa/Mở khóa"
   const handleLockUnlock = (record: Advertiser) => {
     setSelectedAdvertiser(record);
     setIsLockModalVisible(true);
   };
   const confirmLockUnlock = () => {
     if (selectedAdvertiser) {
-      // Đổi trạng thái
       setDataSource((prev) =>
         prev.map((item) =>
           item.id === selectedAdvertiser.id
@@ -133,125 +129,77 @@ const AdvertiserList: React.FC = () => {
     setSelectedAdvertiser(null);
   };
 
-  // Cột cho bảng
-  const columns: ColumnsType<Advertiser> = [
-    {
-      title: 'MÃ',
-      dataIndex: 'code',
-      key: 'code'
-    },
-    {
-      title: 'TÊN NHÀ QUẢNG CÁO',
-      dataIndex: 'name',
-      key: 'name'
-    },
-    {
-      title: 'NGÀY TẠO',
-      dataIndex: 'createdAt',
-      key: 'createdAt'
-    },
-    {
-      title: 'TÊN CÔNG TY',
-      dataIndex: 'company',
-      key: 'company'
-    },
-    {
-      title: 'TRẠNG THÁI',
-      dataIndex: 'status',
-      key: 'status',
-      render: (status: string) =>
-        status === 'Hoạt động' ? (
-          <span className="font-semibold text-green-600">{status}</span>
-        ) : (
-          <span className="font-semibold text-[#DC0E0E]">{status}</span>
-        )
-    },
-    {
-      title: 'HÀNH ĐỘNG',
-      key: 'action',
-      render: (_, record) => (
-        <div className="flex justify-center gap-3">
-          {/* Xem */}
-          <EyeOutlined
-            className="
-              cursor-pointer rounded-full p-1
-              text-xl text-[#1570EF]
-              transition-colors hover:bg-[#1570EF] hover:text-white
-            "
-            onClick={() => handleView(record)}
-          />
-
-          {/* Khóa/Mở khóa */}
-          <CloseCircleOutlined
-            className="
-              cursor-pointer rounded-full p-1
-              text-xl text-[#DC0E0E]
-              transition-colors hover:bg-[#DC0E0E] hover:text-white
-            "
-            onClick={() => handleLockUnlock(record)}
-          />
-        </div>
-      )
-    }
-  ];
-
-  // Lọc dữ liệu theo (mã, tên, công ty)
-  useEffect(() => {
-    const lower = searchValue.toLowerCase();
-    const filtered = initialAdvertisers.filter(
-      (item) =>
-        item.code.toLowerCase().includes(lower) ||
-        item.name.toLowerCase().includes(lower) ||
-        item.company.toLowerCase().includes(lower)
-    );
-    setDataSource(filtered);
-  }, [searchValue]);
+  // Định nghĩa cột theo chuẩn ColumnDef cho DataTable
+  const columns = useMemo<ColumnDef<Advertiser>[]>(
+    () => [
+      { accessorKey: 'code', header: 'MÃ' },
+      { accessorKey: 'name', header: 'TÊN NHÀ QUẢNG CÁO' },
+      { accessorKey: 'createdAt', header: 'NGÀY TẠO' },
+      { accessorKey: 'company', header: 'TÊN CÔNG TY' },
+      {
+        accessorKey: 'status',
+        header: 'TRẠNG THÁI',
+        cell: ({ row }) =>
+          row.original.status === 'Hoạt động' ? (
+            <span className="font-semibold text-green-600">
+              {row.original.status}
+            </span>
+          ) : (
+            <span className="font-semibold text-[#DC0E0E]">
+              {row.original.status}
+            </span>
+          )
+      },
+      {
+        id: 'action',
+        header: 'HÀNH ĐỘNG',
+        cell: ({ row }) => {
+          const record = row.original;
+          return (
+            <div className="flex justify-center gap-3">
+              <EyeOutlined
+                onClick={() => handleView(record)}
+                className="cursor-pointer rounded-full p-1 text-xl text-[#1570EF] transition-colors hover:bg-[#1570EF] hover:text-white"
+              />
+              <CloseCircleOutlined
+                onClick={() => handleLockUnlock(record)}
+                className="cursor-pointer rounded-full p-1 text-xl text-[#DC0E0E] transition-colors hover:bg-[#DC0E0E] hover:text-white"
+              />
+            </div>
+          );
+        }
+      }
+    ],
+    []
+  );
 
   return (
-    <div className="p-4">
+    <div className="mb-10 p-4">
       <h2 className="mb-4 text-xl font-semibold">Nhà quảng cáo</h2>
 
-      {/* Thanh tìm kiếm (bên phải) */}
-      <div className="mb-4 flex justify-end">
-        <Input
-          placeholder="Tìm kiếm (mã, tên, công ty...)"
-          prefix={<SearchOutlined />}
-          style={{ width: 250 }}
-          value={searchValue}
-          onChange={(e) => setSearchValue(e.target.value)}
-        />
-      </div>
-
-      {/* Bảng (pagination giữa) */}
-      <Table
+      {/* Sử dụng DataTable mới với phân trang, tìm kiếm, sắp xếp tích hợp */}
+      <DataTable
         columns={columns}
-        dataSource={dataSource}
-        rowKey="id"
-        pagination={{
-          pageSize: 10,
-          position: ['bottomCenter']
-        }}
+        data={dataSource}
+        pageCount={-1} // -1 để DataTable tự tính số trang dựa trên dữ liệu
+        pageSizeOptions={[10, 20, 30, 40, 50]}
+        showAdd={false}
       />
 
-      {/* Modal (1) Xem chi tiết */}
+      {/* Modal "Xem chi tiết" */}
       <Modal
         open={isViewModalVisible}
         onCancel={closeViewModal}
-        footer={
-          <Button onClick={closeViewModal} className="border">
-            Đóng
-          </Button>
-        }
+        footer={<Button onClick={closeViewModal}>Đóng</Button>}
       >
         {selectedAdvertiser && (
           <div className="space-y-3">
             <div className="flex items-center gap-3">
-              {/* Icon đại diện */}
               <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-gray-200 text-2xl text-gray-600">
                 <BiBuildings />
               </div>
               <div>
-                <h3 className="text-lg font-semibold">
+                <h3 className="text-lg font-semibold ">
                   {selectedAdvertiser.name}
                 </h3>
                 <p className="text-sm text-gray-500">Nhà quảng cáo</p>
@@ -263,33 +211,28 @@ const AdvertiserList: React.FC = () => {
               </label>
               <Input readOnly value={selectedAdvertiser.phone} />
             </div>
-
             <div>
               <label className="block font-semibold text-gray-600">
                 Tên người dùng
               </label>
               <Input readOnly value={selectedAdvertiser.userName} />
             </div>
-
             <div>
               <label className="block font-semibold text-gray-600">
                 Ngày tạo
               </label>
               <Input readOnly value={selectedAdvertiser.createdAt} />
             </div>
-
             <div>
               <label className="block font-semibold text-gray-600">Email</label>
               <Input readOnly value={selectedAdvertiser.email} />
             </div>
-
             <div>
               <label className="block font-semibold text-gray-600">
                 Tên công ty
               </label>
               <Input readOnly value={selectedAdvertiser.company} />
             </div>
-
             <div>
               <label className="block font-semibold text-gray-600">
                 Lĩnh vực kinh doanh
@@ -300,7 +243,7 @@ const AdvertiserList: React.FC = () => {
         )}
       </Modal>
 
-      {/* Modal (2) Khóa/Mở khóa */}
+      {/* Modal "Khóa/Mở khóa" */}
       <Modal
         title={
           selectedAdvertiser?.status === 'Hoạt động'
@@ -312,13 +255,11 @@ const AdvertiserList: React.FC = () => {
         onCancel={cancelLockUnlock}
         okText="Xác nhận"
         cancelText="Hủy"
-        // Tùy chỉnh nút OK
         okButtonProps={{
           className: 'bg-[#1570EF] text-white border-none'
         }}
-        // Tùy chỉnh nút Hủy
         cancelButtonProps={{
-          className: 'text-[#DC0E0E] border-[#DC0E0E]  hover:text-white'
+          className: 'text-[#DC0E0E] border-[#DC0E0E] hover:text-white'
         }}
       >
         <p>
