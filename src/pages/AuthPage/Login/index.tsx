@@ -10,22 +10,22 @@ import { login } from '@/redux/auth.slice';
 import { Eye, EyeOff } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import ImageLeft from '../Image';
+
 type FormLogin = {
-  username: string;
+  userNameOrEmail: string;
   password: string;
 };
 
 type FormError = Partial<FormLogin>;
 
 export default function LoginPage() {
-  const { mutateAsync, isPending } = useLogin();
+  const { mutateAsync: Login, isPending } = useLogin();
   const [formLogin, setFormLogin] = useState<FormLogin>({
-    username: '',
+    userNameOrEmail: '',
     password: ''
   });
   const [error, setError] = useState<FormError>({});
   const [showPassword, setShowPassword] = useState(false);
-  // const router = useRouter();
   const dispatch = useDispatch();
 
   useEffect(() => {
@@ -39,8 +39,8 @@ export default function LoginPage() {
 
   const validateInputs = (): FormError => {
     const errors: FormError = {};
-    if (!formLogin.username.trim()) {
-      errors.username = 'Tên đăng nhập không được để trống.';
+    if (!formLogin.userNameOrEmail.trim()) {
+      errors.userNameOrEmail = 'Tên đăng nhập không được để trống.';
     }
     if (!formLogin.password.trim()) {
       errors.password = 'Mật khẩu không được để trống.';
@@ -57,12 +57,13 @@ export default function LoginPage() {
     }
 
     try {
-      const data = await mutateAsync(formLogin);
+      const data = await Login(formLogin);
+
       if (data) {
-        console.log(data);
+        console.log(formLogin);
         helper.cookie_set('AT', data.accessToken);
         dispatch(login());
-        window.location.href = '/';
+        window.location.href = '/advertiser/dashboard';
         console.log('Người dùng đã đăng nhập');
       }
     } catch (err) {
@@ -108,13 +109,18 @@ export default function LoginPage() {
                   Tên đăng nhập
                 </label>
                 <Input
-                  value={formLogin.username}
+                  value={formLogin.userNameOrEmail}
                   onChange={(e) =>
-                    setFormLogin({ ...formLogin, username: e.target.value })
+                    setFormLogin({
+                      ...formLogin,
+                      userNameOrEmail: e.target.value
+                    })
                   }
                 />
-                {error.username && (
-                  <p className="text-[12px] text-red">{error.username}</p>
+                {error.userNameOrEmail && (
+                  <p className="text-[12px] text-red">
+                    {error.userNameOrEmail}
+                  </p>
                 )}
               </div>
 

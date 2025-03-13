@@ -7,7 +7,7 @@ import { useRegisterBusiness } from '@/queries/auth.query';
 import { Link } from 'react-router-dom';
 import ImageLeft from '../Image';
 
-type FormBusiness = {
+type FormAdvertiser = {
   companyName: string;
   website: string;
   industry: string;
@@ -17,11 +17,11 @@ type FormBusiness = {
   contactPhone: string;
 };
 
-type FormError = Partial<FormBusiness>;
+type FormError = Partial<FormAdvertiser>;
 
 export default function RegisterBusinessPage() {
   const { mutateAsync, isPending } = useRegisterBusiness();
-  const [formBusiness, setFormBusiness] = useState<FormBusiness>({
+  const [formBusiness, setFormBusiness] = useState<FormAdvertiser>({
     companyName: '',
     website: '',
     industry: '',
