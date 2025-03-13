@@ -1,5 +1,15 @@
 import { useState } from 'react';
-import { Table, Input, Button, Modal, Form } from 'antd';
+import {
+  Table,
+  Input,
+  Button,
+  Modal,
+  Form,
+  Radio,
+  Descriptions,
+  Card,
+  Tag
+} from 'antd';
 import { EditOutlined } from '@ant-design/icons';
 import type { ColumnsType } from 'antd/es/table';
 
@@ -29,15 +39,31 @@ const initialReports: Report[] = [
   }
 ];
 
+// Option: gán màu Tag tương ứng với từng status
+const statusTagColor = {
+  'Đã duyệt': 'green',
+  'Đang chờ': 'blue',
+  'Từ chối': 'red'
+};
+
 export default function ReportTable() {
   const [search, setSearch] = useState('');
-  const [reports] = useState(initialReports);
+  const [reports, setReports] = useState(initialReports);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedReport, setSelectedReport] = useState<Report | null>(null);
+
+  // Form chứa cả trạng thái và phản hồi
   const [form] = Form.useForm();
 
   const handleOpenModal = (record: Report) => {
     setSelectedReport(record);
+
+    // Gán giá trị mặc định cho form
+    form.setFieldsValue({
+      status: record.status,
+      response: ''
+    });
+
     setIsModalOpen(true);
   };
 
@@ -45,8 +71,18 @@ export default function ReportTable() {
     form.validateFields().then((values) => {
       console.log('Phản hồi gửi đi:', {
         ...selectedReport,
+        newStatus: values.status,
         response: values.response
       });
+
+      // Ví dụ: cập nhật luôn trong state (nếu muốn)
+      if (selectedReport) {
+        setReports((prev) =>
+          prev.map((r) =>
+            r.id === selectedReport.id ? { ...r, status: values.status } : r
+          )
+        );
+      }
       setIsModalOpen(false);
     });
   };
@@ -85,7 +121,12 @@ export default function ReportTable() {
         { text: 'Đang chờ', value: 'Đang chờ' },
         { text: 'Từ chối', value: 'Từ chối' }
       ],
-      onFilter: (value, record) => record.status === value
+      onFilter: (value, record) => record.status === value,
+      render: (status) => {
+        // Hiển thị Tag màu tương ứng
+        const color = statusTagColor[status] || 'default';
+        return <Tag color={color}>{status}</Tag>;
+      }
     },
     {
       title: 'Hành động',
@@ -122,56 +163,125 @@ export default function ReportTable() {
         open={isModalOpen}
         onOk={handleSendResponse}
         onCancel={() => setIsModalOpen(false)}
+        // Đưa popup lên cao hơn
+        style={{ top: 80 }}
+        width={1000}
+        // Tạo scroll riêng bên trong popup
+        bodyStyle={{
+          padding: 24,
+          maxHeight: '70vh',
+          overflowY: 'auto',
+          display: 'flex',
+          gap: 16
+        }}
         okButtonProps={{
-          className: 'bg-[#7F56D9] text-white border-none'
+          className: 'bg-[#7F56D9] text-white border-none hover:opacity-90'
+        }}
+        cancelButtonProps={{
+          className: 'hover:opacity-80'
         }}
       >
         {selectedReport && (
-          <div className="space-y-2">
-            <div className="text-gray-500">
-              {selectedReport.id} - {selectedReport.date}
-            </div>
-            <div>
-              <strong>Người báo cáo:</strong> {selectedReport.reporter} (ID:{' '}
-              {selectedReport.reporterId})
-            </div>
-            <div>
-              <strong>Bị cáo:</strong> {selectedReport.accused} (ID:{' '}
-              {selectedReport.accusedId})
-            </div>
-            <div>
-              <strong>Lý do:</strong> {selectedReport.reason}
-            </div>
-            <div>
-              <strong>Bằng chứng:</strong>
-            </div>
-            {typeof selectedReport.evidence === 'string' ? (
-              <img
-                src={selectedReport.evidence}
-                alt="Bằng chứng"
-                className="max-h-60 w-full rounded-lg border border-gray-300 object-contain"
-              />
-            ) : (
-              <a
-                href={URL.createObjectURL(selectedReport.evidence)}
-                className="text-[#7F56D9] underline"
+          <>
+            {/* Cột trái: Thông tin báo cáo */}
+            <Card
+              bordered={false}
+              className="rounded-md bg-gray-50 shadow-sm"
+              style={{ flex: 1 }}
+              bodyStyle={{ padding: '16px' }}
+            >
+              <Descriptions
+                bordered
+                size="small"
+                column={1}
+                labelStyle={{ width: '30%', fontWeight: 'bold' }}
               >
-                Tải xuống bằng chứng
-              </a>
-            )}
-            <Form form={form} layout="vertical" className="mt-4">
-              <Form.Item
-                name="response"
-                label="Phản hồi"
-                rules={[{ required: true, message: 'Vui lòng nhập phản hồi' }]}
-              >
-                <Input.TextArea
-                  rows={3}
-                  placeholder="Viết phản hồi của bạn về báo cáo này..."
-                />
-              </Form.Item>
-            </Form>
-          </div>
+                <Descriptions.Item label="Mã báo cáo">
+                  {selectedReport.id}
+                </Descriptions.Item>
+                <Descriptions.Item label="Ngày tạo">
+                  {selectedReport.date}
+                </Descriptions.Item>
+                <Descriptions.Item label="Người báo cáo">
+                  {selectedReport.reporter} (ID: {selectedReport.reporterId})
+                </Descriptions.Item>
+                <Descriptions.Item label="Bị cáo">
+                  {selectedReport.accused} (ID: {selectedReport.accusedId})
+                </Descriptions.Item>
+                <Descriptions.Item label="Lý do">
+                  {selectedReport.reason}
+                </Descriptions.Item>
+                <Descriptions.Item label="Bằng chứng">
+                  {typeof selectedReport.evidence === 'string' ? (
+                    <img
+                      src={selectedReport.evidence}
+                      alt="Bằng chứng"
+                      className="max-h-60 w-full rounded-lg border border-gray-300 object-contain"
+                    />
+                  ) : (
+                    <a
+                      href={URL.createObjectURL(selectedReport.evidence)}
+                      className="text-[#7F56D9] underline"
+                    >
+                      Tải xuống bằng chứng
+                    </a>
+                  )}
+                </Descriptions.Item>
+              </Descriptions>
+            </Card>
+
+            {/* Cột phải: Trạng thái + Phản hồi */}
+            <Card
+              bordered={false}
+              className="rounded-md bg-gray-50 shadow-sm"
+              style={{ flex: 1 }}
+              bodyStyle={{ padding: '16px' }}
+            >
+              <Form form={form} layout="vertical">
+                <Form.Item
+                  name="status"
+                  label="Trạng thái"
+                  rules={[
+                    { required: true, message: 'Vui lòng chọn trạng thái' }
+                  ]}
+                >
+                  <Radio.Group>
+                    <Radio.Button
+                      value="Đang chờ"
+                      className=" bg-[#F6B93B] text-white hover:border-[#F6B93B] hover:bg-white hover:text-[#F6B93B]"
+                    >
+                      Pending
+                    </Radio.Button>
+                    <Radio.Button
+                      value="Đã duyệt"
+                      className="bg-[#24A503] text-white hover:border-[#24A503] hover:bg-white hover:text-[#24A503]"
+                    >
+                      Approve
+                    </Radio.Button>
+                    <Radio.Button
+                      value="Từ chối"
+                      className="bg-[#E45959] text-white hover:border-[#E45959] hover:bg-white hover:text-[#E45959]"
+                    >
+                      Reject
+                    </Radio.Button>
+                  </Radio.Group>
+                </Form.Item>
+
+                <Form.Item
+                  name="response"
+                  label="Phản hồi"
+                  rules={[
+                    { required: true, message: 'Vui lòng nhập phản hồi' }
+                  ]}
+                >
+                  <Input.TextArea
+                    rows={6}
+                    placeholder="Viết phản hồi của bạn về báo cáo này..."
+                  />
+                </Form.Item>
+              </Form>
+            </Card>
+          </>
         )}
       </Modal>
     </div>
