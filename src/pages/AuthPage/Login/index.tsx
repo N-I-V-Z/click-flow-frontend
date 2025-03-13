@@ -58,13 +58,12 @@ export default function LoginPage() {
 
     try {
       const data = await Login(formLogin);
-      console.log(await Login(formLogin));
-      console.log(data.data);
+
       if (data) {
         console.log(formLogin);
         helper.cookie_set('AT', data.accessToken);
         dispatch(login());
-        window.location.href = '/';
+        window.location.href = '/advertiser/dashboard';
         console.log('Người dùng đã đăng nhập');
       }
     } catch (err) {
