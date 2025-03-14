@@ -256,7 +256,7 @@ const CampaignDetail: React.FC = () => {
       </Content>
       <CampaignAnalytics />
       <div className="mb-10">
-        <TrafficTable campaignId={campaign.id} />
+        <TrafficTable campaignId={1} />
       </div>
     </Layout>
   );
