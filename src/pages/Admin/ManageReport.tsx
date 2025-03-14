@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import {
   Button,
   Modal,
@@ -7,12 +7,17 @@ import {
   Descriptions,
   Card,
   Tag,
-  Input
+  Input,
+  message
 } from 'antd';
 import { EditOutlined } from '@ant-design/icons';
-import DataTable from '@/components/shared/data-table'; // Điều chỉnh path theo dự án của bạn
+import DataTable from '@/components/shared/data-table';
 import { ColumnDef } from '@tanstack/react-table';
 
+// Import hook lấy dữ liệu từ API
+import { useGetReports } from '@/queries/report.query';
+
+// Interface cho báo cáo trong UI
 interface Report {
   id: string;
   reporter: string;
@@ -25,34 +30,64 @@ interface Report {
   evidence: string | File;
 }
 
-const initialReports: Report[] = [
-  {
-    id: 'RP00001',
-    reporter: 'Nguyễn Khải Qui',
-    reporterId: 'U12345',
-    accused: 'Trần Văn B',
-    accusedId: 'U67890',
-    date: '10/10/2024',
-    status: 'Đang chờ',
-    reason: 'Vi phạm nội quy diễn đàn',
-    evidence: 'example-image.jpg'
-  }
-];
-
-// Gán màu cho Tag theo status
+// Map status -> màu Tag
 const statusTagColor: Record<string, string> = {
   'Đã duyệt': 'green',
   'Đang chờ': 'blue',
   'Từ chối': 'red'
 };
 
+/**
+ * Chuyển dữ liệu từ API => Report (UI).
+ * Ví dụ API item: { id, reason, status, createAt, evidenceURL, publisherId, advertiserId, ... }
+ */
+function mapApiReportToLocal(apiItem: any): Report {
+  return {
+    // Mã báo cáo: "RP000xx"
+    id: String(apiItem.id),
+    // "reporter" = publisherId
+    reporter: `Publisher ${apiItem.publisherId}`,
+    reporterId: String(apiItem.publisherId),
+    // "accused" = advertiserId
+    accused: `Advertiser ${apiItem.advertiserId}`,
+    accusedId: String(apiItem.advertiserId),
+    // Định dạng ngày => "DD/MM/YYYY"
+    date: new Date(apiItem.createAt).toLocaleDateString('vi-VN'),
+    // Map status "Pending" => "Đang chờ", "Approved" => "Đã duyệt", "Rejected" => "Từ chối"
+    status:
+      apiItem.status === 'Pending'
+        ? 'Đang chờ'
+        : apiItem.status === 'Approved'
+          ? 'Đã duyệt'
+          : 'Từ chối',
+    reason: apiItem.reason,
+    evidence: apiItem.evidenceURL
+  };
+}
+
 export default function ReportTable() {
   const [search, setSearch] = useState('');
-  const [reports, setReports] = useState(initialReports);
+  const [reports, setReports] = useState<Report[]>([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedReport, setSelectedReport] = useState<Report | null>(null);
   const [form] = Form.useForm();
 
+  // Gọi API KHÔNG truyền keyword => load toàn bộ
+  const { data, isLoading, error } = useGetReports(1, 10);
+
+  // Map dữ liệu API -> local state
+  useEffect(() => {
+    if (data?.result) {
+      const apiReports = data.result;
+      // Nếu cần lọc bỏ "Processing":
+      // const filtered = apiReports.filter((item: any) => item.status !== 'Processing');
+      // const mapped = filtered.map((item: any) => mapApiReportToLocal(item));
+      const mapped = apiReports.map((item: any) => mapApiReportToLocal(item));
+      setReports(mapped);
+    }
+  }, [data]);
+
+  // Mở modal chỉnh sửa status
   const handleOpenModal = (record: Report) => {
     setSelectedReport(record);
     form.setFieldsValue({
@@ -62,34 +97,38 @@ export default function ReportTable() {
     setIsModalOpen(true);
   };
 
+  // Gửi phản hồi => cập nhật cục bộ (chưa gọi API update)
   const handleSendResponse = () => {
     form.validateFields().then((values) => {
+      if (!selectedReport) return;
+      const newStatus = values.status as 'Đã duyệt' | 'Đang chờ' | 'Từ chối';
       console.log('Phản hồi gửi đi:', {
         ...selectedReport,
-        newStatus: values.status,
+        newStatus,
         response: values.response
       });
-      if (selectedReport) {
-        setReports((prev) =>
-          prev.map((r) =>
-            r.id === selectedReport.id ? { ...r, status: values.status } : r
-          )
-        );
-      }
+      // Cập nhật cục bộ
+      setReports((prev) =>
+        prev.map((r) =>
+          r.id === selectedReport.id ? { ...r, status: newStatus } : r
+        )
+      );
+      message.success('Đã gửi phản hồi thành công!');
       setIsModalOpen(false);
     });
   };
 
+  // Tìm kiếm client-side
   const filteredReports = useMemo(() => {
     const lower = search.toLowerCase();
     return reports.filter(
       (report) =>
-        report.id.includes(search) ||
+        report.id.toLowerCase().includes(lower) ||
         report.reporter.toLowerCase().includes(lower)
     );
   }, [reports, search]);
 
-  // Định nghĩa cột theo chuẩn ColumnDef của tanstack/react-table
+  // Định nghĩa cột DataTable
   const columns = useMemo<ColumnDef<Report>[]>(
     () => [
       {
@@ -131,19 +170,37 @@ export default function ReportTable() {
     []
   );
 
+  // Loading / Error
+  if (isLoading) {
+    return <div>Đang tải danh sách báo cáo...</div>;
+  }
+  if (error) {
+    return <div>Đã có lỗi xảy ra khi tải dữ liệu báo cáo!</div>;
+  }
+
   return (
     <div className="mb-10 p-4">
       <h2 className="mb-4 text-xl font-semibold">Quản lý báo cáo</h2>
 
-      {/* Sử dụng DataTable mới để hiển thị báo cáo với phân trang và tìm kiếm client-side */}
+      {/* Ô tìm kiếm */}
+      <div className="mb-4 flex items-center gap-2">
+        <Input
+          placeholder="Tìm kiếm theo mã báo cáo hoặc tên người báo cáo"
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          style={{ width: 300 }}
+        />
+      </div>
+
       <DataTable
         columns={columns}
         data={filteredReports}
-        pageCount={-1} // -1 để DataTable tự tính số trang dựa trên dữ liệu
+        pageCount={-1}
         pageSizeOptions={[5, 10, 20]}
         showAdd={false}
       />
 
+      {/* Modal phản hồi */}
       <Modal
         title={<div className="text-lg font-semibold">Phản hồi báo cáo</div>}
         open={isModalOpen}
