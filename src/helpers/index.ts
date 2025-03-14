@@ -1,6 +1,8 @@
 import helper_is from './is';
 import helper_get from './get';
 import dateandtime from 'date-and-time';
+import { jwtDecode } from 'jwt-decode';
+import { TokenDecoded } from '@/types';
 /**
  * Helpers
  */
@@ -13,6 +15,17 @@ class helpers {
     const year = date.getFullYear();
 
     return `${day}-${month}-${year}`;
+  }
+  /**
+   * Decode tokens,
+   * @input tokens: string
+   * @return object
+   */
+
+  decodeTokens(): TokenDecoded {
+    const token = __helpers.cookie_get('AT') as string;
+    const decodedToken = jwtDecode<TokenDecoded>(token);
+    return decodedToken;
   }
 
   /**
@@ -122,7 +135,9 @@ class helpers {
     if (input_string.length < 21) return input_string;
 
     const start = String(input_string || ' ').substring(0, front);
-    const end = String(input_string || ' ').substring(input_string.length - back);
+    const end = String(input_string || ' ').substring(
+      input_string.length - back
+    );
 
     return `${start} ...${end}`;
   }

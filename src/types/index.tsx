@@ -23,3 +23,10 @@ export interface NavItemWithOptionalChildren extends NavItem {
 export type MainNavItem = NavItemWithOptionalChildren;
 
 export type SidebarNavItem = NavItemWithChildren;
+
+export type TokenDecoded = {
+  Email: string;
+  Id: string;
+  Role: string;
+  Name: string;
+};

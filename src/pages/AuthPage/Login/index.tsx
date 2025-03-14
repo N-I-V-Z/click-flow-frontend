@@ -4,14 +4,14 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useLogin } from '@/queries/auth.query';
 import { useEffect, useState } from 'react';
-import helper from '@/helpers/index';
+import helpers from '@/helpers';
 import { useDispatch } from 'react-redux';
 import { login } from '@/redux/auth.slice';
 import { Eye, EyeOff } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import ImageLeft from '../Image';
-import { jwtDecode } from 'jwt-decode';
 import { useRouter } from '@/routes/hooks';
+import { TokenDecoded } from '@/types';
 
 type FormLogin = {
   userNameOrEmail: string;
@@ -32,7 +32,7 @@ export default function LoginPage() {
   const router = useRouter();
 
   useEffect(() => {
-    const token = helper.cookie_get('AT');
+    const token = helpers.cookie_get('AT');
     if (token) {
       dispatch(login());
       console.log('Người dùng đã đăng nhập');
@@ -61,10 +61,10 @@ export default function LoginPage() {
 
     try {
       const data = await Login(formLogin);
-      helper.cookie_set('AT', data.result.token);
-      helper.cookie_set('RT', data.result.refreshToken);
+      helpers.cookie_set('AT', data.result.token);
+      helpers.cookie_set('RT', data.result.refreshToken);
       dispatch(login());
-      const decodedToken: any = jwtDecode(data.result.token);
+      const decodedToken: TokenDecoded = helpers.decodeTokens();
       const role =
         decodedToken.Role === 'Admin'
           ? 'Admin'

@@ -1,5 +1,5 @@
 import BaseRequest from '@/config/axios.config';
-import { useQuery } from '@tanstack/react-query';
+import { useMutation, useQuery } from '@tanstack/react-query';
 
 /**
  * Hook gọi API lấy danh sách Campaigns theo status
@@ -24,5 +24,31 @@ export const useGetCampaign = (
       );
     }
     // Các tùy chọn khác (vd: enabled, staleTime, refetchOnWindowFocus, ...)
+  });
+};
+
+export const useGetCampaignAdvertiser = (
+  status: string,
+  pageIndex: number = 1,
+  pageSize: number = 10
+) => {
+  return useQuery({
+    // queryKey giúp React Query xác định khi nào cần refetch
+    queryKey: ['get-campaign-advertiser', status, pageIndex, pageSize],
+    queryFn: async () => {
+      // Gọi API đến endpoint với 3 tham số động: status, pageIndex, pageSize
+      return await BaseRequest.Get(
+        `/api/Campaigns/get-campaigns-by-advertiser/${status}/${pageIndex}/${pageSize}`
+      );
+    }
+  });
+};
+
+export const useCreateCampaign = () => {
+  return useMutation({
+    mutationKey: ['create-campaign'],
+    mutationFn: async (model: any) => {
+      return BaseRequest.Post(`/api/Campaigns/create-campaign`, model);
+    }
   });
 };

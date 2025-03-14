@@ -1,297 +1,270 @@
-import { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
+import { Modal } from 'antd';
 import { Pencil, Trash2 } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import DataTable from '@/components/shared/data-table';
+import { ColumnDef } from '@tanstack/react-table';
 import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
-import DataTable from '@/components/shared/data-table';
+import { useGetCampaignAdvertiser } from '@/queries/campaign.query';
 
-// Dữ liệu mẫu
-const projects = Array.from({ length: 50 }, (_, i) => ({
-  id: i + 1,
-  name: `Project ${String.fromCharCode(65 + (i % 26))}`,
-  createdDate: `2025-0${(i % 9) + 1}-0${(i % 9) + 1}`,
-  description: `Mô tả chiến dịch ${i + 1}`,
-  executionTime: `2025-0${(i % 9) + 2}-0${(i % 9) + 1} to 2025-0${(i % 9) + 3}-1${(i % 9) + 1}`
-}));
+// Interface cho 1 chiến dịch
+interface RequestCampaign {
+  id: number;
+  name: string;
+  createdAt: string; // hoặc Date
+  endAt: string; // hoặc Date
+  advertiserName: string;
+  status: string; // Pending, Approved, ...
+}
 
-const CampaignRequest = () => {
-  const [allProjects, setAllProjects] = useState(projects);
+const CampaignRequest: React.FC = () => {
+  const navigate = useNavigate();
+
+  // Gọi API lấy danh sách campaigns có status = "Pending"
+  const { data, isLoading, error } = useGetCampaignAdvertiser(1, 1, 10);
+
+  // Giả sử backend trả về { result: [ {id, name, ...} ] }
+  const campaigns: RequestCampaign[] = data?.result ?? [];
+  // Lưu dữ liệu vào state cục bộ để có thể chỉnh sửa, xóa
+  const [localCampaigns, setLocalCampaigns] = useState<RequestCampaign[]>([]);
+  useEffect(() => {
+    setLocalCampaigns(campaigns);
+  }, [campaigns]);
 
   // State cho modal chỉnh sửa
-  const [isEditOpen, setIsEditOpen] = useState(false);
-  const [selectedProject, setSelectedProject] = useState<any>(null);
+  const [isEditModalVisible, setIsEditModalVisible] = useState(false);
+  // State cho modal xóa
+  const [isDeleteModalVisible, setIsDeleteModalVisible] = useState(false);
+  // Campaign được chọn cho chỉnh sửa/xóa
+  const [selectedCampaign, setSelectedCampaign] =
+    useState<RequestCampaign | null>(null);
+  // State lưu thông tin chỉnh sửa (copy của selectedCampaign)
+  const [editedCampaign, setEditedCampaign] = useState<RequestCampaign | null>(
+    null
+  );
 
-  // State cho modal xóa đơn
-  const [isDeleteOpen, setIsDeleteOpen] = useState(false);
-  const [deleteProject, setDeleteProject] = useState<any>(null);
-
-  // State quản lý row selection của DataTable (được truyền từ DataTable)
-  const [rowSelection, setRowSelection] = useState<Record<string, boolean>>({});
-  // State chứa danh sách các dòng được chọn (dữ liệu gốc)
-  const [selectedRows, setSelectedRows] = useState<any[]>([]);
-
-  // Mở modal chỉnh sửa: tách executionTime thành executionStart & executionEnd
-  const openEditModal = (project: any) => {
-    let executionStart = '';
-    let executionEnd = '';
-    if (project.executionTime) {
-      const parts = project.executionTime.split(' to ');
-      executionStart = parts[0];
-      executionEnd = parts[1];
-    }
-    setSelectedProject({ ...project, executionStart, executionEnd });
-    setIsEditOpen(true);
+  // Mở modal chỉnh sửa: copy dữ liệu chiến dịch được chọn
+  const openEditModal = (campaign: RequestCampaign) => {
+    setSelectedCampaign(campaign);
+    setEditedCampaign({ ...campaign });
+    setIsEditModalVisible(true);
   };
 
   const closeEditModal = () => {
-    setSelectedProject(null);
-    setIsEditOpen(false);
+    setSelectedCampaign(null);
+    setEditedCampaign(null);
+    setIsEditModalVisible(false);
   };
 
-  const handleEditChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
-  ) => {
-    setSelectedProject({ ...selectedProject, [e.target.name]: e.target.value });
+  // Xử lý thay đổi input trong modal chỉnh sửa
+  const handleEditChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (editedCampaign) {
+      setEditedCampaign({
+        ...editedCampaign,
+        [e.target.name]: e.target.value
+      });
+    }
   };
 
-  // Khi lưu, kết hợp executionStart & executionEnd thành executionTime
+  // Lưu thông tin chỉnh sửa
   const handleEditSave = () => {
-    const updatedProject = {
-      ...selectedProject,
-      executionTime: `${selectedProject.executionStart} to ${selectedProject.executionEnd}`
-    };
-    setAllProjects((prev) =>
-      prev.map((p) => (p.id === updatedProject.id ? updatedProject : p))
-    );
-    toast.success(`Cập nhật chiến dịch ${updatedProject.name} thành công!`);
-    closeEditModal();
+    if (editedCampaign) {
+      setLocalCampaigns((prev) =>
+        prev.map((camp) =>
+          camp.id === editedCampaign.id ? editedCampaign : camp
+        )
+      );
+      toast.success(`Cập nhật chiến dịch ${editedCampaign.name} thành công!`);
+      closeEditModal();
+    }
   };
 
-  const openDeleteModal = (project: any) => {
-    setDeleteProject(project);
-    setIsDeleteOpen(true);
+  // Mở modal xác nhận xóa
+  const openDeleteModal = (campaign: RequestCampaign) => {
+    setSelectedCampaign(campaign);
+    setIsDeleteModalVisible(true);
   };
 
   const closeDeleteModal = () => {
-    setDeleteProject(null);
-    setIsDeleteOpen(false);
+    setSelectedCampaign(null);
+    setIsDeleteModalVisible(false);
   };
 
+  // Xác nhận xóa chiến dịch
   const handleDeleteConfirm = () => {
-    setAllProjects((prev) => prev.filter((p) => p.id !== deleteProject.id));
-    toast.success(`Đã xóa chiến dịch ${deleteProject.name} thành công!`);
-    closeDeleteModal();
+    if (selectedCampaign) {
+      setLocalCampaigns((prev) =>
+        prev.filter((camp) => camp.id !== selectedCampaign.id)
+      );
+      toast.success(`Đã xóa chiến dịch ${selectedCampaign.name} thành công!`);
+      closeDeleteModal();
+    }
   };
 
-  // Định nghĩa các cột cho DataTable
-  const columns = useMemo(
+  // Định nghĩa các cột cho DataTable, bao gồm cột STT
+  const columns = useMemo<ColumnDef<RequestCampaign>[]>(
     () => [
       {
-        id: 'select',
-        header: ({ table }: any) => (
-          <input
-            type="checkbox"
-            checked={table.getIsAllRowsSelected()}
-            onChange={(e) => table.toggleAllRowsSelected(e.target.checked)}
-          />
-        ),
-        cell: ({ row }: any) => (
-          <input
-            type="checkbox"
-            checked={row.getIsSelected()}
-            onChange={(e) => row.toggleSelected(e.target.checked)}
-          />
-        )
-      },
-      {
-        // Cột số thứ tự (STT): tính theo trang hiện tại
         header: 'STT',
-        cell: ({ row, table }: any) => {
-          const { pageIndex, pageSize } = table.getState().pagination;
-          return pageIndex * pageSize + row.index + 1;
-        }
+        cell: ({ row }) => row.index + 1
       },
       {
-        header: 'Tên chiến dịch & Ngày tạo',
-        cell: ({ row }: any) => (
-          <div>
-            <div>{row.original.name}</div>
-            <div className="text-sm text-gray-500">
-              Ngày tạo: {row.original.createdDate}
+        accessorKey: 'name',
+        header: 'TÊN CHIẾN DỊCH'
+      },
+      {
+        accessorKey: 'startDate',
+        header: 'NGÀY TẠO'
+      },
+      {
+        accessorKey: 'endDate',
+        header: 'NGÀY KẾT THC'
+      },
+      {
+        accessorKey: 'advertiserName',
+        header: 'NHÀ QUẢNG CÁO'
+      },
+      {
+        accessorKey: 'status',
+        header: 'TRẠNG THÁI',
+        cell: ({ row }) => (
+          <span className="rounded bg-yellow px-2 py-1 text-white">
+            {row.original.status === 'Pending'
+              ? 'Chờ duyệt'
+              : row.original.status}
+          </span>
+        )
+      },
+      {
+        id: 'actions',
+        header: 'HÀNH ĐỘNG',
+        cell: ({ row }) => {
+          const campaign = row.original;
+          return (
+            <div className="-ml-20 flex justify-center gap-3">
+              {/* Nút chỉnh sửa */}
+              <Pencil
+                onClick={() => openEditModal(campaign)}
+                className="hover:text-blue-700 cursor-pointer text-blue transition-colors"
+                size={18}
+              />
+              {/* Nút xóa */}
+              <Trash2
+                onClick={() => openDeleteModal(campaign)}
+                className="hover:text-red-700 cursor-pointer text-red transition-colors"
+                size={18}
+              />
             </div>
-          </div>
-        )
-      },
-      {
-        header: 'Mô tả',
-        accessorKey: 'description'
-      },
-      {
-        header: 'Thời gian thực hiện',
-        accessorKey: 'executionTime'
-      },
-      {
-        header: 'Thao tác',
-        cell: ({ row }: any) => (
-          <div className="flex gap-3">
-            <button
-              onClick={() => openEditModal(row.original)}
-              className="text-yellow hover:text-gray-400"
-            >
-              <Pencil size={18} />
-            </button>
-            <button
-              onClick={() => openDeleteModal(row.original)}
-              className="text-red hover:text-gray-400"
-            >
-              <Trash2 size={18} />
-            </button>
-          </div>
-        )
+          );
+        }
       }
     ],
-    [openEditModal, openDeleteModal]
+    []
   );
 
-  // Hàm xóa các dòng được chọn (bulk delete)
-  const handleBulkDelete = () => {
-    if (selectedRows.length === 0) return;
-    setAllProjects((prev) =>
-      prev.filter(
-        (project) =>
-          !selectedRows.some((selected: any) => selected.id === project.id)
-      )
-    );
-    toast.success(`Đã xóa ${selectedRows.length} chiến dịch thành công!`);
-    // Reset row selection
-    setRowSelection({});
-  };
+  if (isLoading) {
+    return <div>Đang tải dữ liệu...</div>;
+  }
+
+  if (error) {
+    return <div>Đã có lỗi xảy ra khi tải dữ liệu!</div>;
+  }
 
   return (
-    <div className="mb-20 rounded-xl bg-white p-6">
-      <div className="mb-4 flex items-center justify-between">
-        <h2 className="text-xl font-semibold">Danh sách yêu cầu</h2>
-        {selectedRows.length > 0 && (
-          <button
-            onClick={handleBulkDelete}
-            className="hover:bg-red-600 rounded bg-red px-4 py-2 text-white"
-          >
-            Xóa đã chọn ({selectedRows.length})
-          </button>
-        )}
-      </div>
+    <div className="mb-10 p-4">
+      <h2 className="mb-4 text-xl font-semibold">Yêu cầu chiến dịch</h2>
+
       <DataTable
         columns={columns}
-        data={allProjects}
-        pageCount={Math.ceil(allProjects.length / 10)}
+        data={localCampaigns}
+        pageCount={-1} // Sử dụng phân trang phía client nếu cần
         pageSizeOptions={[10, 20, 30, 40, 50]}
-        heightTable="80dvh"
-        // Cho DataTable nhận rowSelection và callback cập nhật rowSelection
-        rowSelection={rowSelection}
-        onRowSelectionChange={setRowSelection}
-        // Callback để DataTable gửi về danh sách các dòng được chọn (dữ liệu gốc)
-        onSelectedRowsChange={setSelectedRows}
+        showAdd={false}
       />
 
-      {/* Modal chỉnh sửa */}
-      {isEditOpen && selectedProject && (
-        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
-          <div className="w-full max-w-4xl rounded-lg bg-white p-6 shadow-lg">
-            <h2 className="mb-4 text-xl font-semibold">Chỉnh sửa chiến dịch</h2>
-            <div className="grid grid-cols-2 gap-4">
-              <div className="flex items-center space-x-4">
-                <label className="w-40 text-sm font-medium">
-                  Tên chiến dịch
-                </label>
-                <input
-                  type="text"
-                  name="name"
-                  className="flex-1 rounded-lg border p-2"
-                  value={selectedProject.name}
-                  onChange={handleEditChange}
-                />
-              </div>
-              <div className="col-span-2 grid grid-cols-2 gap-4">
-                <div className="flex items-center space-x-4">
-                  <label className="w-40 text-sm font-medium">Bắt đầu</label>
-                  <input
-                    type="date"
-                    name="executionStart"
-                    className="flex-1 rounded-lg border p-2"
-                    value={selectedProject.executionStart}
-                    onChange={handleEditChange}
-                  />
-                </div>
-                <div className="flex items-center space-x-4">
-                  <label className="w-40 text-sm font-medium">Kết thúc</label>
-                  <input
-                    type="date"
-                    name="executionEnd"
-                    className="flex-1 rounded-lg border p-2"
-                    value={selectedProject.executionEnd}
-                    onChange={handleEditChange}
-                  />
-                </div>
-              </div>
-              <div className="col-span-2 flex items-center space-x-4">
-                <label className="w-40 text-sm font-medium">Mô tả</label>
-                <textarea
-                  name="description"
-                  className="flex-1 rounded-lg border p-2"
-                  value={selectedProject.description}
-                  onChange={handleEditChange}
-                />
-              </div>
+      {/* Modal chỉnh sửa chiến dịch */}
+      <Modal
+        title="Chỉnh sửa chiến dịch"
+        open={isEditModalVisible}
+        onOk={handleEditSave}
+        onCancel={closeEditModal}
+        okText="Lưu"
+        cancelText="Hủy"
+        okButtonProps={{
+          className: 'bg-[#1570EF] text-white border-none'
+        }}
+        cancelButtonProps={{
+          className: 'text-[#DC0E0E] border-[#DC0E0E] hover:text-white'
+        }}
+      >
+        {editedCampaign && (
+          <div className="flex flex-col gap-4">
+            <div>
+              <label className="block text-sm font-medium">
+                Tên chiến dịch
+              </label>
+              <input
+                type="text"
+                name="name"
+                value={editedCampaign.name}
+                onChange={handleEditChange}
+                className="w-full rounded border p-2"
+              />
             </div>
-            <div className="mt-6 flex justify-end gap-2">
-              <button
-                onClick={closeEditModal}
-                className="rounded bg-gray-300 px-4 py-2 hover:bg-gray-400"
-              >
-                Hủy
-              </button>
-              <button
-                onClick={handleEditSave}
-                className="hover:bg-blue-600 rounded bg-blue px-4 py-2 text-white"
-              >
-                Lưu
-              </button>
+            <div>
+              <label className="block text-sm font-medium">Ngày tạo</label>
+              <input
+                type="text"
+                name="createdAt"
+                value={editedCampaign.createdAt}
+                onChange={handleEditChange}
+                className="w-full rounded border p-2"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium">Ngày kết thúc</label>
+              <input
+                type="text"
+                name="endAt"
+                value={editedCampaign.endAt}
+                onChange={handleEditChange}
+                className="w-full rounded border p-2"
+              />
             </div>
           </div>
-        </div>
-      )}
+        )}
+      </Modal>
 
-      {/* Modal xác nhận xóa đơn */}
-      {isDeleteOpen && deleteProject && (
-        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
-          <div className="w-full max-w-sm rounded-lg bg-white p-4 shadow-lg">
-            <h2 className="mb-4 text-xl font-semibold">Xác nhận xóa</h2>
-            <p className="mb-6">
-              Bạn có chắc chắn muốn xóa chiến dịch{' '}
-              <strong>{deleteProject.name}</strong>?
-            </p>
-            <div className="flex justify-end gap-2">
-              <button
-                onClick={closeDeleteModal}
-                className="rounded bg-gray-300 px-4 py-2 hover:bg-gray-400"
-              >
-                Hủy
-              </button>
-              <button
-                onClick={handleDeleteConfirm}
-                className="hover:bg-red-600 rounded bg-red px-4 py-2 text-white"
-              >
-                Xóa
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      {/* Modal xác nhận xóa chiến dịch */}
+      <Modal
+        title="Xác nhận xóa chiến dịch"
+        open={isDeleteModalVisible}
+        onOk={handleDeleteConfirm}
+        onCancel={closeDeleteModal}
+        okText="Xóa"
+        cancelText="Hủy"
+        okButtonProps={{
+          className: 'bg-red-600 text-white border-none'
+        }}
+        cancelButtonProps={{
+          className: 'text-gray-600 border-gray-600 hover:text-white'
+        }}
+      >
+        {selectedCampaign && (
+          <p>
+            Bạn có chắc chắn muốn xóa chiến dịch <b>{selectedCampaign.name}</b>{' '}
+            không?
+          </p>
+        )}
+      </Modal>
+
       <ToastContainer
         position="top-center"
         autoClose={5000}
         hideProgressBar={false}
         newestOnTop={false}
-        closeOnClick={false}
+        closeOnClick
         rtl={false}
         pauseOnFocusLoss
         draggable

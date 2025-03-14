@@ -1,8 +1,9 @@
-import __helpers from '@/helpers';
 import { login, setRole } from '@/redux/auth.slice';
 import { useDispatch } from 'react-redux';
 import { Navigate } from 'react-router-dom';
 import { jwtDecode } from 'jwt-decode';
+import { TokenDecoded } from '@/types';
+import helpers from '@/helpers';
 
 interface LoginRouteProps {
   children: React.ReactNode;
@@ -11,11 +12,9 @@ interface LoginRouteProps {
 const LoginRoute = ({ children }: LoginRouteProps) => {
   const dispatch = useDispatch();
 
-  const token = __helpers.cookie_get('AT');
-
-  if (token) {
+  const decodedToken: TokenDecoded = helpers.decodeTokens();
+  if (decodedToken) {
     try {
-      const decodedToken: any = jwtDecode(token);
       const role =
         decodedToken.Role === 'Admin'
           ? 'Admin'

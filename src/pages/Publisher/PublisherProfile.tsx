@@ -19,7 +19,7 @@ const AdvertiserProfile: React.FC = () => {
   const router = useRouter();
 
   // Gọi API lấy thông tin người dùng
-  const { data, isLoading, error } = useGetUserDetail(1);
+  const { data, isLoading, error } = useGetUserDetail(2);
 
   // user object (assuming `data?.result` is a single user, not an array)
   const user: UserProfile | undefined = data?.result;

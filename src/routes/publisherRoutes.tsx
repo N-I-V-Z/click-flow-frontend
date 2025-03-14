@@ -11,6 +11,10 @@ const PublisherCampaignPage = lazy(
 const PublisherCampaignDetailPage = lazy(
   () => import('@/pages/Publisher/CampaignDetailPage')
 );
+
+const PublisherProfile = lazy(
+  () => import('@/pages/Publisher/PublisherProfile')
+);
 const PublisherRoutes = [
   {
     path: '/publisher',
@@ -45,6 +49,14 @@ const PublisherRoutes = [
         element: (
           <RoleRoute allowedRoles={['Publisher']}>
             <PublisherCampaignDetailPage />{' '}
+          </RoleRoute>
+        )
+      },
+      {
+        path: 'publisher-profile',
+        element: (
+          <RoleRoute allowedRoles={['Publisher']}>
+            <PublisherProfile />
           </RoleRoute>
         )
       }

@@ -75,7 +75,7 @@ const SidebarPublisher: React.FC = () => {
             icon={<UserOutlined />}
             className="hover:!border-[#9B52BF] hover:bg-white hover:!text-[#9B52BF]"
           >
-            <NavLink to="">Hồ sơ</NavLink>
+            <NavLink to="/publisher/publisher-profile">Hồ sơ</NavLink>
           </Menu.Item>
           <Menu.Item
             key="logout"

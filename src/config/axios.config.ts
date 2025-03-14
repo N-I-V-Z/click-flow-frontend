@@ -10,7 +10,10 @@ const token = helpers.cookie_get('AT');
  * @param config - Cấu hình yêu cầu
  */
 const onRequestSuccess = (config: any) => {
-  config.headers['Authorization'] = `Bearer ${helpers.cookie_get('AT')}`;
+  const accessToken = helpers.cookie_get('AT');
+  if (accessToken) {
+    config.headers['Authorization'] = `Bearer ${accessToken}`;
+  }
   return config;
 };
 
@@ -46,15 +49,53 @@ const onResponseSuccess = (response: any) => {
  * Trả về một Promise bị từ chối với dữ liệu lỗi từ phản hồi.
  * Nếu không có phản hồi, trả về một Promise bị từ chối với lỗi gốc.
  */
-const onResponseError = (error: any) => {
+const onResponseError = async (error: any) => {
   if (error.response) {
     if (error.response.status === 401) {
-      // Xử lý đăng xuất khi token hết hạn
+      try {
+        // Lấy refresh token từ cookie
+        const refreshToken = helpers.cookie_get('RT');
+        if (!refreshToken) {
+          console.error('No refresh token found');
+          return Promise.reject(error);
+        }
+
+        // Lấy access token từ cookie
+        const token = helpers.cookie_get('AT');
+        if (!token) {
+          console.error('No token found');
+          return Promise.reject(error);
+        }
+
+        // Gọi API renew token
+        const response = await axios.post('/api/Accounts/renew-token', {
+          token,
+          refreshToken
+        });
+
+        // Kiểm tra nếu response tồn tại và có dữ liệu hợp lệ
+        if (!response || !response.data || !response.data.accessToken) {
+          console.error('Failed to renew token, response invalid');
+          return Promise.reject(error);
+        }
+
+        // Lưu token mới vào cookie
+        const newAccessToken = response.data.token;
+        helpers.cookie_set('AT', newAccessToken);
+        helpers.cookie_set('RT', response.data.refreshToken); // Cập nhật refresh token
+        // Gửi lại request bị lỗi với token mới
+        error.config.headers['Authorization'] = `Bearer ${newAccessToken}`;
+        return axios(error.config);
+      } catch (renewError) {
+        console.error('Error renewing token:', renewError);
+        return Promise.reject(renewError);
+      }
     }
     return Promise.reject(error.response.data);
   }
   return Promise.reject(error);
 };
+
 axios.interceptors.request.use(onRequestSuccess, onRequestError);
 axios.interceptors.response.use(onResponseSuccess, onResponseError);
 axios.defaults.baseURL = baseURL;
