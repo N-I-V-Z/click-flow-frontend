@@ -3,74 +3,101 @@ import Footer from '@/components/shared/footer-home';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useState } from 'react';
-import { useRegisterBusiness } from '@/queries/auth.query';
+import { useRegisterAdvertiser } from '@/queries/auth.query';
 import { Link } from 'react-router-dom';
 import ImageLeft from '../Image';
 
 type FormAdvertiser = {
   companyName: string;
-  website: string;
+  introductionWebsite: string;
   industry: string;
-  companySize: string;
+  staffSize: number;
   fullName: string;
-  contactEmail: string;
-  contactPhone: string;
+  email: string;
+  phoneNumber: string;
 };
 
-type FormError = Partial<FormAdvertiser>;
+type FormError = {
+  companyName: string;
+  introductionWebsite: string;
+  industry: string;
+  staffSize: string;
+  fullName: string;
+  email: string;
+  phoneNumber: string;
+};
 
 export default function RegisterBusinessPage() {
-  const { mutateAsync, isPending } = useRegisterBusiness();
-  const [formBusiness, setFormBusiness] = useState<FormAdvertiser>({
+  const { mutateAsync, isPending } = useRegisterAdvertiser();
+  const [formAdvertiser, setAdvertiser] = useState<FormAdvertiser>({
     companyName: '',
-    website: '',
+    introductionWebsite: '',
     industry: '',
-    companySize: '',
+    staffSize: 0,
     fullName: '',
-    contactEmail: '',
-    contactPhone: ''
+    email: '',
+    phoneNumber: ''
   });
-  const [error, setError] = useState<FormError>({});
+  const [error, setError] = useState<FormError>({
+    companyName: '',
+    introductionWebsite: '',
+    industry: '',
+    staffSize: '',
+    fullName: '',
+    email: '',
+    phoneNumber: ''
+  });
 
   const validateInputs = (): FormError => {
-    const errors: FormError = {};
-    if (!formBusiness.companyName.trim())
+    const errors: FormError = {
+      companyName: '',
+      introductionWebsite: '',
+      industry: '',
+      staffSize: '',
+      fullName: '',
+      email: '',
+      phoneNumber: ''
+    };
+    if (!formAdvertiser.companyName.trim())
       errors.companyName = 'Tên doanh nghiệp không được để trống.';
-    if (!formBusiness.website.trim())
-      errors.website = 'Website không được để trống.';
-    if (!formBusiness.industry.trim())
+    if (!formAdvertiser.introductionWebsite.trim())
+      errors.introductionWebsite = 'Website không được để trống.';
+    if (!formAdvertiser.industry.trim())
       errors.industry = 'Lĩnh vực hoạt động không được để trống.';
-    if (!formBusiness.companySize.trim())
-      errors.companySize = 'Quy mô doanh nghiệp không được để trống.';
-    if (!formBusiness.fullName.trim())
+    if (!formAdvertiser.staffSize)
+      errors.staffSize = 'Quy mô doanh nghiệp không được để trống.';
+    if (!formAdvertiser.fullName.trim())
       errors.fullName = 'Họ và tên không được để trống.';
-    if (!formBusiness.contactEmail.trim())
-      errors.contactEmail = 'Email liên hệ không được để trống.';
-    if (!formBusiness.contactPhone.trim())
-      errors.contactPhone = 'Số điện thoại không được để trống.';
+    if (!formAdvertiser.email.trim())
+      errors.email = 'Email liên hệ không được để trống.';
+    if (!formAdvertiser.phoneNumber.trim())
+      errors.phoneNumber = 'Số điện thoại không được để trống.';
     return errors;
   };
 
   const handleRegister = async () => {
     const errors = validateInputs();
     setError(errors);
-    if (Object.keys(errors).length > 0) {
+    // Kiểm tra nếu có bất kỳ lỗi nào
+    if (Object.values(errors).some((msg) => msg !== '')) {
       return;
     }
 
     try {
-      await mutateAsync(formBusiness);
+      await mutateAsync(formAdvertiser);
       alert('Đăng ký doanh nghiệp thành công!');
       window.location.href = '/dashboard';
     } catch (err) {
-      setError({ contactEmail: 'Không thể đăng ký. Vui lòng thử lại.' });
+      setError((prev) => ({
+        ...prev,
+        email: 'Không thể đăng ký. Vui lòng thử lại.'
+      }));
     }
   };
 
   return (
     <>
       <BasePages
-        // Tăng chiều rộng tổng thể (thay max-w-4xl thành max-w-screen-lg)
         className="relative mx-auto mb-20 max-w-screen-lg p-6"
         pageHead="Đăng ký doanh nghiệp | Click Flow"
         breadcrumbs={[
@@ -78,14 +105,11 @@ export default function RegisterBusinessPage() {
           { title: 'Đăng ký doanh nghiệp', link: '/register-business' }
         ]}
       >
-        {/* Khối chứa ảnh + form */}
         <div className="mx-auto mt-10 flex min-h-[600px] flex-col gap-8 rounded-xl bg-white p-8 shadow-lg lg:flex-row">
-          {/* Cột bên trái: Ảnh (ẩn trên màn hình nhỏ, chiếm 1/2 màn hình lớn) */}
           <div className="hidden w-full lg:block lg:w-1/2">
             <ImageLeft />
           </div>
 
-          {/* Cột bên phải: Form (chiếm 1/2) */}
           <div className="w-full lg:w-1/2">
             <div className="text-center">
               <Link to="/">
@@ -120,7 +144,6 @@ export default function RegisterBusinessPage() {
               </p>
             </div>
 
-            {/* Form inputs */}
             <div className="space-y-4">
               <div>
                 <label className="mb-1 block text-sm font-medium text-gray-700">
@@ -128,10 +151,10 @@ export default function RegisterBusinessPage() {
                 </label>
                 <Input
                   className="focus:ring-yellow-300 w-full rounded-md border-gray-300 focus:ring"
-                  value={formBusiness.companyName}
+                  value={formAdvertiser.companyName}
                   onChange={(e) =>
-                    setFormBusiness({
-                      ...formBusiness,
+                    setAdvertiser({
+                      ...formAdvertiser,
                       companyName: e.target.value
                     })
                   }
@@ -149,16 +172,18 @@ export default function RegisterBusinessPage() {
                 </label>
                 <Input
                   className="focus:ring-yellow-300 w-full rounded-md border-gray-300 focus:ring"
-                  value={formBusiness.website}
+                  value={formAdvertiser.introductionWebsite}
                   onChange={(e) =>
-                    setFormBusiness({
-                      ...formBusiness,
-                      website: e.target.value
+                    setAdvertiser({
+                      ...formAdvertiser,
+                      introductionWebsite: e.target.value
                     })
                   }
                 />
-                {error.website && (
-                  <p className="text-red-500 mt-1 text-xs">{error.website}</p>
+                {error.introductionWebsite && (
+                  <p className="text-red-500 mt-1 text-xs">
+                    {error.introductionWebsite}
+                  </p>
                 )}
               </div>
 
@@ -169,10 +194,10 @@ export default function RegisterBusinessPage() {
                   </label>
                   <Input
                     className="focus:ring-yellow-300 w-full rounded-md border-gray-300 focus:ring"
-                    value={formBusiness.industry}
+                    value={formAdvertiser.industry}
                     onChange={(e) =>
-                      setFormBusiness({
-                        ...formBusiness,
+                      setAdvertiser({
+                        ...formAdvertiser,
                         industry: e.target.value
                       })
                     }
@@ -189,17 +214,17 @@ export default function RegisterBusinessPage() {
                   </label>
                   <Input
                     className="focus:ring-yellow-300 w-full rounded-md border-gray-300 focus:ring"
-                    value={formBusiness.companySize}
+                    value={formAdvertiser.staffSize}
                     onChange={(e) =>
-                      setFormBusiness({
-                        ...formBusiness,
-                        companySize: e.target.value
+                      setAdvertiser({
+                        ...formAdvertiser,
+                        staffSize: Number(e.target.value)
                       })
                     }
                   />
-                  {error.companySize && (
+                  {error.staffSize && (
                     <p className="text-red-500 mt-1 text-xs">
-                      {error.companySize}
+                      {error.staffSize}
                     </p>
                   )}
                 </div>
@@ -211,10 +236,10 @@ export default function RegisterBusinessPage() {
                 </label>
                 <Input
                   className="focus:ring-yellow-300 w-full rounded-md border-gray-300 focus:ring"
-                  value={formBusiness.fullName}
+                  value={formAdvertiser.fullName}
                   onChange={(e) =>
-                    setFormBusiness({
-                      ...formBusiness,
+                    setAdvertiser({
+                      ...formAdvertiser,
                       fullName: e.target.value
                     })
                   }
@@ -230,18 +255,16 @@ export default function RegisterBusinessPage() {
                 </label>
                 <Input
                   className="focus:ring-yellow-300 w-full rounded-md border-gray-300 focus:ring"
-                  value={formBusiness.contactEmail}
+                  value={formAdvertiser.email}
                   onChange={(e) =>
-                    setFormBusiness({
-                      ...formBusiness,
-                      contactEmail: e.target.value
+                    setAdvertiser({
+                      ...formAdvertiser,
+                      email: e.target.value
                     })
                   }
                 />
-                {error.contactEmail && (
-                  <p className="text-red-500 mt-1 text-xs">
-                    {error.contactEmail}
-                  </p>
+                {error.email && (
+                  <p className="text-red-500 mt-1 text-xs">{error.email}</p>
                 )}
               </div>
 
@@ -251,17 +274,17 @@ export default function RegisterBusinessPage() {
                 </label>
                 <Input
                   className="focus:ring-yellow-300 w-full rounded-md border-gray-300 focus:ring"
-                  value={formBusiness.contactPhone}
+                  value={formAdvertiser.phoneNumber}
                   onChange={(e) =>
-                    setFormBusiness({
-                      ...formBusiness,
-                      contactPhone: e.target.value
+                    setAdvertiser({
+                      ...formAdvertiser,
+                      phoneNumber: e.target.value
                     })
                   }
                 />
-                {error.contactPhone && (
+                {error.phoneNumber && (
                   <p className="text-red-500 mt-1 text-xs">
-                    {error.contactPhone}
+                    {error.phoneNumber}
                   </p>
                 )}
               </div>

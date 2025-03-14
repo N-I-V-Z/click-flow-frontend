@@ -24,11 +24,7 @@ interface DashboardNavProps {
   isMobileNav?: boolean;
 }
 
-const items: NavItem[] = [
-  { title: 'Trang chủ', href: '/' },
-  // { title: 'Giới thiệu', href: '/about'},
-  { title: 'Chiến dịch', href: '/campaigns' }
-];
+const items: NavItem[] = [{ title: 'Trang chủ', href: '/' }];
 
 // export default function HeaderNav({ setOpen, isMobileNav = false }: DashboardNavProps) {
 export default function HeaderNav({ setOpen }: DashboardNavProps) {
@@ -94,12 +90,6 @@ export default function HeaderNav({ setOpen }: DashboardNavProps) {
                 <Icons.shoppingCart className="text-black" />
               </div>
             </Link>
-            <div
-              className="flex cursor-pointer items-center gap-2 rounded-lg bg-gray-300 p-2 font-bold"
-              onClick={() => route.push('/profile')}
-            >
-              <Icons.user className="text-black" />
-            </div>
           </>
         ) : (
           <>

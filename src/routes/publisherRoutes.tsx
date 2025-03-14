@@ -1,6 +1,8 @@
 import { Navigate } from 'react-router-dom';
 import { Suspense, lazy } from 'react';
 import PublisherLayout from '@/components/layout/PublisherLayout';
+import LoginRoute from './private/LoginRoute';
+import RoleRoute from './private/RoleRoute';
 
 const PublisherDashboard = lazy(() => import('@/pages/Publisher/index'));
 const PublisherCampaignPage = lazy(
@@ -13,15 +15,39 @@ const PublisherRoutes = [
   {
     path: '/publisher',
     element: (
-      <Suspense fallback={<div>Loading Publisher Layout...</div>}>
-        <PublisherLayout />
-      </Suspense>
+      <LoginRoute>
+        <Suspense fallback={<div>Loading Publisher Layout...</div>}>
+          <PublisherLayout />
+        </Suspense>
+      </LoginRoute>
     ),
     children: [
       { index: true, element: <Navigate to="dashboard" replace /> },
-      { path: 'dashboard', element: <PublisherDashboard /> },
-      { path: 'campaign', element: <PublisherCampaignPage /> },
-      { path: 'campaign-detail/:id', element: <PublisherCampaignDetailPage /> }
+      {
+        path: 'dashboard',
+        element: (
+          <RoleRoute allowedRoles={['Publisher']}>
+            <PublisherDashboard />{' '}
+          </RoleRoute>
+        )
+      },
+      {
+        path: 'campaign',
+        element: (
+          <RoleRoute allowedRoles={['Publisher']}>
+            {' '}
+            <PublisherCampaignPage />{' '}
+          </RoleRoute>
+        )
+      },
+      {
+        path: 'campaign-detail/:id',
+        element: (
+          <RoleRoute allowedRoles={['Publisher']}>
+            <PublisherCampaignDetailPage />{' '}
+          </RoleRoute>
+        )
+      }
       // Các route con khác nếu có...
     ]
   }

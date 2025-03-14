@@ -24,10 +24,10 @@ export const useRegister = () => {
   });
 };
 
-export const Logout = () => {
+export const useLogout = () => {
   return useMutation({
-    mutationKey: ['register'],
-    mutationFn: async (model: { refreshToken: string }) => {
+    mutationKey: ['logout'],
+    mutationFn: async (model: { refreshToken: string | undefined }) => {
       return BaseRequest.Post(`/${SUB_URL}/sign-out`, model);
     }
   });
@@ -53,10 +53,10 @@ export const useRegisterAdvertiser = () => {
       companyName: string;
       introductionWebsite: string;
       industry: string;
-      staffSize: string;
+      staffSize: number;
       fullName: string;
       email: string;
-      phoneNumber: 'user@example.com';
+      phoneNumber: string;
     }) => {
       return BaseRequest.Post(`/${SUB_URL}/register`, model);
     }

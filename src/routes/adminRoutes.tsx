@@ -1,6 +1,8 @@
 // src/routes/adminRoutes.tsx
 import { Navigate } from 'react-router-dom';
 import { Suspense, lazy } from 'react';
+import LoginRoute from './private/LoginRoute';
+import RoleRoute from './private/RoleRoute';
 
 const AdminLayout = lazy(() => import('@/components/layout/AdminLayout'));
 const AdminDashboard = lazy(() => import('@/pages/Admin/index'));
@@ -25,13 +27,68 @@ const adminRoutes = [
   {
     path: '/admin',
     element: (
-      <Suspense fallback={<div>Loading Admin Layout...</div>}>
-        <AdminLayout />
-      </Suspense>
+      <LoginRoute>
+        <Suspense fallback={<div>Loading Admin Layout...</div>}>
+          <AdminLayout />
+        </Suspense>
+      </LoginRoute>
     ),
     children: [
       // Nếu gõ "/admin" thì tự chuyển sang "/admin/dashboard"
       { index: true, element: <Navigate to="dashboard" replace /> },
+
+      {
+        path: 'dashboard',
+        element: (
+          <RoleRoute allowedRoles={['Admin']}>
+            <AdminDashboard />
+          </RoleRoute>
+        )
+      },
+      {
+        path: 'campaignlist',
+        element: (
+          <RoleRoute allowedRoles={['Admin']}>
+            {' '}
+            <AdminCampaignList />
+          </RoleRoute>
+        )
+      },
+      {
+        path: 'campaignrequest',
+        element: (
+          <RoleRoute allowedRoles={['Admin']}>
+            {' '}
+            <AdminCampaignRequest />
+          </RoleRoute>
+        )
+      },
+      {
+        path: 'managepublisher',
+        element: (
+          <RoleRoute allowedRoles={['Admin']}>
+            <AdminPublisherList />{' '}
+          </RoleRoute>
+        )
+      },
+      {
+        path: 'manageadvertiser',
+        element: (
+          <RoleRoute allowedRoles={['Admin']}>
+            {' '}
+            <AdminAdvertiserList />{' '}
+          </RoleRoute>
+        )
+      },
+      {
+        path: 'managereport',
+        element: (
+          <RoleRoute allowedRoles={['Admin']}>
+            {' '}
+            <AdminManageReport />{' '}
+          </RoleRoute>
+        )
+
       { path: 'dashboard', element: <AdminDashboard /> },
       { path: 'campaignlist', element: <AdminCampaignList /> },
       { path: 'campaignrequest', element: <AdminCampaignRequest /> },
@@ -42,6 +99,7 @@ const adminRoutes = [
       {
         path: 'campaign-request-detail/:id',
         element: <AdminCampaignPendingDetail />
+
       }
       // { path: 'campaign', element: <AdminCampaign /> },
       // ...

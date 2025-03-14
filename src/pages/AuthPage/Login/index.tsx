@@ -10,6 +10,8 @@ import { login } from '@/redux/auth.slice';
 import { Eye, EyeOff } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import ImageLeft from '../Image';
+import { jwtDecode } from 'jwt-decode';
+import { useRouter } from '@/routes/hooks';
 
 type FormLogin = {
   userNameOrEmail: string;
@@ -27,6 +29,7 @@ export default function LoginPage() {
   const [error, setError] = useState<FormError>({});
   const [showPassword, setShowPassword] = useState(false);
   const dispatch = useDispatch();
+  const router = useRouter();
 
   useEffect(() => {
     const token = helper.cookie_get('AT');
@@ -58,13 +61,25 @@ export default function LoginPage() {
 
     try {
       const data = await Login(formLogin);
-
-      if (data) {
-        console.log(formLogin);
-        helper.cookie_set('AT', data.accessToken);
-        dispatch(login());
-        window.location.href = '/advertiser/dashboard';
-        console.log('Người dùng đã đăng nhập');
+      helper.cookie_set('AT', data.result.token);
+      helper.cookie_set('RT', data.result.refreshToken);
+      dispatch(login());
+      const decodedToken: any = jwtDecode(data.result.token);
+      const role =
+        decodedToken.Role === 'Admin'
+          ? 'Admin'
+          : decodedToken.Role === 'Advertiser'
+            ? 'Advertiser'
+            : 'Publisher';
+      ``;
+      if (role === 'Admin') {
+        router.push('/admin');
+      } else if (role === 'Advertiser') {
+        router.push('/advertiser');
+      } else if (role === 'Publisher') {
+        router.push('/publisher');
+      } else {
+        router.push('/404');
       }
     } catch (err) {
       setError({ password: 'Tên đăng nhập hoặc mật khẩu không đúng.' });
@@ -166,14 +181,14 @@ export default function LoginPage() {
                 <p className="text-center text-[12px] text-muted-foreground">
                   Đăng ký tài khoản <br />
                   <a
-                    href="/register?type=advertiser"
+                    href="/register-advertiser"
                     className="text-[#9B52BF] no-underline"
                   >
                     Advertiser
                   </a>{' '}
                   hoặc{' '}
                   <a
-                    href="/register?type=publisher"
+                    href="/register-publisher"
                     className="text-[#9B52BF] no-underline"
                   >
                     Publisher
