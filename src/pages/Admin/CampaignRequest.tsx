@@ -7,121 +7,41 @@ import {
 } from '@ant-design/icons';
 import { useNavigate } from 'react-router-dom';
 
-// Import DataTable mới sửa
 import DataTable from '@/components/shared/data-table';
 import { ColumnDef } from '@tanstack/react-table';
+import { useGetCampaign } from '@/queries/campaign.query';
 
+// Khai báo interface cho 1 campaign (tuỳ vào structure API trả về)
 interface RequestCampaign {
   id: number;
   name: string;
-  createdAt: string;
-  endAt: string;
+  createdAt: string; // hoặc Date
+  endAt: string; // hoặc Date
   advertiser: string;
-  status: string;
+  status: string; // Pending, Approved, ...
 }
 
-// Dữ liệu mẫu
-const initialRequests: RequestCampaign[] = [
-  {
-    id: 1,
-    name: 'Mùa Hè Xanh',
-    createdAt: '10/10/2024',
-    endAt: '10/12/2024',
-    advertiser: 'FPT',
-    status: 'Chờ duyệt'
-  },
-  {
-    id: 2,
-    name: 'Xuân Hy Vọng',
-    createdAt: '01/01/2024',
-    endAt: '30/03/2024',
-    advertiser: 'Viettel',
-    status: 'Chờ duyệt'
-  },
-  {
-    id: 3,
-    name: 'Thu Vàng',
-    createdAt: '15/08/2024',
-    endAt: '15/10/2024',
-    advertiser: 'VNPT',
-    status: 'Chờ duyệt'
-  },
-  {
-    id: 4,
-    name: 'Tết 2024',
-    createdAt: '25/12/2023',
-    endAt: '10/02/2024',
-    advertiser: 'Shopee',
-    status: 'Chờ duyệt'
-  },
-  {
-    id: 5,
-    name: 'Ngày Hội Mua Sắm',
-    createdAt: '05/05/2024',
-    endAt: '15/05/2024',
-    advertiser: 'Lazada',
-    status: 'Chờ duyệt'
-  },
-  {
-    id: 6,
-    name: 'Black Friday',
-    createdAt: '20/11/2024',
-    endAt: '01/12/2024',
-    advertiser: 'Tiki',
-    status: 'Chờ duyệt'
-  },
-  {
-    id: 7,
-    name: 'Siêu Sale 11/11',
-    createdAt: '01/11/2024',
-    endAt: '12/11/2024',
-    advertiser: 'FPT',
-    status: 'Chờ duyệt'
-  },
-  {
-    id: 8,
-    name: 'Noel 2024',
-    createdAt: '01/12/2024',
-    endAt: '31/12/2024',
-    advertiser: 'VinID',
-    status: 'Chờ duyệt'
-  },
-  {
-    id: 9,
-    name: 'Hè Rực Rỡ',
-    createdAt: '01/06/2024',
-    endAt: '31/07/2024',
-    advertiser: 'FPT',
-    status: 'Chờ duyệt'
-  },
-  {
-    id: 10,
-    name: 'Du Lịch Biển',
-    createdAt: '10/06/2024',
-    endAt: '31/08/2024',
-    advertiser: 'VN Airlines',
-    status: 'Chờ duyệt'
-  },
-  {
-    id: 11,
-    name: 'Tri Ân Khách Hàng',
-    createdAt: '05/09/2024',
-    endAt: '15/09/2024',
-    advertiser: 'FPT',
-    status: 'Chờ duyệt'
-  }
-];
-
 const CampaignRequest: React.FC = () => {
-  const [dataSource] = useState<RequestCampaign[]>(initialRequests);
+  const navigate = useNavigate();
+
+  // Gọi API lấy danh sách campaigns có status = "Pending"
+  const {
+    data, // tuỳ cấu trúc, có thể là { data: { ... } } hoặc { ... }
+    isLoading,
+    error
+  } = useGetCampaign('Pending', 1, 10);
+
+  // Giả sử backend trả về { result: [ {id, name, ...} ] } hoặc chỉ trả về mảng
+  // Tuỳ theo API, bạn map đúng trường. Ví dụ:
+  const campaigns: RequestCampaign[] = data?.result ?? [];
+  // Nếu backend trả về { data: [ ... ] } thì bạn dùng data?.data ?? []
+
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [modalAction, setModalAction] = useState<'accept' | 'reject' | null>(
     null
   );
   const [selectedCampaign, setSelectedCampaign] =
     useState<RequestCampaign | null>(null);
-
-  const navigate = useNavigate();
 
   // Xử lý xác nhận Modal
   const handleOk = () => {
@@ -165,11 +85,16 @@ const CampaignRequest: React.FC = () => {
       {
         accessorKey: 'status',
         header: 'TRẠNG THÁI',
-        cell: ({ row }) => (
-          <span className="text-orange-600 font-semibold">
-            {row.original.status}
-          </span>
-        )
+        cell: ({ row }) => {
+          // Nếu muốn hiển thị "Chờ duyệt" thay vì "Pending"
+          return (
+            <span className="text-orange-600 font-semibold">
+              {row.original.status === 'Pending'
+                ? 'Chờ duyệt'
+                : row.original.status}
+            </span>
+          );
+        }
       },
       {
         id: 'actions',
@@ -211,21 +136,25 @@ const CampaignRequest: React.FC = () => {
     [navigate]
   );
 
+  // Trạng thái loading
+  if (isLoading) {
+    return <div>Đang tải dữ liệu...</div>;
+  }
+
+  // Nếu có lỗi
+  if (error) {
+    return <div>Đã có lỗi xảy ra khi tải dữ liệu!</div>;
+  }
+
+  // Hiển thị bảng
   return (
     <div className="mb-10 p-4">
       <h2 className="mb-4 text-xl font-semibold">Yêu cầu chiến dịch</h2>
 
-      {/* 
-        DataTable của bạn hiện yêu cầu prop `pageCount`.
-        - Nếu muốn phân trang client-side (để bảng tự tính số trang),
-          bạn có thể truyền `pageCount={-1}` hoặc bỏ hẳn (nếu sửa interface cho optional).
-        - Ở đây ta truyền -1 để bảng hiểu là không giới hạn, 
-          nó sẽ tự chia trang dựa trên dữ liệu và state pagination.
-      */}
       <DataTable
         columns={columns}
-        data={dataSource}
-        pageCount={-1}
+        data={campaigns}
+        pageCount={-1} // Để DataTable tự chia trang (client-side) nếu muốn
         pageSizeOptions={[10, 20, 30, 40, 50]}
         showAdd={false}
       />

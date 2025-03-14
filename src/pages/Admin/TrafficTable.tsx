@@ -1,8 +1,8 @@
 import React, { useMemo } from 'react';
 import { ColumnDef } from '@tanstack/react-table';
 import DataTable from '@/components/shared/data-table';
+import { useGetTraffics } from '@/queries/traffic.query';
 
-// Định nghĩa kiểu dữ liệu cho 1 bản ghi Traffic
 interface Traffic {
   traffic_id: number;
   campaign_id: number;
@@ -14,13 +14,11 @@ interface Traffic {
   browser: string;
   referrer_url: string;
   revenue: number;
-  // order_id chỉ xuất hiện khi CPS, có thể để optional
   order_id?: string;
 }
 
-// Định nghĩa prop cho component TrafficTable
 interface TrafficTableProps {
-  campaignId: number; // hiển thị traffic của campaign này
+  campaignId: number;
 }
 
 const columns: ColumnDef<Traffic>[] = [
@@ -69,81 +67,60 @@ const columns: ColumnDef<Traffic>[] = [
 ];
 
 const TrafficTable: React.FC<TrafficTableProps> = ({ campaignId }) => {
-  // Fake data để demo
-  const allTrafficData: Traffic[] = [
-    {
-      traffic_id: 1,
-      campaign_id: 1,
-      publisher_id: 1001,
-      ip_address: '192.168.0.101',
-      timestamp: '2023-03-01 10:00:00',
-      is_valid: true,
-      device_type: 'Mobile',
-      browser: 'Chrome',
-      referrer_url: 'https://example.com',
-      revenue: 0.5,
-      order_id: 'ORDER-ABC-123'
-    },
-    {
-      traffic_id: 2,
-      campaign_id: 1,
-      publisher_id: 1002,
-      ip_address: '192.168.0.102',
-      timestamp: '2023-03-01 11:00:00',
-      is_valid: false,
-      device_type: 'Desktop',
-      browser: 'Firefox',
-      referrer_url: 'https://example.org',
-      revenue: 0
-    },
-    {
-      traffic_id: 3,
-      campaign_id: 2,
-      publisher_id: 1003,
-      ip_address: '192.168.0.103',
-      timestamp: '2023-03-02 09:15:00',
-      is_valid: true,
-      device_type: 'Tablet',
-      browser: 'Safari',
-      referrer_url: 'https://example.net',
-      revenue: 1.2,
-      order_id: 'ORDER-XYZ-789'
-    },
-    {
-      traffic_id: 4,
-      campaign_id: 1,
-      publisher_id: 1004,
-      ip_address: '192.168.0.104',
-      timestamp: '2023-03-02 12:30:00',
-      is_valid: true,
-      device_type: 'Mobile',
-      browser: 'Chrome',
-      referrer_url: 'https://google.com',
-      revenue: 0.3
-    }
-  ];
+  // Gọi API với campaignId, pageIndex và pageSize
+  const { data, isLoading, error } = useGetTraffics(campaignId, 1, 10);
 
-  // Lọc dữ liệu chỉ hiển thị traffic của campaignId
-  const filteredTrafficData = useMemo(
-    () => allTrafficData.filter((t) => t.campaign_id === campaignId),
-    [campaignId]
-  );
+  // Lấy dữ liệu từ data.result (nếu có)
+  const trafficData = data?.result || [];
+  console.log('Traffic Data:', trafficData);
 
-  // pageCount = 1 (demo). Bạn có thể tính toán dựa trên tổng số record thực tế.
+  // Chuyển đổi dữ liệu thành dạng phù hợp với interface Traffic
+  const convertedTrafficData: Traffic[] = useMemo(() => {
+    return trafficData.map((item: any) => ({
+      traffic_id: item.id,
+      campaign_id: item.campaignId,
+      publisher_id: item.publisherId,
+      ip_address: item.ipAddress,
+      timestamp: item.timestamp,
+      is_valid: item.isValid,
+      device_type: item.deviceType,
+      browser: item.browser,
+      referrer_url: item.referrerURL,
+      revenue: item.revenue,
+      order_id: item.orderId
+    }));
+  }, [trafficData]);
+
+  // Nếu API chưa lọc theo campaignId, ta có thể lọc lại client-side
+  const filteredTrafficData = useMemo(() => {
+    return convertedTrafficData.filter((t) => t.campaign_id === campaignId);
+  }, [convertedTrafficData, campaignId]);
+
+  if (isLoading) {
+    return <div>Loading...</div>;
+  }
+
+  if (error) {
+    return <div>Đã có lỗi xảy ra.</div>;
+  }
+
+  // Giả sử pageCount được tính toán dựa trên dữ liệu hoặc API response
   const pageCount = 1;
 
   return (
-    <div>
-      <h1 className="mb-4 text-xl font-bold">
-        Traffic of Campaign {campaignId}
-      </h1>
-      <DataTable
-        columns={columns}
-        data={filteredTrafficData}
-        pageCount={pageCount}
-        pageSizeOptions={[10, 20, 50, 100]}
-        showAdd={false}
-      />
+    <div className="bg-gray-100 p-4">
+      <div className="m-4 rounded border border-gray-300 bg-white p-4 shadow">
+        <h1 className="mb-4 text-xl font-bold">
+          Traffic of Campaign {campaignId}
+        </h1>
+        <DataTable
+          columns={columns}
+          data={filteredTrafficData}
+          pageCount={pageCount}
+          pageSizeOptions={[10, 20, 50, 100]}
+          showAdd={false}
+        />
+      </div>
     </div>
   );
 };
