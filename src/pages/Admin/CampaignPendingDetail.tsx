@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import {
   Layout,
@@ -10,12 +10,19 @@ import {
   Badge,
   Tag,
   Button,
-  message
+  message,
+  Modal
 } from 'antd';
 import 'antd/dist/reset.css';
 
+import {
+  useGetCampaignById,
+  useUpdateCampaignStatus
+} from '@/queries/campaign.query';
+
 const { Content } = Layout;
 const { Title, Paragraph, Text } = Typography;
+const { confirm } = Modal;
 
 interface Campaign {
   id: number;
@@ -28,92 +35,51 @@ interface Campaign {
   startDate: string;
   endDate: string;
   method: string; // CPC, CPA, CPS
-  status: string; // Bị từ chối / Hoạt động / Chờ duyệt
-  category: string; // Thực phẩm&Đồ uống, Du lịch& Nghỉ dưỡng, khác
+  status: string; // "Bị từ chối" / "Hoạt động" / "Chờ duyệt"
+  category: string; // "Thực phẩm&Đồ uống", "Du lịch& Nghỉ dưỡng", ...
   commissionType: string; // "VND" hoặc "%"
   commissionValue: number; // Số tiền hoa hồng hoặc %
-  imageUrl: string; // Ảnh giả lập
+  imageUrl: string;
 }
-
-// Dữ liệu giả lập
-const initialCampaigns: Campaign[] = [
-  {
-    id: 1,
-    name: 'Mùa Hè Xanh',
-    advertiserId: 101,
-    advertiserName: 'FPT',
-    description:
-      'Chiến dịch quảng bá sản phẩm mùa hè xanh tươi mát, khuyến mãi cực lớn cho khách hàng mùa hè.',
-    originUrl: 'https://example.com/mua-he-xanh',
-    budget: 50000000,
-    startDate: '10/10/2024',
-    endDate: '10/12/2024',
-    method: 'CPC',
-    status: 'Chờ duyệt',
-    category: 'Thực phẩm & Đồ uống',
-    commissionType: 'VND',
-    commissionValue: 30000,
-    imageUrl:
-      'https://img.tripi.vn/cdn-cgi/image/width=700,height=700/https://gcs.tripi.vn/public-tripi/tripi-feed/img/474053mvn/anh-anh-da-den-ca-khia-hai-huoc_035823284.jpeg'
-  },
-  {
-    id: 2,
-    name: 'Xuân Hy Vọng',
-    advertiserId: 202,
-    advertiserName: 'Viettel',
-    description:
-      'Khuyến mãi mùa xuân với nhiều ưu đãi hấp dẫn, hoàn tiền data và giảm giá gói cước.',
-    originUrl: 'https://example.com/xuan-hy-vong',
-    budget: 80000000,
-    startDate: '01/01/2024',
-    endDate: '30/03/2024',
-    method: 'CPA',
-    status: 'Chờ duyệt',
-    category: 'Du lịch & Nghỉ dưỡng',
-    commissionType: '%',
-    commissionValue: 10,
-    imageUrl:
-      'https://img.tripi.vn/cdn-cgi/image/width=700,height=700/https://gcs.tripi.vn/public-tripi/tripi-feed/img/474053mvn/anh-anh-da-den-ca-khia-hai-huoc_035823284.jpeg'
-  },
-  {
-    id: 3,
-    name: 'Thu Vàng',
-    advertiserId: 303,
-    advertiserName: 'VinID',
-    description:
-      'Chiến dịch ưu đãi nạp tiền điện thoại, tích điểm đổi quà, mua sắm siêu thị tiện lợi.',
-    originUrl: 'https://example.com/thu-vang',
-    budget: 20000000,
-    startDate: '15/08/2024',
-    endDate: '15/10/2024',
-    method: 'CPS',
-    status: 'Chờ duyệt',
-    category: 'khác',
-    commissionType: '%',
-    commissionValue: 5,
-    imageUrl:
-      'https://img.tripi.vn/cdn-cgi/image/width=700,height=700/https://gcs.tripi.vn/public-tripi/tripi-feed/img/474053mvn/anh-anh-da-den-ca-khia-hai-huoc_035823284.jpeg'
-  }
-];
 
 const CampaignPendingDetail: React.FC = () => {
   const { id } = useParams();
   const navigate = useNavigate();
 
-  const [campaign, setCampaign] = useState<Campaign | null>(null);
+  // Hook lấy chi tiết campaign theo ID
+  const { data, isLoading, error } = useGetCampaignById(Number(id));
+  // Hook cập nhật trạng thái
+  const { mutate: updateCampaignStatus } = useUpdateCampaignStatus();
 
-  useEffect(() => {
-    if (id) {
-      const found = initialCampaigns.find(
-        (item) => item.id === parseInt(id, 10)
-      );
-      if (found) {
-        setCampaign(found);
-      }
-    }
-  }, [id]);
+  // Loading
+  if (isLoading) {
+    return (
+      <Layout className="min-h-screen bg-gray-50">
+        <Content className="p-6">
+          <Card>
+            <Title level={4}>Đang tải dữ liệu chiến dịch...</Title>
+          </Card>
+        </Content>
+      </Layout>
+    );
+  }
 
-  if (!campaign) {
+  // Lỗi
+  if (error) {
+    return (
+      <Layout className="min-h-screen bg-gray-50">
+        <Content className="p-6">
+          <Card>
+            <Title level={4}>Đã có lỗi xảy ra khi tải chiến dịch!</Title>
+          </Card>
+        </Content>
+      </Layout>
+    );
+  }
+
+  // Lấy đối tượng campaign từ API
+  const apiCampaign = data?.result;
+  if (!apiCampaign) {
     return (
       <Layout className="min-h-screen bg-gray-50">
         <Content className="p-6">
@@ -124,6 +90,25 @@ const CampaignPendingDetail: React.FC = () => {
       </Layout>
     );
   }
+
+  // Map dữ liệu API -> interface Campaign (tuỳ theo trường backend)
+  const campaign: Campaign = {
+    id: apiCampaign.id,
+    name: apiCampaign.name,
+    advertiserId: apiCampaign.advertiserId,
+    advertiserName: apiCampaign.advertiserName ?? '',
+    description: apiCampaign.description,
+    originUrl: apiCampaign.originURL,
+    budget: apiCampaign.budget,
+    startDate: apiCampaign.startDate,
+    endDate: apiCampaign.endDate,
+    method: apiCampaign.typePay,
+    status: apiCampaign.status,
+    category: apiCampaign.typeCampaign,
+    commissionType: apiCampaign.percents ? '%' : 'VND',
+    commissionValue: apiCampaign.percents ?? apiCampaign.commission,
+    imageUrl: apiCampaign.image
+  };
 
   // Badge trạng thái
   let statusBadge;
@@ -136,7 +121,7 @@ const CampaignPendingDetail: React.FC = () => {
     statusBadge = <Badge status="warning" text="Chờ duyệt" />;
   }
 
-  // Tag cho category
+  // Tag cho category và method
   const categoryTag = (
     <Tag color="blue" className="font-semibold">
       {campaign.category}
@@ -148,24 +133,55 @@ const CampaignPendingDetail: React.FC = () => {
     </Tag>
   );
 
-  // Commission hiển thị
+  // Hoa hồng
   const commissionText =
     campaign.commissionType === '%'
       ? `${campaign.commissionValue}%`
       : `${campaign.commissionValue.toLocaleString()} VND`;
 
-  // Nút Duyệt
-  const handleApprove = () => {
-    // Gọi API hoặc logic duyệt
-    message.success(`Đã duyệt chiến dịch: ${campaign.name}`);
-    navigate('/admin/campaigns');
+  // Hỏi xác nhận và cập nhật status
+  const confirmUpdateStatus = (action: 'approve' | 'reject') => {
+    confirm({
+      title: action === 'approve' ? 'Duyệt chiến dịch?' : 'Từ chối chiến dịch?',
+      content:
+        action === 'approve'
+          ? `Bạn có chắc muốn duyệt chiến dịch: "${campaign.name}"?`
+          : `Bạn có chắc muốn từ chối chiến dịch: "${campaign.name}"?`,
+      okText: 'Xác nhận',
+      cancelText: 'Hủy',
+      onOk() {
+        const newStatus = action === 'approve' ? 'Approved' : 'Canceled';
+        updateCampaignStatus(
+          { id: campaign.id, status: newStatus },
+          {
+            onSuccess: () => {
+              message.success(
+                action === 'approve'
+                  ? `Đã duyệt chiến dịch: ${campaign.name}`
+                  : `Đã từ chối chiến dịch: ${campaign.name}`
+              );
+              // Đợi 1 giây rồi chuyển hướng
+              setTimeout(() => {
+                navigate('/admin/campaignrequest');
+              }, 1000);
+            },
+            onError: () => {
+              message.error('Cập nhật trạng thái thất bại!');
+            }
+          }
+        );
+      }
+    });
   };
 
-  // Nút Từ chối
+  // Xử lý nút Duyệt
+  const handleApprove = () => {
+    confirmUpdateStatus('approve');
+  };
+
+  // Xử lý nút Từ chối
   const handleReject = () => {
-    // Gọi API hoặc logic từ chối
-    message.error(`Đã từ chối chiến dịch: ${campaign.name}`);
-    navigate('/admin/campaigns');
+    confirmUpdateStatus('reject');
   };
 
   return (
