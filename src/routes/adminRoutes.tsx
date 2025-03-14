@@ -14,7 +14,11 @@ const AdminCampaignList = lazy(() => import('@/pages/Admin/CampaignList'));
 const AdminAdvertiserList = lazy(
   () => import('@/pages/Admin/ManageAdvertiser')
 );
+const AdminCampaignDetail = lazy(() => import('@/pages/Admin/CampaignDetail'));
 const AdminManageReport = lazy(() => import('@/pages/Admin/ManageReport'));
+const AdminCampaignPendingDetail = lazy(
+  () => import('@/pages/Admin/CampaignPendingDetail')
+);
 // Nếu có các trang khác, lazy load tiếp:
 // const AdminCampaign = lazy(() => import('@/pages/Admin/Campaign'));
 // ...
@@ -32,6 +36,7 @@ const adminRoutes = [
     children: [
       // Nếu gõ "/admin" thì tự chuyển sang "/admin/dashboard"
       { index: true, element: <Navigate to="dashboard" replace /> },
+
       {
         path: 'dashboard',
         element: (
@@ -83,6 +88,18 @@ const adminRoutes = [
             <AdminManageReport />{' '}
           </RoleRoute>
         )
+
+      { path: 'dashboard', element: <AdminDashboard /> },
+      { path: 'campaignlist', element: <AdminCampaignList /> },
+      { path: 'campaignrequest', element: <AdminCampaignRequest /> },
+      { path: 'managepublisher', element: <AdminPublisherList /> },
+      { path: 'manageadvertiser', element: <AdminAdvertiserList /> },
+      { path: 'managereport', element: <AdminManageReport /> },
+      { path: 'campaign-detail/:id', element: <AdminCampaignDetail /> },
+      {
+        path: 'campaign-request-detail/:id',
+        element: <AdminCampaignPendingDetail />
+
       }
       // { path: 'campaign', element: <AdminCampaign /> },
       // ...

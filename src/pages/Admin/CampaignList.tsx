@@ -1,120 +1,115 @@
-import React, { useState, useEffect } from 'react';
-import { Table, Input, Modal } from 'antd';
-import type { ColumnsType } from 'antd/es/table';
+import React, { useState, useEffect, useMemo } from 'react';
+import { useNavigate } from 'react-router-dom';
+
+// Dùng Input & Modal của antd cho search + modal confirm
+import { Input, Modal } from 'antd';
 import {
+  SearchOutlined,
   EyeOutlined,
   EditOutlined,
-  CloseCircleOutlined,
-  SearchOutlined
+  CloseCircleOutlined
 } from '@ant-design/icons';
 
+// Dùng DataTable của bạn (đã gửi ở trên)
+import DataTable from '@/components/shared/data-table';
+import { ColumnDef } from '@tanstack/react-table';
+
+// ------------------ Kiểu dữ liệu ------------------
 interface Campaign {
   id: number;
   name: string;
-  createdAt: string;
-  endAt: string;
-  advertiser: string;
+  advertiserId: number;
+  advertiserName: string;
+  description: string;
+  originUrl: string;
+  budget: number;
+  startDate: string;
+  endDate: string;
+  method: string;
   status: string;
+  category: string;
+  commissionType: string;
+  commissionValue: number;
+  imageUrl: string;
 }
 
+// ------------------ Data fake ban đầu ------------------
 const initialCampaigns: Campaign[] = [
   {
     id: 1,
     name: 'Mùa Hè Xanh',
-    createdAt: '10/10/2024',
-    endAt: '10/12/2024',
-    advertiser: 'FPT',
-    status: 'Hoạt động'
+    advertiserId: 101,
+    advertiserName: 'FPT',
+    description: 'Chiến dịch quảng bá sản phẩm mùa hè xanh tươi mát',
+    originUrl: 'https://example.com/mua-he-xanh',
+    budget: 50000000,
+    startDate: '10/10/2024',
+    endDate: '10/12/2024',
+    method: 'CPC',
+    status: 'Hoạt động',
+    category: 'Thực phẩm & Đồ uống',
+    commissionType: 'VND',
+    commissionValue: 30000,
+    imageUrl: 'https://via.placeholder.com/300x200/cccccc?text=Mùa+Hè+Xanh'
   },
   {
     id: 2,
     name: 'Xuân Hy Vọng',
-    createdAt: '01/01/2024',
-    endAt: '30/03/2024',
-    advertiser: 'Viettel',
-    status: 'Hoạt động'
+    advertiserId: 102,
+    advertiserName: 'Viettel',
+    description: 'Khuyến mãi mùa xuân với nhiều ưu đãi hấp dẫn',
+    originUrl: 'https://example.com/xuan-hy-vong',
+    budget: 100000000,
+    startDate: '01/01/2024',
+    endDate: '30/03/2024',
+    method: 'CPA',
+    status: 'Hoạt động',
+    category: 'Du lịch & Nghỉ dưỡng',
+    commissionType: '%',
+    commissionValue: 10,
+    imageUrl: 'https://via.placeholder.com/300x200/aaaaaa?text=Xuân+Hy+Vọng'
   },
   {
     id: 3,
     name: 'Thu Vàng',
-    createdAt: '15/08/2024',
-    endAt: '15/10/2024',
-    advertiser: 'VNPT',
-    status: 'Hoạt động'
-  },
-  {
-    id: 4,
-    name: 'Tết 2024',
-    createdAt: '25/12/2023',
-    endAt: '10/02/2024',
-    advertiser: 'Shopee',
-    status: 'Hoạt động'
-  },
-  {
-    id: 5,
-    name: 'Ngày Hội Mua Sắm',
-    createdAt: '05/05/2024',
-    endAt: '15/05/2024',
-    advertiser: 'Lazada',
-    status: 'Hoạt động'
-  },
-  {
-    id: 6,
-    name: 'Black Friday',
-    createdAt: '20/11/2024',
-    endAt: '01/12/2024',
-    advertiser: 'Tiki',
-    status: 'Hoạt động'
-  },
-  {
-    id: 7,
-    name: 'Siêu Sale 11/11',
-    createdAt: '01/11/2024',
-    endAt: '12/11/2024',
-    advertiser: 'FPT',
-    status: 'Hoạt động'
-  },
-  {
-    id: 8,
-    name: 'Noel 2024',
-    createdAt: '01/12/2024',
-    endAt: '31/12/2024',
-    advertiser: 'VinID',
-    status: 'Hoạt động'
-  },
-  {
-    id: 9,
-    name: 'Hè Rực Rỡ',
-    createdAt: '01/06/2024',
-    endAt: '31/07/2024',
-    advertiser: 'FPT',
-    status: 'Hoạt động'
-  },
-  {
-    id: 10,
-    name: 'Du Lịch Biển',
-    createdAt: '10/06/2024',
-    endAt: '31/08/2024',
-    advertiser: 'VN Airlines',
-    status: 'Hoạt động'
-  },
-  {
-    id: 11,
-    name: 'Tri Ân Khách Hàng',
-    createdAt: '05/09/2024',
-    endAt: '15/09/2024',
-    advertiser: 'FPT',
-    status: 'Hoạt động'
+    advertiserId: 103,
+    advertiserName: 'VNPT',
+    description: 'Chiến dịch giảm giá các sản phẩm mùa thu',
+    originUrl: 'https://example.com/thu-vang',
+    budget: 20000000,
+    startDate: '15/08/2024',
+    endDate: '15/10/2024',
+    method: 'CPS',
+    status: 'Bị từ chối',
+    category: 'khác',
+    commissionType: 'VND',
+    commissionValue: 50000,
+    imageUrl: 'https://via.placeholder.com/300x200/888888?text=Thu+Vàng'
   }
 ];
 
+// ------------------ Component chính ------------------
 const CampaignList: React.FC = () => {
+  // State để quản lý dữ liệu và giá trị tìm kiếm
   const [searchValue, setSearchValue] = useState('');
   const [dataSource, setDataSource] = useState<Campaign[]>(initialCampaigns);
+
+  // State cho Modal xác nhận dừng chiến dịch
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [selectedCampaign, setSelectedCampaign] = useState<Campaign | null>(
     null
   );
+
+  // Điều hướng router
+  const navigate = useNavigate();
+
+  // Xử lý bấm "Xem"
+  const handleView = (record: Campaign) => {
+    // Chuyển sang đường dẫn /admin/campaign-detail/:id
+    navigate(`/admin/campaign-detail/${record.id}`);
+  };
+
+  // Xử lý xoá (dừng chiến dịch)
   const handleDelete = () => {
     if (selectedCampaign) {
       setDataSource((prev) => prev.filter((c) => c.id !== selectedCampaign.id));
@@ -123,76 +118,7 @@ const CampaignList: React.FC = () => {
     setSelectedCampaign(null);
   };
 
-  const columns: ColumnsType<Campaign> = [
-    {
-      title: 'TÊN CHIẾN DỊCH',
-      dataIndex: 'name',
-      key: 'name'
-    },
-    {
-      title: 'NGÀY TẠO',
-      dataIndex: 'createdAt',
-      key: 'createdAt'
-    },
-    {
-      title: 'NGÀY KẾT THÚC',
-      dataIndex: 'endAt',
-      key: 'endAt'
-    },
-    {
-      title: 'NHÀ QUẢNG CÁO',
-      dataIndex: 'advertiser',
-      key: 'advertiser'
-    },
-    {
-      title: 'TRẠNG THÁI',
-      dataIndex: 'status',
-      key: 'status',
-      render: (status: string) => (
-        <span className="font-semibold text-green-600">{status}</span>
-      )
-    },
-    {
-      title: 'HÀNH ĐỘNG',
-      key: 'action',
-      render: (_, record) => (
-        <div className="flex justify-center gap-3 ">
-          {/* Xem */}
-          <EyeOutlined
-            className="
-              cursor-pointer rounded-full p-1
-              text-xl text-[#1570EF]
-              transition-colors hover:bg-[#1570EF] hover:text-white
-            "
-            onClick={() => alert(`Xem: ${record.name}`)}
-          />
-          {/* Sửa */}
-          <EditOutlined
-            className="
-              cursor-pointer rounded-full p-1
-              text-xl text-[#FFBF00]
-              transition-colors hover:bg-[#FFBF00] hover:text-white
-            "
-            onClick={() => alert(`Sửa: ${record.name}`)}
-          />
-          {/* Xoá */}
-          <CloseCircleOutlined
-            className="
-              cursor-pointer rounded-full p-1
-              text-xl text-[#DC0E0E]
-              transition-colors hover:bg-[#DC0E0E] hover:text-white
-            "
-            onClick={() => {
-              setSelectedCampaign(record);
-              setIsModalVisible(true);
-            }}
-          />
-        </div>
-      )
-    }
-  ];
-
-  // Lọc dữ liệu khi searchValue thay đổi
+  // Lọc dữ liệu mỗi khi searchValue thay đổi
   useEffect(() => {
     const filtered = initialCampaigns.filter((item) =>
       item.name.toLowerCase().includes(searchValue.toLowerCase())
@@ -200,31 +126,96 @@ const CampaignList: React.FC = () => {
     setDataSource(filtered);
   }, [searchValue]);
 
+  // ------------------ Định nghĩa cột cho DataTable ------------------
+  const columns = useMemo<ColumnDef<Campaign>[]>(
+    () => [
+      {
+        accessorKey: 'name',
+        header: 'TÊN CHIẾN DỊCH'
+      },
+      {
+        accessorKey: 'startDate',
+        header: 'NGÀY TẠO'
+      },
+      {
+        accessorKey: 'endDate',
+        header: 'NGÀY KẾT THÚC'
+      },
+      {
+        accessorKey: 'advertiserName',
+        header: 'NHÀ QUẢNG CÁO'
+      },
+      {
+        accessorKey: 'status',
+        header: 'TRẠNG THÁI',
+        // Tuỳ biến cell hiển thị status
+        cell: ({ row }) => (
+          <span className="font-semibold text-green-600">
+            {row.original.status}
+          </span>
+        )
+      },
+      {
+        // Cột hành động
+        id: 'actions', // không có accessorKey vì đây là cột custom
+        header: 'HÀNH ĐỘNG',
+        cell: ({ row }) => {
+          const record = row.original;
+          return (
+            <div className="flex justify-center gap-3">
+              {/* Xem */}
+              <EyeOutlined
+                className="
+                  cursor-pointer rounded-full p-1
+                  text-xl text-[#1570EF]
+                  transition-colors hover:bg-[#1570EF] hover:text-white
+                "
+                onClick={() => handleView(record)}
+              />
+              {/* Sửa */}
+              <EditOutlined
+                className="
+                  cursor-pointer rounded-full p-1
+                  text-xl text-[#FFBF00]
+                  transition-colors hover:bg-[#FFBF00] hover:text-white
+                "
+                onClick={() => alert(`Sửa: ${record.name}`)}
+              />
+              {/* Xoá (dừng chiến dịch) */}
+              <CloseCircleOutlined
+                className="
+                  cursor-pointer rounded-full p-1
+                  text-xl text-[#DC0E0E]
+                  transition-colors hover:bg-[#DC0E0E] hover:text-white
+                "
+                onClick={() => {
+                  setSelectedCampaign(record);
+                  setIsModalVisible(true);
+                }}
+              />
+            </div>
+          );
+        }
+      }
+    ],
+    []
+  );
+
   return (
     <div className="p-4">
       <h2 className="mb-4 text-xl font-semibold">Danh sách chiến dịch</h2>
 
-      {/* Thanh tìm kiếm (bên phải) */}
-      <div className="mb-4 flex justify-end">
-        <Input
-          placeholder="Tìm kiếm chiến dịch"
-          prefix={<SearchOutlined />}
-          style={{ width: 250 }}
-          value={searchValue}
-          onChange={(e) => setSearchValue(e.target.value)}
-        />
-      </div>
-
-      {/* Bảng (pagination giữa) */}
-      <Table
+      {/* Bảng hiển thị bằng DataTable */}
+      <DataTable
         columns={columns}
-        dataSource={dataSource}
-        rowKey="id"
-        pagination={{
-          pageSize: 10,
-          position: ['bottomCenter']
-        }}
+        data={dataSource}
+        // Vì đang demo local data nên ta set pageCount=1
+        pageCount={1}
+        pageSizeOptions={[10, 20, 50, 100]}
+        showAdd={false}
       />
+
+      {/* Modal xác nhận dừng chiến dịch */}
       <Modal
         title="Dừng chiến dịch"
         open={isModalVisible}
@@ -232,13 +223,11 @@ const CampaignList: React.FC = () => {
         onCancel={() => setIsModalVisible(false)}
         okText="Xác nhận"
         cancelText="Hủy"
-        // Tùy chỉnh nút OK
         okButtonProps={{
           className: 'bg-[#1570EF] text-white border-none'
         }}
-        // Tùy chỉnh nút Hủy
         cancelButtonProps={{
-          className: 'text-[#DC0E0E] border-[#DC0E0E]  hover:text-white'
+          className: 'text-[#DC0E0E] border-[#DC0E0E] hover:text-white'
         }}
       >
         {selectedCampaign && (
