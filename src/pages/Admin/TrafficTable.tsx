@@ -67,21 +67,16 @@ const columns: ColumnDef<Traffic>[] = [
 ];
 
 const TrafficTable: React.FC<TrafficTableProps> = ({ campaignId }) => {
-  // Gọi hook để fetch dữ liệu
-  const {
-    data, // dữ liệu trả về
-    isLoading, // trạng thái loading
-    error // đối tượng lỗi (nếu có)
-  } = useGetTraffics(1, 10, '');
-  // Tuỳ vào logic bạn có thể cho pageIndex, pageSize, keyword làm biến props hoặc state
+  // Gọi API với campaignId, pageIndex và pageSize
+  const { data, isLoading, error } = useGetTraffics(campaignId, 1, 10);
 
-  // Dữ liệu trả về sẽ có dạng: {statusCode, isSuccess, message, errors, result: [...]}
-  // Ta cần lấy data.result để có mảng traffic
+  // Lấy dữ liệu từ data.result (nếu có)
   const trafficData = data?.result || [];
-  console.log('trdata', trafficData);
-  // Tạo mảng trafficData đúng cấu trúc interface Traffic
+  console.log('Traffic Data:', trafficData);
+
+  // Chuyển đổi dữ liệu thành dạng phù hợp với interface Traffic
   const convertedTrafficData: Traffic[] = useMemo(() => {
-    return trafficData.map((item) => ({
+    return trafficData.map((item: any) => ({
       traffic_id: item.id,
       campaign_id: item.campaignId,
       publisher_id: item.publisherId,
@@ -96,25 +91,22 @@ const TrafficTable: React.FC<TrafficTableProps> = ({ campaignId }) => {
     }));
   }, [trafficData]);
 
-  // Lọc dữ liệu cho đúng campaignId
+  // Nếu API chưa lọc theo campaignId, ta có thể lọc lại client-side
   const filteredTrafficData = useMemo(() => {
     return convertedTrafficData.filter((t) => t.campaign_id === campaignId);
   }, [convertedTrafficData, campaignId]);
 
-  // Nếu đang fetch thì trả về loading...
   if (isLoading) {
     return <div>Loading...</div>;
   }
 
-  // Nếu có lỗi
   if (error) {
     return <div>Đã có lỗi xảy ra.</div>;
   }
 
-  // Tạm thời pageCount cứ set cứng là 1 để demo
+  // Giả sử pageCount được tính toán dựa trên dữ liệu hoặc API response
   const pageCount = 1;
-  console.log('filteredTrafficData', filteredTrafficData);
-  console.log('dataaa', data);
+
   return (
     <div className="bg-gray-100 p-4">
       <div className="m-4 rounded border border-gray-300 bg-white p-4 shadow">
