@@ -1,5 +1,5 @@
 import { Icons } from '../ui/icons';
-
+import { Link } from 'react-router-dom';
 export default function Footer() {
   return (
     <footer className="mt-8 w-full bg-gray-600 py-10 text-white">
@@ -26,24 +26,18 @@ export default function Footer() {
         {/* Navigation Menu */}
         <nav className="flex flex-col items-center space-y-3 md:items-start">
           <h3 className="text-yellow-400 text-lg font-semibold">Menu</h3>
-          <a
-            href="/"
+          <Link
+            to="/"
             className="hover:text-yellow-400 transition-all hover:underline"
           >
             Trang chủ
-          </a>
-          <a
-            href="/"
+          </Link>
+          <Link
+            to="/src/pages/OtherPage/privacy.tsx"
             className="hover:text-yellow-400 transition-all hover:underline"
           >
             Chính sách bảo mật
-          </a>
-          <a
-            href="/"
-            className="hover:text-yellow-400 transition-all hover:underline"
-          >
-            Điều khoản sử dụng
-          </a>
+          </Link>
         </nav>
       </div>
 

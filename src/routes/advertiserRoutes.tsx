@@ -1,5 +1,7 @@
 import { Navigate } from 'react-router-dom';
 import { Suspense, lazy } from 'react';
+import LoginRoute from './private/LoginRoute';
+import RoleRoute from './private/RoleRoute';
 
 const AdvertiserLayout = lazy(
   () => import('@/components/layout/AdvertiserLayout/index')
@@ -18,17 +20,57 @@ const advertiserRoutes = [
   {
     path: '/advertiser',
     element: (
-      <Suspense>
-        <AdvertiserLayout />
-      </Suspense>
+      <LoginRoute>
+        <Suspense>
+          <AdvertiserLayout />
+        </Suspense>
+      </LoginRoute>
     ),
     children: [
       { index: true, element: <Navigate to="dashboard" replace /> },
-      { path: 'dashboard', element: <AdvertiserDashboard /> },
-      { path: 'campaigns', element: <AdvertiserCampaigns /> },
-      { path: 'advertiser-profile', element: <AdvertiserProfile /> },
-      { path: 'change-password', element: <ChangePassword /> },
-      { path: 'wallet', element: <Wallet /> }
+      {
+        path: 'dashboard',
+        element: (
+          <RoleRoute allowedRoles={['Advertiser']}>
+            {' '}
+            <AdvertiserDashboard />{' '}
+          </RoleRoute>
+        )
+      },
+      {
+        path: 'campaigns',
+        element: (
+          <RoleRoute allowedRoles={['Advertiser']}>
+            {' '}
+            <AdvertiserCampaigns />
+          </RoleRoute>
+        )
+      },
+      {
+        path: 'advertiser-profile',
+        element: (
+          <RoleRoute allowedRoles={['Advertiser']}>
+            <AdvertiserProfile />
+          </RoleRoute>
+        )
+      },
+      {
+        path: 'change-password',
+        element: (
+          <RoleRoute allowedRoles={['Advertiser']}>
+            {' '}
+            <ChangePassword />
+          </RoleRoute>
+        )
+      },
+      {
+        path: 'wallet',
+        element: (
+          <RoleRoute allowedRoles={['Advertiser']}>
+            <Wallet />{' '}
+          </RoleRoute>
+        )
+      }
     ]
   }
 ];

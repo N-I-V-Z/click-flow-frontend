@@ -10,10 +10,29 @@ import {
 } from '@ant-design/icons';
 import { NavLink } from 'react-router-dom';
 import { BiBuildings } from 'react-icons/bi';
-
+import { useDispatch } from 'react-redux';
+import { useRouter } from '@/routes/hooks';
+import { useLogout } from '@/queries/auth.query';
+import helpers from '@/helpers';
+import { logout } from '@/redux/auth.slice';
 const { SubMenu } = Menu;
 
 const SidebarAdmin: React.FC = () => {
+  const { mutateAsync: logoutAccount } = useLogout();
+  const router = useRouter();
+  const dispatch = useDispatch();
+  const refreshToken = helpers.cookie_get('RT');
+  const { mutateAsync, isPending } = useLogout();
+
+  const handleLogout = async () => {
+    await logoutAccount({
+      refreshToken: refreshToken
+    });
+    helpers.cookie_delete('RT');
+    helpers.cookie_delete('AT');
+    router.push('/login');
+    dispatch(logout());
+  };
   return (
     <div
       className="
@@ -71,10 +90,11 @@ const SidebarAdmin: React.FC = () => {
             key="logout"
             icon={<LogoutOutlined />}
             style={{ color: 'red' }}
+            onClick={handleLogout}
+            disabled={isPending}
           >
-            <NavLink to="/logout" style={{ color: 'red' }}>
-              Đăng xuất
-            </NavLink>
+            {/* Khi click vào Đăng xuất, hiển thị modal xác nhận */}
+            <p>{isPending ? 'Đang xử lý...' : 'Đăng xuất'}</p>
           </Menu.Item>
         </Menu>
       </div>
