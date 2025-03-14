@@ -1,11 +1,13 @@
-import { createSlice } from '@reduxjs/toolkit';
+import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 
 interface AuthState {
   isLogin: boolean;
+  role: string;
 }
 
 const initialState: AuthState = {
-  isLogin: false
+  isLogin: false,
+  role: ''
 };
 
 const authSlice = createSlice({
@@ -17,10 +19,13 @@ const authSlice = createSlice({
     },
     logout(state) {
       state.isLogin = false;
+    },
+    setRole(state, action: PayloadAction<string>) {
+      state.role = action.payload;
     }
   }
 });
 
-export const { login, logout } = authSlice.actions;
+export const { login, logout, setRole } = authSlice.actions;
 const authReducer = authSlice.reducer;
 export default authReducer;

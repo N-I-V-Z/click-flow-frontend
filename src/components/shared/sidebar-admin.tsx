@@ -10,12 +10,33 @@ import {
 } from '@ant-design/icons';
 import { NavLink, useLocation } from 'react-router-dom';
 import { BiBuildings } from 'react-icons/bi';
-
+import { useDispatch } from 'react-redux';
+import { useRouter } from '@/routes/hooks';
+import { useLogout } from '@/queries/auth.query';
+import helpers from '@/helpers';
+import { logout } from '@/redux/auth.slice';
 const { SubMenu } = Menu;
 
 const SidebarAdmin: React.FC = () => {
+
+  const { mutateAsync: logoutAccount } = useLogout();
+  const router = useRouter();
+  const dispatch = useDispatch();
+  const refreshToken = helpers.cookie_get('RT');
+  const { mutateAsync, isPending } = useLogout();
+
+  const handleLogout = async () => {
+    await logoutAccount({
+      refreshToken: refreshToken
+    });
+    helpers.cookie_delete('RT');
+    helpers.cookie_delete('AT');
+    router.push('/login');
+    dispatch(logout());
+  };
   const location = useLocation();
   const [selectedKey, setSelectedKey] = useState(location.pathname);
+
 
   return (
     <div
@@ -128,14 +149,18 @@ const SidebarAdmin: React.FC = () => {
             key="/logout"
             icon={<LogoutOutlined />}
             style={{ color: 'red' }}
+
+            onClick={handleLogout}
+            disabled={isPending}
+
             className={`
               hover:!border-[#9B52BF] hover:bg-white hover:!text-[#9B52BF]
               ${selectedKey === '/logout' ? '!bg-[#9B52BF] !text-white' : ''}
             `}
+
           >
-            <NavLink to="/logout" style={{ color: 'red' }}>
-              Đăng xuất
-            </NavLink>
+            {/* Khi click vào Đăng xuất, hiển thị modal xác nhận */}
+            <p>{isPending ? 'Đang xử lý...' : 'Đăng xuất'}</p>
           </Menu.Item>
         </Menu>
       </div>

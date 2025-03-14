@@ -3,12 +3,18 @@ import { motion } from 'framer-motion';
 const Background: React.FC = () => {
   return (
     <motion.div
-      className="relative flex h-screen w-screen items-center justify-center overflow-hidden bg-gradient-to-br from-gray-500 to-purple-600"
+      className="relative flex h-screen items-center justify-center overflow-hidden bg-gradient-to-br from-gray-500 to-purple-600"
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       transition={{ duration: 1 }}
     >
       {/* Animated floating shapes */}
+      <motion.div
+        className="absolute rounded-full bg-yellow"
+        style={{ width: '100px', height: '100px', top: '10%', right: '20%' }}
+        animate={{ y: [0, -40, 0], x: [0, -30, 0], opacity: [0.7, 0.4, 0.7] }}
+        transition={{ duration: 6, repeat: Infinity, ease: 'easeInOut' }}
+      />
       <motion.div
         className="absolute rounded-full bg-purple-500"
         style={{ width: '150px', height: '150px', top: '15%', left: '10%' }}

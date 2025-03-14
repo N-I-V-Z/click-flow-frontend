@@ -1,6 +1,5 @@
-import DashboardNav from '@/components/shared/header-home';
 import { Sheet, SheetContent } from '@/components/ui/sheet';
-import { navItems } from '@/constants/data';
+
 import { Dispatch, SetStateAction } from 'react';
 import { Link } from 'react-router-dom';
 
