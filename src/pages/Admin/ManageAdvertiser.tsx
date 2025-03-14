@@ -1,99 +1,74 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { Modal, Button, Input } from 'antd';
 import { EyeOutlined, CloseCircleOutlined } from '@ant-design/icons';
 import { BiBuildings } from 'react-icons/bi';
-import DataTable from '@/components/shared/data-table'; // Điều chỉnh path cho phù hợp
+import DataTable from '@/components/shared/data-table';
 import { ColumnDef } from '@tanstack/react-table';
 
+// Import hook để lấy user theo role
+import { useGetUsersByRole } from '@/queries/user.query';
+
+/** Interface local mô tả Advertiser */
 interface Advertiser {
   id: number;
-  code: string; // Mã nhà quảng cáo
-  name: string; // Tên hiển thị
+  code: number; // Mã nhà quảng cáo (VD: "ADS001")
+  name: string; // Tên hiển thị (fullName)
   phone: string; // Số điện thoại
-  userName: string; // Username
-  createdAt: string; // Ngày tạo
+  userName: string; // Tên đăng nhập
+  createdAt: string;
   email: string;
-  company: string; // Tên công ty
-  business: string; // Lĩnh vực kinh doanh
+  company: string;
+  business: string;
   status: string; // "Hoạt động" | "Bị khóa"
 }
 
-const initialAdvertisers: Advertiser[] = [
-  {
-    id: 1,
-    code: 'ADS001',
-    name: 'Nguyễn Khải Qui',
-    phone: '0431343144',
-    userName: 'Quink333',
-    createdAt: '26/11/2024',
-    email: 'quink1234@gmail.com',
-    company: 'Shine source',
-    business: 'Thực phẩm & đồ uống',
-    status: 'Hoạt động'
-  },
-  {
-    id: 2,
-    code: 'ADS002',
-    name: 'Trần Thị MKT',
-    phone: '0123456789',
-    userName: 'TranMKT',
-    createdAt: '15/10/2024',
-    email: 'tranmkt@example.com',
-    company: 'ABC Marketing',
-    business: 'Dịch vụ quảng cáo',
-    status: 'Bị khóa'
-  },
-  {
-    id: 3,
-    code: 'ADS003',
-    name: 'Phạm Q. Ads',
-    phone: '0987654321',
-    userName: 'PhQuangAds',
-    createdAt: '05/09/2024',
-    email: 'phquang@example.com',
-    company: 'AdsTech',
-    business: 'Công nghệ quảng cáo',
-    status: 'Hoạt động'
-  },
-  {
-    id: 4,
-    code: 'ADS004',
-    name: 'Lê Quảng',
-    phone: '0909009009',
-    userName: 'LeQuang',
-    createdAt: '01/08/2024',
-    email: 'lequang@example.com',
-    company: 'Startup Co.',
-    business: 'Khởi nghiệp',
-    status: 'Bị khóa'
-  },
-  {
-    id: 5,
-    code: 'ADS005',
-    name: 'Võ Quảng Bá',
-    phone: '0777000111',
-    userName: 'VoQB',
-    createdAt: '10/07/2024',
-    email: 'voqb@example.com',
-    company: 'TTT Corp',
-    business: 'Phân phối bán lẻ',
-    status: 'Hoạt động'
-  }
-];
+/**
+ * Hàm chuyển dữ liệu từ API -> Advertiser (UI)
+ * Tuỳ thuộc server trả về trường gì.
+ * Ví dụ: { id, fullName, email, phone, status="Active"/"Locked", ... }
+ */
+function mapApiUserToAdvertiser(apiUser: any): Advertiser {
+  return {
+    id: apiUser.id,
+    // code = "ADS" + id zero-pad
+    code: apiUser.id,
+    name: apiUser.fullName ?? 'No name',
+    phone: apiUser.phone ?? '',
+    userName: apiUser.userName ?? '',
+    createdAt: apiUser.createdAt ?? '',
+    email: apiUser.email ?? '',
+    company: apiUser.company ?? '',
+    business: apiUser.business ?? '',
+    // Map "Active" => "Hoạt động", "Locked" => "Bị khóa"
+    status: apiUser.status === 'Active' ? 'Hoạt động' : 'Bị khóa'
+  };
+}
 
 const AdvertiserList: React.FC = () => {
-  const [dataSource, setDataSource] =
-    useState<Advertiser[]>(initialAdvertisers);
+  // State chứa danh sách advertiser
+  const [dataSource, setDataSource] = useState<Advertiser[]>([]);
 
-  // State cho modal "Xem chi tiết"
+  // Modal "Xem chi tiết"
   const [isViewModalVisible, setIsViewModalVisible] = useState(false);
   const [selectedAdvertiser, setSelectedAdvertiser] =
     useState<Advertiser | null>(null);
 
-  // State cho modal "Khóa/Mở khóa"
+  // Modal "Khóa/Mở khóa"
   const [isLockModalVisible, setIsLockModalVisible] = useState(false);
 
-  // Xử lý "Xem chi tiết"
+  // 1) Gọi API lấy user role = "Advertiser", page=1, size=10
+  const { data, isLoading, error } = useGetUsersByRole('Advertiser', 1, 10);
+
+  // 2) Mỗi khi data?.result thay đổi, map sang Advertiser[]
+  useEffect(() => {
+    if (data?.result) {
+      const apiUsers = data.result; // Mảng user từ backend
+      const mapped = apiUsers.map((user: any) => mapApiUserToAdvertiser(user));
+      setDataSource(mapped);
+    }
+  }, [data]);
+
+  // 3) "Xem chi tiết"
   const handleView = (record: Advertiser) => {
     setSelectedAdvertiser(record);
     setIsViewModalVisible(true);
@@ -103,7 +78,7 @@ const AdvertiserList: React.FC = () => {
     setSelectedAdvertiser(null);
   };
 
-  // Xử lý "Khóa/Mở khóa"
+  // 4) "Khóa/Mở khóa"
   const handleLockUnlock = (record: Advertiser) => {
     setSelectedAdvertiser(record);
     setIsLockModalVisible(true);
@@ -129,7 +104,7 @@ const AdvertiserList: React.FC = () => {
     setSelectedAdvertiser(null);
   };
 
-  // Định nghĩa cột theo chuẩn ColumnDef cho DataTable
+  // Định nghĩa cột cho DataTable
   const columns = useMemo<ColumnDef<Advertiser>[]>(
     () => [
       { accessorKey: 'code', header: 'MÃ' },
@@ -157,10 +132,12 @@ const AdvertiserList: React.FC = () => {
           const record = row.original;
           return (
             <div className="flex justify-center gap-3">
+              {/* Nút Xem chi tiết */}
               <EyeOutlined
                 onClick={() => handleView(record)}
                 className="cursor-pointer rounded-full p-1 text-xl text-[#1570EF] transition-colors hover:bg-[#1570EF] hover:text-white"
               />
+              {/* Nút Khóa/Mở khóa */}
               <CloseCircleOutlined
                 onClick={() => handleLockUnlock(record)}
                 className="cursor-pointer rounded-full p-1 text-xl text-[#DC0E0E] transition-colors hover:bg-[#DC0E0E] hover:text-white"
@@ -173,15 +150,23 @@ const AdvertiserList: React.FC = () => {
     []
   );
 
+  // Xử lý trạng thái loading / error
+  if (isLoading) {
+    return <div>Đang tải danh sách nhà quảng cáo...</div>;
+  }
+  if (error) {
+    return <div>Đã có lỗi xảy ra khi tải dữ liệu!</div>;
+  }
+
   return (
     <div className="mb-10 p-4">
       <h2 className="mb-4 text-xl font-semibold">Nhà quảng cáo</h2>
 
-      {/* Sử dụng DataTable mới với phân trang, tìm kiếm, sắp xếp tích hợp */}
+      {/* DataTable hiển thị advertisers */}
       <DataTable
         columns={columns}
         data={dataSource}
-        pageCount={-1} // -1 để DataTable tự tính số trang dựa trên dữ liệu
+        pageCount={-1}
         pageSizeOptions={[10, 20, 30, 40, 50]}
         showAdd={false}
       />

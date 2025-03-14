@@ -88,7 +88,7 @@ const adminRoutes = [
             <AdminManageReport />{' '}
           </RoleRoute>
         )
-
+      },
       { path: 'dashboard', element: <AdminDashboard /> },
       { path: 'campaignlist', element: <AdminCampaignList /> },
       { path: 'campaignrequest', element: <AdminCampaignRequest /> },
@@ -99,7 +99,6 @@ const adminRoutes = [
       {
         path: 'campaign-request-detail/:id',
         element: <AdminCampaignPendingDetail />
-
       }
       // { path: 'campaign', element: <AdminCampaign /> },
       // ...

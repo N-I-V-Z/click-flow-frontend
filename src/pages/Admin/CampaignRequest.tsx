@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { Modal } from 'antd';
+import { Modal, notification } from 'antd';
 import {
   CheckCircleOutlined,
   CloseCircleOutlined,
@@ -9,32 +9,52 @@ import { useNavigate } from 'react-router-dom';
 
 import DataTable from '@/components/shared/data-table';
 import { ColumnDef } from '@tanstack/react-table';
-import { useGetCampaign } from '@/queries/campaign.query';
+import {
+  useGetCampaign,
+  useUpdateCampaignStatus
+} from '@/queries/campaign.query';
 
-// Khai báo interface cho 1 campaign (tuỳ vào structure API trả về)
+// Hàm format ngày "YYYY-MM-DD" => "DD/MM/YYYY"
+function formatDate(dateStr: string): string {
+  if (!dateStr) return '';
+  const date = new Date(dateStr);
+  if (isNaN(date.getTime())) return dateStr;
+  const day = String(date.getDate()).padStart(2, '0');
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const year = date.getFullYear();
+  return `${day}/${month}/${year}`;
+}
+
+// Interface cho campaign sau khi map dữ liệu từ API
 interface RequestCampaign {
   id: number;
   name: string;
-  createdAt: string; // hoặc Date
-  endAt: string; // hoặc Date
-  advertiser: string;
-  status: string; // Pending, Approved, ...
+  createdAt: string; // Hiển thị startDate (DD/MM/YYYY)
+  endAt: string; // Hiển thị endDate (DD/MM/YYYY)
+  advertiser: string; // advertiserName
+  status: string; // Ví dụ: "Pending" => hiển thị "Chờ duyệt"
 }
 
 const CampaignRequest: React.FC = () => {
   const navigate = useNavigate();
 
-  // Gọi API lấy danh sách campaigns có status = "Pending"
-  const {
-    data, // tuỳ cấu trúc, có thể là { data: { ... } } hoặc { ... }
-    isLoading,
-    error
-  } = useGetCampaign('Pending', 1, 10);
+  // Lấy danh sách campaign trạng thái "Pending"
+  const { data, isLoading, error, refetch } = useGetCampaign('Pending', 1, 10);
+  // Giả sử API trả về dữ liệu trong trường result
+  const rawCampaigns = data?.result ?? [];
 
-  // Giả sử backend trả về { result: [ {id, name, ...} ] } hoặc chỉ trả về mảng
-  // Tuỳ theo API, bạn map đúng trường. Ví dụ:
-  const campaigns: RequestCampaign[] = data?.result ?? [];
-  // Nếu backend trả về { data: [ ... ] } thì bạn dùng data?.data ?? []
+  // Map dữ liệu API thành interface RequestCampaign
+  const campaigns: RequestCampaign[] = rawCampaigns.map((item: any) => ({
+    id: item.id,
+    name: item.name,
+    createdAt: formatDate(item.startDate),
+    endAt: formatDate(item.endDate),
+    advertiser: item.advertiserName ?? '',
+    status: item.status
+  }));
+
+  // Hook cập nhật trạng thái campaign
+  const { mutate: updateCampaignStatus } = useUpdateCampaignStatus();
 
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [modalAction, setModalAction] = useState<'accept' | 'reject' | null>(
@@ -43,27 +63,45 @@ const CampaignRequest: React.FC = () => {
   const [selectedCampaign, setSelectedCampaign] =
     useState<RequestCampaign | null>(null);
 
-  // Xử lý xác nhận Modal
+  // Xử lý khi bấm "Xác nhận" trên Modal
   const handleOk = () => {
     if (selectedCampaign && modalAction) {
-      if (modalAction === 'accept') {
-        alert(`Đã duyệt chiến dịch: ${selectedCampaign.name}`);
-      } else {
-        alert(`Đã từ chối chiến dịch: ${selectedCampaign.name}`);
-      }
+      // Xác định trạng thái mới dựa theo hành động
+      const newStatus = modalAction === 'accept' ? 'Approved' : 'Canceled';
+      // Gọi mutation cập nhật status
+      updateCampaignStatus(
+        { id: selectedCampaign.id, status: newStatus },
+        {
+          onSuccess: () => {
+            notification.success({
+              message: 'Cập nhật thành công',
+              description: `Chiến dịch "${selectedCampaign.name}" đã được cập nhật thành "${newStatus}".`
+            });
+            refetch(); // Refetch lại danh sách campaign
+          },
+          onError: (err: any) => {
+            console.error(err);
+            notification.error({
+              message: 'Cập nhật thất bại',
+              description: `Không thể cập nhật trạng thái của "${selectedCampaign.name}".`
+            });
+          }
+        }
+      );
     }
     setIsModalVisible(false);
     setModalAction(null);
     setSelectedCampaign(null);
   };
 
+  // Khi người dùng bấm "Hủy" trên modal, chúng ta chỉ đóng modal (không cập nhật)
   const handleCancel = () => {
     setIsModalVisible(false);
     setModalAction(null);
     setSelectedCampaign(null);
   };
 
-  // Định nghĩa cột theo chuẩn ColumnDef của tanstack/react-table
+  // Định nghĩa cột cho DataTable
   const columns = useMemo<ColumnDef<RequestCampaign>[]>(
     () => [
       {
@@ -85,16 +123,13 @@ const CampaignRequest: React.FC = () => {
       {
         accessorKey: 'status',
         header: 'TRẠNG THÁI',
-        cell: ({ row }) => {
-          // Nếu muốn hiển thị "Chờ duyệt" thay vì "Pending"
-          return (
-            <span className="text-orange-600 font-semibold">
-              {row.original.status === 'Pending'
-                ? 'Chờ duyệt'
-                : row.original.status}
-            </span>
-          );
-        }
+        cell: ({ row }) => (
+          <span className="text-orange-600 font-semibold">
+            {row.original.status === 'Pending'
+              ? 'Chờ duyệt'
+              : row.original.status}
+          </span>
+        )
       },
       {
         id: 'actions',
@@ -103,7 +138,7 @@ const CampaignRequest: React.FC = () => {
           const record = row.original;
           return (
             <div className="flex justify-center gap-3">
-              {/* Duyệt */}
+              {/* Nút Duyệt */}
               <CheckCircleOutlined
                 onClick={() => {
                   setSelectedCampaign(record);
@@ -112,7 +147,7 @@ const CampaignRequest: React.FC = () => {
                 }}
                 className="cursor-pointer rounded-full p-1 text-xl text-green-500 transition-colors hover:bg-green-500 hover:text-white"
               />
-              {/* Từ chối */}
+              {/* Nút Từ chối */}
               <CloseCircleOutlined
                 onClick={() => {
                   setSelectedCampaign(record);
@@ -121,7 +156,7 @@ const CampaignRequest: React.FC = () => {
                 }}
                 className="cursor-pointer rounded-full p-1 text-xl text-[#DC0E0E] transition-colors hover:bg-[#DC0E0E] hover:text-white"
               />
-              {/* Chi tiết */}
+              {/* Nút Chi tiết */}
               <EllipsisOutlined
                 onClick={() =>
                   navigate(`/admin/campaign-request-detail/${record.id}`)
@@ -136,17 +171,14 @@ const CampaignRequest: React.FC = () => {
     [navigate]
   );
 
-  // Trạng thái loading
   if (isLoading) {
     return <div>Đang tải dữ liệu...</div>;
   }
 
-  // Nếu có lỗi
   if (error) {
     return <div>Đã có lỗi xảy ra khi tải dữ liệu!</div>;
   }
 
-  // Hiển thị bảng
   return (
     <div className="mb-10 p-4">
       <h2 className="mb-4 text-xl font-semibold">Yêu cầu chiến dịch</h2>
@@ -154,12 +186,12 @@ const CampaignRequest: React.FC = () => {
       <DataTable
         columns={columns}
         data={campaigns}
-        pageCount={-1} // Để DataTable tự chia trang (client-side) nếu muốn
+        pageCount={-1}
         pageSizeOptions={[10, 20, 30, 40, 50]}
         showAdd={false}
       />
 
-      {/* Modal xác nhận Duyệt / Từ chối */}
+      {/* Modal xác nhận hành động */}
       <Modal
         title={
           modalAction === 'accept'

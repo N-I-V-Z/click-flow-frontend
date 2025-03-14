@@ -65,6 +65,7 @@
     "fabric": "^6.4.2",
     "framer-motion": "^12.4.7",
     "input-otp": "^1.2.2",
+    "jwt-decode": "^4.0.0",
     "lucide-react": "^0.358.0",
     "merge-images": "^2.0.0",
     "moment": "^2.30.1",
