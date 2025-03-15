@@ -3,7 +3,6 @@ import { Suspense, lazy } from 'react';
 import PublisherLayout from '@/components/layout/PublisherLayout';
 import LoginRoute from './private/LoginRoute';
 import RoleRoute from './private/RoleRoute';
-
 const PublisherDashboard = lazy(() => import('@/pages/Publisher/index'));
 const PublisherCampaignPage = lazy(
   () => import('@/pages/Publisher/CampaignsPage')
@@ -11,7 +10,9 @@ const PublisherCampaignPage = lazy(
 const PublisherCampaignDetailPage = lazy(
   () => import('@/pages/Publisher/CampaignDetailPage')
 );
-
+const ChangePassword = lazy(
+  () => import('@/components/shared/change-password')
+);
 const PublisherProfile = lazy(
   () => import('@/pages/Publisher/PublisherProfile')
 );
@@ -57,6 +58,15 @@ const PublisherRoutes = [
         element: (
           <RoleRoute allowedRoles={['Publisher']}>
             <PublisherProfile />
+          </RoleRoute>
+        )
+      },
+      {
+        path: 'change-password',
+        element: (
+          <RoleRoute allowedRoles={['Publisher']}>
+            {' '}
+            <ChangePassword />
           </RoleRoute>
         )
       }

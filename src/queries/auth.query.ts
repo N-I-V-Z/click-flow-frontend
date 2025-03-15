@@ -1,6 +1,7 @@
 import BaseRequest from '@/config/axios.config';
 import { useMutation } from '@tanstack/react-query';
 import helpers from '@/helpers';
+
 const SUB_URL = `api/Accounts`;
 export const useLogin = () => {
   return useMutation({
@@ -19,7 +20,7 @@ export const useRegister = () => {
   return useMutation({
     mutationKey: ['register'],
     mutationFn: async (model: unknown) => {
-      return await BaseRequest.Post(`/${SUB_URL}/sign-up`, model);
+      return await BaseRequest.Post(`/${SUB_URL}/`, model);
     }
   });
 };
@@ -46,36 +47,9 @@ export const useResetPassword = () => {
   });
 };
 
-export const useRegisterAdvertiser = () => {
-  return useMutation({
-    mutationKey: ['register-advetiser'],
-    mutationFn: async (model: {
-      companyName: string;
-      introductionWebsite: string;
-      industry: string;
-      staffSize: number;
-      fullName: string;
-      email: string;
-      phoneNumber: string;
-    }) => {
-      return await BaseRequest.Post(`/${SUB_URL}/register`, model);
-    }
-  });
-};
-
-export const useRegisterPublisher = () => {
-  return useMutation({
-    mutationKey: ['register-publisher'],
-    mutationFn: async (model: {
-      fullName: string;
-      email: string;
-      phoneNumber: 'user@example.com';
-    }) => {
-      return await BaseRequest.Post(`/${SUB_URL}/register`, model);
-    }
-  });
-};
-
+{
+  /* */
+}
 export const useRegisterUser = () => {
   return useMutation({
     mutationKey: ['register-user'],
@@ -90,6 +64,19 @@ export const useRegisterUser = () => {
   });
 };
 
+export const useChangePassword = () => {
+  return useMutation({
+    mutationKey: ['change-password'],
+    mutationFn: async (model: {
+      oldPassword: string;
+      newPassword: string;
+      confirmedNewPassword: string;
+    }) => {
+      return await BaseRequest.Post(`/${SUB_URL}/change-password`, model);
+    }
+  });
+};
+
 export const useRenewToken = () => {
   return useMutation({
     mutationKey: ['renewToken'],
@@ -98,6 +85,64 @@ export const useRenewToken = () => {
       if (!refreshToken) throw new Error('No refresh token found');
       return await BaseRequest.Post('/api/Accounts/renew-token', {
         refreshToken
+      });
+    }
+  });
+};
+
+export const useRegisterPublisher = () => {
+  return useMutation({
+    mutationKey: ['register-publisher'],
+    mutationFn: async (model: {
+      userName: string;
+      email: string;
+      phoneNumber: string;
+      password: string;
+    }) => {
+      return await BaseRequest.Post(`/${SUB_URL}/sign-up`, {
+        // Các trường bắt buộc từ form
+        userName: model.userName,
+        email: model.email,
+        phoneNumber: model.phoneNumber,
+        password: model.password,
+        confirmPassword: model.password,
+        fullName: model.userName,
+        role: 'Publisher',
+        companyName: null,
+        introductionWebsite: null,
+        staffSize: null,
+        industry: null
+      });
+    }
+  });
+};
+
+export const useRegisterAdvertiser = () => {
+  return useMutation({
+    mutationKey: ['register-advertiser'],
+    mutationFn: async (model: {
+      userName: string;
+      email: string;
+      phoneNumber: string;
+      password: string;
+      companyName: string;
+      introductionWebsite: string;
+      staffSize: string;
+      industry: string;
+    }) => {
+      return await BaseRequest.Post(`/${SUB_URL}/sign-up`, {
+        userName: model.userName,
+        email: model.email,
+        phoneNumber: model.phoneNumber,
+        password: model.password,
+        confirmPassword: model.password,
+        // Sử dụng userName làm fullName thay vì null
+        fullName: model.userName,
+        role: 'Advertiser',
+        companyName: model.companyName,
+        introductionWebsite: model.introductionWebsite,
+        staffSize: model.staffSize,
+        industry: model.industry
       });
     }
   });

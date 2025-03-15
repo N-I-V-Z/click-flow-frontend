@@ -3,51 +3,96 @@ import Footer from '@/components/shared/footer-home';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useState } from 'react';
-import { useRegisterUser } from '@/queries/auth.query';
 import { Link } from 'react-router-dom';
+import { useRegisterPublisher } from '@/queries/auth.query';
 import ImageLeft from '../Image';
-type FormUser = {
-  firstName: string;
-  lastName: string;
-  contactEmail: string;
-  contactPhone: string;
+import { toast } from 'react-toastify'; // import toast
+
+type FormPublisher = {
+  userName: string;
+  email: string;
+  phoneNumber: string;
+  password: string;
 };
 
-type FormError = Partial<FormUser>;
+type FormError = Partial<FormPublisher>;
 
-export default function RegisterUserPage() {
-  const { mutateAsync, isPending } = useRegisterUser();
-  const [formUser, setFormUser] = useState<FormUser>({
-    firstName: '',
-    lastName: '',
-    contactEmail: '',
-    contactPhone: ''
+export default function RegisterPublisherPage() {
+  const { mutateAsync, isLoading } = useRegisterPublisher();
+
+  // State lưu trữ dữ liệu form
+  const [formPublisher, setFormPublisher] = useState<FormPublisher>({
+    userName: '',
+    email: '',
+    phoneNumber: '',
+    password: ''
   });
+
+  // State lưu trữ lỗi
   const [error, setError] = useState<FormError>({});
 
+  // Hàm kiểm tra lỗi đầu vào
   const validateInputs = (): FormError => {
     const errors: FormError = {};
-    if (!formUser.firstName.trim())
-      errors.firstName = 'Họ không được để trống.';
-    if (!formUser.lastName.trim()) errors.lastName = 'Tên không được để trống.';
-    if (!formUser.contactEmail.trim())
-      errors.contactEmail = 'Email không được để trống.';
-    if (!formUser.contactPhone.trim())
-      errors.contactPhone = 'Số điện thoại không được để trống.';
+
+    // Kiểm tra tên đăng nhập
+    if (!formPublisher.userName.trim()) {
+      errors.userName = 'Họ và tên không được để trống.';
+    }
+
+    // Kiểm tra email: không để trống và đúng định dạng
+    if (!formPublisher.email.trim()) {
+      errors.email = 'Email không được để trống.';
+    } else {
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(formPublisher.email)) {
+        errors.email = 'Email không hợp lệ.';
+      }
+    }
+
+    // Kiểm tra số điện thoại: không để trống và chỉ chứa số, độ dài từ 9 đến 11 chữ số
+    if (!formPublisher.phoneNumber.trim()) {
+      errors.phoneNumber = 'Số điện thoại không được để trống.';
+    } else {
+      const phoneRegex = /^\d{9,11}$/;
+      if (!phoneRegex.test(formPublisher.phoneNumber)) {
+        errors.phoneNumber = 'Số điện thoại phải có từ 9 đến 11 chữ số.';
+      }
+    }
+
+    // Kiểm tra mật khẩu: không để trống và phải có ít nhất 6 ký tự
+    if (!formPublisher.password.trim()) {
+      errors.password = 'Mật khẩu không được để trống.';
+    } else if (formPublisher.password.length < 6) {
+      errors.password = 'Mật khẩu phải có ít nhất 6 ký tự.';
+    } else {
+      // Kiểm tra mật khẩu chứa ít nhất 1 chữ hoa, 1 chữ thường, 1 số và 1 ký tự đặc biệt
+      const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[\W_]).+$/;
+      if (!passwordRegex.test(formPublisher.password)) {
+        errors.password =
+          'Mật khẩu phải chứa ít nhất 1 chữ hoa, 1 chữ thường, 1 số và 1 ký tự đặc biệt.';
+      }
+    }
+
     return errors;
   };
 
+  // Xử lý khi người dùng bấm "Hoàn tất"
   const handleRegister = async () => {
     const errors = validateInputs();
     setError(errors);
+
     if (Object.keys(errors).length > 0) return;
 
     try {
-      await mutateAsync(formUser);
-      alert('Đăng ký thành công!');
-      window.location.href = '/dashboard';
+      await mutateAsync(formPublisher);
+      toast.success('Đăng ký thành công!');
+      // Sau 1 vài giây chuyển hướng
+      setTimeout(() => {
+        window.location.href = '/login';
+      }, 1500);
     } catch (err) {
-      setError({ contactEmail: 'Không thể đăng ký. Vui lòng thử lại.' });
+      setError({ email: 'Không thể đăng ký. Vui lòng thử lại.' });
     }
   };
 
@@ -58,24 +103,24 @@ export default function RegisterUserPage() {
         pageHead="Đăng ký publisher | Click Flow"
         breadcrumbs={[
           { title: 'Trang chủ', link: '/' },
-          { title: 'Đăng ký', link: '/register-user' }
+          { title: 'Đăng ký', link: '/register-publisher' }
         ]}
       >
-        <div className="mx-auto mt-10 flex min-h-[400px] w-full rounded-xl bg-white p-6 shadow-xl ">
-          {/*Image*/}
+        <div className="mx-auto mt-10 flex min-h-[400px] w-full rounded-xl bg-white p-6 shadow-xl">
+          {/* Bên trái - Hình ảnh */}
           <div className="hidden w-full lg:block lg:w-1/2">
             <ImageLeft />
           </div>
-          {/*Form*/}
-          <div className="mt-10 w-1/2 px-6">
+          {/* Bên phải - Form */}
+          <div className="w-full px-6 lg:w-1/2">
             <Link to="/">
               <img
                 src="src/assets/logo.jpg"
                 alt="Logo"
-                className="w-30 mx-auto mb-10 mt-4 h-20 rounded-lg"
+                className="w-30 mx-auto mt-5 h-20 rounded-lg"
               />
             </Link>
-            <h1 className="mb-3 text-center text-2xl font-semibold text-gray-800">
+            <h1 className="text-center text-2xl font-semibold text-gray-800">
               Đăng ký tài khoản
             </h1>
             <p className="mb-3 text-center text-lg font-medium text-[#FFD000]">
@@ -97,37 +142,25 @@ export default function RegisterUserPage() {
                 </Link>
               </p>
             </div>
+
             <div className="mt-6 space-y-4">
-              {/* Họ và Tên trên cùng một hàng */}
-              <div className="flex gap-4">
-                <div className="w-1/2">
-                  <label className="text-sm font-medium text-gray-700">
-                    Họ
-                  </label>
-                  <Input
-                    value={formUser.firstName}
-                    onChange={(e) =>
-                      setFormUser({ ...formUser, firstName: e.target.value })
-                    }
-                  />
-                  {error.firstName && (
-                    <p className="text-xs text-red">{error.firstName}</p>
-                  )}
-                </div>
-                <div className="w-1/2">
-                  <label className="text-sm font-medium text-gray-700">
-                    Tên
-                  </label>
-                  <Input
-                    value={formUser.lastName}
-                    onChange={(e) =>
-                      setFormUser({ ...formUser, lastName: e.target.value })
-                    }
-                  />
-                  {error.lastName && (
-                    <p className="text-xs text-red">{error.lastName}</p>
-                  )}
-                </div>
+              {/* Tên đăng nhập */}
+              <div>
+                <label className="text-sm font-medium text-gray-700">
+                  Tên đăng nhập
+                </label>
+                <Input
+                  value={formPublisher.userName}
+                  onChange={(e) =>
+                    setFormPublisher({
+                      ...formPublisher,
+                      userName: e.target.value
+                    })
+                  }
+                />
+                {error.userName && (
+                  <p className="text-xs text-red">{error.userName}</p>
+                )}
               </div>
 
               {/* Email */}
@@ -136,13 +169,16 @@ export default function RegisterUserPage() {
                   Email
                 </label>
                 <Input
-                  value={formUser.contactEmail}
+                  value={formPublisher.email}
                   onChange={(e) =>
-                    setFormUser({ ...formUser, contactEmail: e.target.value })
+                    setFormPublisher({
+                      ...formPublisher,
+                      email: e.target.value
+                    })
                   }
                 />
-                {error.contactEmail && (
-                  <p className="text-xs text-red">{error.contactEmail}</p>
+                {error.email && (
+                  <p className="text-xs text-red">{error.email}</p>
                 )}
               </div>
 
@@ -152,13 +188,36 @@ export default function RegisterUserPage() {
                   Số điện thoại
                 </label>
                 <Input
-                  value={formUser.contactPhone}
+                  value={formPublisher.phoneNumber}
                   onChange={(e) =>
-                    setFormUser({ ...formUser, contactPhone: e.target.value })
+                    setFormPublisher({
+                      ...formPublisher,
+                      phoneNumber: e.target.value
+                    })
                   }
                 />
-                {error.contactPhone && (
-                  <p className="text-xs text-red">{error.contactPhone}</p>
+                {error.phoneNumber && (
+                  <p className="text-xs text-red">{error.phoneNumber}</p>
+                )}
+              </div>
+
+              {/* Mật khẩu */}
+              <div>
+                <label className="text-sm font-medium text-gray-700">
+                  Mật khẩu
+                </label>
+                <Input
+                  type="password"
+                  value={formPublisher.password}
+                  onChange={(e) =>
+                    setFormPublisher({
+                      ...formPublisher,
+                      password: e.target.value
+                    })
+                  }
+                />
+                {error.password && (
+                  <p className="text-xs text-red">{error.password}</p>
                 )}
               </div>
 
@@ -167,9 +226,9 @@ export default function RegisterUserPage() {
                 <Button
                   className="hover:bg-yellow-600 w-full rounded-lg bg-purple-600 text-white"
                   onClick={handleRegister}
-                  disabled={isPending}
+                  disabled={isLoading}
                 >
-                  {isPending ? 'Đang xử lý...' : 'Hoàn tất'}
+                  {isLoading ? 'Đang xử lý...' : 'Hoàn tất'}
                 </Button>
               </div>
             </div>

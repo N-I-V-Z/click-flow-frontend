@@ -33,7 +33,7 @@ export default function Footer() {
             Trang chủ
           </Link>
           <Link
-            to="/src/pages/OtherPage/privacy.tsx"
+            to="/privacy"
             className="hover:text-yellow-400 transition-all hover:underline"
           >
             Chính sách bảo mật

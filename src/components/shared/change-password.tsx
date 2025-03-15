@@ -1,78 +1,74 @@
 import React, { useState, useEffect } from 'react';
-import { FaEye, FaEyeSlash, FaLock, FaTimes, FaEnvelope } from 'react-icons/fa';
+import { FaEye, FaEyeSlash, FaLock, FaTimes } from 'react-icons/fa';
 import { motion } from 'framer-motion';
 import { ToastContainer, toast } from 'react-toastify';
+import { useChangePassword } from './../../queries/auth.query';
+
 const ChangePassword: React.FC = () => {
   const [formData, setFormData] = useState({
-    email: '',
-    password: '',
+    oldPassword: '',
+    newPassword: '',
     confirmPassword: ''
   });
-  const [showPassword, setShowPassword] = useState(false);
+  const [showOldPassword, setShowOldPassword] = useState(false);
+  const [showNewPassword, setShowNewPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-  const [strength, setStrength] = useState(0);
   const [errors, setErrors] = useState<Record<string, string>>({});
 
-  const calculateStrength = (password: string): number => {
-    let score = 0;
-    if (password.length >= 8) score += 25;
-    if (/[A-Z]/.test(password)) score += 25;
-    if (/[a-z]/.test(password)) score += 25;
-    if (/[0-9]/.test(password)) score += 12.5;
-    if (/[^A-Za-z0-9]/.test(password)) score += 12.5;
-    return score;
-  };
-
-  const getStrengthColor = (strength: number): string => {
-    if (strength <= 25) return 'bg-red-500';
-    if (strength <= 50) return 'bg-yellow-500';
-    if (strength <= 75) return 'bg-green-500';
-    return 'bg-emerald-700';
-  };
-
-  const getStrengthText = (strength: number): string => {
-    if (strength <= 25) return 'Weak';
-    if (strength <= 50) return 'Moderate';
-    if (strength <= 75) return 'Strong';
-    return 'Very Strong';
+  // Hàm kiểm tra tính hợp lệ của mật khẩu mới
+  const validatePassword = (password: string) => {
+    if (password.length < 8) return 'Mật khẩu có ít nhất 8 kí tự';
+    if (!/[A-Z]/.test(password)) return 'Bao gồm chữ cái viết hoa';
+    if (!/[a-z]/.test(password)) return 'Bao gồm chữ cái thường';
+    if (!/[0-9]/.test(password)) return 'Bao gồm số';
+    if (!/[^A-Za-z0-9]/.test(password)) return 'Bao gồm kí tự đặc biệt';
+    return '';
   };
 
   useEffect(() => {
-    const newStrength = calculateStrength(formData.password);
-    setStrength(newStrength);
-
     const newErrors: Record<string, string> = {};
-    if (formData.password) {
-      if (formData.password.length < 8) {
-        newErrors.password = 'Mật khẩu có ít nhất 8 kí tự';
-      } else if (!/[A-Z]/.test(formData.password)) {
-        newErrors.password = 'Bao gồm chữ cái viết hoa';
-      } else if (!/[a-z]/.test(formData.password)) {
-        newErrors.password = 'Bao gồm chữ cái thường';
-      } else if (!/[0-9]/.test(formData.password)) {
-        newErrors.password = 'Bao gồm số';
-      } else if (!/[^A-Za-z0-9]/.test(formData.password)) {
-        newErrors.password = 'Bao gồm kí tự đặc biệt';
-      }
+
+    // Kiểm tra mật khẩu mới
+    if (formData.newPassword) {
+      const passwordError = validatePassword(formData.newPassword);
+      if (passwordError) newErrors.newPassword = passwordError;
     }
 
+    // Kiểm tra xác nhận mật khẩu
     if (
       formData.confirmPassword &&
-      formData.password !== formData.confirmPassword
+      formData.newPassword !== formData.confirmPassword
     ) {
       newErrors.confirmPassword = 'Mật khẩu không khớp';
     }
 
     setErrors(newErrors);
-  }, [formData.password, formData.confirmPassword]);
+  }, [formData.newPassword, formData.confirmPassword]);
+
+  const changePasswordMutation = useChangePassword();
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (Object.keys(errors).length === 0) {
-      console.log('Password reset submitted');
-      // Thêm xử lý reset hoặc thông báo thành công tại đây.
+      changePasswordMutation.mutate(
+        {
+          oldPassword: formData.oldPassword,
+          newPassword: formData.newPassword,
+          confirmedNewPassword: formData.confirmPassword
+        },
+        {
+          onSuccess: () => {
+            toast.success('Đổi mật khẩu thành công!');
+            // Reset form hoặc xử lý bổ sung nếu cần
+          },
+          onError: () => {
+            toast.error('Có lỗi xảy ra, vui lòng thử lại!');
+          }
+        }
+      );
+    } else {
+      toast.error('Vui lòng kiểm tra lại các lỗi');
     }
-    toast.success(`Đổi mật khẩu thành công!`);
   };
 
   return (
@@ -90,71 +86,70 @@ const ChangePassword: React.FC = () => {
           </h2>
         </div>
         <form className="space-y-5 p-6" onSubmit={handleSubmit}>
+          {/* Mật khẩu cũ */}
           <div>
             <label className="block text-sm font-medium text-gray-700">
-              Địa chỉ email
-            </label>
-            <div className="relative mt-1 rounded-md shadow-sm">
-              <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
-                <FaEnvelope className="text-gray-400" />
-              </div>
-              <input
-                type="email"
-                required
-                className="block w-full rounded-md border border-gray-300 py-2 pl-10 pr-3 transition focus:border-indigo-500 focus:outline-none focus:ring-indigo-500"
-                value={formData.email}
-                onChange={(e) =>
-                  setFormData({ ...formData, email: e.target.value })
-                }
-              />
-            </div>
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700">
-              Mật khẩu mới
+              Mật khẩu cũ
             </label>
             <div className="relative mt-1">
               <input
-                type={showPassword ? 'text' : 'password'}
+                type={showOldPassword ? 'text' : 'password'}
                 required
                 className="block w-full rounded-md border border-gray-300 py-2 pl-3 pr-10 transition focus:border-indigo-500 focus:outline-none focus:ring-indigo-500"
-                value={formData.password}
+                value={formData.oldPassword}
                 onChange={(e) =>
-                  setFormData({ ...formData, password: e.target.value })
+                  setFormData({ ...formData, oldPassword: e.target.value })
                 }
               />
               <button
                 type="button"
                 className="absolute inset-y-0 right-0 flex items-center pr-3"
-                onClick={() => setShowPassword(!showPassword)}
+                onClick={() => setShowOldPassword(!showOldPassword)}
               >
-                {showPassword ? (
+                {showOldPassword ? (
                   <FaEyeSlash className="h-5 w-5 text-gray-500" />
                 ) : (
                   <FaEye className="h-5 w-5 text-gray-500" />
                 )}
               </button>
             </div>
-            {errors.password && (
-              <p className="mt-1 flex items-center text-sm text-red">
-                <FaTimes className="mr-1" /> {errors.password}
-              </p>
-            )}
-            <div className="mt-2">
-              <div className="flex justify-between text-sm">
-                <span>Độ mạnh mật khẩu:</span>
-                <span className="font-medium">{getStrengthText(strength)}</span>
-              </div>
-              <div className="mt-1 h-2 w-full rounded-full bg-gray-200">
-                <div
-                  className={`h-full ${getStrengthColor(strength)} transition-all duration-300`}
-                  style={{ width: `${strength}%` }}
-                ></div>
-              </div>
-            </div>
           </div>
 
+          {/* Mật khẩu mới */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700">
+              Mật khẩu mới
+            </label>
+            <div className="relative mt-1">
+              <input
+                type={showNewPassword ? 'text' : 'password'}
+                required
+                className="block w-full rounded-md border border-gray-300 py-2 pl-3 pr-10 transition focus:border-indigo-500 focus:outline-none focus:ring-indigo-500"
+                value={formData.newPassword}
+                onChange={(e) =>
+                  setFormData({ ...formData, newPassword: e.target.value })
+                }
+              />
+              <button
+                type="button"
+                className="absolute inset-y-0 right-0 flex items-center pr-3"
+                onClick={() => setShowNewPassword(!showNewPassword)}
+              >
+                {showNewPassword ? (
+                  <FaEyeSlash className="h-5 w-5 text-gray-500" />
+                ) : (
+                  <FaEye className="h-5 w-5 text-gray-500" />
+                )}
+              </button>
+            </div>
+            {errors.newPassword && (
+              <p className="mt-1 flex items-center text-sm text-red">
+                <FaTimes className="mr-1" /> {errors.newPassword}
+              </p>
+            )}
+          </div>
+
+          {/* Xác nhận mật khẩu */}
           <div>
             <label className="block text-sm font-medium text-gray-700">
               Xác nhận mật khẩu
