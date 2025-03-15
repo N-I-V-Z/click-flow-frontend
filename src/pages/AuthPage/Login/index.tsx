@@ -61,22 +61,18 @@ export default function LoginPage() {
 
     try {
       const data = await Login(formLogin);
+      console.log('Login response:', data);
       helpers.cookie_set('AT', data.result.token);
       helpers.cookie_set('RT', data.result.refreshToken);
       dispatch(login());
       const decodedToken: TokenDecoded = helpers.decodeTokens();
-      const role =
-        decodedToken.Role === 'Admin'
-          ? 'Admin'
-          : decodedToken.Role === 'Advertiser'
-            ? 'Advertiser'
-            : 'Publisher';
-      ``;
-      if (role === 'Admin') {
+      // Chuyển role thành chữ thường để so sánh không phân biệt chữ hoa chữ thường
+      const role = decodedToken.Role.toLowerCase();
+      if (role === 'admin') {
         router.push('/admin');
-      } else if (role === 'Advertiser') {
+      } else if (role === 'advertiser') {
         router.push('/advertiser');
-      } else if (role === 'Publisher') {
+      } else if (role === 'publisher') {
         router.push('/publisher');
       } else {
         router.push('/404');
@@ -121,7 +117,7 @@ export default function LoginPage() {
             <div className="mt-2 space-y-4">
               <div>
                 <label className="text-sm font-medium text-gray-700">
-                  Tên đăng nhập
+                  Tên đăng nhập hoặc emails
                 </label>
                 <Input
                   value={formLogin.userNameOrEmail}

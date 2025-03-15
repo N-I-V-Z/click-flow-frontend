@@ -60,7 +60,7 @@ const AdvertiserProfile: React.FC = () => {
               </li>
               <li
                 className="cursor-pointer hover:underline"
-                onClick={() => router.push('/advertiser/change-password')}
+                onClick={() => router.push('/publisher/change-password')}
               >
                 Đổi mật khẩu
               </li>
