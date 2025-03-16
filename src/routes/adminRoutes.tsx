@@ -1,4 +1,3 @@
-// src/routes/adminRoutes.tsx
 import { Navigate } from 'react-router-dom';
 import { Suspense, lazy } from 'react';
 import LoginRoute from './private/LoginRoute';
@@ -19,9 +18,6 @@ const AdminManageReport = lazy(() => import('@/pages/Admin/ManageReport'));
 const AdminCampaignPendingDetail = lazy(
   () => import('@/pages/Admin/CampaignPendingDetail')
 );
-// Nếu có các trang khác, lazy load tiếp:
-// const AdminCampaign = lazy(() => import('@/pages/Admin/Campaign'));
-// ...
 
 const adminRoutes = [
   {
@@ -100,8 +96,6 @@ const adminRoutes = [
         path: 'campaign-request-detail/:id',
         element: <AdminCampaignPendingDetail />
       }
-      // { path: 'campaign', element: <AdminCampaign /> },
-      // ...
     ]
   }
 ];

@@ -6,8 +6,8 @@ import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useRegisterPublisher } from '@/queries/auth.query';
 import ImageLeft from '../Image';
-import { toast } from 'react-toastify'; // import toast
-
+import { toast } from 'react-toastify';
+import { AiOutlineEye, AiOutlineEyeInvisible } from 'react-icons/ai';
 type FormPublisher = {
   userName: string;
   email: string;
@@ -19,7 +19,7 @@ type FormError = Partial<FormPublisher>;
 
 export default function RegisterPublisherPage() {
   const { mutateAsync, isLoading } = useRegisterPublisher();
-
+  const [showPassword, setShowPassword] = useState(false);
   // State lưu trữ dữ liệu form
   const [formPublisher, setFormPublisher] = useState<FormPublisher>({
     userName: '',
@@ -99,14 +99,14 @@ export default function RegisterPublisherPage() {
   return (
     <>
       <BasePages
-        className="relative mx-auto mb-40 w-[60%] flex-1 p-3"
+        className="relative mx-auto mb-20 w-[60%] flex-1 p-3"
         pageHead="Đăng ký publisher | Click Flow"
         breadcrumbs={[
           { title: 'Trang chủ', link: '/' },
           { title: 'Đăng ký', link: '/register-publisher' }
         ]}
       >
-        <div className="mx-auto mt-10 flex min-h-[400px] w-full rounded-xl bg-white p-6 shadow-xl">
+        <div className="mx-auto mt-5 flex min-h-[400px] w-full rounded-xl bg-white p-6 shadow-xl">
           {/* Bên trái - Hình ảnh */}
           <div className="hidden w-full lg:block lg:w-1/2">
             <ImageLeft />
@@ -206,16 +206,28 @@ export default function RegisterPublisherPage() {
                 <label className="text-sm font-medium text-gray-700">
                   Mật khẩu
                 </label>
-                <Input
-                  type="password"
-                  value={formPublisher.password}
-                  onChange={(e) =>
-                    setFormPublisher({
-                      ...formPublisher,
-                      password: e.target.value
-                    })
-                  }
-                />
+                <div className="relative">
+                  <Input
+                    type={showPassword ? 'text' : 'password'}
+                    value={formPublisher.password}
+                    onChange={(e) =>
+                      setFormPublisher({
+                        ...formPublisher,
+                        password: e.target.value
+                      })
+                    }
+                  />
+                  <div
+                    className="absolute inset-y-0 right-0 flex cursor-pointer items-center pr-3"
+                    onClick={() => setShowPassword(!showPassword)}
+                  >
+                    {showPassword ? (
+                      <AiOutlineEyeInvisible size={20} />
+                    ) : (
+                      <AiOutlineEye size={20} />
+                    )}
+                  </div>
+                </div>
                 {error.password && (
                   <p className="text-xs text-red">{error.password}</p>
                 )}

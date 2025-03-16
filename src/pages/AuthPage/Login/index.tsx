@@ -85,7 +85,7 @@ export default function LoginPage() {
   return (
     <>
       <BasePages
-        className="relative mx-auto mb-40 max-h-screen w-[80%] flex-1 p-4"
+        className="relative mx-auto mb-20 max-h-screen w-[80%] flex-1 p-4"
         pageHead="Login | Click Flow"
         breadcrumbs={[
           { title: 'Trang chủ', link: '/' },

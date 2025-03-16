@@ -1,13 +1,13 @@
+import React, { useState } from 'react';
 import BasePages from '@/components/shared/base-pages.js';
 import Footer from '@/components/shared/footer-home';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useRegisterAdvertiser } from '@/queries/auth.query';
 import ImageLeft from '../Image';
-import { toast } from 'react-toastify';
-// Import icon con mắt
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 import { AiOutlineEye, AiOutlineEyeInvisible } from 'react-icons/ai';
 
 type FormAdvertiser = {
@@ -30,7 +30,7 @@ const industryOptions = [
   { value: 3, name: 'Other', displayName: 'Khác' }
 ];
 
-export default function RegisterAdvertiserPage() {
+const RegisterAdvertiserPage: React.FC = () => {
   const { mutateAsync, isLoading } = useRegisterAdvertiser();
 
   const [formAdvertiser, setFormAdvertiser] = useState<FormAdvertiser>({
@@ -116,14 +116,14 @@ export default function RegisterAdvertiserPage() {
   return (
     <>
       <BasePages
-        className="relative mx-auto mb-40 w-[70%] flex-1 p-3"
+        className="relative mx-auto mb-20 w-[70%] flex-1 p-3"
         pageHead="Đăng ký advertiser | Click Flow"
         breadcrumbs={[
           { title: 'Trang chủ', link: '/' },
           { title: 'Đăng ký', link: '/register-advertiser' }
         ]}
       >
-        <div className="mx-auto mt-10 flex min-h-[400px] w-full rounded-xl bg-white p-6 shadow-xl">
+        <div className="mx-auto mt-5 flex min-h-[400px] w-full rounded-xl bg-white p-6 shadow-xl">
           {/* Bên trái - Hình ảnh */}
           <div className="hidden lg:block lg:w-1/2">
             <ImageLeft />
@@ -362,6 +362,10 @@ export default function RegisterAdvertiserPage() {
         </div>
       </BasePages>
       <Footer />
+      {/* ToastContainer hiển thị popup thông báo */}
+      <ToastContainer />
     </>
   );
-}
+};
+
+export default RegisterAdvertiserPage;

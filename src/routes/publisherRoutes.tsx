@@ -3,6 +3,7 @@ import { Suspense, lazy } from 'react';
 import PublisherLayout from '@/components/layout/PublisherLayout';
 import LoginRoute from './private/LoginRoute';
 import RoleRoute from './private/RoleRoute';
+
 const PublisherDashboard = lazy(() => import('@/pages/Publisher/index'));
 const PublisherCampaignPage = lazy(
   () => import('@/pages/Publisher/CampaignsPage')

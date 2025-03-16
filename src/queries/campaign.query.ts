@@ -1,6 +1,7 @@
 import BaseRequest from '@/config/axios.config';
 import { useMutation, useQuery } from '@tanstack/react-query';
 
+const SUB_URL = `api/Campaigns`;
 /**
  * Hook gọi API lấy danh sách Campaigns theo status
  */
@@ -13,7 +14,7 @@ export const useGetCampaign = (
     queryKey: ['get-campaign', status, pageIndex, pageSize],
     queryFn: async () => {
       return await BaseRequest.Get(
-        `/api/campaigns/get-campaigns-by-status/${status}/${pageIndex}/${pageSize}`
+        `${SUB_URL}/get-campaigns-by-status/${status}/${pageIndex}/${pageSize}`
       );
     }
   });
@@ -48,7 +49,7 @@ export const useGetCampaignById = (id?: number) => {
       if (!id) return null;
 
       // Gọi API lấy campaign theo ID
-      return await BaseRequest.Get(`/api/campaigns/get-campaign-by-id/${id}`);
+      return await BaseRequest.Get(`${SUB_URL}get-campaign-by-id/${id}`);
     }
   });
 };
@@ -59,22 +60,27 @@ export const useGetCampaignAdvertiser = (
   pageSize: number = 10
 ) => {
   return useQuery({
-    // queryKey giúp React Query xác định khi nào cần refetch
     queryKey: ['get-campaign-advertiser', status, pageIndex, pageSize],
     queryFn: async () => {
-      // Gọi API đến endpoint với 3 tham số động: status, pageIndex, pageSize
       return await BaseRequest.Get(
-        `/api/Campaigns/get-campaigns-by-advertiser/${status}/${pageIndex}/${pageSize}`
+        `${SUB_URL}/get-campaigns-by-advertiser/${status}/${pageIndex}/${pageSize}`
       );
     }
   });
 };
 
-export const useCreateCampaign = () => {
-  return useMutation({
-    mutationKey: ['create-campaign'],
-    mutationFn: async (model: any) => {
-      return BaseRequest.Post(`/api/Campaigns/create-campaign`, model);
+export const useGetCampaignPublisher = (
+  publisherId: number = 1,
+  pageIndex: number = 1,
+  pageSize: number = 1
+) => {
+  return useQuery({
+    queryKey: ['get-campaigns-publisher', publisherId, pageIndex, pageSize],
+    queryFn: async () => {
+      const response = await BaseRequest.Get(
+        `/${SUB_URL}/get-all-campaign-for-publisher/${publisherId}?PageIndex=${pageIndex}&PageSize=${pageSize}`
+      );
+      return response;
     }
   });
 };
