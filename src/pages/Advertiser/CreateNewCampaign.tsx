@@ -12,7 +12,7 @@ import {
 } from 'antd';
 import { PlusOutlined } from '@ant-design/icons';
 import type { UploadProps } from 'antd';
-import { useCreateCampaign } from '@/queries/campaign.query';
+import { useCreateCampaign, useUploadImage } from '@/queries/campaign.query';
 
 const { Option } = Select;
 
@@ -41,49 +41,73 @@ const CreateCampaignModal: React.FC<CreateCampaignModalProps> = ({
   onCancel
 }) => {
   const [form] = Form.useForm();
-  const { mutate: createCampaignMutation } = useCreateCampaign();
 
+  // Hook tạo campaign
+  const { mutate: createCampaignMutation } = useCreateCampaign();
+  // Hook upload image
+  const { mutate: uploadImageMutation } = useUploadImage();
+
+  // Giữ lại beforeUpload: () => false để không upload tự động
   const uploadProps: UploadProps = {
     listType: 'picture-card',
     beforeUpload: () => false
   };
 
   const onFinish = (values: any) => {
-    let imageUrl = '';
-    const fileList = values.image;
-    if (fileList && fileList.length > 0) {
-      imageUrl = fileList[0].name;
-    }
-
+    const fileList = values.image || [];
     const startDate = values.startDate
       ? values.startDate.format('DD/MM/YYYY')
       : '';
     const endDate = values.endDate ? values.endDate.format('DD/MM/YYYY') : '';
 
-    const payload: CreateCampaignPayload = {
-      name: values.name,
-      description: values.description,
-      originURL: values.originURL,
-      budget: values.budget,
-      startDate,
-      endDate,
-      typePay: values.typePay,
-      typeCampaign: values.typeCampaign,
-      commission: values.commission,
-      percents: values.percents,
-      image: imageUrl,
-      advertiserId: 1
+    // Hàm này sẽ gọi API create campaign
+    const callCreateCampaign = (imageUrl: string) => {
+      const payload: CreateCampaignPayload = {
+        name: values.name,
+        description: values.description,
+        originURL: values.originURL,
+        budget: values.budget,
+        startDate,
+        endDate,
+        typePay: values.typePay,
+        typeCampaign: values.typeCampaign,
+        commission: values.commission,
+        percents: values.percents,
+        image: imageUrl, // đã có URL thực
+        advertiserId: 1
+      };
+
+      createCampaignMutation(payload, {
+        onSuccess: (res) => {
+          console.log('Tạo campaign thành công:', res);
+          onCancel();
+        },
+        onError: (err) => {
+          console.error('Lỗi khi tạo campaign:', err);
+        }
+      });
     };
 
-    createCampaignMutation(payload, {
-      onSuccess: (res) => {
-        console.log('Tạo campaign thành công:', res);
-        onCancel();
-      },
-      onError: (err) => {
-        console.error('Lỗi khi tạo campaign:', err);
-      }
-    });
+    // Nếu người dùng có chọn file, ta upload trước
+    if (fileList.length > 0) {
+      const file = fileList[0].originFileObj; // File thật
+
+      uploadImageMutation(file, {
+        onSuccess: (uploadRes: any) => {
+          // Giả sử server trả về { success: true, data: { url: '...' } }
+          const imageUrl = uploadRes?.data?.url || '';
+          // Sau khi upload thành công -> Tạo campaign
+          callCreateCampaign(imageUrl);
+        },
+        onError: (err) => {
+          console.error('Lỗi khi upload ảnh:', err);
+        }
+      });
+    } else {
+      // Nếu không có file, vẫn gọi createCampaign bình thường
+      callCreateCampaign('');
+    }
+
     form.resetFields();
   };
 
@@ -195,7 +219,7 @@ const CreateCampaignModal: React.FC<CreateCampaignModalProps> = ({
             <Select placeholder="Chọn loại thanh toán" className="rounded-md">
               <Option value="CPC">CPC</Option>
               <Option value="CPA">CPA</Option>
-              <Option value="CPS">CCS</Option>
+              <Option value="CPS">CPS</Option>
             </Select>
           </Form.Item>
 
@@ -264,7 +288,7 @@ const CreateCampaignModal: React.FC<CreateCampaignModalProps> = ({
         <Form.Item>
           <Space className="flex w-full justify-center">
             <Button type="primary" htmlType="submit">
-              Tạo chiến dịch
+              Xem cụ thể
             </Button>
             <Button onClick={onCancel}>Hủy</Button>
           </Space>

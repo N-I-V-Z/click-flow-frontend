@@ -1,400 +1,59 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Form, Select, Button, Modal } from 'antd';
 import { useNavigate } from 'react-router-dom';
 
 import PaginationSection from '@/components/shared/pagination-section';
+import { useGetCampaignsJoinedByPublisher } from '@/queries/campaign.query'; // HOOK bạn vừa sửa/viết
 
 const { Option } = Select;
 
-interface Campaign {
-  id: number;
-  name: string;
-  commission: string; // Hoa hồng (VD: "5%" hoặc "10.000 VNĐ")
-  conversion: number; // Số chuyển đổi
-  locked: boolean; // true = đã bị khóa
-  isRunning: boolean; // true = đang chạy
-  isRegistered: boolean; // true = đã đăng ký
-  industryGroup: string; // Nhóm ngành hàng (VD: "Thực phẩm & đồ uống")
-  industryStatus: string; // "Đang chạy" hoặc "Chưa chạy"
-  type: string; // Loại hình (CPC, CPA, CPS)
-}
-
-// Fake data cho demo
-const fakeCampaigns: Campaign[] = [
-  {
-    id: 1,
-    name: 'Chiến dịch A',
-    commission: '5%',
-    conversion: 123,
-    locked: false,
-    isRunning: true,
-    isRegistered: true,
-    industryGroup: 'Thực phẩm & đồ uống',
-    industryStatus: 'Đang chạy',
-    type: 'CPC'
-  },
-  {
-    id: 2,
-    name: 'Chiến dịch B',
-    commission: '10.000 VNĐ',
-    conversion: 45,
-    locked: false,
-    isRunning: false,
-    isRegistered: false,
-    industryGroup: 'Du lịch & nghỉ dưỡng',
-    industryStatus: 'Chưa chạy',
-    type: 'CPA'
-  },
-  {
-    id: 3,
-    name: 'Chiến dịch C',
-    commission: '5%',
-    conversion: 78,
-    locked: true,
-    isRunning: false,
-    isRegistered: false,
-    industryGroup: 'Khác',
-    industryStatus: 'Chưa chạy',
-    type: 'CPS'
-  },
-  {
-    id: 4,
-    name: 'Chiến dịch D',
-    commission: '5%',
-    conversion: 90,
-    locked: false,
-    isRunning: true,
-    isRegistered: true,
-    industryGroup: 'Thực phẩm & đồ uống',
-    industryStatus: 'Đang chạy',
-    type: 'CPS'
-  },
-  {
-    id: 5,
-    name: 'Chiến dịch E',
-    commission: '8%',
-    conversion: 10,
-    locked: false,
-    isRunning: false,
-    isRegistered: false,
-    industryGroup: 'Du lịch & nghỉ dưỡng',
-    industryStatus: 'Chưa chạy',
-    type: 'CPC'
-  },
-  {
-    id: 6,
-    name: 'Chiến dịch F',
-    commission: '5%',
-    conversion: 120,
-    locked: false,
-    isRunning: false,
-    isRegistered: false,
-    industryGroup: 'Khác',
-    industryStatus: 'Chưa chạy',
-    type: 'CPA'
-  },
-  {
-    id: 7,
-    name: 'Chiến dịch G',
-    commission: '6%',
-    conversion: 140,
-    locked: false,
-    isRunning: false,
-    isRegistered: false,
-    industryGroup: 'Thực phẩm & đồ uống',
-    industryStatus: 'Chưa chạy',
-    type: 'CPC'
-  },
-  {
-    id: 8,
-    name: 'Chiến dịch H',
-    commission: '7%',
-    conversion: 11,
-    locked: false,
-    isRunning: false,
-    isRegistered: false,
-    industryGroup: 'Du lịch & nghỉ dưỡng',
-    industryStatus: 'Chưa chạy',
-    type: 'CPA'
-  },
-  {
-    id: 9,
-    name: 'Chiến dịch I',
-    commission: '5%',
-    conversion: 25,
-    locked: false,
-    isRunning: true,
-    isRegistered: true,
-    industryGroup: 'Khác',
-    industryStatus: 'Đang chạy',
-    type: 'CPS'
-  },
-  {
-    id: 10,
-    name: 'Chiến dịch J',
-    commission: '5%',
-    conversion: 33,
-    locked: false,
-    isRunning: false,
-    isRegistered: false,
-    industryGroup: 'Thực phẩm & đồ uống',
-    industryStatus: 'Chưa chạy',
-    type: 'CPC'
-  },
-  {
-    id: 11,
-    name: 'Chiến dịch K',
-    commission: '8%',
-    conversion: 99,
-    locked: false,
-    isRunning: false,
-    isRegistered: false,
-    industryGroup: 'Du lịch & nghỉ dưỡng',
-    industryStatus: 'Chưa chạy',
-    type: 'CPA'
-  },
-  {
-    id: 12,
-    name: 'Chiến dịch L',
-    commission: '5%',
-    conversion: 71,
-    locked: false,
-    isRunning: true,
-    isRegistered: true,
-    industryGroup: 'Khác',
-    industryStatus: 'Đang chạy',
-    type: 'CPS'
-  },
-  {
-    id: 14,
-    name: 'Chiến dịch N',
-    commission: '7%',
-    conversion: 80,
-    locked: false,
-    isRunning: false,
-    isRegistered: false,
-    industryGroup: 'Du lịch & nghỉ dưỡng',
-    industryStatus: 'Chưa chạy',
-    type: 'CPS'
-  },
-  {
-    id: 15,
-    name: 'Chiến dịch O',
-    commission: '5%',
-    conversion: 110,
-    locked: false,
-    isRunning: true,
-    isRegistered: false,
-    industryGroup: 'Khác',
-    industryStatus: 'Đang chạy',
-    type: 'CPC'
-  },
-  {
-    id: 16,
-    name: 'Chiến dịch P',
-    commission: '10.000 VNĐ',
-    conversion: 60,
-    locked: true,
-    isRunning: false,
-    isRegistered: false,
-    industryGroup: 'Thực phẩm & đồ uống',
-    industryStatus: 'Chưa chạy',
-    type: 'CPA'
-  },
-  {
-    id: 17,
-    name: 'Chiến dịch Q',
-    commission: '8%',
-    conversion: 200,
-    locked: false,
-    isRunning: true,
-    isRegistered: true,
-    industryGroup: 'Du lịch & nghỉ dưỡng',
-    industryStatus: 'Đang chạy',
-    type: 'CPS'
-  },
-  {
-    id: 18,
-    name: 'Chiến dịch R',
-    commission: '5%',
-    conversion: 95,
-    locked: false,
-    isRunning: false,
-    isRegistered: false,
-    industryGroup: 'Khác',
-    industryStatus: 'Chưa chạy',
-    type: 'CPC'
-  },
-  {
-    id: 19,
-    name: 'Chiến dịch S',
-    commission: '6%',
-    conversion: 120,
-    locked: false,
-    isRunning: true,
-    isRegistered: false,
-    industryGroup: 'Thực phẩm & đồ uống',
-    industryStatus: 'Đang chạy',
-    type: 'CPA'
-  },
-  {
-    id: 20,
-    name: 'Chiến dịch T',
-    commission: '7%',
-    conversion: 75,
-    locked: false,
-    isRunning: false,
-    isRegistered: false,
-    industryGroup: 'Du lịch & nghỉ dưỡng',
-    industryStatus: 'Chưa chạy',
-    type: 'CPS'
-  },
-  {
-    id: 21,
-    name: 'Chiến dịch U',
-    commission: '5%',
-    conversion: 85,
-    locked: false,
-    isRunning: true,
-    isRegistered: true,
-    industryGroup: 'Khác',
-    industryStatus: 'Đang chạy',
-    type: 'CPC'
-  },
-  {
-    id: 22,
-    name: 'Chiến dịch V',
-    commission: '10.000 VNĐ',
-    conversion: 65,
-    locked: true,
-    isRunning: false,
-    isRegistered: false,
-    industryGroup: 'Thực phẩm & đồ uống',
-    industryStatus: 'Chưa chạy',
-    type: 'CPA'
-  },
-  {
-    id: 23,
-    name: 'Chiến dịch W',
-    commission: '8%',
-    conversion: 130,
-    locked: false,
-    isRunning: true,
-    isRegistered: false,
-    industryGroup: 'Du lịch & nghỉ dưỡng',
-    industryStatus: 'Đang chạy',
-    type: 'CPS'
-  },
-  {
-    id: 24,
-    name: 'Chiến dịch X',
-    commission: '5%',
-    conversion: 100,
-    locked: false,
-    isRunning: false,
-    isRegistered: false,
-    industryGroup: 'Khác',
-    industryStatus: 'Chưa chạy',
-    type: 'CPC'
-  },
-  {
-    id: 25,
-    name: 'Chiến dịch Y',
-    commission: '6%',
-    conversion: 140,
-    locked: false,
-    isRunning: true,
-    isRegistered: true,
-    industryGroup: 'Thực phẩm & đồ uống',
-    industryStatus: 'Đang chạy',
-    type: 'CPA'
-  },
-  {
-    id: 26,
-    name: 'Chiến dịch Z',
-    commission: '7%',
-    conversion: 90,
-    locked: false,
-    isRunning: false,
-    isRegistered: false,
-    industryGroup: 'Du lịch & nghỉ dưỡng',
-    industryStatus: 'Chưa chạy',
-    type: 'CPS'
-  },
-  {
-    id: 27,
-    name: 'Chiến dịch 27',
-    commission: '5%',
-    conversion: 110,
-    locked: false,
-    isRunning: true,
-    isRegistered: false,
-    industryGroup: 'Khác',
-    industryStatus: 'Đang chạy',
-    type: 'CPC'
-  },
-  {
-    id: 28,
-    name: 'Chiến dịch 28',
-    commission: '8%',
-    conversion: 70,
-    locked: true,
-    isRunning: false,
-    isRegistered: false,
-    industryGroup: 'Thực phẩm & đồ uống',
-    industryStatus: 'Chưa chạy',
-    type: 'CPA'
-  },
-  {
-    id: 29,
-    name: 'Chiến dịch 29',
-    commission: '10.000 VNĐ',
-    conversion: 95,
-    locked: false,
-    isRunning: true,
-    isRegistered: true,
-    industryGroup: 'Du lịch & nghỉ dưỡng',
-    industryStatus: 'Đang chạy',
-    type: 'CPS'
-  },
-  {
-    id: 30,
-    name: 'Chiến dịch 30',
-    commission: '6%',
-    conversion: 85,
-    locked: false,
-    isRunning: false,
-    isRegistered: false,
-    industryGroup: 'Khác',
-    industryStatus: 'Chưa chạy',
-    type: 'CPC'
-  }
-];
-
+// Page size mặc định
 const PAGE_SIZE = 8;
 
 const CampaignsPage: React.FC = () => {
   const [form] = Form.useForm();
-  const [campaigns, setCampaigns] = useState<Campaign[]>(fakeCampaigns);
+  // Thay vì lưu campaigns cứng, ta sẽ lưu state để filter phía client
+  const [campaigns, setCampaigns] = useState<any[]>([]);
+
+  // State trang hiện tại
   const [currentPage, setCurrentPage] = useState<number>(1);
 
-  // State để mở/đóng Modal xác nhận đăng ký
+  // State cho Modal
   const [isModalVisible, setIsModalVisible] = useState<boolean>(false);
   const [selectedCampaignId, setSelectedCampaignId] = useState<number | null>(
     null
   );
 
+  // Giả sử publisherId = 1
+  const publisherId = 1;
+
+  // Gọi hook lấy data từ API
+  const {
+    data: campaignsResponse,
+    isLoading,
+    isError
+  } = useGetCampaignsJoinedByPublisher(publisherId, currentPage, PAGE_SIZE);
+
   const navigate = useNavigate();
 
-  // Xử lý bấm nút "Đăng ký"
+  // Mỗi khi gọi API xong, set lại campaigns
+  useEffect(() => {
+    if (campaignsResponse?.result) {
+      // campaignsResponse.result là mảng campaign
+      setCampaigns(campaignsResponse.result);
+    }
+  }, [campaignsResponse]);
+
+  // Xử lý nút "Đăng ký"
   const handleRegisterClick = (campaignId: number) => {
     setSelectedCampaignId(campaignId);
     setIsModalVisible(true);
   };
 
-  // Xác nhận đăng ký chiến dịch
+  // Xác nhận đăng ký
   const handleConfirmRegister = () => {
     if (selectedCampaignId !== null) {
+      // Ví dụ update tạm phía client: set isRegistered = true
       setCampaigns((prev) =>
         prev.map((c) =>
           c.id === selectedCampaignId
@@ -407,49 +66,69 @@ const CampaignsPage: React.FC = () => {
     setSelectedCampaignId(null);
   };
 
-  // Hủy đăng ký (đóng modal)
+  // Hủy đăng ký
   const handleCancelRegister = () => {
     setIsModalVisible(false);
     setSelectedCampaignId(null);
   };
 
-  // Lấy dữ liệu chiến dịch thuộc trang hiện tại
-  const startIndex = (currentPage - 1) * PAGE_SIZE;
-  const endIndex = startIndex + PAGE_SIZE;
-  const currentCampaigns = campaigns.slice(startIndex, endIndex);
-
-  // Xử lý form filter
+  // Lọc (filter) phía client
   const onFinish = (values: any) => {
-    let filtered = [...fakeCampaigns];
+    if (!campaignsResponse?.result) return;
+    let filtered = [...campaignsResponse.result];
+
+    // 1) Lọc trạng thái khoá
     if (values.status === 'active') {
-      filtered = filtered.filter((c) => !c.locked);
+      filtered = filtered.filter((c) => c.locked === false);
     } else if (values.status === 'locked') {
-      filtered = filtered.filter((c) => c.locked);
+      filtered = filtered.filter((c) => c.locked === true);
     }
+
+    // 2) Lọc nhóm ngành
     if (values.group && values.group !== 'all') {
       filtered = filtered.filter((c) => c.industryGroup === values.group);
     }
+
+    // 3) Lọc trạng thái chạy
     if (values.industryStatus === 'running') {
       filtered = filtered.filter((c) => c.isRunning === true);
     } else if (values.industryStatus === 'not_running') {
       filtered = filtered.filter((c) => c.isRunning === false);
     }
+
+    // 4) Lọc loại hình
     if (values.type && values.type !== 'all') {
       filtered = filtered.filter((c) => c.type === values.type);
     }
+
+    // set lại campaigns hiển thị
     setCampaigns(filtered);
     setCurrentPage(1);
   };
 
-  // Đặt lại form filter
   const onReset = () => {
     form.resetFields();
-    setCampaigns(fakeCampaigns);
+    if (campaignsResponse?.result) {
+      setCampaigns(campaignsResponse.result);
+    }
     setCurrentPage(1);
   };
 
+  // Tính ra dữ liệu trang hiện tại (phía client)
+  // Nếu bạn muốn phân trang server-side, hãy bỏ đoạn slice() này
+  const startIndex = (currentPage - 1) * PAGE_SIZE;
+  const endIndex = startIndex + PAGE_SIZE;
+  const currentCampaigns = campaigns.slice(startIndex, endIndex);
+
+  if (isLoading) {
+    return <div className="p-6">Đang tải dữ liệu ...</div>;
+  }
+
+  if (isError) {
+    return <div className="p-6">Có lỗi xảy ra khi gọi API.</div>;
+  }
+
   return (
-    // BỎ overflow-auto ở đây
     <div className="bg-gray-100 p-6">
       <h1 className="mb-6 text-center text-2xl font-bold text-gray-800">
         Danh sách Chiến dịch
@@ -463,7 +142,7 @@ const CampaignsPage: React.FC = () => {
           onFinish={onFinish}
           className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-4"
         >
-          <Form.Item name="status " label="Trạng thái">
+          <Form.Item name="status" label="Trạng thái">
             <Select placeholder="Chọn trạng thái" allowClear>
               <Option value="active">Đang hoạt động</Option>
               <Option value="locked">Đã bị khóa</Option>
@@ -511,9 +190,10 @@ const CampaignsPage: React.FC = () => {
       {/* Danh sách chiến dịch */}
       <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6">
         {currentCampaigns.map((campaign) => {
-          const isLocked = campaign.locked;
-          const isRegistered = campaign.isRegistered;
-          const isRunning = campaign.isRunning;
+          // Tuỳ cấu trúc campaign thực tế, bạn điều chỉnh cho phù hợp
+          const isLocked = campaign.locked; // server trả về?
+          const isRegistered = campaign.isRegistered; // server trả về?
+          const isRunning = campaign.isRunning; // server trả về?
           const rating = 4.28;
           const ratingCount = 323;
           const totalConversion = 577866;
@@ -522,7 +202,11 @@ const CampaignsPage: React.FC = () => {
             <div
               key={campaign.id}
               className={`flex flex-col items-center rounded-lg bg-white p-4 shadow transition-transform duration-300 
-              ${!isLocked ? 'cursor-pointer hover:scale-105 hover:shadow-xl' : 'pointer-events-none opacity-50'}`}
+                ${
+                  !isLocked
+                    ? 'cursor-pointer hover:scale-105 hover:shadow-xl'
+                    : 'pointer-events-none opacity-50'
+                }`}
               onClick={() =>
                 navigate(`/publisher/campaign-detail/${campaign.id}`)
               }
@@ -530,21 +214,27 @@ const CampaignsPage: React.FC = () => {
               {/* Logo */}
               <div className="mb-4 h-32 w-32 overflow-hidden rounded-full">
                 <img
-                  src="https://content.accesstrade.vn/adv/1735897487_avatar_1735897487.png"
+                  src={
+                    campaign.image ||
+                    'https://content.accesstrade.vn/adv/1735897487_avatar_1735897487.png'
+                  }
                   alt="logo"
                   className="h-full w-full object-cover"
                 />
               </div>
+
               {/* Tên chiến dịch */}
               <h3 className="mb-2 line-clamp-2 text-center text-sm font-semibold text-gray-800">
                 {campaign.name}
               </h3>
+
               {/* Hoa hồng */}
               <div className="mb-1 text-sm text-gray-600">Hoa hồng</div>
               <div className="mb-2 text-lg font-bold text-[#8229B0]">
                 {campaign.commission}
               </div>
-              {/* Rating + conversions */}
+
+              {/* Rating + conversions (demo cứng) */}
               <div className="mb-3 flex items-center gap-1 text-sm text-gray-600">
                 <span>{rating.toFixed(2).replace('.', ',')}</span>
                 <svg
@@ -558,6 +248,7 @@ const CampaignsPage: React.FC = () => {
                 <span className="mx-1 text-gray-400">|</span>
                 <span>{totalConversion.toLocaleString('vi-VN')}</span>
               </div>
+
               {/* Nút hành động */}
               {isLocked ? (
                 <p className="text-red-500 mt-2 font-medium">Đã bị khóa</p>
@@ -590,10 +281,10 @@ const CampaignsPage: React.FC = () => {
         })}
       </div>
 
-      {/* Phân trang với component PaginationSection */}
+      {/* Phân trang */}
       <div className="mb-8 mt-4">
         <PaginationSection
-          totalPosts={campaigns.length}
+          totalPosts={campaigns.length} // hoặc campaignsResponse?.result?.length
           postsPerPage={PAGE_SIZE}
           currentPage={currentPage}
           setCurrentPage={setCurrentPage}
@@ -608,7 +299,6 @@ const CampaignsPage: React.FC = () => {
         onCancel={handleCancelRegister}
         okText="Đồng ý"
         cancelText="Hủy"
-        //9B52BF
         okButtonProps={{
           className: 'bg-[#9B52BF] text-white border-[#9B52BF]'
         }}
