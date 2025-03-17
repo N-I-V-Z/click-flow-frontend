@@ -3,65 +3,99 @@ import { Pencil, Trash2, Eye } from 'lucide-react';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { ColumnDef } from '@tanstack/react-table';
-
 import DataTable from '@/components/shared/data-table';
 import { Button } from '@/components/ui/button';
+
+// Import custom hook gọi API đúng tên
+import { useGetCampaignsByAdvertiser } from '@/queries/campaign.query';
 
 interface Project {
   id: number;
   name: string;
   createdDate: string;
   advertiser: string;
-  status:
-    | 'Cần phê duyệt'
-    | 'Đang thực hiện'
-    | 'Hoàn thành'
-    | 'Tạm dừng'
-    | 'Đã từ chối';
+  status: 'Đã duyệt' | 'Đang hoạt động' | 'Tạm dừng' | 'Đã hủy' | 'Hoàn thành';
   deadline: string;
 }
 
-const initialProjects: Project[] = Array.from({ length: 50 }, (_, i) => ({
-  id: i + 1,
-  name: `Project ${String.fromCharCode(65 + (i % 26))}`,
-  createdDate: `2025-0${(i % 9) + 1}-0${(i % 9) + 1}`,
-  advertiser: `Advertiser ${i + 1}`,
-  status: [
-    'Cần phê duyệt',
-    'Đang thực hiện',
-    'Hoàn thành',
-    'Tạm dừng',
-    'Đã từ chối'
-  ][i % 5] as Project['status'],
-  deadline: `2025-0${(i % 9) + 2}-1${(i % 9) + 1}`
-}));
+// Danh sách trạng thái cập nhật
+const statusOptions = [
+  { value: 0, name: 'Pending', displayName: 'Chờ duyệt', color: 'bg-yellow' },
+  { value: 1, name: 'Approved', displayName: 'Đã duyệt', color: 'bg-purple' },
+  {
+    value: 2,
+    name: 'Activing',
+    displayName: 'Đang hoạt động',
+    color: 'bg-blue'
+  },
+  { value: 3, name: 'Paused', displayName: 'Tạm dừng', color: 'bg-orange' },
+  { value: 4, name: 'Canceled', displayName: 'Đã hủy', color: 'bg-red' },
+  {
+    value: 5,
+    name: 'Completed',
+    displayName: 'Hoàn thành',
+    color: 'bg-[#00AE72]'
+  }
+];
+
+// Hàm tìm màu theo trạng thái dựa vào displayName
+const getStatusClass = (status: string) => {
+  const option = statusOptions.find((opt) => opt.displayName === status);
+  return option ? option.color : 'bg-gray';
+};
 
 const AdvertiserCampaigns = () => {
-  const [allProjects, setAllProjects] = useState(initialProjects);
+  // Giả sử advertiserId = 1, pageIndex = 1, pageSize = 10
+  const advertiserId = 1;
+  const pageIndex = 1;
+  const pageSize = 10;
+
+  // Gọi custom hook để lấy danh sách campaign theo advertiser
+  const {
+    data: campaigns, // Mảng campaign lấy từ API
+    isLoading,
+    isError
+  } = useGetCampaignsByAdvertiser(advertiserId, pageIndex, pageSize);
+
+  const [rowSelection, setRowSelection] = useState<Record<string, boolean>>({});
   const [selectedRows, setSelectedRows] = useState<any[]>([]);
-  // Từ khóa tìm kiếm
   const [searchTerm, setSearchTerm] = useState('');
 
-  // Lưu trạng thái chọn nhiều dòng (rowSelection) của bảng
-  // Dạng: { '1': true, '2': false, ... } => true nghĩa là dòng đó được chọn
-  const [rowSelection, setRowSelection] = useState<Record<string, boolean>>({});
-
-  // Modal states (xem, sửa, xóa đơn lẻ)
+  // Modal states
   const [selectedProject, setSelectedProject] = useState<Project | null>(null);
   const [isViewOpen, setIsViewOpen] = useState(false);
   const [isEditOpen, setIsEditOpen] = useState(false);
   const [isDeleteOpen, setIsDeleteOpen] = useState(false);
 
+  // Map dữ liệu API thành mảng Project cho bảng
+  const mappedData: Project[] = useMemo(() => {
+    if (!campaigns) return [];
+
+    return campaigns.map((c: any) => {
+      // Nếu API trả về status dưới dạng "Approved", "Activing",... thì chuyển sang displayName tương ứng.
+      const foundStatus = statusOptions.find(
+        (option) => option.name === c.status
+      );
+      return {
+        id: c.id,
+        name: c.name,
+        createdDate: c.startDate ?? '',
+        advertiser: c.advertiser?.companyName ?? '',
+        status: foundStatus ? foundStatus.displayName : 'Đã duyệt',
+        deadline: c.endDate ?? ''
+      };
+    });
+  }, [campaigns]);
+
   // Lọc dữ liệu theo từ khóa tìm kiếm
   const filteredData = useMemo(() => {
-    return allProjects.filter((project) =>
+    return mappedData.filter((project) =>
       project.name.toLowerCase().includes(searchTerm.toLowerCase())
     );
-  }, [searchTerm, allProjects]);
+  }, [searchTerm, mappedData]);
 
-  // Cột cho DataTable
+  // Định nghĩa cột cho DataTable
   const columns: ColumnDef<Project>[] = [
-    // Cột checkbox để chọn nhiều
     {
       id: 'select',
       header: ({ table }) => (
@@ -79,7 +113,6 @@ const AdvertiserCampaigns = () => {
         />
       )
     },
-    // Cột STT (tự tính theo chỉ số dòng)
     {
       id: 'stt',
       header: 'STT',
@@ -116,7 +149,6 @@ const AdvertiserCampaigns = () => {
       header: 'Thao tác',
       cell: ({ row }) => (
         <div className="-ml-6 flex">
-          {/* Xem chi tiết */}
           <Button
             variant="ghost"
             size="sm"
@@ -127,7 +159,6 @@ const AdvertiserCampaigns = () => {
           >
             <Eye size={18} className="text-blue" />
           </Button>
-          {/* Sửa */}
           <Button
             variant="ghost"
             size="sm"
@@ -138,7 +169,6 @@ const AdvertiserCampaigns = () => {
           >
             <Pencil size={18} className="text-yellow" />
           </Button>
-          {/* Xóa đơn lẻ */}
           <Button
             variant="ghost"
             size="sm"
@@ -154,47 +184,31 @@ const AdvertiserCampaigns = () => {
     }
   ];
 
-  // Xử lý xóa đơn lẻ (trong modal xác nhận)
+  // Xử lý xóa đơn lẻ
   const handleDeleteSingle = () => {
     if (selectedProject) {
-      setAllProjects((prev) => prev.filter((p) => p.id !== selectedProject.id));
       toast.success(`Xóa chiến dịch "${selectedProject.name}" thành công!`);
     }
     setIsDeleteOpen(false);
     setSelectedProject(null);
+    // Có thể gọi refetch() để load lại dữ liệu nếu cần
   };
 
-  // Xử lý xóa nhiều (bằng checkbox)
-  const handleDeleteMulti = () => {
-    // Lấy các id dòng đã chọn
-    const selectedIds = Object.keys(rowSelection).filter(
-      (key) => rowSelection[key]
-    );
-    if (selectedIds.length === 0) {
-      toast.info('Không có chiến dịch nào được chọn!');
-      return;
-    }
-    // Xóa các project có id trong selectedIds
-    setAllProjects((prev) =>
-      prev.filter((p) => !selectedIds.includes(p.id.toString()))
-    );
-    toast.success(`Đã xóa ${selectedIds.length} chiến dịch thành công!`);
-    // Reset rowSelection
-    setRowSelection({});
-  };
-
+  // Xử lý xóa nhiều
   const handleBulkDelete = () => {
     if (selectedRows.length === 0) return;
-    setAllProjects((prev) =>
-      prev.filter(
-        (project) =>
-          !selectedRows.some((selected: any) => selected.id === project.id)
-      )
-    );
     toast.success(`Đã xóa ${selectedRows.length} chiến dịch thành công!`);
-    // Reset row selection
     setRowSelection({});
+    // Có thể gọi refetch() để load lại dữ liệu nếu cần
   };
+
+  if (isLoading) {
+    return <div className="p-6">Đang tải dữ liệu...</div>;
+  }
+
+  if (isError) {
+    return <div className="p-6">Lỗi khi tải dữ liệu.</div>;
+  }
 
   return (
     <div className="p-6">
@@ -210,12 +224,12 @@ const AdvertiserCampaigns = () => {
           </button>
         )}
       </div>
+
       {/* Bảng dữ liệu */}
       <DataTable
         columns={columns}
         data={filteredData}
         pageCount={Math.ceil(filteredData.length / 10)}
-        // Quan trọng: Truyền rowSelection và callback
         rowSelection={rowSelection}
         onRowSelectionChange={setRowSelection}
         onSelectedRowsChange={setSelectedRows}
@@ -242,7 +256,7 @@ const AdvertiserCampaigns = () => {
         </div>
       )}
 
-      {/* Modal Xem chi tiết (demo) */}
+      {/* Modal Xem chi tiết */}
       {isViewOpen && selectedProject && (
         <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
           <div className="w-full max-w-md rounded-lg bg-white p-6 shadow-lg">
@@ -260,7 +274,7 @@ const AdvertiserCampaigns = () => {
         </div>
       )}
 
-      {/* Modal Sửa (demo) */}
+      {/* Modal Sửa */}
       {isEditOpen && selectedProject && (
         <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
           <div className="w-full max-w-md rounded-lg bg-white p-6 shadow-lg">
@@ -294,11 +308,11 @@ const AdvertiserCampaigns = () => {
                 }
                 className="rounded border p-2"
               >
-                <option value="Cần phê duyệt">Cần phê duyệt</option>
-                <option value="Đang thực hiện">Đang thực hiện</option>
-                <option value="Hoàn thành">Hoàn thành</option>
-                <option value="Tạm dừng">Tạm dừng</option>
-                <option value="Đã từ chối">Đã từ chối</option>
+                {statusOptions.map((option) => (
+                  <option key={option.value} value={option.displayName}>
+                    {option.displayName}
+                  </option>
+                ))}
               </select>
             </div>
             <div className="mt-4 flex justify-end gap-2">
@@ -307,15 +321,7 @@ const AdvertiserCampaigns = () => {
               </Button>
               <Button
                 onClick={() => {
-                  // Lưu thay đổi vào allProjects
-                  if (selectedProject) {
-                    setAllProjects((prev) =>
-                      prev.map((p) =>
-                        p.id === selectedProject.id ? selectedProject : p
-                      )
-                    );
-                    toast.success(`Đã cập nhật "${selectedProject.name}"!`);
-                  }
+                  toast.success(`Đã cập nhật "${selectedProject.name}"!`);
                   setIsEditOpen(false);
                 }}
               >
@@ -326,7 +332,6 @@ const AdvertiserCampaigns = () => {
         </div>
       )}
 
-      {/* Toast container */}
       <ToastContainer
         position="top-center"
         autoClose={5000}
@@ -334,24 +339,6 @@ const AdvertiserCampaigns = () => {
       />
     </div>
   );
-};
-
-// Hàm đổi màu trạng thái
-const getStatusClass = (status: string) => {
-  switch (status) {
-    case 'Cần phê duyệt':
-      return 'bg-yellow';
-    case 'Đang thực hiện':
-      return 'bg-blue';
-    case 'Hoàn thành':
-      return 'bg-[#00AE72]';
-    case 'Tạm dừng':
-      return 'bg-orange';
-    case 'Đã từ chối':
-      return 'bg-red';
-    default:
-      return 'bg-gray';
-  }
 };
 
 export default AdvertiserCampaigns;

@@ -101,7 +101,7 @@ export const useCreateCampaign = () => {
       commission: number;
       percents: number;
       image: string;
-      // advertiserId: number;
+      advertiserId: number;
     }) => {
       return await BaseRequest.Post(`/${SUB_URL}/create-campaign`, model);
     }
@@ -114,7 +114,6 @@ export const useUploadImage = () => {
     mutationFn: async (file: File) => {
       const formData = new FormData();
       formData.append('File', file);
-
       const response = await BaseRequest.Post(
         `/${SUB_URL_IMAGE}/upload-image`,
         formData,
@@ -123,6 +122,42 @@ export const useUploadImage = () => {
             'Content-Type': 'multipart/form-data'
           }
         }
+      );
+      return response;
+    }
+  });
+};
+export const useGetCampaignsByAdvertiser = (
+  advertiserId: number,
+  pageIndex: number = 1,
+  pageSize: number = 10
+) => {
+  return useQuery({
+    queryKey: ['campaigns-by-advertiser', advertiserId, pageIndex, pageSize],
+    queryFn: async () => {
+      const response = await BaseRequest.Get(
+        `${SUB_URL}/get-campaigns-by-advertiser/${advertiserId}/${pageIndex}/${pageSize}`
+      );
+      return response.result;
+    }
+  });
+};
+
+export const useGetCampaignsJoinedByPublisher = (
+  publisherId: number,
+  pageIndex: number = 1,
+  pageSize: number = 10
+) => {
+  return useQuery({
+    queryKey: [
+      'get-campaigns-joined-by-publisher',
+      publisherId,
+      pageIndex,
+      pageSize
+    ],
+    queryFn: async () => {
+      const response = await BaseRequest.Get(
+        `${SUB_URL}/get-campaigns-joined-by-publisher/${publisherId}/${pageIndex}/${pageSize}`
       );
       return response;
     }
