@@ -2,6 +2,7 @@ import BaseRequest from '@/config/axios.config';
 import { useMutation, useQuery } from '@tanstack/react-query';
 
 const SUB_URL = `api/Campaigns`;
+const SUB_URL_IMAGE = `api/Upload`;
 /**
  * Hook gọi API lấy danh sách Campaigns theo status
  */
@@ -79,6 +80,49 @@ export const useGetCampaignPublisher = (
     queryFn: async () => {
       const response = await BaseRequest.Get(
         `/${SUB_URL}/get-all-campaign-for-publisher/${publisherId}?PageIndex=${pageIndex}&PageSize=${pageSize}`
+      );
+      return response;
+    }
+  });
+};
+
+export const useCreateCampaign = () => {
+  return useMutation({
+    mutationKey: ['create-campaign'],
+    mutationFn: async (model: {
+      name: string;
+      description: string;
+      originURL: string;
+      budget: number;
+      startDate: string;
+      endDate: string;
+      typePay: string;
+      typeCampaign: string;
+      commission: number;
+      percents: number;
+      image: string;
+      // advertiserId: number;
+    }) => {
+      return await BaseRequest.Post(`/${SUB_URL}/create-campaign`, model);
+    }
+  });
+};
+
+export const useUploadImage = () => {
+  return useMutation({
+    mutationKey: ['upload-image'],
+    mutationFn: async (file: File) => {
+      const formData = new FormData();
+      formData.append('File', file);
+
+      const response = await BaseRequest.Post(
+        `/${SUB_URL_IMAGE}/upload-image`,
+        formData,
+        {
+          headers: {
+            'Content-Type': 'multipart/form-data'
+          }
+        }
       );
       return response;
     }
