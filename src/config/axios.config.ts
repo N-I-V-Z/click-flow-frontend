@@ -1,4 +1,4 @@
-import axios from 'axios';
+import axios, { AxiosRequestConfig } from 'axios';
 import helpers from '../helpers';
 
 const baseURL = 'https://localhost:7087/';
@@ -109,7 +109,7 @@ const BaseRequest = {
       console.log('err', err);
     }
   },
-  Post: async (url: string, data?: any) => {
+  Post: async (url: string, data?: any, config?: AxiosRequestConfig) => {
     try {
       const response = await axios.post<any>(url, data);
       return response;
