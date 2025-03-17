@@ -49,7 +49,7 @@ export const useGetCampaignById = (id?: number) => {
       if (!id) return null;
 
       // Gọi API lấy campaign theo ID
-      return await BaseRequest.Get(`${SUB_URL}get-campaign-by-id/${id}`);
+      return await BaseRequest.Get(`${SUB_URL}/get-campaign-by-id/${id}`);
     }
   });
 };

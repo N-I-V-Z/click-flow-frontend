@@ -4,43 +4,38 @@ import { EyeOutlined, CloseCircleOutlined } from '@ant-design/icons';
 import { BiBuildings } from 'react-icons/bi';
 import DataTable from '@/components/shared/data-table';
 import { ColumnDef } from '@tanstack/react-table';
-
-// Import hook để lấy user theo role
+import { AdvertiserDetailModal } from './AdvertiserDetailModal';
+// Import 2 hook dưới:
 import { useGetUsersByRole } from '@/queries/user.query';
 
-/** Interface local mô tả Advertiser */
 interface Advertiser {
   id: number;
-  code: number; // Mã nhà quảng cáo (VD: "ADS001")
-  name: string; // Tên hiển thị (fullName)
-  phone: string; // Số điện thoại
-  userName: string; // Tên đăng nhập
-  createdAt: string;
+  code: number;
+  name: string;
+  phone: string;
+  userName: string;
   email: string;
+  /** Bỏ createdAt nếu không cần nữa */
+  // createdAt: string;
   company: string;
   business: string;
-  status: string; // "Hoạt động" | "Bị khóa"
+  status: string;
 }
 
-/**
- * Hàm chuyển dữ liệu từ API -> Advertiser (UI)
- * Tuỳ thuộc server trả về trường gì.
- * Ví dụ: { id, fullName, email, phone, status="Active"/"Locked", ... }
- */
 function mapApiUserToAdvertiser(apiUser: any): Advertiser {
   return {
     id: apiUser.id,
-    // code = "ADS" + id zero-pad
-    code: apiUser.id,
+    code: apiUser.id, // Tùy bạn format "ADSxxx" nếu muốn
     name: apiUser.fullName ?? 'No name',
     phone: apiUser.phone ?? '',
     userName: apiUser.userName ?? '',
-    createdAt: apiUser.createdAt ?? '',
     email: apiUser.email ?? '',
-    company: apiUser.company ?? '',
-    business: apiUser.business ?? '',
-    // Map "Active" => "Hoạt động", "Locked" => "Bị khóa"
-    status: apiUser.status === 'Active' ? 'Hoạt động' : 'Bị khóa'
+    // company -> Lấy từ apiUser.advertiser.companyName
+    company: apiUser.advertiser?.companyName ?? '',
+    // business -> Lĩnh vực kinh doanh (nếu backend có)
+    business: apiUser.advertiser?.businessArea ?? '',
+    // status
+    status: apiUser.isDeleted ? 'Bị khóa' : 'Hoạt động'
   };
 }
 
@@ -50,11 +45,13 @@ const AdvertiserList: React.FC = () => {
 
   // Modal "Xem chi tiết"
   const [isViewModalVisible, setIsViewModalVisible] = useState(false);
-  const [selectedAdvertiser, setSelectedAdvertiser] =
-    useState<Advertiser | null>(null);
+  // Lưu ID advertiser đang xem để gọi API chi tiết
+  const [selectedId, setSelectedId] = useState<number | null>(null);
 
   // Modal "Khóa/Mở khóa"
   const [isLockModalVisible, setIsLockModalVisible] = useState(false);
+  const [selectedAdvertiser, setSelectedAdvertiser] =
+    useState<Advertiser | null>(null);
 
   // 1) Gọi API lấy user role = "Advertiser", page=1, size=10
   const { data, isLoading, error } = useGetUsersByRole('Advertiser', 1, 10);
@@ -62,20 +59,21 @@ const AdvertiserList: React.FC = () => {
   // 2) Mỗi khi data?.result thay đổi, map sang Advertiser[]
   useEffect(() => {
     if (data?.result) {
-      const apiUsers = data.result; // Mảng user từ backend
-      const mapped = apiUsers.map((user: any) => mapApiUserToAdvertiser(user));
+      const mapped = data.result.map((user: any) =>
+        mapApiUserToAdvertiser(user)
+      );
       setDataSource(mapped);
     }
   }, [data]);
 
   // 3) "Xem chi tiết"
   const handleView = (record: Advertiser) => {
-    setSelectedAdvertiser(record);
+    setSelectedId(record.id);
     setIsViewModalVisible(true);
   };
   const closeViewModal = () => {
     setIsViewModalVisible(false);
-    setSelectedAdvertiser(null);
+    setSelectedId(null);
   };
 
   // 4) "Khóa/Mở khóa"
@@ -109,7 +107,7 @@ const AdvertiserList: React.FC = () => {
     () => [
       { accessorKey: 'code', header: 'MÃ' },
       { accessorKey: 'name', header: 'TÊN NHÀ QUẢNG CÁO' },
-      { accessorKey: 'createdAt', header: 'NGÀY TẠO' },
+      // BỎ cột { accessorKey: 'createdAt', header: 'NGÀY TẠO' },
       { accessorKey: 'company', header: 'TÊN CÔNG TY' },
       {
         accessorKey: 'status',
@@ -167,66 +165,16 @@ const AdvertiserList: React.FC = () => {
         columns={columns}
         data={dataSource}
         pageCount={-1}
-        pageSizeOptions={[10, 20, 30, 40, 50]}
+        pageSizeOptions={[10, 20, 50, 100]}
         showAdd={false}
       />
 
       {/* Modal "Xem chi tiết" */}
-      <Modal
+      {/* <AdvertiserDetailModal
         open={isViewModalVisible}
-        onCancel={closeViewModal}
-        footer={<Button onClick={closeViewModal}>Đóng</Button>}
-      >
-        {selectedAdvertiser && (
-          <div className="space-y-3">
-            <div className="flex items-center gap-3">
-              <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-gray-200 text-2xl text-gray-600">
-                <BiBuildings />
-              </div>
-              <div>
-                <h3 className="text-lg font-semibold ">
-                  {selectedAdvertiser.name}
-                </h3>
-                <p className="text-sm text-gray-500">Nhà quảng cáo</p>
-              </div>
-            </div>
-            <div>
-              <label className="block font-semibold text-gray-600">
-                Số điện thoại
-              </label>
-              <Input readOnly value={selectedAdvertiser.phone} />
-            </div>
-            <div>
-              <label className="block font-semibold text-gray-600">
-                Tên người dùng
-              </label>
-              <Input readOnly value={selectedAdvertiser.userName} />
-            </div>
-            <div>
-              <label className="block font-semibold text-gray-600">
-                Ngày tạo
-              </label>
-              <Input readOnly value={selectedAdvertiser.createdAt} />
-            </div>
-            <div>
-              <label className="block font-semibold text-gray-600">Email</label>
-              <Input readOnly value={selectedAdvertiser.email} />
-            </div>
-            <div>
-              <label className="block font-semibold text-gray-600">
-                Tên công ty
-              </label>
-              <Input readOnly value={selectedAdvertiser.company} />
-            </div>
-            <div>
-              <label className="block font-semibold text-gray-600">
-                Lĩnh vực kinh doanh
-              </label>
-              <Input readOnly value={selectedAdvertiser.business} />
-            </div>
-          </div>
-        )}
-      </Modal>
+        onClose={closeViewModal}
+        advertiserId={selectedId}
+      /> */}
 
       {/* Modal "Khóa/Mở khóa" */}
       <Modal
