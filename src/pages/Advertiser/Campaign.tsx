@@ -6,56 +6,51 @@ import { ColumnDef } from '@tanstack/react-table';
 import DataTable from '@/components/shared/data-table';
 import { Button } from '@/components/ui/button';
 
-// Import custom hook gọi API đúng tên
-import { useGetCampaignsByAdvertiser } from '@/queries/campaign.query';
+import { useGetPublisherParticipationByStatusForAdvertiser } from '@/queries/campaign.query';
 
+// Kiểu gốc API
+type CampaignParticipationStatus = 'Pending' | 'Participated' | 'Rejected';
+
+// Giao diện hiển thị
 interface Project {
   id: number;
   name: string;
   createdDate: string;
   advertiser: string;
-  status: 'Đã duyệt' | 'Đang hoạt động' | 'Tạm dừng' | 'Đã hủy' | 'Hoàn thành';
+  status: 'Chờ duyệt' | 'Đã tham gia' | 'Đã từ chối';
   deadline: string;
 }
 
-// Danh sách trạng thái cập nhật
 const statusOptions = [
-  { value: 0, name: 'Pending', displayName: 'Chờ duyệt', color: 'bg-yellow' },
-  { value: 1, name: 'Approved', displayName: 'Đã duyệt', color: 'bg-purple' },
-  {
-    value: 2,
-    name: 'Activing',
-    displayName: 'Đang hoạt động',
-    color: 'bg-blue'
-  },
-  { value: 3, name: 'Paused', displayName: 'Tạm dừng', color: 'bg-orange' },
-  { value: 4, name: 'Canceled', displayName: 'Đã hủy', color: 'bg-red' },
-  {
-    value: 5,
-    name: 'Completed',
-    displayName: 'Hoàn thành',
-    color: 'bg-[#00AE72]'
-  }
+  { name: 'Pending', displayName: 'Chờ duyệt', color: 'bg-yellow' },
+  { name: 'Participated', displayName: 'Đã tham gia', color: 'bg-purple' },
+  { name: 'Rejected', displayName: 'Đã từ chối', color: 'bg-red' }
 ];
 
-// Hàm tìm màu theo trạng thái dựa vào displayName
-const getStatusClass = (status: string) => {
-  const option = statusOptions.find((opt) => opt.displayName === status);
+const getStatusClass = (displayName: string) => {
+  const option = statusOptions.find((opt) => opt.displayName === displayName);
   return option ? option.color : 'bg-gray';
 };
 
 const AdvertiserCampaigns = () => {
-  // Giả sử advertiserId = 1, pageIndex = 1, pageSize = 10
-  const advertiserId = 1;
+  // Chọn 1 trong 3 status để call API
+  const [campaignStatus, setCampaignStatus] =
+    useState<CampaignParticipationStatus>('Pending');
+
+  // pageIndex, pageSize
   const pageIndex = 1;
   const pageSize = 10;
 
-  // Gọi custom hook để lấy danh sách campaign theo advertiser
-  const {
-    data: campaigns, // Mảng campaign lấy từ API
-    isLoading,
-    isError
-  } = useGetCampaignsByAdvertiser(advertiserId, pageIndex, pageSize);
+  // Lấy data
+  const { data, isLoading, isError } =
+    useGetPublisherParticipationByStatusForAdvertiser(
+      pageIndex,
+      pageSize,
+      campaignStatus
+    );
+
+  // Mảng items
+  const campaigns = data?.items ?? [];
 
   const [rowSelection, setRowSelection] = useState<Record<string, boolean>>({});
   const [selectedRows, setSelectedRows] = useState<any[]>([]);
@@ -67,34 +62,31 @@ const AdvertiserCampaigns = () => {
   const [isEditOpen, setIsEditOpen] = useState(false);
   const [isDeleteOpen, setIsDeleteOpen] = useState(false);
 
-  // Map dữ liệu API thành mảng Project cho bảng
+  // Map dữ liệu trả về sang Project
   const mappedData: Project[] = useMemo(() => {
-    if (!campaigns) return [];
-
     return campaigns.map((c: any) => {
-      // Nếu API trả về status dưới dạng "Approved", "Activing",... thì chuyển sang displayName tương ứng.
       const foundStatus = statusOptions.find(
         (option) => option.name === c.status
       );
       return {
         id: c.id,
-        name: c.name,
-        createdDate: c.startDate ?? '',
-        advertiser: c.advertiser?.companyName ?? '',
-        status: foundStatus ? foundStatus.displayName : 'Đã duyệt',
-        deadline: c.endDate ?? ''
+        name: c.campaign?.name ?? 'N/A',
+        createdDate: c.createAt ?? '',
+        advertiser: `Advertiser #${c.campaign?.advertiserId ?? ''}`,
+        status: foundStatus ? foundStatus.displayName : 'Chờ duyệt',
+        deadline: c.campaign?.endDate ?? ''
       };
     });
   }, [campaigns]);
 
-  // Lọc dữ liệu theo từ khóa tìm kiếm
+  // Lọc dữ liệu theo search
   const filteredData = useMemo(() => {
     return mappedData.filter((project) =>
       project.name.toLowerCase().includes(searchTerm.toLowerCase())
     );
   }, [searchTerm, mappedData]);
 
-  // Định nghĩa cột cho DataTable
+  // Cột cho DataTable
   const columns: ColumnDef<Project>[] = [
     {
       id: 'select',
@@ -191,7 +183,6 @@ const AdvertiserCampaigns = () => {
     }
     setIsDeleteOpen(false);
     setSelectedProject(null);
-    // Có thể gọi refetch() để load lại dữ liệu nếu cần
   };
 
   // Xử lý xóa nhiều
@@ -199,7 +190,6 @@ const AdvertiserCampaigns = () => {
     if (selectedRows.length === 0) return;
     toast.success(`Đã xóa ${selectedRows.length} chiến dịch thành công!`);
     setRowSelection({});
-    // Có thể gọi refetch() để load lại dữ liệu nếu cần
   };
 
   if (isLoading) {
@@ -212,6 +202,22 @@ const AdvertiserCampaigns = () => {
 
   return (
     <div className="p-6">
+      {/* Chọn status (Pending/Participated/Rejected) để call API */}
+      <div className="mb-4 flex items-center gap-2">
+        <label>Trạng thái:</label>
+        <select
+          value={campaignStatus}
+          onChange={(e) =>
+            setCampaignStatus(e.target.value as CampaignParticipationStatus)
+          }
+          className="rounded border p-2"
+        >
+          <option value="Pending">Pending</option>
+          <option value="Participated">Participated</option>
+          <option value="Rejected">Rejected</option>
+        </select>
+      </div>
+
       {/* Tiêu đề & thanh công cụ */}
       <div className="mb-4 flex items-center justify-between">
         <h2 className="text-xl font-semibold">Danh sách yêu cầu</h2>
@@ -223,6 +229,17 @@ const AdvertiserCampaigns = () => {
             Xóa đã chọn ({selectedRows.length})
           </button>
         )}
+      </div>
+
+      {/* Thanh search */}
+      <div className="mb-4">
+        <input
+          type="text"
+          placeholder="Tìm theo tên chiến dịch..."
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+          className="rounded border p-2"
+        />
       </div>
 
       {/* Bảng dữ liệu */}
@@ -309,7 +326,7 @@ const AdvertiserCampaigns = () => {
                 className="rounded border p-2"
               >
                 {statusOptions.map((option) => (
-                  <option key={option.value} value={option.displayName}>
+                  <option key={option.name} value={option.displayName}>
                     {option.displayName}
                   </option>
                 ))}
@@ -321,6 +338,10 @@ const AdvertiserCampaigns = () => {
               </Button>
               <Button
                 onClick={() => {
+                  // Nếu cần gọi API cập nhật, ta lấy name gốc:
+                  // const originalStatus = statusOptions.find(
+                  //   (opt) => opt.displayName === selectedProject.status
+                  // )?.name;
                   toast.success(`Đã cập nhật "${selectedProject.name}"!`);
                   setIsEditOpen(false);
                 }}

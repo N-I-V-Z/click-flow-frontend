@@ -1,9 +1,9 @@
 import { motion } from 'framer-motion';
-
+import { Link } from 'react-router-dom';
 const Background: React.FC = () => {
   return (
     <motion.div
-      className="relative flex h-screen items-center justify-center overflow-hidden bg-gradient-to-br from-gray-500 to-purple-600"
+      className="relative flex h-screen items-center justify-center overflow-hidden bg-gradient-to-br from-indigo-400 to-purple-600"
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       transition={{ duration: 1 }}
@@ -12,6 +12,12 @@ const Background: React.FC = () => {
       <motion.div
         className="absolute rounded-full bg-yellow"
         style={{ width: '100px', height: '100px', top: '10%', right: '20%' }}
+        animate={{ y: [0, -40, 0], x: [0, -30, 0], opacity: [0.7, 0.4, 0.7] }}
+        transition={{ duration: 6, repeat: Infinity, ease: 'easeInOut' }}
+      />
+      <motion.div
+        className="absolute rounded-full bg-rose-400"
+        style={{ width: '100px', height: '100px', top: '10%', right: '50%' }}
         animate={{ y: [0, -40, 0], x: [0, -30, 0], opacity: [0.7, 0.4, 0.7] }}
         transition={{ duration: 6, repeat: Infinity, ease: 'easeInOut' }}
       />
@@ -36,6 +42,12 @@ const Background: React.FC = () => {
       <motion.div
         className="absolute rounded-lg bg-red"
         style={{ width: '100px', height: '100px', top: '80%', left: '30%' }}
+        animate={{ y: [0, -20, 0], x: [0, 15, 0], opacity: [0.5, 0.7, 0.5] }}
+        transition={{ duration: 7, repeat: Infinity, ease: 'easeInOut' }}
+      />
+      <motion.div
+        className="absolute rounded-lg bg-green-300"
+        style={{ width: '100px', height: '100px', top: '50%', left: '20%' }}
         animate={{ y: [0, -20, 0], x: [0, 15, 0], opacity: [0.5, 0.7, 0.5] }}
         transition={{ duration: 7, repeat: Infinity, ease: 'easeInOut' }}
       />
@@ -73,13 +85,15 @@ const Background: React.FC = () => {
           dựa trên hiệu quả, giúp các nhà cung cấp tăng doanh số thông qua các
           nhà phân phối."
         </motion.p>
-        <motion.button
-          className="mt-8 rounded-lg bg-gradient-to-r from-orange to-purple-500 px-8 py-4 font-bold shadow-lg transition-transform duration-300 hover:scale-105"
-          whileHover={{ scale: 1.05 }}
-          whileTap={{ scale: 0.95 }}
-        >
-          TÌM HIỂU NGAY
-        </motion.button>
+        <Link to="/learn-more">
+          <motion.button
+            className="mt-8 rounded-lg bg-gradient-to-r from-orange to-purple-500 px-8 py-4 font-bold shadow-lg transition-transform duration-300 hover:scale-105"
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+          >
+            TÌM HIỂU NGAY
+          </motion.button>
+        </Link>
       </motion.div>
     </motion.div>
   );

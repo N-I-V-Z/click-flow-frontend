@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import TableSearchInput from '@/components/shared/table-search-input';
 import {
@@ -15,16 +15,15 @@ import {
   Cell
 } from 'recharts';
 
+/* ----------------- PHẦN DASHBOARD ----------------- */
 const PublisherDashboard: React.FC = () => {
   // -------------------- DỮ LIỆU MẪU --------------------
-  // Dữ liệu thống kê
   const stats = {
     totalClicks: 1200,
     totalClicksCompleted: 950,
     activeUsers: 300
   };
 
-  // Dữ liệu cho bảng Trình duyệt
   const browserData = [
     { name: 'Chrome', clicks: 800 },
     { name: 'Firefox', clicks: 200 },
@@ -36,14 +35,12 @@ const PublisherDashboard: React.FC = () => {
     0
   );
 
-  // Dữ liệu cho bảng Nền tảng thiết bị
   const devicePlatforms = [
     { platform: 'Máy tính', count: 700 },
     { platform: 'Điện thoại', count: 400 },
     { platform: 'Máy tính bảng', count: 100 }
   ];
 
-  // Dữ liệu biểu đồ đường về Clicks
   const chartData = [
     { time: '08:00', clicks: 100 },
     { time: '09:00', clicks: 200 },
@@ -58,16 +55,12 @@ const PublisherDashboard: React.FC = () => {
     { time: '18:00', clicks: 600 }
   ];
 
-  // --------- Dữ liệu MỚI: Biểu đồ tròn về số tiền chuyển đổi ---------
-  // Giả sử số tiền chuyển đổi theo từng chiến dịch
   const conversionData = [
     { name: 'Chiến dịch A', value: 1200000 },
     { name: 'Chiến dịch B', value: 800000 },
     { name: 'Chiến dịch C', value: 600000 },
     { name: 'Chiến dịch D', value: 300000 }
   ];
-
-  // Mảng màu cho các lát cắt
   const COLORS = [
     '#0088FE',
     '#00C49F',
@@ -77,8 +70,6 @@ const PublisherDashboard: React.FC = () => {
     '#F75C03'
   ];
 
-  // --------- Dữ liệu MỚI: Biểu đồ đường về số tiền theo thời gian ---------
-  // Giả sử thống kê tiền (VNĐ) mỗi giờ (hoặc mỗi ngày tuỳ bạn)
   const moneyChartData = [
     { time: '08:00', amount: 100000 },
     { time: '09:00', amount: 200000 },
@@ -93,7 +84,7 @@ const PublisherDashboard: React.FC = () => {
     { time: '18:00', amount: 1200000 }
   ];
 
-  // Animation variants dùng cho framer-motion
+  // Framer Motion
   const fadeInUp = {
     initial: { opacity: 0, y: 20 },
     animate: { opacity: 1, y: 0 },
@@ -265,7 +256,7 @@ const PublisherDashboard: React.FC = () => {
           </motion.div>
         </div>
 
-        {/* =============== PHẦN MỚI: BIỂU ĐỒ VỀ SỐ TIỀN CHUYỂN ĐỔI =============== */}
+        {/* Biểu đồ về số tiền chuyển đổi */}
         <div className="mb-20 grid grid-cols-1 gap-6 md:grid-cols-2">
           {/* Biểu đồ tròn: tiền chuyển đổi theo chiến dịch */}
           <motion.div
@@ -286,7 +277,6 @@ const PublisherDashboard: React.FC = () => {
                     nameKey="name"
                     cx="50%"
                     cy="50%"
-                    // Tạo donut bằng cách tăng innerRadius
                     innerRadius={80}
                     outerRadius={120}
                     label
@@ -337,8 +327,209 @@ const PublisherDashboard: React.FC = () => {
             </div>
           </motion.div>
         </div>
-        {/* =============== KẾT THÚC PHẦN MỚI =============== */}
+
+        {/* TÍCH HỢP PHẦN FEEDBACK  */}
+        <ReviewSection />
       </motion.div>
+    </div>
+  );
+};
+
+/* ----------------- PHẦN FEEDBACK: REVIEW SECTION ----------------- */
+const ReviewSection: React.FC = () => {
+  const [rating, setRating] = useState<number>(0);
+  const [email, setEmail] = useState<string>('');
+  const [review, setReview] = useState<string>('');
+
+  interface Feedback {
+    id: number;
+    name: string;
+    date: string;
+    content: string;
+  }
+
+  const [feedbackList, setFeedbackList] = useState<Feedback[]>([
+    {
+      id: 1,
+      name: 'Robert Karamazov',
+      date: '20 days ago',
+      content:
+        'I recently had the opportunity to explore Pagondes’s UI design system, and it left a lasting impression on my workflow...'
+    },
+    {
+      id: 2,
+      name: 'Nilesh Shah',
+      date: '1 month ago',
+      content:
+        'I recently had the opportunity to explore Pagondes’s UI design system, and it left a lasting impression on my workflow...'
+    },
+    {
+      id: 3,
+      name: 'Edna Watson',
+      date: '2 months ago',
+      content:
+        'I recently had the opportunity to explore Pagondes’s UI design system, and it left a lasting impression on my workflow...'
+    }
+  ]);
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!email || !review || rating === 0) {
+      alert('Vui lòng nhập đủ thông tin!');
+      return;
+    }
+    const newFeedback: Feedback = {
+      id: Date.now(),
+      name: 'Guest User',
+      date: 'Just now',
+      content: review
+    };
+    setFeedbackList([newFeedback, ...feedbackList]);
+    setRating(0);
+    setEmail('');
+    setReview('');
+  };
+
+  return (
+    <div className="mx-auto max-w-4xl rounded-lg bg-white px-4 py-8 shadow-2xl transition-transform duration-300 hover:scale-105">
+      <h2 className="mb-6 text-2xl font-bold text-gray-700">
+        Phản hồi người dùng
+      </h2>
+
+      {/* Khu vực hiển thị Average Rating & Submit Review */}
+      <div className="mb-12 grid grid-cols-1 gap-8 md:grid-cols-2">
+        {/* Average Rating */}
+        <div className="rounded border border-gray-100 p-6 shadow-sm">
+          <h3 className="mb-4 text-xl font-semibold">Average Rating</h3>
+          <div className="mb-4 flex items-center">
+            <span className="mr-2 text-3xl font-bold">4.5</span>
+            <div className="flex">
+              {Array.from({ length: 5 }).map((_, index) => {
+                const starValue = index + 1;
+                const isFullStar = starValue <= 4;
+                const isHalfStar = starValue === 5; // 5 => half
+                return (
+                  <svg
+                    key={index}
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill={isFullStar ? '#fbbf24' : 'none'}
+                    viewBox="0 0 24 24"
+                    stroke="#fbbf24"
+                    className="h-6 w-6"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={isFullStar || isHalfStar ? 2 : 1}
+                      d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.286 3.966a1 1 0 00.95.69h4.184c.969 0 1.371 1.24.588 1.81l-3.39 2.463a1 1 0 00-.363 1.118l1.296 3.993c.285.877-.722 1.601-1.487 1.073l-3.365-2.452a1 1 0 00-1.176 0l-3.365 2.452c-.765.528-1.772-.196-1.487-1.073l1.296-3.993a1 1 0 00-.363-1.118L2.78 9.393c-.783-.57-.38-1.81.588-1.81h4.184a1 1 0 00.95-.69l1.286-3.966z"
+                    />
+                  </svg>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Thanh hiển thị phần trăm cho mỗi mức sao */}
+          <div className="space-y-2">
+            {[
+              { star: 5, percent: 50 },
+              { star: 4, percent: 30 },
+              { star: 3, percent: 10 },
+              { star: 2, percent: 7 },
+              { star: 1, percent: 3 }
+            ].map((item) => (
+              <div key={item.star} className="flex items-center space-x-2">
+                <span className="w-10 text-sm font-medium text-gray-700">
+                  {item.star} star
+                </span>
+                <div className="h-2 w-full rounded bg-gray-200">
+                  <div
+                    className="bg-yellow-500 h-2 rounded"
+                    style={{ width: `${item.percent}%` }}
+                  ></div>
+                </div>
+                <span className="text-sm font-medium text-gray-700">
+                  {item.percent}%
+                </span>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Submit Your Review */}
+        <div className="rounded border border-gray-100 p-6 shadow-sm">
+          <h3 className="mb-4 text-xl font-semibold">Submit Your Review</h3>
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div>
+              <label className="mb-1 block text-sm font-medium text-gray-700">
+                Add Your Rating
+              </label>
+              <select
+                className="w-full rounded border border-gray-300 px-3 py-2"
+                value={rating}
+                onChange={(e) => setRating(Number(e.target.value))}
+              >
+                <option value={0}>Select rating...</option>
+                <option value={5}>5 Stars</option>
+                <option value={4}>4 Stars</option>
+                <option value={3}>3 Stars</option>
+                <option value={2}>2 Stars</option>
+                <option value={1}>1 Star</option>
+              </select>
+            </div>
+
+            <div>
+              <label className="mb-1 block text-sm font-medium text-gray-700">
+                Email
+              </label>
+              <input
+                type="email"
+                className="w-full rounded border border-gray-300 px-3 py-2"
+                placeholder="example@domain.com"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+              />
+            </div>
+
+            <div>
+              <label className="mb-1 block text-sm font-medium text-gray-700">
+                Write Your Review
+              </label>
+              <textarea
+                className="w-full rounded border border-gray-300 px-3 py-2"
+                rows={4}
+                value={review}
+                onChange={(e) => setReview(e.target.value)}
+              />
+            </div>
+
+            <button
+              type="submit"
+              className="rounded bg-green-600 px-4 py-2 text-white hover:bg-green-700"
+            >
+              Submit Review
+            </button>
+          </form>
+        </div>
+      </div>
+
+      {/* Danh sách Feedback */}
+      <div>
+        <h3 className="mb-4 text-xl font-semibold text-gray-700">
+          Customer Feedbacks
+        </h3>
+        <div className="space-y-6">
+          {feedbackList.map((fb) => (
+            <div key={fb.id} className="rounded bg-gray-50 p-4 shadow-sm">
+              <div className="mb-2 flex items-center justify-between">
+                <h4 className="font-semibold">{fb.name}</h4>
+                <span className="text-sm text-gray-500">{fb.date}</span>
+              </div>
+              <p className="text-gray-700">{fb.content}</p>
+            </div>
+          ))}
+        </div>
+      </div>
     </div>
   );
 };

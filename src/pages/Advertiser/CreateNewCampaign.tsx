@@ -13,6 +13,7 @@ import {
 import { PlusOutlined } from '@ant-design/icons';
 import type { UploadProps } from 'antd';
 import { useCreateCampaign, useUploadImage } from '@/queries/campaign.query';
+import { toast } from 'react-toastify';
 
 const { Option } = Select;
 
@@ -54,13 +55,16 @@ const CreateCampaignModal: React.FC<CreateCampaignModalProps> = ({
   };
 
   const onFinish = (values: any) => {
+    console.log('Form values: ', values);
+
     const fileList = values.image || [];
+    console.log('Selected fileList: ', fileList);
     const startDate = values.startDate
       ? values.startDate.format('DD/MM/YYYY')
       : '';
     const endDate = values.endDate ? values.endDate.format('DD/MM/YYYY') : '';
 
-    // Hàm này sẽ gọi API create campaign
+    // Hàm gọi API tạo campaign
     const callCreateCampaign = (imageUrl: string) => {
       const payload: CreateCampaignPayload = {
         name: values.name,
@@ -73,38 +77,45 @@ const CreateCampaignModal: React.FC<CreateCampaignModalProps> = ({
         typeCampaign: values.typeCampaign,
         commission: values.commission,
         percents: values.percents,
-        image: imageUrl, // đã có URL thực
+        image: imageUrl,
         advertiserId: 1
       };
+
+      console.log('Payload to send: ', payload);
 
       createCampaignMutation(payload, {
         onSuccess: (res) => {
           console.log('Tạo campaign thành công:', res);
+          toast.success('Tạo campaign thành công!');
           onCancel();
+          window.location.reload(); // Reload trang sau khi tạo thành công
         },
         onError: (err) => {
           console.error('Lỗi khi tạo campaign:', err);
+          toast.error('Lỗi khi tạo campaign!');
         }
       });
     };
 
-    // Nếu người dùng có chọn file, ta upload trước
+    // Nếu có file, upload ảnh trước
     if (fileList.length > 0) {
-      const file = fileList[0].originFileObj; // File thật
+      const file = fileList[0].originFileObj;
+      console.log('File to upload: ', file);
 
       uploadImageMutation(file, {
         onSuccess: (uploadRes: any) => {
-          // Giả sử server trả về { success: true, data: { url: '...' } }
-          const imageUrl = uploadRes?.data?.url || '';
-          // Sau khi upload thành công -> Tạo campaign
+          console.log('Upload response: ', uploadRes);
+          const imageUrl = uploadRes?.url || '';
+          console.log('Extracted image URL: ', imageUrl);
           callCreateCampaign(imageUrl);
         },
         onError: (err) => {
           console.error('Lỗi khi upload ảnh:', err);
+          toast.error('Lỗi khi upload ảnh!');
         }
       });
     } else {
-      // Nếu không có file, vẫn gọi createCampaign bình thường
+      // Nếu không có file, tạo campaign với image rỗng
       callCreateCampaign('');
     }
 
