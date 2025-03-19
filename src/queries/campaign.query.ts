@@ -103,7 +103,13 @@ export const useCreateCampaign = () => {
       image: string;
       advertiserId: number;
     }) => {
-      return await BaseRequest.Post(`/${SUB_URL}/create-campaign`, model);
+      // Gọi API create-campaign
+      // Tuỳ code trong BaseRequest.Post trả về gì, ta return response.data hay response
+      const response = await BaseRequest.Post(
+        `/${SUB_URL}/create-campaign`,
+        model
+      );
+      return response;
     }
   });
 };
@@ -127,16 +133,22 @@ export const useUploadImage = () => {
     }
   });
 };
-export const useGetCampaignsByAdvertiser = (
-  advertiserId: number,
-  pageIndex: number = 1,
-  pageSize: number = 10
+export const useGetPublisherParticipationByStatusForAdvertiser = (
+  pageIndex: number,
+  pageSize: number,
+  campaignParticipationStatus: 'Pending' | 'Participated' | 'Rejected'
 ) => {
   return useQuery({
-    queryKey: ['campaigns-by-advertiser', advertiserId, pageIndex, pageSize],
+    // Tạo key để cache, tuỳ ý bạn đặt
+    queryKey: [
+      'get-publisher-participation-by-status-for-advertiser',
+      pageIndex,
+      pageSize,
+      campaignParticipationStatus
+    ],
     queryFn: async () => {
       const response = await BaseRequest.Get(
-        `${SUB_URL}/get-campaigns-by-advertiser/${advertiserId}/${pageIndex}/${pageSize}`
+        `/${SUB_URL}/${pageIndex}/${pageSize}?campaignParticipationStatus=${campaignParticipationStatus}`
       );
       return response.result;
     }

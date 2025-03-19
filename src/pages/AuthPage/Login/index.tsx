@@ -85,24 +85,24 @@ export default function LoginPage() {
   return (
     <>
       <BasePages
-        className="relative mx-auto mb-20 max-h-screen w-[80%] flex-1 p-4"
+        className="relative mx-auto mb-20 max-h-screen w-[80%] flex-1 p-2"
         pageHead="Login | Click Flow"
         breadcrumbs={[
           { title: 'Trang chủ', link: '/' },
           { title: 'Đăng nhập', link: '/login' }
         ]}
       >
-        <div className="mx-auto mb-20 mt-10 flex w-[70%] rounded-xl bg-background p-4 shadow-lg">
+        <div className="mx-auto flex w-[60%] rounded-xl bg-background p-5 shadow-lg">
           {/* Bên trái - Hình ảnh */}
           <div className="hidden w-full lg:block lg:w-1/2">
             <ImageLeft />
           </div>
           {/* Bên phải - Form đăng nhập */}
-          <div className="w-1/2 p-20">
+          <div className="w-1/2 p-8">
             <h1 className="mb-2 text-center text-xl font-bold">Đăng nhập</h1>
             <p className="text-center text-sm text-gray-500">
               Để truy cập{' '}
-              <a href="/" className="text-[#9B52BF] no-underline">
+              <a href="/" className="text-[#683e7d] no-underline">
                 ClickFlow.vn
               </a>
               .
@@ -110,7 +110,7 @@ export default function LoginPage() {
                 <img
                   src="src/assets/logo.jpg"
                   alt="Logo"
-                  className="w-30 mx-auto mb-10 mt-10 h-20 rounded-lg"
+                  className="w-30 mx-auto mb-5 mt-5 h-20 rounded-lg"
                 />
               </Link>
             </p>
@@ -160,7 +160,7 @@ export default function LoginPage() {
                 )}
               </div>
               <br />
-              <Link to="/reset-password">
+              <Link to="/forgot-password">
                 <p className="text-right text-[12px] text-orange">
                   Quên mật khẩu?
                 </p>

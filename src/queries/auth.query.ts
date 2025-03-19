@@ -25,6 +25,14 @@ export const useRegister = () => {
   });
 };
 
+export const useForgotPassword = () => {
+  return useMutation({
+    mutationKey: ['forgotPassword'],
+    mutationFn: async (model: { email: string }) => {
+      return await BaseRequest.Post(`/${SUB_URL}/forgot-password`, model);
+    }
+  });
+};
 export const useLogout = () => {
   return useMutation({
     mutationKey: ['logout'],

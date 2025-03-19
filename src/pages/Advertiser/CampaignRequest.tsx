@@ -119,7 +119,7 @@ const CampaignRequest: React.FC = () => {
       },
       {
         accessorKey: 'endDate',
-        header: 'NGÀY KẾT THC'
+        header: 'NGÀY KẾT THÚC'
       },
       {
         accessorKey: 'advertiserName',

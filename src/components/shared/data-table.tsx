@@ -106,7 +106,8 @@ export default function DataTable<TData, TValue>({
   }, [pageIndex, pageSize, searchParams, setSearchParams]);
 
   const filteredData = useMemo(() => {
-    return data?.filter((item: any) => {
+    const dataArray = Array.isArray(data) ? data : [];
+    return dataArray.filter((item: any) => {
       return Object.values(item)
         .join(' ')
         .toLowerCase()
