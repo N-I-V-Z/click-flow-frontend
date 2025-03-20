@@ -58,8 +58,8 @@ const CampaignList: React.FC = () => {
    * Tuỳ theo shape thật của response mà bạn chỉnh sửa.
    */
   useEffect(() => {
-    if (data?.result) {
-      setDataSource(data.result);
+    if (data?.result.datas) {
+      setDataSource(data?.result.datas);
     }
   }, [data]);
 
@@ -68,10 +68,19 @@ const CampaignList: React.FC = () => {
    * Nếu muốn filter server-side, bạn sẽ gọi API khác kèm query (tuỳ backend).
    */
   useEffect(() => {
-    if (!data?.result) return;
+    if (!data?.result.datas) return;
+    // Map dữ liệu để thêm trường companyName từ advertiser.companyName
+    const campaigns = data.result.datas.map((item: any) => ({
+      ...item,
+      companyName: item.advertiser?.companyName ?? ''
+    }));
+
+    // Sau đó thực hiện lọc theo searchValue (bạn có thể lọc theo name hoặc companyName nếu cần)
     const lower = searchValue.toLowerCase();
-    const filtered = data.result.filter((item: Campaign) =>
-      item.name.toLowerCase().includes(lower)
+    const filtered = campaigns.filter(
+      (item: any) =>
+        item.name.toLowerCase().includes(lower) ||
+        item.companyName.toLowerCase().includes(lower)
     );
     setDataSource(filtered);
   }, [searchValue, data]);
@@ -107,7 +116,7 @@ const CampaignList: React.FC = () => {
         header: 'NGÀY KẾT THÚC'
       },
       {
-        accessorKey: 'advertiserName',
+        accessorKey: 'companyName', // Sử dụng companyName thay cho advertiserName
         header: 'NHÀ QUẢNG CÁO'
       },
       {
@@ -132,17 +141,14 @@ const CampaignList: React.FC = () => {
           const record = row.original;
           return (
             <div className="flex justify-center gap-3">
-              {/* Xem */}
               <EyeOutlined
                 className="cursor-pointer rounded-full p-1 text-xl text-[#1570EF] transition-colors hover:bg-[#1570EF] hover:text-white"
                 onClick={() => handleView(record)}
               />
-              {/* Sửa */}
               <EditOutlined
                 className="cursor-pointer rounded-full p-1 text-xl text-[#FFBF00] transition-colors hover:bg-[#FFBF00] hover:text-white"
                 onClick={() => alert(`Sửa: ${record.name}`)}
               />
-              {/* Dừng chiến dịch */}
               <CloseCircleOutlined
                 className="cursor-pointer rounded-full p-1 text-xl text-[#DC0E0E] transition-colors hover:bg-[#DC0E0E] hover:text-white"
                 onClick={() => {
