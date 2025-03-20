@@ -128,3 +128,16 @@ export const useUploadImage = () => {
     }
   });
 };
+export const useGetCampaignListExcpPending = (
+  pageIndex: number = 1,
+  pageSize: number = 10
+) => {
+  return useQuery({
+    queryKey: ['get-campaigns-except-from-pending', pageIndex, pageSize],
+    queryFn: async () => {
+      return await BaseRequest.Get(
+        `${SUB_URL}/get-campaigns-except-from-pending/${pageIndex}/${pageSize}`
+      );
+    }
+  });
+};

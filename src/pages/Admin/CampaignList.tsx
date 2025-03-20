@@ -1,7 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-
-// Dùng Input & Modal của antd cho search + modal confirm
 import { Input, Modal } from 'antd';
 import {
   SearchOutlined,
@@ -10,11 +8,13 @@ import {
   CloseCircleOutlined
 } from '@ant-design/icons';
 
-// Dùng DataTable của bạn (đã gửi ở trên)
 import DataTable from '@/components/shared/data-table';
 import { ColumnDef } from '@tanstack/react-table';
 
-// ------------------ Kiểu dữ liệu ------------------
+// **Import hook** gọi API
+import { useGetCampaignListExcpPending } from '@/queries/campaign.query';
+// (tuỳ đường dẫn file bạn đặt)
+
 interface Campaign {
   id: number;
   name: string;
@@ -33,68 +33,13 @@ interface Campaign {
   imageUrl: string;
 }
 
-// ------------------ Data fake ban đầu ------------------
-const initialCampaigns: Campaign[] = [
-  {
-    id: 1,
-    name: 'Mùa Hè Xanh',
-    advertiserId: 101,
-    advertiserName: 'FPT',
-    description: 'Chiến dịch quảng bá sản phẩm mùa hè xanh tươi mát',
-    originUrl: 'https://example.com/mua-he-xanh',
-    budget: 50000000,
-    startDate: '10/10/2024',
-    endDate: '10/12/2024',
-    method: 'CPC',
-    status: 'Hoạt động',
-    category: 'Thực phẩm & Đồ uống',
-    commissionType: 'VND',
-    commissionValue: 30000,
-    imageUrl: 'https://via.placeholder.com/300x200/cccccc?text=Mùa+Hè+Xanh'
-  },
-  {
-    id: 2,
-    name: 'Xuân Hy Vọng',
-    advertiserId: 102,
-    advertiserName: 'Viettel',
-    description: 'Khuyến mãi mùa xuân với nhiều ưu đãi hấp dẫn',
-    originUrl: 'https://example.com/xuan-hy-vong',
-    budget: 100000000,
-    startDate: '01/01/2024',
-    endDate: '30/03/2024',
-    method: 'CPA',
-    status: 'Hoạt động',
-    category: 'Du lịch & Nghỉ dưỡng',
-    commissionType: '%',
-    commissionValue: 10,
-    imageUrl: 'https://via.placeholder.com/300x200/aaaaaa?text=Xuân+Hy+Vọng'
-  },
-  {
-    id: 3,
-    name: 'Thu Vàng',
-    advertiserId: 103,
-    advertiserName: 'VNPT',
-    description: 'Chiến dịch giảm giá các sản phẩm mùa thu',
-    originUrl: 'https://example.com/thu-vang',
-    budget: 20000000,
-    startDate: '15/08/2024',
-    endDate: '15/10/2024',
-    method: 'CPS',
-    status: 'Bị từ chối',
-    category: 'khác',
-    commissionType: 'VND',
-    commissionValue: 50000,
-    imageUrl: 'https://via.placeholder.com/300x200/888888?text=Thu+Vàng'
-  }
-];
-
-// ------------------ Component chính ------------------
 const CampaignList: React.FC = () => {
-  // State để quản lý dữ liệu và giá trị tìm kiếm
+  // Quản lý tìm kiếm
   const [searchValue, setSearchValue] = useState('');
-  const [dataSource, setDataSource] = useState<Campaign[]>(initialCampaigns);
+  // Mảng data hiển thị trên bảng (đã filter cục bộ)
+  const [dataSource, setDataSource] = useState<Campaign[]>([]);
 
-  // State cho Modal xác nhận dừng chiến dịch
+  // Modal xác nhận dừng chiến dịch
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [selectedCampaign, setSelectedCampaign] = useState<Campaign | null>(
     null
@@ -103,30 +48,50 @@ const CampaignList: React.FC = () => {
   // Điều hướng router
   const navigate = useNavigate();
 
-  // Xử lý bấm "Xem"
+  // ---- (1) Gọi API ----
+  // Giả sử ta muốn pageIndex=1, pageSize=10
+  const { data, isLoading, error } = useGetCampaignListExcpPending(1, 10);
+
+  /**
+   * Khi data từ API trả về, ta lưu vào dataSource.
+   * Giả sử backend trả về { result: [ {id, name, ...}, ... ] }
+   * Tuỳ theo shape thật của response mà bạn chỉnh sửa.
+   */
+  useEffect(() => {
+    if (data?.result) {
+      setDataSource(data.result);
+    }
+  }, [data]);
+
+  /**
+   * Filter cục bộ theo searchValue.
+   * Nếu muốn filter server-side, bạn sẽ gọi API khác kèm query (tuỳ backend).
+   */
+  useEffect(() => {
+    if (!data?.result) return;
+    const lower = searchValue.toLowerCase();
+    const filtered = data.result.filter((item: Campaign) =>
+      item.name.toLowerCase().includes(lower)
+    );
+    setDataSource(filtered);
+  }, [searchValue, data]);
+
+  // Bấm "Xem" => điều hướng sang /admin/campaign-detail/:id
   const handleView = (record: Campaign) => {
-    // Chuyển sang đường dẫn /admin/campaign-detail/:id
     navigate(`/admin/campaign-detail/${record.id}`);
   };
 
-  // Xử lý xoá (dừng chiến dịch)
+  // Xác nhận "Dừng chiến dịch"
   const handleDelete = () => {
     if (selectedCampaign) {
+      // Tạm thời xoá cục bộ. Nếu cần, bạn gọi API update status "Stopped"...
       setDataSource((prev) => prev.filter((c) => c.id !== selectedCampaign.id));
     }
     setIsModalVisible(false);
     setSelectedCampaign(null);
   };
 
-  // Lọc dữ liệu mỗi khi searchValue thay đổi
-  useEffect(() => {
-    const filtered = initialCampaigns.filter((item) =>
-      item.name.toLowerCase().includes(searchValue.toLowerCase())
-    );
-    setDataSource(filtered);
-  }, [searchValue]);
-
-  // ------------------ Định nghĩa cột cho DataTable ------------------
+  // Định nghĩa cột
   const columns = useMemo<ColumnDef<Campaign>[]>(
     () => [
       {
@@ -148,16 +113,20 @@ const CampaignList: React.FC = () => {
       {
         accessorKey: 'status',
         header: 'TRẠNG THÁI',
-        // Tuỳ biến cell hiển thị status
         cell: ({ row }) => (
-          <span className="font-semibold text-green-600">
+          <span
+            className={
+              row.original.status === 'Hoạt động'
+                ? 'font-semibold text-green-600'
+                : 'text-red-600 font-semibold'
+            }
+          >
             {row.original.status}
           </span>
         )
       },
       {
-        // Cột hành động
-        id: 'actions', // không có accessorKey vì đây là cột custom
+        id: 'actions',
         header: 'HÀNH ĐỘNG',
         cell: ({ row }) => {
           const record = row.original;
@@ -165,29 +134,17 @@ const CampaignList: React.FC = () => {
             <div className="flex justify-center gap-3">
               {/* Xem */}
               <EyeOutlined
-                className="
-                  cursor-pointer rounded-full p-1
-                  text-xl text-[#1570EF]
-                  transition-colors hover:bg-[#1570EF] hover:text-white
-                "
+                className="cursor-pointer rounded-full p-1 text-xl text-[#1570EF] transition-colors hover:bg-[#1570EF] hover:text-white"
                 onClick={() => handleView(record)}
               />
               {/* Sửa */}
               <EditOutlined
-                className="
-                  cursor-pointer rounded-full p-1
-                  text-xl text-[#FFBF00]
-                  transition-colors hover:bg-[#FFBF00] hover:text-white
-                "
+                className="cursor-pointer rounded-full p-1 text-xl text-[#FFBF00] transition-colors hover:bg-[#FFBF00] hover:text-white"
                 onClick={() => alert(`Sửa: ${record.name}`)}
               />
-              {/* Xoá (dừng chiến dịch) */}
+              {/* Dừng chiến dịch */}
               <CloseCircleOutlined
-                className="
-                  cursor-pointer rounded-full p-1
-                  text-xl text-[#DC0E0E]
-                  transition-colors hover:bg-[#DC0E0E] hover:text-white
-                "
+                className="cursor-pointer rounded-full p-1 text-xl text-[#DC0E0E] transition-colors hover:bg-[#DC0E0E] hover:text-white"
                 onClick={() => {
                   setSelectedCampaign(record);
                   setIsModalVisible(true);
@@ -201,15 +158,22 @@ const CampaignList: React.FC = () => {
     []
   );
 
+  // Xử lý trạng thái loading / error
+  if (isLoading) {
+    return <div>Đang tải danh sách chiến dịch...</div>;
+  }
+  if (error) {
+    return <div>Đã có lỗi xảy ra khi tải dữ liệu!</div>;
+  }
+
   return (
     <div className="p-4">
       <h2 className="mb-4 text-xl font-semibold">Danh sách chiến dịch</h2>
 
-      {/* Bảng hiển thị bằng DataTable */}
       <DataTable
         columns={columns}
         data={dataSource}
-        // Vì đang demo local data nên ta set pageCount=1
+        // Nếu backend có totalPage, bạn có thể truyền vào pageCount
         pageCount={1}
         pageSizeOptions={[10, 20, 50, 100]}
         showAdd={false}
