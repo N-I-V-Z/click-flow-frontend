@@ -26,7 +26,7 @@ interface DashboardNavProps {
   isMobileNav?: boolean;
 }
 
-const items: NavItem[] = [{ title: 'Trang chủ', href: '/' }];
+const items: NavItem[] = [{ title: '', href: '/' }];
 
 export default function HeaderNav({ setOpen }: DashboardNavProps) {
   const path = usePathname();

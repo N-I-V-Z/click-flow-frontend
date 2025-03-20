@@ -6,7 +6,7 @@ const SystemLayout = lazy(() => import('@/components/layout/index'));
 const HomePage = lazy(() => import('@/pages/Home/index'));
 const LoginPage = lazy(() => import('@/pages/AuthPage/Login/index'));
 const RegisterPage = lazy(() => import('@/pages/AuthPage/Register/index'));
-const ResetPasswordPage = lazy(() => import('@/pages/AuthPage/ResetPassword'));
+const ForgotPasswordPage = lazy(() => import('@/pages/AuthPage/ResetPassword'));
 const RegisterAdvertiserPage = lazy(
   () => import('@/pages/AuthPage/Register/RegisterAdvertiser')
 );
@@ -14,6 +14,7 @@ const RegisterPublisherPage = lazy(
   () => import('@/pages/AuthPage/Register/RegisterPublisher')
 );
 const Privacy = lazy(() => import('@/pages/OtherPage/privacy'));
+const LearnMorePage = lazy(() => import('./../pages/Home/LearnMore'));
 
 const homeRoutes = [
   {
@@ -31,9 +32,10 @@ const homeRoutes = [
       { path: 'login', element: <LoginPage /> },
       { path: 'register', element: <RegisterPage /> },
       { path: 'register-advertiser', element: <RegisterAdvertiserPage /> },
-      { path: 'reset-password', element: <ResetPasswordPage /> },
+      { path: 'forgot-password', element: <ForgotPasswordPage /> },
       { path: 'register-publisher', element: <RegisterPublisherPage /> },
-      { path: 'privacy', element: <Privacy /> }
+      { path: 'privacy', element: <Privacy /> },
+      { path: 'learn-more', element: <LearnMorePage /> }
     ]
   }
 ];

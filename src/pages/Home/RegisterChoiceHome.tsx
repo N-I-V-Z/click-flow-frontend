@@ -28,7 +28,7 @@ const buttonVariants = {
 const RegisterChoice: React.FC = () => {
   const route = useRouter();
   return (
-    <div className="flex min-h-screen items-center justify-center bg-gradient-to-r from-indigo-400 to-purple-600 py-12">
+    <div className="flex min-h-screen items-center justify-center bg-gradient-to-r  py-12">
       <div className="grid max-w-5xl grid-cols-1 gap-10 p-6 md:grid-cols-2">
         {/* Nhà cung cấp */}
         <motion.div

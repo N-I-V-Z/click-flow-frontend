@@ -101,9 +101,15 @@ export const useCreateCampaign = () => {
       commission: number;
       percents: number;
       image: string;
-      // advertiserId: number;
+      advertiserId: number;
     }) => {
-      return await BaseRequest.Post(`/${SUB_URL}/create-campaign`, model);
+      // Gọi API create-campaign
+      // Tuỳ code trong BaseRequest.Post trả về gì, ta return response.data hay response
+      const response = await BaseRequest.Post(
+        `/${SUB_URL}/create-campaign`,
+        model
+      );
+      return response;
     }
   });
 };
@@ -114,7 +120,6 @@ export const useUploadImage = () => {
     mutationFn: async (file: File) => {
       const formData = new FormData();
       formData.append('File', file);
-
       const response = await BaseRequest.Post(
         `/${SUB_URL_IMAGE}/upload-image`,
         formData,
@@ -123,6 +128,48 @@ export const useUploadImage = () => {
             'Content-Type': 'multipart/form-data'
           }
         }
+      );
+      return response;
+    }
+  });
+};
+export const useGetPublisherParticipationByStatusForAdvertiser = (
+  pageIndex: number,
+  pageSize: number,
+  campaignParticipationStatus: 'Pending' | 'Participated' | 'Rejected'
+) => {
+  return useQuery({
+    // Tạo key để cache, tuỳ ý bạn đặt
+    queryKey: [
+      'get-publisher-participation-by-status-for-advertiser',
+      pageIndex,
+      pageSize,
+      campaignParticipationStatus
+    ],
+    queryFn: async () => {
+      const response = await BaseRequest.Get(
+        `/${SUB_URL}/${pageIndex}/${pageSize}?campaignParticipationStatus=${campaignParticipationStatus}`
+      );
+      return response.result;
+    }
+  });
+};
+
+export const useGetCampaignsJoinedByPublisher = (
+  publisherId: number,
+  pageIndex: number = 1,
+  pageSize: number = 10
+) => {
+  return useQuery({
+    queryKey: [
+      'get-campaigns-joined-by-publisher',
+      publisherId,
+      pageIndex,
+      pageSize
+    ],
+    queryFn: async () => {
+      const response = await BaseRequest.Get(
+        `${SUB_URL}/get-campaigns-joined-by-publisher/${publisherId}/${pageIndex}/${pageSize}`
       );
       return response;
     }

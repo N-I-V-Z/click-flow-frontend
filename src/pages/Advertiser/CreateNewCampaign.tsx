@@ -12,7 +12,8 @@ import {
 } from 'antd';
 import { PlusOutlined } from '@ant-design/icons';
 import type { UploadProps } from 'antd';
-import { useCreateCampaign } from '@/queries/campaign.query';
+import { useCreateCampaign, useUploadImage } from '@/queries/campaign.query';
+import { toast } from 'react-toastify';
 
 const { Option } = Select;
 
@@ -41,49 +42,83 @@ const CreateCampaignModal: React.FC<CreateCampaignModalProps> = ({
   onCancel
 }) => {
   const [form] = Form.useForm();
-  const { mutate: createCampaignMutation } = useCreateCampaign();
 
+  // Hook tạo campaign
+  const { mutate: createCampaignMutation } = useCreateCampaign();
+  // Hook upload image
+  const { mutate: uploadImageMutation } = useUploadImage();
+
+  // Giữ lại beforeUpload: () => false để không upload tự động
   const uploadProps: UploadProps = {
     listType: 'picture-card',
     beforeUpload: () => false
   };
 
   const onFinish = (values: any) => {
-    let imageUrl = '';
-    const fileList = values.image;
-    if (fileList && fileList.length > 0) {
-      imageUrl = fileList[0].name;
-    }
+    console.log('Form values: ', values);
 
+    const fileList = values.image || [];
+    console.log('Selected fileList: ', fileList);
     const startDate = values.startDate
       ? values.startDate.format('DD/MM/YYYY')
       : '';
     const endDate = values.endDate ? values.endDate.format('DD/MM/YYYY') : '';
 
-    const payload: CreateCampaignPayload = {
-      name: values.name,
-      description: values.description,
-      originURL: values.originURL,
-      budget: values.budget,
-      startDate,
-      endDate,
-      typePay: values.typePay,
-      typeCampaign: values.typeCampaign,
-      commission: values.commission,
-      percents: values.percents,
-      image: imageUrl,
-      advertiserId: 1
+    // Hàm gọi API tạo campaign
+    const callCreateCampaign = (imageUrl: string) => {
+      const payload: CreateCampaignPayload = {
+        name: values.name,
+        description: values.description,
+        originURL: values.originURL,
+        budget: values.budget,
+        startDate,
+        endDate,
+        typePay: values.typePay,
+        typeCampaign: values.typeCampaign,
+        commission: values.commission,
+        percents: values.percents,
+        image: imageUrl,
+        advertiserId: 1
+      };
+
+      console.log('Payload to send: ', payload);
+
+      createCampaignMutation(payload, {
+        onSuccess: (res) => {
+          console.log('Tạo campaign thành công:', res);
+          toast.success('Tạo campaign thành công!');
+          onCancel();
+          window.location.reload(); // Reload trang sau khi tạo thành công
+        },
+        onError: (err) => {
+          console.error('Lỗi khi tạo campaign:', err);
+          toast.error('Lỗi khi tạo campaign!');
+        }
+      });
     };
 
-    createCampaignMutation(payload, {
-      onSuccess: (res) => {
-        console.log('Tạo campaign thành công:', res);
-        onCancel();
-      },
-      onError: (err) => {
-        console.error('Lỗi khi tạo campaign:', err);
-      }
-    });
+    // Nếu có file, upload ảnh trước
+    if (fileList.length > 0) {
+      const file = fileList[0].originFileObj;
+      console.log('File to upload: ', file);
+
+      uploadImageMutation(file, {
+        onSuccess: (uploadRes: any) => {
+          console.log('Upload response: ', uploadRes);
+          const imageUrl = uploadRes?.url || '';
+          console.log('Extracted image URL: ', imageUrl);
+          callCreateCampaign(imageUrl);
+        },
+        onError: (err) => {
+          console.error('Lỗi khi upload ảnh:', err);
+          toast.error('Lỗi khi upload ảnh!');
+        }
+      });
+    } else {
+      // Nếu không có file, tạo campaign với image rỗng
+      callCreateCampaign('');
+    }
+
     form.resetFields();
   };
 
@@ -195,7 +230,7 @@ const CreateCampaignModal: React.FC<CreateCampaignModalProps> = ({
             <Select placeholder="Chọn loại thanh toán" className="rounded-md">
               <Option value="CPC">CPC</Option>
               <Option value="CPA">CPA</Option>
-              <Option value="CPS">CCS</Option>
+              <Option value="CPS">CPS</Option>
             </Select>
           </Form.Item>
 
@@ -264,7 +299,7 @@ const CreateCampaignModal: React.FC<CreateCampaignModalProps> = ({
         <Form.Item>
           <Space className="flex w-full justify-center">
             <Button type="primary" htmlType="submit">
-              Tạo chiến dịch
+              Xem cụ thể
             </Button>
             <Button onClick={onCancel}>Hủy</Button>
           </Space>

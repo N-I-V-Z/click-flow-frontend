@@ -3,65 +3,91 @@ import { Pencil, Trash2, Eye } from 'lucide-react';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { ColumnDef } from '@tanstack/react-table';
-
 import DataTable from '@/components/shared/data-table';
 import { Button } from '@/components/ui/button';
 
+import { useGetPublisherParticipationByStatusForAdvertiser } from '@/queries/campaign.query';
+
+// Kiểu gốc API
+type CampaignParticipationStatus = 'Pending' | 'Participated' | 'Rejected';
+
+// Giao diện hiển thị
 interface Project {
   id: number;
   name: string;
   createdDate: string;
   advertiser: string;
-  status:
-    | 'Cần phê duyệt'
-    | 'Đang thực hiện'
-    | 'Hoàn thành'
-    | 'Tạm dừng'
-    | 'Đã từ chối';
+  status: 'Chờ duyệt' | 'Đã tham gia' | 'Đã từ chối';
   deadline: string;
 }
 
-const initialProjects: Project[] = Array.from({ length: 50 }, (_, i) => ({
-  id: i + 1,
-  name: `Project ${String.fromCharCode(65 + (i % 26))}`,
-  createdDate: `2025-0${(i % 9) + 1}-0${(i % 9) + 1}`,
-  advertiser: `Advertiser ${i + 1}`,
-  status: [
-    'Cần phê duyệt',
-    'Đang thực hiện',
-    'Hoàn thành',
-    'Tạm dừng',
-    'Đã từ chối'
-  ][i % 5] as Project['status'],
-  deadline: `2025-0${(i % 9) + 2}-1${(i % 9) + 1}`
-}));
+const statusOptions = [
+  { name: 'Pending', displayName: 'Chờ duyệt', color: 'bg-yellow' },
+  { name: 'Participated', displayName: 'Đã tham gia', color: 'bg-purple' },
+  { name: 'Rejected', displayName: 'Đã từ chối', color: 'bg-red' }
+];
+
+const getStatusClass = (displayName: string) => {
+  const option = statusOptions.find((opt) => opt.displayName === displayName);
+  return option ? option.color : 'bg-gray';
+};
 
 const AdvertiserCampaigns = () => {
-  const [allProjects, setAllProjects] = useState(initialProjects);
+  // Chọn 1 trong 3 status để call API
+  const [campaignStatus, setCampaignStatus] =
+    useState<CampaignParticipationStatus>('Pending');
+
+  // pageIndex, pageSize
+  const pageIndex = 1;
+  const pageSize = 10;
+
+  // Lấy data
+  const { data, isLoading, isError } =
+    useGetPublisherParticipationByStatusForAdvertiser(
+      pageIndex,
+      pageSize,
+      campaignStatus
+    );
+
+  // Mảng items
+  const campaigns = data?.items ?? [];
+
+  const [rowSelection, setRowSelection] = useState<Record<string, boolean>>({});
   const [selectedRows, setSelectedRows] = useState<any[]>([]);
-  // Từ khóa tìm kiếm
   const [searchTerm, setSearchTerm] = useState('');
 
-  // Lưu trạng thái chọn nhiều dòng (rowSelection) của bảng
-  // Dạng: { '1': true, '2': false, ... } => true nghĩa là dòng đó được chọn
-  const [rowSelection, setRowSelection] = useState<Record<string, boolean>>({});
-
-  // Modal states (xem, sửa, xóa đơn lẻ)
+  // Modal states
   const [selectedProject, setSelectedProject] = useState<Project | null>(null);
   const [isViewOpen, setIsViewOpen] = useState(false);
   const [isEditOpen, setIsEditOpen] = useState(false);
   const [isDeleteOpen, setIsDeleteOpen] = useState(false);
 
-  // Lọc dữ liệu theo từ khóa tìm kiếm
+  // Map dữ liệu trả về sang Project
+  const mappedData: Project[] = useMemo(() => {
+    return campaigns.map((c: any) => {
+      const foundStatus = statusOptions.find(
+        (option) => option.name === c.status
+      );
+      return {
+        id: c.id,
+        name: c.campaign?.name ?? 'N/A',
+        createdDate: c.createAt ?? '',
+        advertiser: `Advertiser #${c.campaign?.advertiserId ?? ''}`,
+        status: foundStatus ? foundStatus.displayName : 'Chờ duyệt',
+        deadline: c.campaign?.endDate ?? ''
+      };
+    });
+  }, [campaigns]);
+
+  // Lọc dữ liệu theo search
   const filteredData = useMemo(() => {
-    return allProjects.filter((project) =>
+    return mappedData.filter((project) =>
       project.name.toLowerCase().includes(searchTerm.toLowerCase())
     );
-  }, [searchTerm, allProjects]);
+  }, [searchTerm, mappedData]);
 
   // Cột cho DataTable
   const columns: ColumnDef<Project>[] = [
-    // Cột checkbox để chọn nhiều
     {
       id: 'select',
       header: ({ table }) => (
@@ -79,7 +105,6 @@ const AdvertiserCampaigns = () => {
         />
       )
     },
-    // Cột STT (tự tính theo chỉ số dòng)
     {
       id: 'stt',
       header: 'STT',
@@ -116,7 +141,6 @@ const AdvertiserCampaigns = () => {
       header: 'Thao tác',
       cell: ({ row }) => (
         <div className="-ml-6 flex">
-          {/* Xem chi tiết */}
           <Button
             variant="ghost"
             size="sm"
@@ -127,7 +151,6 @@ const AdvertiserCampaigns = () => {
           >
             <Eye size={18} className="text-blue" />
           </Button>
-          {/* Sửa */}
           <Button
             variant="ghost"
             size="sm"
@@ -138,7 +161,6 @@ const AdvertiserCampaigns = () => {
           >
             <Pencil size={18} className="text-yellow" />
           </Button>
-          {/* Xóa đơn lẻ */}
           <Button
             variant="ghost"
             size="sm"
@@ -154,50 +176,48 @@ const AdvertiserCampaigns = () => {
     }
   ];
 
-  // Xử lý xóa đơn lẻ (trong modal xác nhận)
+  // Xử lý xóa đơn lẻ
   const handleDeleteSingle = () => {
     if (selectedProject) {
-      setAllProjects((prev) => prev.filter((p) => p.id !== selectedProject.id));
       toast.success(`Xóa chiến dịch "${selectedProject.name}" thành công!`);
     }
     setIsDeleteOpen(false);
     setSelectedProject(null);
   };
 
-  // Xử lý xóa nhiều (bằng checkbox)
-  const handleDeleteMulti = () => {
-    // Lấy các id dòng đã chọn
-    const selectedIds = Object.keys(rowSelection).filter(
-      (key) => rowSelection[key]
-    );
-    if (selectedIds.length === 0) {
-      toast.info('Không có chiến dịch nào được chọn!');
-      return;
-    }
-    // Xóa các project có id trong selectedIds
-    setAllProjects((prev) =>
-      prev.filter((p) => !selectedIds.includes(p.id.toString()))
-    );
-    toast.success(`Đã xóa ${selectedIds.length} chiến dịch thành công!`);
-    // Reset rowSelection
+  // Xử lý xóa nhiều
+  const handleBulkDelete = () => {
+    if (selectedRows.length === 0) return;
+    toast.success(`Đã xóa ${selectedRows.length} chiến dịch thành công!`);
     setRowSelection({});
   };
 
-  const handleBulkDelete = () => {
-    if (selectedRows.length === 0) return;
-    setAllProjects((prev) =>
-      prev.filter(
-        (project) =>
-          !selectedRows.some((selected: any) => selected.id === project.id)
-      )
-    );
-    toast.success(`Đã xóa ${selectedRows.length} chiến dịch thành công!`);
-    // Reset row selection
-    setRowSelection({});
-  };
+  if (isLoading) {
+    return <div className="p-6">Đang tải dữ liệu...</div>;
+  }
+
+  if (isError) {
+    return <div className="p-6">Lỗi khi tải dữ liệu.</div>;
+  }
 
   return (
     <div className="p-6">
+      {/* Chọn status (Pending/Participated/Rejected) để call API */}
+      <div className="mb-4 flex items-center gap-2">
+        <label>Trạng thái:</label>
+        <select
+          value={campaignStatus}
+          onChange={(e) =>
+            setCampaignStatus(e.target.value as CampaignParticipationStatus)
+          }
+          className="rounded border p-2"
+        >
+          <option value="Pending">Pending</option>
+          <option value="Participated">Participated</option>
+          <option value="Rejected">Rejected</option>
+        </select>
+      </div>
+
       {/* Tiêu đề & thanh công cụ */}
       <div className="mb-4 flex items-center justify-between">
         <h2 className="text-xl font-semibold">Danh sách yêu cầu</h2>
@@ -210,12 +230,23 @@ const AdvertiserCampaigns = () => {
           </button>
         )}
       </div>
+
+      {/* Thanh search */}
+      <div className="mb-4">
+        <input
+          type="text"
+          placeholder="Tìm theo tên chiến dịch..."
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+          className="rounded border p-2"
+        />
+      </div>
+
       {/* Bảng dữ liệu */}
       <DataTable
         columns={columns}
         data={filteredData}
         pageCount={Math.ceil(filteredData.length / 10)}
-        // Quan trọng: Truyền rowSelection và callback
         rowSelection={rowSelection}
         onRowSelectionChange={setRowSelection}
         onSelectedRowsChange={setSelectedRows}
@@ -242,7 +273,7 @@ const AdvertiserCampaigns = () => {
         </div>
       )}
 
-      {/* Modal Xem chi tiết (demo) */}
+      {/* Modal Xem chi tiết */}
       {isViewOpen && selectedProject && (
         <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
           <div className="w-full max-w-md rounded-lg bg-white p-6 shadow-lg">
@@ -260,7 +291,7 @@ const AdvertiserCampaigns = () => {
         </div>
       )}
 
-      {/* Modal Sửa (demo) */}
+      {/* Modal Sửa */}
       {isEditOpen && selectedProject && (
         <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
           <div className="w-full max-w-md rounded-lg bg-white p-6 shadow-lg">
@@ -294,11 +325,11 @@ const AdvertiserCampaigns = () => {
                 }
                 className="rounded border p-2"
               >
-                <option value="Cần phê duyệt">Cần phê duyệt</option>
-                <option value="Đang thực hiện">Đang thực hiện</option>
-                <option value="Hoàn thành">Hoàn thành</option>
-                <option value="Tạm dừng">Tạm dừng</option>
-                <option value="Đã từ chối">Đã từ chối</option>
+                {statusOptions.map((option) => (
+                  <option key={option.name} value={option.displayName}>
+                    {option.displayName}
+                  </option>
+                ))}
               </select>
             </div>
             <div className="mt-4 flex justify-end gap-2">
@@ -307,15 +338,11 @@ const AdvertiserCampaigns = () => {
               </Button>
               <Button
                 onClick={() => {
-                  // Lưu thay đổi vào allProjects
-                  if (selectedProject) {
-                    setAllProjects((prev) =>
-                      prev.map((p) =>
-                        p.id === selectedProject.id ? selectedProject : p
-                      )
-                    );
-                    toast.success(`Đã cập nhật "${selectedProject.name}"!`);
-                  }
+                  // Nếu cần gọi API cập nhật, ta lấy name gốc:
+                  // const originalStatus = statusOptions.find(
+                  //   (opt) => opt.displayName === selectedProject.status
+                  // )?.name;
+                  toast.success(`Đã cập nhật "${selectedProject.name}"!`);
                   setIsEditOpen(false);
                 }}
               >
@@ -326,7 +353,6 @@ const AdvertiserCampaigns = () => {
         </div>
       )}
 
-      {/* Toast container */}
       <ToastContainer
         position="top-center"
         autoClose={5000}
@@ -334,24 +360,6 @@ const AdvertiserCampaigns = () => {
       />
     </div>
   );
-};
-
-// Hàm đổi màu trạng thái
-const getStatusClass = (status: string) => {
-  switch (status) {
-    case 'Cần phê duyệt':
-      return 'bg-yellow';
-    case 'Đang thực hiện':
-      return 'bg-blue';
-    case 'Hoàn thành':
-      return 'bg-[#00AE72]';
-    case 'Tạm dừng':
-      return 'bg-orange';
-    case 'Đã từ chối':
-      return 'bg-red';
-    default:
-      return 'bg-gray';
-  }
 };
 
 export default AdvertiserCampaigns;

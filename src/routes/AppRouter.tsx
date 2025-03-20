@@ -11,7 +11,6 @@ export default function AppRouter() {
     ...advertiserRoutes,
     ...publisherRoutes,
     ...adminRoutes,
-    // Thêm route cho NotFound
     { path: '/404', element: <NotFound /> },
     { path: '*', element: <Navigate to="/404" replace /> }
   ]);

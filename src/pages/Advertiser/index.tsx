@@ -72,7 +72,7 @@ const AdvertiserDashboard: React.FC = () => {
       <CreateNewCampaign
         visible={isModalVisible}
         onCancel={() => setIsModalVisible(false)}
-        onCreate={(values: unknown) => {
+        onCreate={(values: boolean) => {
           console.log('Dữ liệu chiến dịch:', values);
           setIsModalVisible(false);
         }}
