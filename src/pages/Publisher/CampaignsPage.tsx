@@ -38,9 +38,9 @@ const CampaignsPage: React.FC = () => {
 
   // Mỗi khi gọi API xong, set lại campaigns
   useEffect(() => {
-    if (campaignsResponse?.result) {
+    if (campaignsResponse?.result.datas) {
       // campaignsResponse.result là mảng campaign
-      setCampaigns(campaignsResponse.result);
+      setCampaigns(campaignsResponse.result.datas);
     }
   }, [campaignsResponse]);
 
@@ -74,8 +74,8 @@ const CampaignsPage: React.FC = () => {
 
   // Lọc (filter) phía client
   const onFinish = (values: any) => {
-    if (!campaignsResponse?.result) return;
-    let filtered = [...campaignsResponse.result];
+    if (!campaignsResponse?.result.datas) return;
+    let filtered = [...campaignsResponse.result.datas];
 
     // 1) Lọc trạng thái khoá
     if (values.status === 'active') {
@@ -108,8 +108,8 @@ const CampaignsPage: React.FC = () => {
 
   const onReset = () => {
     form.resetFields();
-    if (campaignsResponse?.result) {
-      setCampaigns(campaignsResponse.result);
+    if (campaignsResponse?.result.datas) {
+      setCampaigns(campaignsResponse.result.datas);
     }
     setCurrentPage(1);
   };
