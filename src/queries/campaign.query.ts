@@ -101,10 +101,7 @@ export const useCreateCampaign = () => {
       commission: number;
       percents: number;
       image: string;
-      advertiserId: number;
     }) => {
-      // Gọi API create-campaign
-      // Tuỳ code trong BaseRequest.Post trả về gì, ta return response.data hay response
       const response = await BaseRequest.Post(
         `/${SUB_URL}/create-campaign`,
         model

@@ -8,7 +8,10 @@ import {
   DatePicker,
   Space,
   InputNumber,
-  Upload
+  Upload,
+  Tabs,
+  Row,
+  Col
 } from 'antd';
 import { PlusOutlined } from '@ant-design/icons';
 import type { UploadProps } from 'antd';
@@ -16,6 +19,7 @@ import { useCreateCampaign, useUploadImage } from '@/queries/campaign.query';
 import { toast } from 'react-toastify';
 
 const { Option } = Select;
+const { TabPane } = Tabs;
 
 export interface CreateCampaignPayload {
   name: string;
@@ -29,7 +33,6 @@ export interface CreateCampaignPayload {
   commission: number;
   percents: number;
   image: string;
-  advertiserId: number;
 }
 
 interface CreateCampaignModalProps {
@@ -54,17 +57,17 @@ const CreateCampaignModal: React.FC<CreateCampaignModalProps> = ({
     beforeUpload: () => false
   };
 
+  // Submit Form
   const onFinish = (values: any) => {
     console.log('Form values: ', values);
 
     const fileList = values.image || [];
-    console.log('Selected fileList: ', fileList);
     const startDate = values.startDate
       ? values.startDate.format('DD/MM/YYYY')
       : '';
     const endDate = values.endDate ? values.endDate.format('DD/MM/YYYY') : '';
 
-    // Hàm gọi API tạo campaign
+    // Gọi API tạo campaign
     const callCreateCampaign = (imageUrl: string) => {
       const payload: CreateCampaignPayload = {
         name: values.name,
@@ -77,18 +80,15 @@ const CreateCampaignModal: React.FC<CreateCampaignModalProps> = ({
         typeCampaign: values.typeCampaign,
         commission: values.commission,
         percents: values.percents,
-        image: imageUrl,
-        advertiserId: 1
+        image: imageUrl
       };
-
-      console.log('Payload to send: ', payload);
 
       createCampaignMutation(payload, {
         onSuccess: (res) => {
           console.log('Tạo campaign thành công:', res);
           toast.success('Tạo campaign thành công!');
           onCancel();
-          window.location.reload(); // Reload trang sau khi tạo thành công
+          window.location.reload(); // Reload trang
         },
         onError: (err) => {
           console.error('Lỗi khi tạo campaign:', err);
@@ -100,13 +100,9 @@ const CreateCampaignModal: React.FC<CreateCampaignModalProps> = ({
     // Nếu có file, upload ảnh trước
     if (fileList.length > 0) {
       const file = fileList[0].originFileObj;
-      console.log('File to upload: ', file);
-
       uploadImageMutation(file, {
         onSuccess: (uploadRes: any) => {
-          console.log('Upload response: ', uploadRes);
           const imageUrl = uploadRes?.url || '';
-          console.log('Extracted image URL: ', imageUrl);
           callCreateCampaign(imageUrl);
         },
         onError: (err) => {
@@ -131,175 +127,184 @@ const CreateCampaignModal: React.FC<CreateCampaignModalProps> = ({
       width={800}
       className="p-4"
     >
-      <Form
-        form={form}
-        layout="vertical"
-        onFinish={onFinish}
-        className="space-y-4"
-      >
-        {/* Tên chiến dịch */}
-        <Form.Item
-          name="name"
-          label="Tên chiến dịch"
-          rules={[{ required: true, message: 'Vui lòng nhập tên chiến dịch' }]}
-        >
-          <Input placeholder="Nhập tên chiến dịch" className="rounded-md" />
-        </Form.Item>
+      <Form form={form} layout="vertical" onFinish={onFinish}>
+        <Tabs defaultActiveKey="1">
+          {/* Tab 1: Thông tin chiến dịch */}
+          <TabPane tab="Thông tin chiến dịch" key="1">
+            <Row gutter={16}>
+              <Col span={12}>
+                <Form.Item
+                  name="name"
+                  label="Tên chiến dịch"
+                  rules={[
+                    { required: true, message: 'Vui lòng nhập tên chiến dịch' }
+                  ]}
+                >
+                  <Input placeholder="Nhập tên chiến dịch" />
+                </Form.Item>
+              </Col>
+              <Col span={12}>
+                <Form.Item
+                  name="originURL"
+                  label="Link giới thiệu sản phẩm"
+                  rules={[
+                    {
+                      required: true,
+                      message: 'Vui lòng nhập link giới thiệu sản phẩm'
+                    }
+                  ]}
+                >
+                  <Input placeholder="https://..." />
+                </Form.Item>
+              </Col>
+            </Row>
+            <Form.Item
+              name="description"
+              label="Mô tả chiến dịch"
+              rules={[
+                { required: true, message: 'Vui lòng nhập mô tả chiến dịch' }
+              ]}
+            >
+              <Input.TextArea rows={3} placeholder="Nhập mô tả chiến dịch" />
+            </Form.Item>
+          </TabPane>
 
-        {/* Mô tả chiến dịch */}
-        <Form.Item
-          name="description"
-          label="Mô tả chiến dịch"
-          rules={[
-            { required: true, message: 'Vui lòng nhập mô tả chiến dịch' }
-          ]}
-        >
-          <Input.TextArea
-            placeholder="Nhập mô tả chiến dịch"
-            rows={3}
-            className="rounded-md"
-          />
-        </Form.Item>
+          {/* Tab 2: Budget & Thời gian */}
+          <TabPane tab="Budget & Thời gian" key="2">
+            <Row gutter={16}>
+              <Col span={12}>
+                <Form.Item
+                  name="startDate"
+                  label="Ngày bắt đầu"
+                  rules={[
+                    { required: true, message: 'Vui lòng chọn ngày bắt đầu' }
+                  ]}
+                >
+                  <DatePicker style={{ width: '100%' }} format="DD/MM/YYYY" />
+                </Form.Item>
+              </Col>
+              <Col span={12}>
+                <Form.Item
+                  name="endDate"
+                  label="Ngày kết thúc"
+                  rules={[
+                    { required: true, message: 'Vui lòng chọn ngày kết thúc' }
+                  ]}
+                >
+                  <DatePicker style={{ width: '100%' }} format="DD/MM/YYYY" />
+                </Form.Item>
+              </Col>
+            </Row>
+          </TabPane>
 
-        {/* Link giới thiệu sản phẩm */}
-        <Form.Item
-          name="originURL"
-          label="Link giới thiệu sản phẩm"
-          rules={[
-            {
-              required: true,
-              message: 'Vui lòng nhập link giới thiệu sản phẩm'
-            }
-          ]}
-        >
-          <Input placeholder="https://..." className="rounded-md" />
-        </Form.Item>
+          {/* Tab 3: Loại thanh toán & Chiến dịch */}
+          <TabPane tab="Loại & Chiến dịch" key="3">
+            <Row gutter={16}>
+              <Col span={12}>
+                <Form.Item
+                  name="typePay"
+                  label="Loại thanh toán"
+                  rules={[
+                    { required: true, message: 'Vui lòng chọn loại thanh toán' }
+                  ]}
+                >
+                  <Select placeholder="Chọn loại thanh toán">
+                    <Option value="CPC">CPC</Option>
+                    <Option value="CPA">CPA</Option>
+                    <Option value="CPS">CPS</Option>
+                  </Select>
+                </Form.Item>
+              </Col>
+              <Col span={12}>
+                <Form.Item
+                  name="typeCampaign"
+                  label="Loại chiến dịch"
+                  rules={[
+                    { required: true, message: 'Vui lòng chọn loại chiến dịch' }
+                  ]}
+                >
+                  <Select placeholder="Chọn loại chiến dịch">
+                    <Option value="FoodAndBeverage">Food and Beverage</Option>
+                    <Option value="Tourism">Du lịch</Option>
+                    <Option value="Education">Giáo dục</Option>
+                    <Option value="Other">Khác</Option>
+                  </Select>
+                </Form.Item>
+              </Col>
+            </Row>
+          </TabPane>
 
-        {/* Ngân sách */}
-        <Form.Item
-          name="budget"
-          label="Ngân sách"
-          rules={[{ required: true, message: 'Vui lòng nhập ngân sách' }]}
-        >
-          <InputNumber
-            style={{ width: '100%' }}
-            placeholder="Nhập ngân sách"
-            className="rounded-md"
-          />
-        </Form.Item>
+          {/* Tab 4: Hoa hồng & Phần trăm */}
+          <TabPane tab="Hoa hồng & Phần trăm" key="4">
+            <Row gutter={16}>
+              <Col span={12}>
+                <Form.Item
+                  name="budget"
+                  label="Ngân sách"
+                  rules={[
+                    { required: true, message: 'Vui lòng nhập ngân sách' }
+                  ]}
+                >
+                  <InputNumber
+                    style={{ width: '100%' }}
+                    placeholder="Nhập ngân sách"
+                  />
+                </Form.Item>
+              </Col>
+              <Col span={12}>
+                <Form.Item
+                  name="commission"
+                  label="Hoa hồng"
+                  rules={[
+                    { required: true, message: 'Vui lòng nhập hoa hồng' }
+                  ]}
+                >
+                  <InputNumber
+                    style={{ width: '100%' }}
+                    placeholder="Nhập hoa hồng"
+                  />
+                </Form.Item>
+              </Col>
+              <Col span={12}>
+                <Form.Item
+                  name="percents"
+                  label="Phần trăm"
+                  rules={[
+                    { required: true, message: 'Vui lòng nhập phần trăm' }
+                  ]}
+                >
+                  <InputNumber
+                    style={{ width: '100%' }}
+                    placeholder="Nhập phần trăm"
+                  />
+                </Form.Item>
+              </Col>
+            </Row>
+          </TabPane>
 
-        {/* Nhóm: Ngày bắt đầu - Ngày kết thúc */}
-        <div className="flex space-x-4">
-          <Form.Item
-            name="startDate"
-            label="Ngày bắt đầu"
-            rules={[{ required: true, message: 'Vui lòng chọn ngày bắt đầu' }]}
-            className="w-1/2"
-          >
-            <DatePicker
-              style={{ width: '100%' }}
-              format="DD/MM/YYYY"
-              className="rounded-md"
-            />
-          </Form.Item>
+          {/* Tab 5: Upload ảnh */}
+          <TabPane tab="Upload ảnh" key="5">
+            <Form.Item
+              name="image"
+              label="Hình ảnh"
+              valuePropName="fileList"
+              getValueFromEvent={(e) => e && e.fileList}
+            >
+              <Upload {...uploadProps}>
+                <div style={{ textAlign: 'center' }}>
+                  <PlusOutlined />
+                  <div style={{ marginTop: 8 }}>Upload</div>
+                </div>
+              </Upload>
+            </Form.Item>
+          </TabPane>
+        </Tabs>
 
-          <Form.Item
-            name="endDate"
-            label="Ngày kết thúc"
-            rules={[{ required: true, message: 'Vui lòng chọn ngày kết thúc' }]}
-            className="w-1/2"
-          >
-            <DatePicker
-              style={{ width: '100%' }}
-              format="DD/MM/YYYY"
-              className="rounded-md"
-            />
-          </Form.Item>
-        </div>
-
-        {/* Nhóm: Loại thanh toán - Loại chiến dịch */}
-        <div className="flex space-x-4">
-          <Form.Item
-            name="typePay"
-            label="Loại thanh toán"
-            rules={[
-              { required: true, message: 'Vui lòng chọn loại thanh toán' }
-            ]}
-            className="w-1/2"
-          >
-            <Select placeholder="Chọn loại thanh toán" className="rounded-md">
-              <Option value="CPC">CPC</Option>
-              <Option value="CPA">CPA</Option>
-              <Option value="CPS">CPS</Option>
-            </Select>
-          </Form.Item>
-
-          <Form.Item
-            name="typeCampaign"
-            label="Loại chiến dịch"
-            rules={[
-              { required: true, message: 'Vui lòng chọn loại chiến dịch' }
-            ]}
-            className="w-1/2"
-          >
-            <Select placeholder="Chọn loại chiến dịch" className="rounded-md">
-              <Option value="FoodAndBeverage">Food and Beverage</Option>
-              <Option value="Tourism">Du lịch</Option>
-              <Option value="Education">Giáo dục</Option>
-              <Option value="Other">Khác</Option>
-            </Select>
-          </Form.Item>
-        </div>
-
-        {/* Nhóm: Hoa hồng - Phần trăm */}
-        <div className="flex space-x-4">
-          <Form.Item
-            name="commission"
-            label="Hoa hồng"
-            rules={[{ required: true, message: 'Vui lòng nhập hoa hồng' }]}
-            className="w-1/2"
-          >
-            <InputNumber
-              style={{ width: '100%' }}
-              placeholder="Nhập hoa hồng"
-              className="rounded-md"
-            />
-          </Form.Item>
-
-          <Form.Item
-            name="percents"
-            label="Phần trăm"
-            rules={[{ required: true, message: 'Vui lòng nhập phần trăm' }]}
-            className="w-1/2"
-          >
-            <InputNumber
-              style={{ width: '100%' }}
-              placeholder="Nhập phần trăm"
-              className="rounded-md"
-            />
-          </Form.Item>
-        </div>
-
-        {/* Upload ảnh */}
-        <Form.Item
-          name="image"
-          label="Upload ảnh"
-          valuePropName="fileList"
-          getValueFromEvent={(e) => e && e.fileList}
-        >
-          <Upload {...uploadProps}>
-            <div className="flex flex-col items-center justify-center">
-              <PlusOutlined />
-              <span className="mt-2">Upload</span>
-            </div>
-          </Upload>
-        </Form.Item>
-
-        {/* Nút submit và hủy */}
-        <Form.Item>
-          <Space className="flex w-full justify-center">
+        {/* Nút tạo và hủy */}
+        <Form.Item style={{ marginTop: 16, textAlign: 'center' }}>
+          <Space>
             <Button type="primary" htmlType="submit">
-              Xem cụ thể
+              Tạo chiến dịch
             </Button>
             <Button onClick={onCancel}>Hủy</Button>
           </Space>
