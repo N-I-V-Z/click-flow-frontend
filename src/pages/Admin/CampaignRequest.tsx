@@ -41,7 +41,7 @@ const CampaignRequest: React.FC = () => {
   // Lấy danh sách campaign trạng thái "Pending"
   const { data, isLoading, error, refetch } = useGetCampaign('Pending', 1, 10);
   // Giả sử API trả về dữ liệu trong trường result
-  const rawCampaigns = data?.result ?? [];
+  const rawCampaigns = data?.result.datas ?? [];
 
   // Map dữ liệu API thành interface RequestCampaign
   const campaigns: RequestCampaign[] = rawCampaigns.map((item: any) => ({
@@ -49,7 +49,7 @@ const CampaignRequest: React.FC = () => {
     name: item.name,
     createdAt: formatDate(item.startDate),
     endAt: formatDate(item.endDate),
-    advertiser: item.advertiserName ?? '',
+    advertiser: item.advertiser?.companyName ?? '',
     status: item.status
   }));
 

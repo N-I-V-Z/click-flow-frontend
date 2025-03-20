@@ -58,8 +58,8 @@ const CampaignList: React.FC = () => {
    * Tuỳ theo shape thật của response mà bạn chỉnh sửa.
    */
   useEffect(() => {
-    if (data?.result) {
-      setDataSource(data.result);
+    if (data?.result.datas) {
+      setDataSource(data?.result.datas);
     }
   }, [data]);
 
@@ -68,10 +68,12 @@ const CampaignList: React.FC = () => {
    * Nếu muốn filter server-side, bạn sẽ gọi API khác kèm query (tuỳ backend).
    */
   useEffect(() => {
-    if (!data?.result) return;
+    if (!data?.result.datas) return;
     const lower = searchValue.toLowerCase();
-    const filtered = data.result.filter((item: Campaign) =>
-      item.name.toLowerCase().includes(lower)
+    const filtered = data.result.datas.filter(
+      (item: Campaign) =>
+        item.name.toLowerCase().includes(lower) ||
+        item.advertiser.companyName.toLowerCase().includes(lower) // hoặc item.companyName nếu bạn đã map
     );
     setDataSource(filtered);
   }, [searchValue, data]);
