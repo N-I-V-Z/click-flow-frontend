@@ -7,17 +7,16 @@ import {
   LayersIcon,
   SettingsIcon
 } from '@/constants/SVGIcon';
-import ImgCanva1 from '@/assets/canvas/canvas1.webp';
-import ImgCanva2 from '@/assets/canvas/canvas2.webp';
+
 export const navItems: NavItem[] = [
   {
     title: 'Trang chủ',
     subTitle: '',
     href: '/',
-    icon: 'shoes',
-    label: 'shoes',
-    color: 'yellow'
-  },
+    // icon: '',
+    // label: '',
+    color: 'purple'
+  }
 ];
 
 export const subNavItems: NavItem[] = [];
@@ -54,7 +53,6 @@ export const listMenuCustomize = [
     title: 'Settings'
   }
 ];
-
 
 export const PagingModel = {
   pageNumber: 1,

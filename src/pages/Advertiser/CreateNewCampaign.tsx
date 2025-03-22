@@ -21,7 +21,6 @@ import { toast } from 'react-toastify';
 
 const { Option } = Select;
 const { TabPane } = Tabs;
-const { Text } = Typography;
 
 export interface CreateCampaignPayload {
   name: string;

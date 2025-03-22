@@ -23,18 +23,15 @@ export default class helper_is {
    * @param {*} email
    * @returns
    */
-  isEmail(email: any) {
+  isEmail(email: string | undefined): boolean {
     if (typeof email === 'undefined') {
       return false;
     }
     email = String(email || ' ').trim();
 
-    const filter =
-      /^([a-zA-Z0-9_\.\-])+\@(([a-zA-Z0-9\-])+\.)+([a-zA-Z0-9]{2,4})+$/;
-    if (filter.test(email)) {
-      return true;
-    }
-    return false;
+    const filter = /^([a-zA-Z0-9_.-])+@([a-zA-Z0-9-]+\.)+[a-zA-Z0-9]{2,4}$/;
+
+    return filter.test(email);
   }
 
   /**
@@ -44,19 +41,6 @@ export default class helper_is {
   isBoolean(s: any) {
     const a = String(s || ' ');
     return a === 'true' || a === 'false';
-  }
-
-  /**
-   * Check if it is phone number
-   * @param {*} phonenumber
-   * @returns
-   */
-  isPhoneNumber(phonenumber: any) {
-    const filter = /^[0-9\-\+]{10,15}$/;
-    if (filter.test(phonenumber)) {
-      return true;
-    }
-    return false;
   }
 
   /**
@@ -96,35 +80,6 @@ export default class helper_is {
   }
 
   /**
-   * Check if is string, better than isUrl
-   * @param text String
-   * @returns link or false
-   */
-  isLink(text: string): string | boolean {
-    if (String(text).match(/\s/g)) return false;
-    const $link = String(text)
-      .trim()
-      .match(/http(s)?:\/\/\S+/g);
-    if ($link) {
-      return encodeURIComponent($link);
-    }
-    return false;
-  }
-
-  /**
-   * Check if it  is number, or if this value greater than bigint, it will return false
-   * @param n String
-   */
-  isNumeric(n: string | number | bigint): boolean {
-    n = String(n);
-    let checkNum = !isNaN(parseFloat(n)) && isFinite(n);
-    if (checkNum && BigInt(`${n}`) > BigInt('999999999999999999')) {
-      return false;
-    }
-    return checkNum;
-  }
-
-  /**
    * Check if it is array ...
    */
   isArray(_array: any) {
@@ -159,7 +114,7 @@ export default class helper_is {
    * Check if object/array/string is empty or not
    * @param {*} array_or_object
    */
-  isEmpty(array_or_object: object | array | string) {
+  isEmpty(array_or_object: object | [] | string) {
     if (!array_or_object) return true;
     if (array_or_object === void 0) return true;
 

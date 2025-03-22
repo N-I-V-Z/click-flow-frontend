@@ -1,8 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Input, Modal } from 'antd';
+import { Modal } from 'antd';
 import {
-  SearchOutlined,
   EyeOutlined,
   EditOutlined,
   CloseCircleOutlined

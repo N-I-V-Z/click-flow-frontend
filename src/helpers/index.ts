@@ -6,6 +6,7 @@ import { TokenDecoded } from '@/types';
 /**
  * Helpers
  */
+// eslint-disable-next-line @typescript-eslint/no-unsafe-declaration-merging
 class helpers {
   convertToDate(isoString) {
     const date = new Date(isoString);
@@ -49,7 +50,7 @@ class helpers {
    */
   filterNullObject(_self: any) {
     const result: any = {};
-    for (let key in _self) {
+    for (const key in _self) {
       if (_self[key] === null || _self[key] === undefined) continue;
       result[key] = _self[key];
     }
@@ -89,12 +90,15 @@ class helpers {
   }
 
   // lodash debounce ...
-  debounce(callback: any, wait: number) {
-    let timeoutId = null;
-    return (...args) => {
-      clearTimeout(timeoutId);
-      timeoutId = setTimeout(() => {
-        callback.apply(null, args);
+  debounce<T extends (...args: any[]) => void>(callback: T, wait: number) {
+    let timeoutId: number | undefined;
+
+    return (...args: Parameters<T>) => {
+      if (timeoutId !== undefined) {
+        clearTimeout(timeoutId);
+      }
+      timeoutId = window.setTimeout(() => {
+        callback(...args);
       }, wait);
     };
   }
@@ -103,20 +107,17 @@ class helpers {
    * Filter empty element in an object, remove empty string, null and undefined
    * @param object object
    */
-  filterEmptyObject<T>(_object: T): T {
-    let final_after_filter: T;
-    for (let property in _object) {
+  filterEmptyObject<T extends Record<string, any>>(_object: T): T {
+    const final_after_filter: Partial<T> = {};
+
+    for (const property in _object) {
       const val = _object[property];
       if (val === '' || val === undefined || val === null) continue;
 
-      final_after_filter = {
-        ...final_after_filter,
-        ...{
-          [property]: val
-        }
-      };
+      final_after_filter[property] = val; // Gán trực tiếp thay vì spread
     }
-    return final_after_filter;
+
+    return final_after_filter as T; // Ép kiểu về T để tránh lỗi TypeScript
   }
 
   /**
@@ -179,21 +180,10 @@ class helpers {
    * @returns
    */
   formatNumberWithCommas(n: string | number): string {
-    n = this.parseNumeric(n);
-    let isNegative = false;
+    const num = Number(n);
+    if (isNaN(num)) throw new Error('Invalid number input');
 
-    if (n < 0) {
-      isNegative = true;
-      n = Math.abs(n);
-    }
-
-    n = n.toString();
-    const pattern = /(\d+)(\d{3})/;
-    while (pattern.test(n)) {
-      n = n.replace(pattern, '$1,$2');
-    }
-
-    return isNegative ? '-' + n : n;
+    return new Intl.NumberFormat('en-US').format(num);
   }
 
   /**
@@ -216,8 +206,13 @@ class helpers {
   cookie_get(name: string): string | undefined {
     const value = '; ' + document.cookie;
     const parts = value.split('; ' + name + '=');
-    if (parts.length >= 2) return parts.pop().split(';').shift();
-    return;
+
+    if (parts.length >= 2) {
+      const lastPart = parts.pop();
+      return lastPart ? lastPart.split(';').shift() : undefined;
+    }
+
+    return undefined;
   }
 
   /**
@@ -229,6 +224,7 @@ class helpers {
   }
 }
 
+// eslint-disable-next-line @typescript-eslint/no-unsafe-declaration-merging
 interface helpers extends helper_is, helper_get {}
 const __helpers = new helpers();
 export default __helpers;

@@ -1,7 +1,6 @@
 import { login, setRole } from '@/redux/auth.slice';
 import { useDispatch } from 'react-redux';
 import { Navigate } from 'react-router-dom';
-import { jwtDecode } from 'jwt-decode';
 import { TokenDecoded } from '@/types';
 import helpers from '@/helpers';
 

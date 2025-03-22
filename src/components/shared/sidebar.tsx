@@ -1,7 +1,6 @@
 import HeaderNav from '@/components/shared/header-home';
-import { navItems, subNavItems } from '@/constants/data';
+import { subNavItems } from '@/constants/data';
 import { cn } from '@/lib/utils';
-import { Icons } from '@/components/ui/icons';
 
 /**
  * Sidebar là một thành phần giao diện người dùng hiển thị thanh điều hướng bên trái.
@@ -39,7 +38,7 @@ export default function Sidebar() {
           </>
         </div>
         <div className=" space-y-4 ">
-          <HeaderNav items={navItems} />
+          <HeaderNav />
         </div>
       </div>
     </nav>

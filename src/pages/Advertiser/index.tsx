@@ -8,7 +8,7 @@ const AdvertiserDashboard: React.FC = () => {
   const [isModalVisible, setIsModalVisible] = useState<boolean>(false);
 
   // Gọi API lấy thông tin người dùng (chỉ lấy fullName)
-  const { data, isLoading, error } = useGetUserDetail(1);
+  const { data, isLoading } = useGetUserDetail(1);
   const user = data?.result;
 
   // Nếu đang loading hoặc có lỗi, có thể hiển thị fallback cho tên

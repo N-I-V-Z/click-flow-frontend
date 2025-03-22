@@ -31,7 +31,7 @@ const industryOptions = [
 ];
 
 const RegisterAdvertiserPage: React.FC = () => {
-  const { mutateAsync, isLoading } = useRegisterAdvertiser();
+  const { mutateAsync, isPending } = useRegisterAdvertiser();
 
   const [formAdvertiser, setFormAdvertiser] = useState<FormAdvertiser>({
     userName: '',
@@ -353,9 +353,9 @@ const RegisterAdvertiserPage: React.FC = () => {
               <Button
                 className="hover:bg-yellow-600 w-full rounded-lg bg-purple-600 text-white"
                 onClick={handleRegister}
-                disabled={isLoading}
+                disabled={isPending}
               >
-                {isLoading ? 'Đang xử lý...' : 'Hoàn tất'}
+                {isPending ? 'Đang xử lý...' : 'Hoàn tất'}
               </Button>
             </div>
           </div>

@@ -1,10 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { Modal, Button, Input } from 'antd';
+import { Modal } from 'antd';
 import { EyeOutlined, CloseCircleOutlined } from '@ant-design/icons';
-import { BiBuildings } from 'react-icons/bi';
-import DataTable from '@/components/shared/data-table';
 import { ColumnDef } from '@tanstack/react-table';
-import { AdvertiserDetailModal } from './AdvertiserDetailModal';
 // Import 2 hook dưới:
 import { useGetUsersByRole } from '@/queries/user.query';
 
