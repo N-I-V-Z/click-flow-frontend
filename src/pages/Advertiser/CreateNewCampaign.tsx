@@ -11,7 +11,8 @@ import {
   Upload,
   Tabs,
   Row,
-  Col
+  Col,
+  Typography
 } from 'antd';
 import { PlusOutlined } from '@ant-design/icons';
 import type { UploadProps } from 'antd';
@@ -20,6 +21,7 @@ import { toast } from 'react-toastify';
 
 const { Option } = Select;
 const { TabPane } = Tabs;
+const { Text } = Typography;
 
 export interface CreateCampaignPayload {
   name: string;
@@ -51,13 +53,11 @@ const CreateCampaignModal: React.FC<CreateCampaignModalProps> = ({
   // Hook upload image
   const { mutate: uploadImageMutation } = useUploadImage();
 
-  // Giữ lại beforeUpload: () => false để không upload tự động
   const uploadProps: UploadProps = {
     listType: 'picture-card',
     beforeUpload: () => false
   };
 
-  // Submit Form
   const onFinish = (values: any) => {
     console.log('Form values: ', values);
 
@@ -67,7 +67,10 @@ const CreateCampaignModal: React.FC<CreateCampaignModalProps> = ({
       : '';
     const endDate = values.endDate ? values.endDate.format('DD/MM/YYYY') : '';
 
-    // Gọi API tạo campaign
+    // Nếu không nhập giá trị, gán mặc định là 0 cho cả hai trường
+    const commission = values.commission ?? 0;
+    const percents = values.percents ?? 0;
+
     const callCreateCampaign = (imageUrl: string) => {
       const payload: CreateCampaignPayload = {
         name: values.name,
@@ -78,8 +81,8 @@ const CreateCampaignModal: React.FC<CreateCampaignModalProps> = ({
         endDate,
         typePay: values.typePay,
         typeCampaign: values.typeCampaign,
-        commission: values.commission,
-        percents: values.percents,
+        commission,
+        percents,
         image: imageUrl
       };
 
@@ -88,7 +91,7 @@ const CreateCampaignModal: React.FC<CreateCampaignModalProps> = ({
           console.log('Tạo campaign thành công:', res);
           toast.success('Tạo campaign thành công!');
           onCancel();
-          window.location.reload(); // Reload trang
+          window.location.reload();
         },
         onError: (err) => {
           console.error('Lỗi khi tạo campaign:', err);
@@ -97,7 +100,6 @@ const CreateCampaignModal: React.FC<CreateCampaignModalProps> = ({
       });
     };
 
-    // Nếu có file, upload ảnh trước
     if (fileList.length > 0) {
       const file = fileList[0].originFileObj;
       uploadImageMutation(file, {
@@ -111,7 +113,6 @@ const CreateCampaignModal: React.FC<CreateCampaignModalProps> = ({
         }
       });
     } else {
-      // Nếu không có file, tạo campaign với image rỗng
       callCreateCampaign('');
     }
 
@@ -236,50 +237,38 @@ const CreateCampaignModal: React.FC<CreateCampaignModalProps> = ({
 
           {/* Tab 4: Hoa hồng & Phần trăm */}
           <TabPane tab="Hoa hồng & Phần trăm" key="4">
-            <Row gutter={16}>
-              <Col span={12}>
-                <Form.Item
-                  name="budget"
-                  label="Ngân sách"
-                  rules={[
-                    { required: true, message: 'Vui lòng nhập ngân sách' }
-                  ]}
-                >
-                  <InputNumber
-                    style={{ width: '100%' }}
-                    placeholder="Nhập ngân sách"
-                  />
-                </Form.Item>
-              </Col>
-              <Col span={12}>
-                <Form.Item
-                  name="commission"
-                  label="Hoa hồng"
-                  rules={[
-                    { required: true, message: 'Vui lòng nhập hoa hồng' }
-                  ]}
-                >
-                  <InputNumber
-                    style={{ width: '100%' }}
-                    placeholder="Nhập hoa hồng"
-                  />
-                </Form.Item>
-              </Col>
-              <Col span={12}>
-                <Form.Item
-                  name="percents"
-                  label="Phần trăm"
-                  rules={[
-                    { required: true, message: 'Vui lòng nhập phần trăm' }
-                  ]}
-                >
-                  <InputNumber
-                    style={{ width: '100%' }}
-                    placeholder="Nhập phần trăm"
-                  />
-                </Form.Item>
-              </Col>
-            </Row>
+            <Form.Item label="Hoa hồng / Phần trăm">
+              <Row gutter={8}>
+                <Col span={12}>
+                  <Form.Item name="commission" noStyle>
+                    <InputNumber
+                      style={{ width: '100%' }}
+                      placeholder="Số tiền"
+                      addonBefore="VND"
+                    />
+                  </Form.Item>
+                </Col>
+                <Col span={12}>
+                  <Form.Item name="percents" noStyle>
+                    <InputNumber
+                      style={{ width: '100%' }}
+                      placeholder="Phần trăm"
+                      addonAfter="%"
+                    />
+                  </Form.Item>
+                </Col>
+              </Row>
+            </Form.Item>
+            <Form.Item
+              name="budget"
+              label="Ngân sách"
+              rules={[{ required: true, message: 'Vui lòng nhập ngân sách' }]}
+            >
+              <InputNumber
+                style={{ width: '100%' }}
+                placeholder="Nhập ngân sách"
+              />
+            </Form.Item>
           </TabPane>
 
           {/* Tab 5: Upload ảnh */}
@@ -300,7 +289,6 @@ const CreateCampaignModal: React.FC<CreateCampaignModalProps> = ({
           </TabPane>
         </Tabs>
 
-        {/* Nút tạo và hủy */}
         <Form.Item style={{ marginTop: 16, textAlign: 'center' }}>
           <Space>
             <Button type="primary" htmlType="submit">
