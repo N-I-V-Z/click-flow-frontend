@@ -2,9 +2,17 @@ import React, { useState } from 'react';
 import { FaClock, FaTimesCircle, FaPause, FaCheckCircle } from 'react-icons/fa';
 import CreateNewCampaign from './CreateNewCampaign';
 import CampaignRequest from './CampaignRequest';
+import { useGetUserDetail } from '@/queries/user.query';
 
 const AdvertiserDashboard: React.FC = () => {
   const [isModalVisible, setIsModalVisible] = useState<boolean>(false);
+
+  // Gọi API lấy thông tin người dùng (chỉ lấy fullName)
+  const { data, isLoading, error } = useGetUserDetail(1);
+  const user = data?.result;
+
+  // Nếu đang loading hoặc có lỗi, có thể hiển thị fallback cho tên
+  const greetingName = user?.fullName || (isLoading ? '...' : 'User');
 
   return (
     <div className="min-h-screen">
@@ -12,7 +20,7 @@ const AdvertiserDashboard: React.FC = () => {
       <header className="bg-transparent px-10 py-5">
         <div className="text-center text-white">
           <h1 className="mb-0 text-3xl font-bold text-[#DD83E0]">
-            Xin chào, Tri
+            Xin chào, {greetingName}
           </h1>
           <p className="text-gray-500">Chúc bạn có một ngày tốt lành</p>
         </div>
