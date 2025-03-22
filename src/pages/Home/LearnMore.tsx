@@ -62,7 +62,7 @@ const LearnMorePage: React.FC = () => {
   return (
     <div className="flex min-h-screen flex-col bg-gray-50">
       {/* Header */}
-      <header className="bg-gradient-to-r from-indigo-600 to-purple-600 py-12 text-white shadow-2xl">
+      <header className="bg-gray-700 py-12 text-white shadow-2xl">
         <div className="container mx-auto px-4 text-center">
           <h1 className="mb-4 text-5xl font-extrabold">
             Khám Phá Thế Giới Affiliate Marketing
