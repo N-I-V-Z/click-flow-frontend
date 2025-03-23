@@ -10,7 +10,6 @@ export const useLogin = () => {
       userNameOrEmail: string;
       password: string;
     }) => {
-      console.log(model);
       return await BaseRequest.Post(`/${SUB_URL}/authen`, model);
     }
   });
@@ -108,7 +107,6 @@ export const useRegisterPublisher = () => {
       password: string;
     }) => {
       return await BaseRequest.Post(`/${SUB_URL}/sign-up`, {
-        // Các trường bắt buộc từ form
         userName: model.userName,
         email: model.email,
         phoneNumber: model.phoneNumber,

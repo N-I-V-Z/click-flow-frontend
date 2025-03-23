@@ -3,11 +3,19 @@ import helper_get from './get';
 import dateandtime from 'date-and-time';
 import { jwtDecode } from 'jwt-decode';
 import { TokenDecoded } from '@/types';
+import { useSearchParams } from 'react-router-dom';
 /**
  * Helpers
  */
 // eslint-disable-next-line @typescript-eslint/no-unsafe-declaration-merging
 class helpers {
+  usePaginationParams = (): { pageIndex: number; pageSize: number } => {
+    const [searchParams] = useSearchParams();
+    const page = Number(searchParams.get('page')) || 1; // Mặc định là 1 nếu không có
+    const limit = Number(searchParams.get('limit')) || 10; // Mặc định là 10 nếu không có
+
+    return { pageIndex: page, pageSize: limit };
+  };
   convertToDate(isoString) {
     const date = new Date(isoString);
 
