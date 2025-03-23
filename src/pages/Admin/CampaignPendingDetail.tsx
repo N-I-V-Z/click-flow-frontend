@@ -79,7 +79,7 @@ const CampaignPendingDetail: React.FC = () => {
     id: apiCampaign.id,
     name: apiCampaign.name,
     advertiserId: apiCampaign.advertiserId,
-    advertiserName: apiCampaign.Advertiser.applicationUser.fullName ?? '',
+    advertiserName: apiCampaign.advertiser.applicationUser.fullName ?? '',
     description: apiCampaign.description,
     originUrl: apiCampaign.originURL,
     budget: apiCampaign.budget,

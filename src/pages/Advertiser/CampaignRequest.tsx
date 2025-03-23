@@ -1,36 +1,33 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { Modal } from 'antd';
 import { Pencil, Trash2 } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
 import DataTable from '@/components/shared/data-table';
 import { ColumnDef } from '@tanstack/react-table';
 import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { useGetCampaignAdvertiser } from '@/queries/campaign.query';
-
-// Interface cho 1 chiến dịch
-interface RequestCampaign {
-  id: number;
-  name: string;
-  createdAt: string; // hoặc Date
-  endAt: string; // hoặc Date
-  advertiserName: string;
-  status: string; // Pending, Approved, ...
-}
+import { ApiResponse, CampaignApiResponse, PagingResponse } from '@/types';
 
 const CampaignRequest: React.FC = () => {
-  const navigate = useNavigate();
-
   // Gọi API lấy danh sách campaigns có status = "Pending"
-  const { data, isLoading, error } = useGetCampaignAdvertiser(1, 1, 10);
+  const { data, isLoading, error, isSuccess } = useGetCampaignAdvertiser(
+    'Pending',
+    1,
+    10
+  );
 
   // Giả sử backend trả về { result: [ {id, name, ...} ] }
-  const campaigns: RequestCampaign[] = data?.result ?? [];
   // Lưu dữ liệu vào state cục bộ để có thể chỉnh sửa, xóa
-  const [localCampaigns, setLocalCampaigns] = useState<RequestCampaign[]>([]);
+  const [localCampaigns, setLocalCampaigns] = useState<CampaignApiResponse[]>(
+    []
+  );
   useEffect(() => {
-    setLocalCampaigns(campaigns);
-  }, [campaigns]);
+    if (isSuccess)
+      setLocalCampaigns(
+        (data as ApiResponse<PagingResponse<CampaignApiResponse>>).result
+          ?.datas ?? []
+      );
+  }, [data, isSuccess]);
 
   // State cho modal chỉnh sửa
   const [isEditModalVisible, setIsEditModalVisible] = useState(false);
@@ -38,14 +35,13 @@ const CampaignRequest: React.FC = () => {
   const [isDeleteModalVisible, setIsDeleteModalVisible] = useState(false);
   // Campaign được chọn cho chỉnh sửa/xóa
   const [selectedCampaign, setSelectedCampaign] =
-    useState<RequestCampaign | null>(null);
+    useState<CampaignApiResponse | null>(null);
   // State lưu thông tin chỉnh sửa (copy của selectedCampaign)
-  const [editedCampaign, setEditedCampaign] = useState<RequestCampaign | null>(
-    null
-  );
+  const [editedCampaign, setEditedCampaign] =
+    useState<CampaignApiResponse | null>(null);
 
   // Mở modal chỉnh sửa: copy dữ liệu chiến dịch được chọn
-  const openEditModal = (campaign: RequestCampaign) => {
+  const openEditModal = (campaign: CampaignApiResponse) => {
     setSelectedCampaign(campaign);
     setEditedCampaign({ ...campaign });
     setIsEditModalVisible(true);
@@ -81,7 +77,7 @@ const CampaignRequest: React.FC = () => {
   };
 
   // Mở modal xác nhận xóa
-  const openDeleteModal = (campaign: RequestCampaign) => {
+  const openDeleteModal = (campaign: CampaignApiResponse) => {
     setSelectedCampaign(campaign);
     setIsDeleteModalVisible(true);
   };
@@ -103,7 +99,7 @@ const CampaignRequest: React.FC = () => {
   };
 
   // Định nghĩa các cột cho DataTable, bao gồm cột STT
-  const columns = useMemo<ColumnDef<RequestCampaign>[]>(
+  const columns = useMemo<ColumnDef<CampaignApiResponse>[]>(
     () => [
       {
         header: 'STT',
@@ -122,7 +118,7 @@ const CampaignRequest: React.FC = () => {
         header: 'NGÀY KẾT THÚC'
       },
       {
-        accessorKey: 'advertiserName',
+        accessorKey: 'advertiser.applicationUser.fullName',
         header: 'NHÀ QUẢNG CÁO'
       },
       {
@@ -213,11 +209,11 @@ const CampaignRequest: React.FC = () => {
               />
             </div>
             <div>
-              <label className="block text-sm font-medium">Ngày tạo</label>
+              <label className="block text-sm font-medium">Ngày bắt đầu</label>
               <input
                 type="text"
                 name="createdAt"
-                value={editedCampaign.createdAt}
+                value={editedCampaign.startDate.toUTCString()}
                 onChange={handleEditChange}
                 className="w-full rounded border p-2"
               />
@@ -227,7 +223,7 @@ const CampaignRequest: React.FC = () => {
               <input
                 type="text"
                 name="endAt"
-                value={editedCampaign.endAt}
+                value={editedCampaign.endDate.toUTCString()}
                 onChange={handleEditChange}
                 className="w-full rounded border p-2"
               />
