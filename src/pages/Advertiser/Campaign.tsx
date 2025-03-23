@@ -12,16 +12,6 @@ import { ApiResponse, CampaignApiResponse, PagingResponse } from '@/types';
 // Kiểu gốc API
 type CampaignParticipationStatus = 'Pending' | 'Participated' | 'Rejected';
 
-// Giao diện hiển thị
-interface Project {
-  id: number;
-  name: string;
-  createdDate: string;
-  advertiser: string;
-  status: 'Chờ duyệt' | 'Đã tham gia' | 'Đã từ chối';
-  deadline: string;
-}
-
 const statusOptions = [
   { name: 'Pending', displayName: 'Chờ duyệt', color: 'bg-yellow' },
   { name: 'Participated', displayName: 'Đã tham gia', color: 'bg-purple' },
@@ -50,49 +40,30 @@ const AdvertiserCampaigns = () => {
       campaignStatus
     );
 
-  // Mảng items
-
   const [rowSelection, setRowSelection] = useState<Record<string, boolean>>({});
-  const [selectedRows, setSelectedRows] = useState<Project[]>([]);
+  const [selectedRows, setSelectedRows] = useState<CampaignApiResponse[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
 
   // Modal states
-  const [selectedProject, setSelectedProject] = useState<Project | null>(null);
+  const [selectedProject, setSelectedProject] =
+    useState<CampaignApiResponse | null>(null);
   const [isViewOpen, setIsViewOpen] = useState(false);
   const [isEditOpen, setIsEditOpen] = useState(false);
   const [isDeleteOpen, setIsDeleteOpen] = useState(false);
 
-  // Map dữ liệu trả về sang Project
-  const mappedData: Project[] = useMemo(() => {
-    const campaigns =
-      (data as ApiResponse<PagingResponse<CampaignApiResponse>>).result
-        ?.datas ?? [];
-
-    return campaigns.map((c: CampaignApiResponse) => {
-      const foundStatus = statusOptions.find(
-        (option) => option.name === c.status
-      )?.displayName as Project['status'];
-
-      return {
-        id: c.id,
-        name: c.name ?? 'N/A',
-        createdDate: new Date(c.startDate).toLocaleDateString() ?? '',
-        advertiser: `Advertiser #${c.advertiser.id ?? ''}`,
-        status: foundStatus || 'Chờ duyệt',
-        deadline: new Date(c.endDate).toLocaleDateString() ?? ''
-      };
-    });
-  }, [data]);
+  const campaigns =
+    (data as ApiResponse<PagingResponse<CampaignApiResponse>>)?.result?.datas ||
+    [];
 
   // Lọc dữ liệu theo search
-  const filteredData = useMemo(() => {
-    return mappedData.filter((project) =>
-      project.name.toLowerCase().includes(searchTerm.toLowerCase())
+  const filteredData = () => {
+    return campaigns.filter((campaign) =>
+      campaign.name?.toLowerCase().includes(searchTerm.toLowerCase())
     );
-  }, [searchTerm, mappedData]);
+  };
 
   // Cột cho DataTable
-  const columns: ColumnDef<Project>[] = [
+  const columns: ColumnDef<CampaignApiResponse>[] = [
     {
       id: 'select',
       header: ({ table }) => (
@@ -217,9 +188,9 @@ const AdvertiserCampaigns = () => {
           }
           className="rounded border p-2"
         >
-          <option value="Pending">Pending</option>
-          <option value="Participated">Participated</option>
-          <option value="Rejected">Rejected</option>
+          {statusOptions.map((x) => (
+            <option value={x.name}>{x.displayName}</option>
+          ))}
         </select>
       </div>
 
@@ -285,10 +256,13 @@ const AdvertiserCampaigns = () => {
             <h2 className="mb-4 text-lg font-semibold">
               Chi tiết: {selectedProject.name}
             </h2>
-            <p>Nhà quảng cáo: {selectedProject.advertiser}</p>
+            <p>
+              Nhà quảng cáo:{' '}
+              {selectedProject.advertiser.applicationUser.fullName}
+            </p>
             <p>Trạng thái: {selectedProject.status}</p>
-            <p>Ngày tạo: {selectedProject.createdDate}</p>
-            <p>Deadline: {selectedProject.deadline}</p>
+            <p>Ngày bắt đầu: {selectedProject.startDate.toUTCString()}</p>
+            <p>Ngày kết thúc: {selectedProject.endDate.toUTCString()}</p>
             <div className="mt-4 flex justify-end">
               <Button onClick={() => setIsViewOpen(false)}>Đóng</Button>
             </div>
@@ -323,7 +297,8 @@ const AdvertiserCampaigns = () => {
                     prev
                       ? {
                           ...prev,
-                          status: e.target.value as Project['status']
+                          status: e.target
+                            .value as CampaignApiResponse['status']
                         }
                       : null
                   )
