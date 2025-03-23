@@ -31,10 +31,17 @@ class helpers {
    * @return object
    */
 
-  decodeTokens(): TokenDecoded {
-    const token = __helpers.cookie_get('AT') as string;
-    const decodedToken = jwtDecode<TokenDecoded>(token);
-    return decodedToken;
+  decodeTokens(token: string | null | undefined): TokenDecoded | null {
+    try {
+      if (!token) {
+        console.warn('Token is empty or undefined');
+        return null;
+      }
+      return jwtDecode<TokenDecoded>(token);
+    } catch (error) {
+      console.error('Invalid token:', error);
+      return null;
+    }
   }
 
   /**

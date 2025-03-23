@@ -141,7 +141,6 @@ export const useGetPublisherParticipationByStatusForAdvertiser = (
   campaignParticipationStatus: 'Pending' | 'Participated' | 'Rejected'
 ) => {
   return useQuery({
-    // Tạo key để cache, tuỳ ý bạn đặt
     queryKey: [
       'get-publisher-participation-by-status-for-advertiser',
       pageIndex,

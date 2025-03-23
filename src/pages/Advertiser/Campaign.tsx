@@ -5,12 +5,17 @@ import 'react-toastify/dist/ReactToastify.css';
 import { ColumnDef } from '@tanstack/react-table';
 import DataTable from '@/components/shared/data-table';
 import { Button } from '@/components/ui/button';
+
 import { TokenDecoded } from '@/types';
 import helpers from '@/helpers';
 import __helpers from '@/helpers';
 // Đây là hook đã sửa để nhận status qua query param (hoặc bỏ nếu = undefined).
 import { useGetCampaignAdvertiser } from '@/queries/campaign.query';
-const decodedToken: TokenDecoded = helpers.decodeTokens();
+import { ApiResponse, CampaignApiResponse, PagingResponse } from '@/types';
+
+const decodedToken: TokenDecoded | null = helpers.decodeTokens(
+  __helpers.cookie_get('AT')
+);
 // Các trạng thái có thể chọn (cả "All" để lấy tất cả)
 type AdvertiserCampaignStatus =
   | 'All'
@@ -27,7 +32,7 @@ interface Project {
   name: string;
   createdDate: string;
   advertiser: string;
-  status: string; // Ví dụ: "Chờ duyệt", "Đã duyệt", ...
+  status: string;
   deadline: string;
 }
 
@@ -55,7 +60,8 @@ const AdvertiserCampaigns = () => {
 
   // pageIndex, pageSize (demo cứng)
   const { pageIndex, pageSize } = __helpers.usePaginationParams();
-  const advertiserId = parseInt(decodedToken.Id);
+  const advertiserId =
+    decodedToken?.Id !== undefined ? parseInt(decodedToken?.Id) : 0;
   // Gọi API: nếu = "All" thì không truyền status (undefined) => lấy tất cả
   const { data, isLoading, isError } = useGetCampaignAdvertiser(
     advertiserId, // advertiserId giả sử = 3
@@ -64,48 +70,34 @@ const AdvertiserCampaigns = () => {
     pageSize
   );
 
-  // Mảng items trả về từ API (giả sử { result: { datas: [...] } })
-  const campaigns = data?.result?.datas ?? [];
+  // Mảng items
 
-  // Dùng rowSelection & searchTerm cho DataTable
   const [rowSelection, setRowSelection] = useState<Record<string, boolean>>({});
-  const [selectedRows, setSelectedRows] = useState<any[]>([]);
+  const [selectedRows, setSelectedRows] = useState<CampaignApiResponse[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
 
   // Modal states
-  const [selectedProject, setSelectedProject] = useState<Project | null>(null);
+  const [selectedProject, setSelectedProject] =
+    useState<CampaignApiResponse | null>(null);
   const [isViewOpen, setIsViewOpen] = useState(false);
   const [isEditOpen, setIsEditOpen] = useState(false);
   const [isDeleteOpen, setIsDeleteOpen] = useState(false);
 
-  // Map dữ liệu trả về sang Project
-  const mappedData: Project[] = useMemo(() => {
-    return campaigns.map((c: any) => {
-      // c.status = "Pending" | "Approved" | ...
-      // Tìm trong statusOptions
-      const foundStatus = statusOptions.find(
-        (option) => option.name === c.status
-      );
-      return {
-        id: c.id,
-        name: c.name ?? 'N/A',
-        createdDate: c.startDate ?? '',
-        advertiser: c.advertiser?.companyName ?? 'N/A',
-        status: foundStatus ? foundStatus.displayName : 'N/A',
-        deadline: c.endDate ?? ''
-      };
-    });
-  }, [campaigns]);
+  const campaigns =
+    (data as ApiResponse<PagingResponse<CampaignApiResponse>>)?.result?.datas ||
+    [];
 
-  // Lọc dữ liệu theo searchTerm
+  // Map dữ liệu trả về sang Project
+
+  // Lọc dữ liệu theo search
   const filteredData = useMemo(() => {
-    return mappedData.filter((project) =>
+    return campaigns.filter((project) =>
       project.name.toLowerCase().includes(searchTerm.toLowerCase())
     );
-  }, [searchTerm, mappedData]);
+  }, [campaigns, searchTerm]);
 
   // Cột cho DataTable
-  const columns: ColumnDef<Project>[] = [
+  const columns: ColumnDef<CampaignApiResponse>[] = [
     {
       id: 'select',
       header: ({ table }) => (
@@ -230,14 +222,9 @@ const AdvertiserCampaigns = () => {
           }
           className="rounded border p-2"
         >
-          {/* Option "All" */}
-          <option value="All">All</option>
-          <option value="Pending">Pending</option>
-          <option value="Approved">Approved</option>
-          <option value="Activing">Activing</option>
-          <option value="Paused">Paused</option>
-          <option value="Canceled">Canceled</option>
-          <option value="Completed">Completed</option>
+          {statusOptions.map((x) => (
+            <option value={x.name}>{x.displayName}</option>
+          ))}
         </select>
       </div>
 
@@ -304,10 +291,13 @@ const AdvertiserCampaigns = () => {
             <h2 className="mb-4 text-lg font-semibold">
               Chi tiết: {selectedProject.name}
             </h2>
-            <p>Nhà quảng cáo: {selectedProject.advertiser}</p>
+            <p>
+              Nhà quảng cáo:{' '}
+              {selectedProject.advertiser.applicationUser.fullName}
+            </p>
             <p>Trạng thái: {selectedProject.status}</p>
-            <p>Ngày tạo: {selectedProject.createdDate}</p>
-            <p>Deadline: {selectedProject.deadline}</p>
+            <p>Ngày bắt đầu: {selectedProject.startDate.toUTCString()}</p>
+            <p>Ngày kết thúc: {selectedProject.endDate.toUTCString()}</p>
             <div className="mt-4 flex justify-end">
               <Button onClick={() => setIsViewOpen(false)}>Đóng</Button>
             </div>
@@ -342,7 +332,8 @@ const AdvertiserCampaigns = () => {
                     prev
                       ? {
                           ...prev,
-                          status: e.target.value
+                          status: e.target
+                            .value as CampaignApiResponse['status']
                         }
                       : null
                   )

@@ -15,10 +15,12 @@ import {
 
 import 'slick-carousel/slick/slick.css';
 import 'slick-carousel/slick/slick-theme.css';
+import { ApiResponse, CampaignApiResponse, PagingResponse } from '@/types';
+import __helpers from '@/helpers';
 
 // Decode token để lấy publisher id (giả sử trường Id có trong token)
-const decodedToken = helpers.decodeTokens();
-const PUBLISHER_ID = decodedToken.Id;
+const decodedToken = helpers.decodeTokens(__helpers.cookie_get('AT'));
+const PUBLISHER_ID = decodedToken?.Id;
 
 // ====== 1) Kiểu dữ liệu cho UI ======
 interface Campaign {
@@ -120,7 +122,9 @@ const CampaignDetailPage: React.FC = () => {
   } = useGetSimilarCampaigns(campaignId, 1, 5);
 
   // c) Mảng campaign tương tự
-  const similarCampaigns = similarResponse?.result?.datas || [];
+  const similarCampaigns =
+    (similarResponse as ApiResponse<PagingResponse<CampaignApiResponse>>)
+      ?.result?.datas || [];
 
   // d) Map dữ liệu sang UI
   let campaign: Campaign | null = null;
@@ -129,7 +133,7 @@ const CampaignDetailPage: React.FC = () => {
   }
 
   // e) Lấy mutation để đăng ký campaign
-  const { mutate: registerCampaign, isLoading: isRegisterLoading } =
+  const { mutate: registerCampaign, isPending: isRegisterLoading } =
     useRegisterCampaign();
 
   // Xử lý loading/error
@@ -319,7 +323,7 @@ const CampaignDetailPage: React.FC = () => {
               <p>Không có chiến dịch tương tự.</p>
             ) : (
               <Slider {...sliderSettings}>
-                {similarCampaigns.map((item: any) => (
+                {similarCampaigns.map((item: CampaignApiResponse) => (
                   <div key={item.id} className="px-2">
                     <motion.div
                       className="flex cursor-pointer flex-col items-center justify-center 

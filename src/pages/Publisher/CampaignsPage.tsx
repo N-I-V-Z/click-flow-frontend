@@ -8,11 +8,14 @@ import {
   useRegisterCampaign
 } from '@/queries/campaign.query';
 import helpers from '@/helpers';
+import __helpers from '@/helpers';
 
 const { Option } = Select;
-const decodedToken: TokenDecoded = helpers.decodeTokens();
+const decodedToken: TokenDecoded | null = helpers.decodeTokens(
+  __helpers.cookie_get('AT')
+);
 // PublisherId lấy từ token (hoặc từ context, store,...)
-const PUBLISHER_ID = decodedToken.Id;
+const PUBLISHER_ID = decodedToken?.Id;
 
 // Số item mỗi trang (client side)
 const PAGE_SIZE = 10;

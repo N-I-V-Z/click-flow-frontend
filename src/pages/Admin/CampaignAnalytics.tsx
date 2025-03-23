@@ -26,7 +26,7 @@ const { Content } = Layout;
  * "antd has no exported member 'RangePickerProps'".
  */
 type OnRangeChange = (
-  values: [Dayjs, Dayjs] | null,
+  values: [Dayjs | null, Dayjs | null] | null,
   formatString: [string, string]
 ) => void;
 
@@ -115,27 +115,27 @@ const CampaignAnalytics: React.FC<Props> = ({
 
   // Hàm xử lý khi đổi RangePicker
   const handleRangeChange: OnRangeChange = (values) => {
-    if (!values) {
-      // Clear -> reset
+    if (!values || values.some((v) => v === null)) {
       setChartData(initialClickData);
       return;
     }
-    const [start, end] = values;
-    // Kiểm tra chênh lệch giờ
+
+    const [start, end] = values as [Dayjs, Dayjs];
     const diffHours = end.diff(start, 'hour');
+
     if (diffHours > 24) {
-      message.error('Mỗi lần xem tối đa 24 giờ thôi bạn ơi!');
-      // Reset
+      message.error('Mỗi lần chỉ xem tối đa 24 giờ.');
       setChartData(initialClickData);
       return;
     }
-    // Giả lập filter data theo giờ
+
     const startHour = start.hour();
     const endHour = end.hour();
     const filtered = initialClickData.filter((item) => {
       const itemHour = parseInt(item.time.split(':')[0], 10);
       return itemHour >= startHour && itemHour <= endHour;
     });
+
     setChartData(filtered);
   };
 
