@@ -152,26 +152,6 @@ export const useGetPublisherParticipationByStatusForAdvertiser = (
   });
 };
 
-export const useGetCampaignsJoinedByPublisher = (
-  publisherId: number,
-  pageIndex: number = 1,
-  pageSize: number = 10
-) => {
-  return useQuery({
-    queryKey: [
-      'get-campaigns-joined-by-publisher',
-      publisherId,
-      pageIndex,
-      pageSize
-    ],
-    queryFn: async () => {
-      const response = await BaseRequest.Get(
-        `${SUB_URL}/get-campaigns-joined-by-publisher/${publisherId}/${pageIndex}/${pageSize}`
-      );
-      return response;
-    }
-  });
-};
 export const useGetCampaignListExcpPending = (
   pageIndex: number = 1,
   pageSize: number = 10
@@ -185,3 +165,82 @@ export const useGetCampaignListExcpPending = (
     }
   });
 };
+export const useGetCampaignsJoinedByPublisher = (
+  pageIndex: number = 1,
+  pageSize: number = 10
+) => {
+  return useQuery({
+    queryKey: ['get-all-campaign-for-publisher/', pageIndex, pageSize],
+    queryFn: async () => {
+      // Gọi API
+      const response = await BaseRequest.Get(
+        `${SUB_URL}/get-all-campaign-for-publisher/${pageIndex}/${pageSize}`
+      );
+      return response;
+    }
+  });
+};
+
+// Hook lấy danh sách chiến dịch tương tự
+export const useGetSimilarCampaigns = (
+  campaignId?: number,
+  pageIndex: number = 1,
+  pageSize: number = 10
+) => {
+  return useQuery({
+    queryKey: ['get-similar-campaigns', campaignId, pageIndex, pageSize],
+    enabled: !!campaignId, // chỉ gọi nếu có campaignId
+    queryFn: async () => {
+      const response = await BaseRequest.Get(
+        `/api/Campaigns/get-similar-campaigns/${campaignId}/${pageIndex}/${pageSize}`
+      );
+      return response;
+    }
+  });
+};
+export interface IApiCampaign {
+  id: number;
+  name: string;
+  description: string;
+  originURL: string;
+  budget: number;
+  remainingBudget: number;
+  startDate: string;
+  endDate: string;
+  typePay: string;
+  typeCampaign: string;
+  status: string;
+  commission: number;
+  percents?: number;
+  image?: string;
+  averageStarRate?: number;
+  advertiserId: number;
+  advertiser?: {
+    id: number;
+    companyName: string;
+    introductionWebsite: string;
+    staffSize: number;
+    industry: string;
+  };
+}
+
+/**
+ * Hook gọi API lấy chi tiết 1 campaign theo ID.
+ * GET /api/Campaigns/get-campaign-by-id/{id}
+ */
+
+export function useGetCampaignByIdd(id?: number) {
+  return useQuery({
+    queryKey: ['get-campaign-by-id', id],
+    // Chỉ gọi nếu có id
+    enabled: !!id,
+    // Trả về dữ liệu gốc (IApiCampaign)
+    queryFn: async (): Promise<IApiCampaign> => {
+      const response = await BaseRequest.Get(
+        `/api/Campaigns/get-campaign-by-id/${id}`
+      );
+      // Giả sử server trả về { result: { ... } }
+      return response.result as IApiCampaign;
+    }
+  });
+}

@@ -3,48 +3,47 @@ import { Form, Select, Button, Modal } from 'antd';
 import { useNavigate } from 'react-router-dom';
 
 import PaginationSection from '@/components/shared/pagination-section';
-import { useGetCampaignsJoinedByPublisher } from '@/queries/campaign.query'; // HOOK bạn vừa sửa/viết
+import { useGetCampaignsJoinedByPublisher } from '@/queries/campaign.query';
 
 const { Option } = Select;
 
-// Page size mặc định
-const PAGE_SIZE = 8;
+// Số item mỗi trang (client side)
+const PAGE_SIZE = 10;
 
 const CampaignsPage: React.FC = () => {
   const [form] = Form.useForm();
-  // Thay vì lưu campaigns cứng, ta sẽ lưu state để filter phía client
+
+  // State lưu danh sách campaign hiển thị
   const [campaigns, setCampaigns] = useState<any[]>([]);
 
-  // State trang hiện tại
+  // State trang hiện tại (client side)
   const [currentPage, setCurrentPage] = useState<number>(1);
 
-  // State cho Modal
+  // State cho Modal đăng ký
   const [isModalVisible, setIsModalVisible] = useState<boolean>(false);
   const [selectedCampaignId, setSelectedCampaignId] = useState<number | null>(
     null
   );
 
   // Giả sử publisherId = 1
-  const publisherId = 1;
 
-  // Gọi hook lấy data từ API
+  // Gọi Hook để lấy data
   const {
     data: campaignsResponse,
     isLoading,
     isError
-  } = useGetCampaignsJoinedByPublisher(publisherId, currentPage, PAGE_SIZE);
+  } = useGetCampaignsJoinedByPublisher(currentPage, PAGE_SIZE);
 
   const navigate = useNavigate();
 
-  // Mỗi khi gọi API xong, set lại campaigns
+  // Mỗi khi có data mới từ server, set lại danh sách campaign
   useEffect(() => {
-    if (campaignsResponse?.result.datas) {
-      // campaignsResponse.result là mảng campaign
+    if (campaignsResponse?.result?.datas) {
       setCampaigns(campaignsResponse.result.datas);
     }
   }, [campaignsResponse]);
 
-  // Xử lý nút "Đăng ký"
+  // Xử lý mở Modal đăng ký
   const handleRegisterClick = (campaignId: number) => {
     setSelectedCampaignId(campaignId);
     setIsModalVisible(true);
@@ -53,7 +52,7 @@ const CampaignsPage: React.FC = () => {
   // Xác nhận đăng ký
   const handleConfirmRegister = () => {
     if (selectedCampaignId !== null) {
-      // Ví dụ update tạm phía client: set isRegistered = true
+      // Ví dụ: Cập nhật tạm phía client
       setCampaigns((prev) =>
         prev.map((c) =>
           c.id === selectedCampaignId
@@ -66,39 +65,40 @@ const CampaignsPage: React.FC = () => {
     setSelectedCampaignId(null);
   };
 
-  // Hủy đăng ký
+  // Huỷ đăng ký
   const handleCancelRegister = () => {
     setIsModalVisible(false);
     setSelectedCampaignId(null);
   };
 
-  // Lọc (filter) phía client
+  // Lọc phía client khi submit form
   const onFinish = (values: any) => {
-    if (!campaignsResponse?.result.datas) return;
+    if (!campaignsResponse?.result?.datas) return;
+
     let filtered = [...campaignsResponse.result.datas];
 
-    // 1) Lọc trạng thái khoá
+    // 1) Lọc trạng thái khoá (demo)
     if (values.status === 'active') {
-      filtered = filtered.filter((c) => c.locked === false);
+      filtered = filtered.filter((c) => !c.locked);
     } else if (values.status === 'locked') {
-      filtered = filtered.filter((c) => c.locked === true);
+      filtered = filtered.filter((c) => c.locked);
     }
 
-    // 2) Lọc nhóm ngành
+    // 2) Lọc nhóm ngành (demo)
     if (values.group && values.group !== 'all') {
       filtered = filtered.filter((c) => c.industryGroup === values.group);
     }
 
-    // 3) Lọc trạng thái chạy
+    // 3) Lọc trạng thái chạy (demo)
     if (values.industryStatus === 'running') {
       filtered = filtered.filter((c) => c.isRunning === true);
     } else if (values.industryStatus === 'not_running') {
       filtered = filtered.filter((c) => c.isRunning === false);
     }
 
-    // 4) Lọc loại hình
+    // 4) Lọc loại hình (demo)
     if (values.type && values.type !== 'all') {
-      filtered = filtered.filter((c) => c.type === values.type);
+      filtered = filtered.filter((c) => c.typePay === values.type);
     }
 
     // set lại campaigns hiển thị
@@ -106,24 +106,28 @@ const CampaignsPage: React.FC = () => {
     setCurrentPage(1);
   };
 
+  // Reset form filter
   const onReset = () => {
     form.resetFields();
-    if (campaignsResponse?.result.datas) {
+    if (campaignsResponse?.result?.datas) {
       setCampaigns(campaignsResponse.result.datas);
     }
     setCurrentPage(1);
   };
 
-  // Tính ra dữ liệu trang hiện tại (phía client)
-  // Nếu bạn muốn phân trang server-side, hãy bỏ đoạn slice() này
+  // Nếu muốn phân trang hoàn toàn phía server,
+  // bạn có thể bỏ đoạn slice() này và dựa vào server trả về totalPages, totalItems...
+  // Ở đây minh hoạ filter + phân trang phía client, do "datas" là mảng
   const startIndex = (currentPage - 1) * PAGE_SIZE;
   const endIndex = startIndex + PAGE_SIZE;
   const currentCampaigns = campaigns.slice(startIndex, endIndex);
 
+  // Loading state
   if (isLoading) {
     return <div className="p-6">Đang tải dữ liệu ...</div>;
   }
 
+  // Error state
   if (isError) {
     return <div className="p-6">Có lỗi xảy ra khi gọi API.</div>;
   }
@@ -134,7 +138,7 @@ const CampaignsPage: React.FC = () => {
         Danh sách Chiến dịch
       </h1>
 
-      {/* Form Lọc chiến dịch */}
+      {/* Form Lọc */}
       <div className="mb-6 rounded-lg bg-white p-6 shadow">
         <Form
           form={form}
@@ -190,10 +194,13 @@ const CampaignsPage: React.FC = () => {
       {/* Danh sách chiến dịch */}
       <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6">
         {currentCampaigns.map((campaign) => {
-          // Tuỳ cấu trúc campaign thực tế, bạn điều chỉnh cho phù hợp
-          const isLocked = campaign.locked; // server trả về?
-          const isRegistered = campaign.isRegistered; // server trả về?
-          const isRunning = campaign.isRunning; // server trả về?
+          // Tuỳ thuộc vào cấu trúc object trả về từ server
+          // Ở ví dụ này: campaign.id, campaign.name, campaign.image, campaign.commission, ...
+          const isLocked = false; // Tự bạn xử lý logic khoá/ẩn
+          const isRegistered = false; // Demo
+          const isRunning = false; // Demo
+
+          // Demo cứng rating
           const rating = 4.28;
           const ratingCount = 323;
           const totalConversion = 577866;
@@ -216,7 +223,7 @@ const CampaignsPage: React.FC = () => {
                 <img
                   src={
                     campaign.image ||
-                    'https://content.accesstrade.vn/adv/1735897487_avatar_1735897487.png'
+                    'https://via.placeholder.com/150?text=No+Image'
                   }
                   alt="logo"
                   className="h-full w-full object-cover"
@@ -231,7 +238,7 @@ const CampaignsPage: React.FC = () => {
               {/* Hoa hồng */}
               <div className="mb-1 text-sm text-gray-600">Hoa hồng</div>
               <div className="mb-2 text-lg font-bold text-[#8229B0]">
-                {campaign.commission}
+                {campaign.commission?.toLocaleString()} đ
               </div>
 
               {/* Rating + conversions (demo cứng) */}
@@ -242,7 +249,7 @@ const CampaignsPage: React.FC = () => {
                   fill="currentColor"
                   viewBox="0 0 20 20"
                 >
-                  <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.189 3.674a1 1 0 00.95.69h3.862c.969 0 1.37 1.24.588 1.81l-3.127 2.27a1 1 0 00-.363 1.118l1.2 3.697c.29.894-.755 1.63-1.54 1.081l-3.105-2.186a1 1 0 00-1.157 0l-3.105 2.186c-.785.55-1.83-.187-1.54-1.08l1.2-3.698a1 1 0 00-.363-1.118L2.5 9.1c-.781-.57-.38-1.81.589-1.81h3.862a1 1 0 00.95-.69l1.148-3.673z" />
+                  <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.189 3.674a1 1 0 00.95.69h3.862c.969 0 1.37 1.24.588 1.81l-3.127 2.27a1 1 0 00-.363 1.118l1.2 3.697c.29.894-.755 1.63-1.54 1.081l-3.105-2.186a1 1 0 00-1.157 0l-3.105 2.186c-.785.55-1.83-.187-1.54-1.08l1.2-3.698a1 1 0 00-.363-1.118l-3.127-2.27c-.781-.57-.38-1.81.589-1.81h3.862a1 1 0 00.95-.69l1.148-3.673z" />
                 </svg>
                 <span>({ratingCount})</span>
                 <span className="mx-1 text-gray-400">|</span>
@@ -281,10 +288,10 @@ const CampaignsPage: React.FC = () => {
         })}
       </div>
 
-      {/* Phân trang */}
+      {/* Phân trang (client side) */}
       <div className="mb-8 mt-4">
         <PaginationSection
-          totalPosts={campaigns.length} // hoặc campaignsResponse?.result?.length
+          totalPosts={campaigns.length}
           postsPerPage={PAGE_SIZE}
           currentPage={currentPage}
           setCurrentPage={setCurrentPage}
@@ -294,7 +301,7 @@ const CampaignsPage: React.FC = () => {
       {/* Modal xác nhận đăng ký */}
       <Modal
         title="Xác nhận đăng ký"
-        visible={isModalVisible}
+        open={isModalVisible}
         onOk={handleConfirmRegister}
         onCancel={handleCancelRegister}
         okText="Đồng ý"
