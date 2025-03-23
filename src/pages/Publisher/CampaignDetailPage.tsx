@@ -3,14 +3,14 @@ import { Button, Rate, Tabs, Collapse, Modal, message } from 'antd';
 import { motion } from 'framer-motion';
 import Slider from 'react-slick';
 import { LeftOutlined, RightOutlined } from '@ant-design/icons';
-import { useParams, useNavigate, useLocation } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import helpers from '@/helpers';
 
 import {
   useGetCampaignByIdd,
   useGetSimilarCampaigns,
   IApiCampaign,
-  useRegisterCampaign // <-- Hook đăng ký chiến dịch
+  useRegisterCampaign
 } from '@/queries/campaign.query';
 
 import 'slick-carousel/slick/slick.css';
@@ -60,7 +60,7 @@ function mapApiCampaignToCampaign(apiCampaign: IApiCampaign): Campaign {
     averageStarRate: apiCampaign.averageStarRate,
     advertiserId: apiCampaign.advertiserId,
     advertiserName: apiCampaign.advertiser?.companyName ?? '',
-    publisherStatus: (apiCampaign as any).publisherStatus // giả sử API trả về trường này
+    publisherStatus: (apiCampaign as any).publisherStatus
   };
 }
 
@@ -100,18 +100,16 @@ const CampaignDetailPage: React.FC = () => {
   const { id } = useParams();
   const campaignId = Number(id) || 0;
 
-  // Dùng hook useLocation để lấy state từ CampaignsPage
-  const location = useLocation();
-  const participatedFromState: boolean = location.state?.participated || false;
-
   // Hook điều hướng
   const navigate = useNavigate();
 
   // a) Gọi API chi tiết campaign
+  // CHÚ Ý: Lấy thêm refetch từ useGetCampaignByIdd
   const {
     data: apiCampaign,
     isLoading: isLoadingDetail,
-    isError: isErrorDetail
+    isError: isErrorDetail,
+    refetch
   } = useGetCampaignByIdd(campaignId);
 
   // b) Gọi API lấy danh sách campaign tương tự
@@ -128,10 +126,6 @@ const CampaignDetailPage: React.FC = () => {
   let campaign: Campaign | null = null;
   if (apiCampaign) {
     campaign = mapApiCampaignToCampaign(apiCampaign);
-    // Nếu có thông tin từ state, override publisherStatus
-    if (participatedFromState) {
-      campaign.publisherStatus = 'Pending';
-    }
   }
 
   // e) Lấy mutation để đăng ký campaign
@@ -148,7 +142,8 @@ const CampaignDetailPage: React.FC = () => {
     );
   }
 
-  // Hàm xử lý khi bấm "Đăng ký"
+  // ====== 5) Các hàm xử lý ======
+  // Hàm đăng ký
   const handleRegister = () => {
     Modal.confirm({
       title: 'Xác nhận đăng ký chiến dịch',
@@ -161,8 +156,8 @@ const CampaignDetailPage: React.FC = () => {
           {
             onSuccess: () => {
               message.success('Đăng ký thành công!');
-              // Sau khi đăng ký thành công, API có thể trả về publisherStatus.
-              // Bạn có thể cập nhật lại dữ liệu hoặc reload trang.
+              // Gọi lại API để lấy dữ liệu mới (publisherStatus có thể đổi thành "Pending")
+              refetch();
             },
             onError: () => {
               message.error('Đăng ký thất bại!');
@@ -173,15 +168,23 @@ const CampaignDetailPage: React.FC = () => {
     });
   };
 
+  // Hàm hiển thị cảnh báo khi publisherStatus = 'Pending'
+  const handlePendingClick = () => {
+    Modal.warning({
+      title: 'Chờ duyệt chiến dịch',
+      content: 'Vui lòng chờ nhà quảng cáo duyệt chiến dịch.'
+    });
+  };
+
   // Hàm xử lý khi click vào campaign tương tự
   const handleSimilarClick = (similarId: number) => {
     navigate(`/publisher/campaign-detail/${similarId}`);
   };
 
   // Hàm xử lý khi bấm "Lấy link"
-  const handleCopyLink = (e: React.MouseEvent, campaignId: number) => {
+  const handleCopyLink = (e: React.MouseEvent, cId: number) => {
     e.stopPropagation();
-    const link = `${window.location.origin}/link/${PUBLISHER_ID}/${campaignId}`;
+    const link = `${window.location.origin}/link/${PUBLISHER_ID}/${cId}`;
     navigator.clipboard
       .writeText(link)
       .then(() => {
@@ -192,7 +195,54 @@ const CampaignDetailPage: React.FC = () => {
       });
   };
 
-  // Cấu hình slider
+  // ====== 6) Tùy theo publisherStatus hiển thị nút ======
+  const renderButton = () => {
+    if (!campaign.publisherStatus) {
+      // Chưa tham gia => Hiển thị nút "Đăng ký"
+      return (
+        <Button
+          type="primary"
+          onClick={handleRegister}
+          loading={isRegisterLoading}
+          className="mt-4 rounded-full border-none bg-[#9B52BF] 
+                     bg-gradient-to-r from-purple-600 to-indigo-600 text-white 
+                     hover:!border-[#9B52BF] hover:!bg-white hover:!text-[#9B52BF]"
+        >
+          Đăng ký
+        </Button>
+      );
+    } else if (campaign.publisherStatus === 'Pending') {
+      // Đã đăng ký nhưng chờ duyệt => Bấm sẽ hiện popup cảnh báo
+      return (
+        <Button
+          type="default"
+          onClick={handlePendingClick}
+          className="mt-4 rounded-full border-none bg-[#9B52BF] 
+                     bg-gradient-to-r from-purple-600 to-indigo-600 text-white 
+                     hover:!border-[#9B52BF] hover:!bg-white hover:!text-[#9B52BF]"
+        >
+          Lấy link
+        </Button>
+      );
+    } else if (campaign.publisherStatus === 'Activing') {
+      // Đã được duyệt => Có thể lấy link
+      return (
+        <Button
+          type="default"
+          onClick={(e) => handleCopyLink(e, campaign.id)}
+          className="mt-4 rounded-full border-none bg-[#9B52BF] 
+                     bg-gradient-to-r from-purple-600 to-indigo-600 text-white 
+                     hover:!border-[#9B52BF] hover:!bg-white hover:!text-[#9B52BF]"
+        >
+          Lấy link
+        </Button>
+      );
+    }
+    // Tuỳ ý xử lý các trạng thái khác (Rejected, v.v...) nếu có
+    return null;
+  };
+
+  // ====== 7) Cấu hình slider ======
   const sliderSettings = {
     dots: false,
     infinite: similarCampaigns.length > 1,
@@ -235,29 +285,10 @@ const CampaignDetailPage: React.FC = () => {
                 {campaign.averageStarRate?.toFixed(1)}
               </span>
             </div>
-            {/* Nút đăng ký / Lấy link */}
-            {campaign.publisherStatus ? (
-              <Button
-                type="default"
-                onClick={(e) => handleCopyLink(e, campaign.id)}
-                className="mt-4 rounded-full border-none bg-[#9B52BF] 
-                           bg-gradient-to-r from-purple-600 to-indigo-600 text-white 
-                           hover:!border-[#9B52BF] hover:!bg-white hover:!text-[#9B52BF]"
-              >
-                Lấy link
-              </Button>
-            ) : (
-              <Button
-                type="primary"
-                onClick={handleRegister}
-                loading={isRegisterLoading}
-                className="mt-4 rounded-full border-none bg-[#9B52BF] 
-                           bg-gradient-to-r from-purple-600 to-indigo-600 text-white 
-                           hover:!border-[#9B52BF] hover:!bg-white hover:!text-[#9B52BF]"
-              >
-                Đăng ký
-              </Button>
-            )}
+
+            {/* Nút tuỳ theo trạng thái */}
+            {renderButton()}
+
             {/* Thông tin tóm tắt */}
             <div className="mt-6 w-full space-y-2 text-sm text-gray-700">
               <div>
