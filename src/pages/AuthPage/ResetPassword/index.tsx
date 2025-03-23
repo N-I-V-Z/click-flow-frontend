@@ -10,7 +10,7 @@ import ImageLeft from '../Image';
 type FormReset = {
   email: string;
   newPassword: string;
-  confirmPassword: string;
+  confirmedNewPassword: string;
 };
 
 type FormError = Partial<FormReset>;
@@ -20,7 +20,7 @@ export default function ResetPasswordPage() {
   const [formReset, setFormReset] = useState<FormReset>({
     email: '',
     newPassword: '',
-    confirmPassword: ''
+    confirmedNewPassword: ''
   });
   const [error, setError] = useState<FormError>({});
   const [showPassword, setShowPassword] = useState(false);
@@ -33,8 +33,8 @@ export default function ResetPasswordPage() {
     if (!formReset.newPassword.trim()) {
       errors.newPassword = 'Mật khẩu mới không được để trống.';
     }
-    if (formReset.newPassword !== formReset.confirmPassword) {
-      errors.confirmPassword = 'Mật khẩu xác nhận không khớp.';
+    if (formReset.newPassword !== formReset.confirmedNewPassword) {
+      errors.confirmedNewPassword = 'Mật khẩu xác nhận không khớp.';
     }
     return errors;
   };
@@ -142,11 +142,11 @@ export default function ResetPasswordPage() {
                 <div className="relative">
                   <Input
                     type="password"
-                    value={formReset.confirmPassword}
+                    value={formReset.confirmedNewPassword}
                     onChange={(e) =>
                       setFormReset({
                         ...formReset,
-                        confirmPassword: e.target.value
+                        confirmedNewPassword: e.target.value
                       })
                     }
                   />
@@ -158,9 +158,9 @@ export default function ResetPasswordPage() {
                     {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
                   </button>
                 </div>
-                {error.confirmPassword && (
+                {error.confirmedNewPassword && (
                   <p className="text-[12px] text-red">
-                    {error.confirmPassword}
+                    {error.confirmedNewPassword}
                   </p>
                 )}
               </div>

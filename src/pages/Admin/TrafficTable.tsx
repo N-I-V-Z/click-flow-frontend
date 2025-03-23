@@ -2,19 +2,20 @@ import React, { useMemo } from 'react';
 import { ColumnDef } from '@tanstack/react-table';
 import DataTable from '@/components/shared/data-table';
 import { useGetTraffics } from '@/queries/traffic.query';
+import { ApiResponse, PagingResponse, TrafficApiResponse } from '@/types';
 
 interface Traffic {
   traffic_id: number;
-  campaign_id: number;
-  publisher_id: number;
+  campaign_id?: number | undefined | null;
+  publisher_id?: number | undefined | null;
   ip_address: string;
   timestamp: string;
   is_valid: boolean;
   device_type: string;
   browser: string;
   referrer_url: string;
-  revenue: number;
-  order_id?: string;
+  revenue?: number | null;
+  order_id?: string | null;
 }
 
 interface TrafficTableProps {
@@ -71,17 +72,19 @@ const TrafficTable: React.FC<TrafficTableProps> = ({ campaignId }) => {
   const { data, isLoading, error } = useGetTraffics(campaignId, 1, 10);
 
   // Lấy dữ liệu từ data.result (nếu có)
-  const trafficData = data?.result || [];
+  const trafficData =
+    (data as ApiResponse<PagingResponse<TrafficApiResponse>>)?.result?.datas ||
+    [];
   console.log('Traffic Data:', trafficData);
 
   // Chuyển đổi dữ liệu thành dạng phù hợp với interface Traffic
   const convertedTrafficData: Traffic[] = useMemo(() => {
-    return trafficData.map((item: any) => ({
+    return trafficData.map((item: TrafficApiResponse) => ({
       traffic_id: item.id,
-      campaign_id: item.campaignId,
-      publisher_id: item.publisherId,
+      campaign_id: item.campaignParticipation?.campaignId,
+      publisher_id: item.campaignParticipation?.publisherId,
       ip_address: item.ipAddress,
-      timestamp: item.timestamp,
+      timestamp: item.timestamp.toUTCString(),
       is_valid: item.isValid,
       device_type: item.deviceType,
       browser: item.browser,

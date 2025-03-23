@@ -11,8 +11,7 @@ import {
   Upload,
   Tabs,
   Row,
-  Col,
-  Typography
+  Col
 } from 'antd';
 import { PlusOutlined } from '@ant-design/icons';
 import type { UploadProps } from 'antd';

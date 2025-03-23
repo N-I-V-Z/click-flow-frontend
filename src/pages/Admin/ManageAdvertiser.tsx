@@ -4,6 +4,12 @@ import { EyeOutlined, CloseCircleOutlined } from '@ant-design/icons';
 import { ColumnDef } from '@tanstack/react-table';
 // Import 2 hook dưới:
 import { useGetUsersByRole } from '@/queries/user.query';
+import {
+  ApiResponse,
+  ApplicationUserApiResponse,
+  PagingResponse
+} from '@/types';
+import DataTable from '@/components/shared/data-table';
 
 interface Advertiser {
   id: number;
@@ -56,10 +62,12 @@ const AdvertiserList: React.FC = () => {
   // 2) Mỗi khi data?.result thay đổi, map sang Advertiser[]
   useEffect(() => {
     if (data?.result) {
-      const mapped = data.result.map((user: any) =>
+      const mapped = (
+        data as ApiResponse<PagingResponse<ApplicationUserApiResponse>>
+      ).result?.datas.map((user: ApplicationUserApiResponse) =>
         mapApiUserToAdvertiser(user)
       );
-      setDataSource(mapped);
+      setDataSource(mapped ?? []);
     }
   }, [data]);
 
