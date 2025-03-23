@@ -6,39 +6,71 @@ import { ColumnDef } from '@tanstack/react-table';
 import DataTable from '@/components/shared/data-table';
 import { Button } from '@/components/ui/button';
 
-import { useGetPublisherParticipationByStatusForAdvertiser } from '@/queries/campaign.query';
+import { TokenDecoded } from '@/types';
+import helpers from '@/helpers';
+import __helpers from '@/helpers';
+// Đây là hook đã sửa để nhận status qua query param (hoặc bỏ nếu = undefined).
+import { useGetCampaignAdvertiser } from '@/queries/campaign.query';
 import { ApiResponse, CampaignApiResponse, PagingResponse } from '@/types';
 
-// Kiểu gốc API
-type CampaignParticipationStatus = 'Pending' | 'Participated' | 'Rejected';
+const decodedToken: TokenDecoded | null = helpers.decodeTokens(
+  __helpers.cookie_get('AT')
+);
+// Các trạng thái có thể chọn (cả "All" để lấy tất cả)
+type AdvertiserCampaignStatus =
+  | 'All'
+  | 'Pending'
+  | 'Approved'
+  | 'Activing'
+  | 'Paused'
+  | 'Canceled'
+  | 'Completed';
 
+// Giao diện hiển thị
+interface Project {
+  id: number;
+  name: string;
+  createdDate: string;
+  advertiser: string;
+  status: string;
+  deadline: string;
+}
+
+// Khai báo các cặp name/displayName/color
 const statusOptions = [
-  { name: 'Pending', displayName: 'Chờ duyệt', color: 'bg-yellow' },
-  { name: 'Participated', displayName: 'Đã tham gia', color: 'bg-purple' },
-  { name: 'Rejected', displayName: 'Đã từ chối', color: 'bg-red' }
+  { name: 'All', displayName: 'Tất cả', color: 'bg-gray-400' },
+  { name: 'Pending', displayName: 'Chờ duyệt', color: 'bg-yellow-400' },
+  { name: 'Approved', displayName: 'Đã duyệt', color: 'bg-green-500' },
+  { name: 'Activing', displayName: 'Đang chạy', color: 'bg-blue-500' },
+  { name: 'Paused', displayName: 'Tạm dừng', color: 'bg-orange-500' },
+  { name: 'Canceled', displayName: 'Đã hủy', color: 'bg-red-500' },
+  { name: 'Completed', displayName: 'Hoàn thành', color: 'bg-gray-500' }
 ];
 
+// Hàm lấy CSS class theo displayName
 const getStatusClass = (displayName: string) => {
   const option = statusOptions.find((opt) => opt.displayName === displayName);
-  return option ? option.color : 'bg-gray';
+  return option ? option.color : 'bg-gray-400';
 };
 
 const AdvertiserCampaigns = () => {
-  // Chọn 1 trong 3 status để call API
+  // Chọn trạng thái (hoặc "All")
   const [campaignStatus, setCampaignStatus] =
-    useState<CampaignParticipationStatus>('Pending');
+    useState<AdvertiserCampaignStatus>('All');
 
-  // pageIndex, pageSize
-  const pageIndex = 1;
-  const pageSize = 10;
+  // pageIndex, pageSize (demo cứng)
+  const { pageIndex, pageSize } = __helpers.usePaginationParams();
+  const advertiserId =
+    decodedToken?.Id !== undefined ? parseInt(decodedToken?.Id) : 0;
+  // Gọi API: nếu = "All" thì không truyền status (undefined) => lấy tất cả
+  const { data, isLoading, isError } = useGetCampaignAdvertiser(
+    advertiserId, // advertiserId giả sử = 3
+    campaignStatus === 'All' ? undefined : campaignStatus,
+    pageIndex,
+    pageSize
+  );
 
-  // Lấy data
-  const { data, isLoading, isError } =
-    useGetPublisherParticipationByStatusForAdvertiser(
-      pageIndex,
-      pageSize,
-      campaignStatus
-    );
+  // Mảng items
 
   const [rowSelection, setRowSelection] = useState<Record<string, boolean>>({});
   const [selectedRows, setSelectedRows] = useState<CampaignApiResponse[]>([]);
@@ -55,12 +87,14 @@ const AdvertiserCampaigns = () => {
     (data as ApiResponse<PagingResponse<CampaignApiResponse>>)?.result?.datas ||
     [];
 
+  // Map dữ liệu trả về sang Project
+
   // Lọc dữ liệu theo search
-  const filteredData = () => {
-    return campaigns.filter((campaign) =>
-      campaign.name?.toLowerCase().includes(searchTerm.toLowerCase())
+  const filteredData = useMemo(() => {
+    return campaigns.filter((project) =>
+      project.name.toLowerCase().includes(searchTerm.toLowerCase())
     );
-  };
+  }, [campaigns, searchTerm]);
 
   // Cột cho DataTable
   const columns: ColumnDef<CampaignApiResponse>[] = [
@@ -125,7 +159,7 @@ const AdvertiserCampaigns = () => {
               setIsViewOpen(true);
             }}
           >
-            <Eye size={18} className="text-blue" />
+            <Eye size={18} className="text-blue-500" />
           </Button>
           <Button
             variant="ghost"
@@ -135,7 +169,7 @@ const AdvertiserCampaigns = () => {
               setIsEditOpen(true);
             }}
           >
-            <Pencil size={18} className="text-yellow" />
+            <Pencil size={18} className="text-yellow-500" />
           </Button>
           <Button
             variant="ghost"
@@ -145,7 +179,7 @@ const AdvertiserCampaigns = () => {
               setIsDeleteOpen(true);
             }}
           >
-            <Trash2 size={18} className="text-red" />
+            <Trash2 size={18} className="text-red-500" />
           </Button>
         </div>
       )
@@ -178,13 +212,13 @@ const AdvertiserCampaigns = () => {
 
   return (
     <div className="p-6">
-      {/* Chọn status (Pending/Participated/Rejected) để call API */}
+      {/* (1) Chọn status để gọi API */}
       <div className="mb-4 flex items-center gap-2">
         <label>Trạng thái:</label>
         <select
           value={campaignStatus}
           onChange={(e) =>
-            setCampaignStatus(e.target.value as CampaignParticipationStatus)
+            setCampaignStatus(e.target.value as AdvertiserCampaignStatus)
           }
           className="rounded border p-2"
         >
@@ -194,13 +228,13 @@ const AdvertiserCampaigns = () => {
         </select>
       </div>
 
-      {/* Tiêu đề & thanh công cụ */}
+      {/* Thanh công cụ: xóa nhiều, v.v. */}
       <div className="mb-4 flex items-center justify-between">
         <h2 className="text-xl font-semibold">Danh sách yêu cầu</h2>
         {selectedRows.length > 0 && (
           <button
             onClick={handleBulkDelete}
-            className="hover:bg-red-600 rounded bg-red px-4 py-2 text-white"
+            className="hover:bg-red-600 bg-red-500 rounded px-4 py-2 text-white"
           >
             Xóa đã chọn ({selectedRows.length})
           </button>
@@ -218,10 +252,11 @@ const AdvertiserCampaigns = () => {
         />
       </div>
 
-      {/* Bảng dữ liệu */}
+      {/* Bảng DataTable */}
       <DataTable
         columns={columns}
         data={filteredData}
+        // Nếu muốn server-side pagination thì cần xử lý pageCount & onPageChange
         pageCount={Math.ceil(filteredData.length / 10)}
         rowSelection={rowSelection}
         onRowSelectionChange={setRowSelection}
@@ -306,6 +341,7 @@ const AdvertiserCampaigns = () => {
                 className="rounded border p-2"
               >
                 {statusOptions.map((option) => (
+                  // option.displayName -> hiển thị
                   <option key={option.name} value={option.displayName}>
                     {option.displayName}
                   </option>
@@ -318,9 +354,9 @@ const AdvertiserCampaigns = () => {
               </Button>
               <Button
                 onClick={() => {
-                  // Nếu cần gọi API cập nhật, ta lấy name gốc:
-                  // const originalStatus = statusOptions.find(
-                  //   (opt) => opt.displayName === selectedProject.status
+                  // Thường bạn sẽ gọi API cập nhật:
+                  // let newApiStatus = statusOptions.find(
+                  //   (o) => o.displayName === selectedProject.status
                   // )?.name;
                   toast.success(`Đã cập nhật "${selectedProject.name}"!`);
                   setIsEditOpen(false);

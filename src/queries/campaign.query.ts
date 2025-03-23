@@ -56,16 +56,27 @@ export const useGetCampaignById = (id?: number) => {
 };
 
 export const useGetCampaignAdvertiser = (
-  status: string,
+  advertiserId: number,
+  status?: string, // status có thể undefined
   pageIndex: number = 1,
   pageSize: number = 10
 ) => {
   return useQuery({
-    queryKey: ['get-campaign-advertiser', status, pageIndex, pageSize],
+    // Thay đổi queryKey để bám sát các tham số
+    queryKey: [
+      'get-campaign-advertiser',
+      advertiserId,
+      status,
+      pageIndex,
+      pageSize
+    ],
     queryFn: async () => {
-      return await BaseRequest.Get(
-        `${SUB_URL}/get-campaigns-by-advertiser/${status}/${pageIndex}/${pageSize}`
-      );
+      let url = `${SUB_URL}/get-campaigns-by-advertiser/${advertiserId}/${pageIndex}/${pageSize}`;
+      // Nếu có status thì thêm ?status=...
+      if (status) {
+        url += `?status=${status}`;
+      }
+      return await BaseRequest.Get(url);
     }
   });
 };
@@ -242,13 +253,13 @@ export interface IApiCampaign {
 
 export function useGetCampaignByIdd(id?: number) {
   return useQuery({
-    queryKey: ['get-campaign-by-id', id],
+    queryKey: ['get-campaign-by-id-for-publisher', id],
     // Chỉ gọi nếu có id
     enabled: !!id,
     // Trả về dữ liệu gốc (IApiCampaign)
     queryFn: async (): Promise<IApiCampaign> => {
       const response = await BaseRequest.Get(
-        `/api/Campaigns/get-campaign-by-id/${id}`
+        `/api/Campaigns/get-campaign-by-id-for-publisher/${id}`
       );
       // Giả sử server trả về { result: { ... } }
       return response.result as IApiCampaign;

@@ -3,7 +3,10 @@ import { Form, Select, Button, Modal, message } from 'antd';
 import { useNavigate } from 'react-router-dom';
 import { TokenDecoded } from '@/types';
 import PaginationSection from '@/components/shared/pagination-section';
-import { useGetCampaignsJoinedByPublisher } from '@/queries/campaign.query';
+import {
+  useGetAllCampaignForPublisher,
+  useRegisterCampaign
+} from '@/queries/campaign.query';
 import helpers from '@/helpers';
 import __helpers from '@/helpers';
 
@@ -20,7 +23,7 @@ const PAGE_SIZE = 10;
 const CampaignsPage: React.FC = () => {
   const [form] = Form.useForm();
 
-  // State lưu danh sách campaign hiển thị
+  // State lưu danh sách campaign hiển thị (để lọc, phân trang phía client)
   const [campaigns, setCampaigns] = useState<any[]>([]);
 
   // State trang hiện tại (client side)
@@ -32,12 +35,17 @@ const CampaignsPage: React.FC = () => {
     null
   );
 
-  // Gọi Hook để lấy data từ server
+  // Hook lấy dữ liệu campaigns từ server, bao gồm refetch để làm mới sau đăng ký
   const {
     data: campaignsResponse,
     isLoading,
-    isError
-  } = useGetCampaignsJoinedByPublisher(currentPage, PAGE_SIZE);
+    isError,
+    refetch: refetchCampaigns
+  } = useGetAllCampaignForPublisher(currentPage, PAGE_SIZE);
+
+  // Hook mutation đăng ký
+  const { mutate: registerCampaign, isLoading: isRegisterLoading } =
+    useRegisterCampaign();
 
   const navigate = useNavigate();
 
@@ -54,15 +62,21 @@ const CampaignsPage: React.FC = () => {
     setIsModalVisible(true);
   };
 
-  // Khi người dùng bấm "Đồng ý" trong Modal → cập nhật state (demo client-side)
+  // Khi người dùng bấm "Đồng ý" trong Modal → gọi mutation đăng ký
   const handleConfirmRegister = () => {
     if (selectedCampaignId !== null) {
-      setCampaigns((prev) =>
-        prev.map((c) =>
-          c.id === selectedCampaignId
-            ? { ...c, publisherStatus: 'Pending' } // Ví dụ: gán tạm là 'Pending'
-            : c
-        )
+      registerCampaign(
+        { campaignId: selectedCampaignId },
+        {
+          onSuccess: () => {
+            message.success('Đăng ký thành công!');
+            // Sau khi đăng ký thành công, làm mới danh sách campaigns
+            refetchCampaigns();
+          },
+          onError: () => {
+            message.error('Đăng ký thất bại!');
+          }
+        }
       );
     }
     setIsModalVisible(false);
@@ -73,6 +87,15 @@ const CampaignsPage: React.FC = () => {
   const handleCancelRegister = () => {
     setIsModalVisible(false);
     setSelectedCampaignId(null);
+  };
+
+  // Hàm hiển thị cảnh báo khi publisherStatus === "Pending"
+  const handlePendingClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    Modal.warning({
+      title: 'Chờ duyệt chiến dịch',
+      content: 'Vui lòng chờ nhà quảng cáo duyệt chiến dịch.'
+    });
   };
 
   // Lọc phía client khi submit form
@@ -211,9 +234,7 @@ const CampaignsPage: React.FC = () => {
                 ${!isLocked ? 'cursor-pointer hover:scale-105 hover:shadow-xl' : 'pointer-events-none opacity-50'}`}
               // Khi click vào campaign ở CampaignsPage:
               onClick={() =>
-                navigate(`/publisher/campaign-detail/${campaign.id}`, {
-                  state: { participated: hasPublisherStatus } // hasPublisherStatus là boolean
-                })
+                navigate(`/publisher/campaign-detail/${campaign.id}`)
               }
             >
               {/* Logo */}
@@ -260,26 +281,37 @@ const CampaignsPage: React.FC = () => {
               {isLocked ? (
                 <p className="text-red-500 mt-2 font-medium">Đã bị khóa</p>
               ) : hasPublisherStatus ? (
-                // Nếu campaign đã tham gia (publisherStatus có giá trị)
-                // Nút "Lấy link" copy link vào clipboard và hiển thị thông báo
-                <Button
-                  type="default"
-                  className="w-full bg-white text-[#8229B0] hover:!border-[#9B52BF] hover:!bg-[#8229B0] hover:!text-white"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    const link = `${window.location.origin}/link/${PUBLISHER_ID}/${campaign.id}`;
-                    navigator.clipboard
-                      .writeText(link)
-                      .then(() => {
-                        message.success('Copy link thành công!');
-                      })
-                      .catch(() => {
-                        message.error('Copy link thất bại!');
-                      });
-                  }}
-                >
-                  Lấy link
-                </Button>
+                // Nếu campaign đã tham gia, phân biệt 2 trường hợp:
+                campaign.publisherStatus === 'Activing' ? (
+                  // Khi Activing thì cho phép copy link
+                  <Button
+                    type="default"
+                    className="w-full bg-white text-[#8229B0] hover:!border-[#9B52BF] hover:!bg-[#8229B52BF] hover:!text-white"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      const link = `${window.location.origin}/link/${PUBLISHER_ID}/${campaign.id}`;
+                      navigator.clipboard
+                        .writeText(link)
+                        .then(() => {
+                          message.success('Copy link thành công!');
+                        })
+                        .catch(() => {
+                          message.error('Copy link thất bại!');
+                        });
+                    }}
+                  >
+                    Lấy link
+                  </Button>
+                ) : (
+                  // Nếu publisherStatus khác Activing (ví dụ: Pending)
+                  <Button
+                    type="default"
+                    className="w-full bg-white text-[#8229B0] hover:!border-[#9B52BF] hover:!bg-[#8229B0] hover:!text-white"
+                    onClick={handlePendingClick}
+                  >
+                    Lấy link
+                  </Button>
+                )
               ) : (
                 // Nếu chưa tham gia => Nút "Đăng ký"
                 <Button
@@ -316,6 +348,7 @@ const CampaignsPage: React.FC = () => {
         onCancel={handleCancelRegister}
         okText="Đồng ý"
         cancelText="Hủy"
+        confirmLoading={isRegisterLoading}
         okButtonProps={{
           className: 'bg-[#9B52BF] text-white border-[#9B52BF]'
         }}
