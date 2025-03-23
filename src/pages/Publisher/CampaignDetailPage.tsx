@@ -1,16 +1,26 @@
 import React from 'react';
-import { Button, Rate, Tabs, Collapse } from 'antd';
+import { Button, Rate, Tabs, Collapse, Modal, message } from 'antd';
 import { motion } from 'framer-motion';
 import Slider from 'react-slick';
 import { LeftOutlined, RightOutlined } from '@ant-design/icons';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, useLocation } from 'react-router-dom';
+import helpers from '@/helpers';
 
-import { useGetCampaignByIdd, IApiCampaign } from '@/queries/campaign.query';
-import { useGetSimilarCampaigns } from '@/queries/campaign.query'; // Nếu bạn có hook này
+import {
+  useGetCampaignByIdd,
+  useGetSimilarCampaigns,
+  IApiCampaign,
+  useRegisterCampaign // <-- Hook đăng ký chiến dịch
+} from '@/queries/campaign.query';
+
 import 'slick-carousel/slick/slick.css';
 import 'slick-carousel/slick/slick-theme.css';
 
-// ====== 1) Khai báo kiểu cho dữ liệu hiển thị trong UI ======
+// Decode token để lấy publisher id (giả sử trường Id có trong token)
+const decodedToken = helpers.decodeTokens();
+const PUBLISHER_ID = decodedToken.Id;
+
+// ====== 1) Kiểu dữ liệu cho UI ======
 interface Campaign {
   id: number;
   name: string;
@@ -28,9 +38,10 @@ interface Campaign {
   averageStarRate?: number;
   advertiserId: number;
   advertiserName: string;
+  publisherStatus?: string; // Nếu có giá trị => publisher đã tham gia
 }
 
-// ====== 2) Viết hàm map từ IApiCampaign -> Campaign ======
+// ====== 2) Hàm map từ IApiCampaign -> Campaign ======
 function mapApiCampaignToCampaign(apiCampaign: IApiCampaign): Campaign {
   return {
     id: apiCampaign.id,
@@ -48,12 +59,13 @@ function mapApiCampaignToCampaign(apiCampaign: IApiCampaign): Campaign {
     imageUrl: apiCampaign.image,
     averageStarRate: apiCampaign.averageStarRate,
     advertiserId: apiCampaign.advertiserId,
-    advertiserName: apiCampaign.advertiser?.companyName ?? ''
+    advertiserName: apiCampaign.advertiser?.companyName ?? '',
+    publisherStatus: (apiCampaign as any).publisherStatus // giả sử API trả về trường này
   };
 }
 
-// ====== 3) Arrow custom (nếu cần) ======
-const SampleNextArrow = (props: any) => {
+// ====== 3) Arrow custom cho Slider ======
+const SampleNextArrow: React.FC<any> = (props) => {
   const { className, style, onClick } = props;
   return (
     <div
@@ -66,7 +78,7 @@ const SampleNextArrow = (props: any) => {
   );
 };
 
-const SamplePrevArrow = (props: any) => {
+const SamplePrevArrow: React.FC<any> = (props) => {
   const { className, style, onClick } = props;
   return (
     <div
@@ -84,34 +96,49 @@ const { TabPane } = Tabs;
 const { Panel } = Collapse;
 
 const CampaignDetailPage: React.FC = () => {
+  // Lấy ID từ URL
   const { id } = useParams();
   const campaignId = Number(id) || 0;
+
+  // Dùng hook useLocation để lấy state từ CampaignsPage
+  const location = useLocation();
+  const participatedFromState: boolean = location.state?.participated || false;
+
+  // Hook điều hướng
   const navigate = useNavigate();
 
-  // a) Gọi API để lấy dữ liệu gốc (IApiCampaign)
+  // a) Gọi API chi tiết campaign
   const {
     data: apiCampaign,
     isLoading: isLoadingDetail,
     isError: isErrorDetail
   } = useGetCampaignByIdd(campaignId);
 
-  // b) Nếu bạn cần "chiến dịch tương tự", gọi hook
+  // b) Gọi API lấy danh sách campaign tương tự
   const {
     data: similarResponse,
     isLoading: isLoadingSimilar,
     isError: isErrorSimilar
-  } = useGetSimilarCampaigns(campaignId, 1, 5); // Tùy
+  } = useGetSimilarCampaigns(campaignId, 1, 5);
 
-  // c) Mảng "chiến dịch tương tự"
+  // c) Mảng campaign tương tự
   const similarCampaigns = similarResponse?.result?.datas || [];
 
-  // d) Map dữ liệu gốc -> dữ liệu hiển thị
+  // d) Map dữ liệu sang UI
   let campaign: Campaign | null = null;
   if (apiCampaign) {
     campaign = mapApiCampaignToCampaign(apiCampaign);
+    // Nếu có thông tin từ state, override publisherStatus
+    if (participatedFromState) {
+      campaign.publisherStatus = 'Pending';
+    }
   }
 
-  // e) Xử lý loading/error
+  // e) Lấy mutation để đăng ký campaign
+  const { mutate: registerCampaign, isLoading: isRegisterLoading } =
+    useRegisterCampaign();
+
+  // Xử lý loading/error
   if (isLoadingDetail) {
     return <p className="p-4">Đang tải dữ liệu chiến dịch...</p>;
   }
@@ -121,14 +148,48 @@ const CampaignDetailPage: React.FC = () => {
     );
   }
 
-  // Demo function
+  // Hàm xử lý khi bấm "Đăng ký"
   const handleRegister = () => {
-    alert('Bạn vừa đăng ký chiến dịch!');
+    Modal.confirm({
+      title: 'Xác nhận đăng ký chiến dịch',
+      content: 'Bạn có chắc chắn muốn đăng ký chiến dịch này?',
+      okText: 'Đồng ý',
+      cancelText: 'Hủy',
+      onOk: () => {
+        registerCampaign(
+          { campaignId },
+          {
+            onSuccess: () => {
+              message.success('Đăng ký thành công!');
+              // Sau khi đăng ký thành công, API có thể trả về publisherStatus.
+              // Bạn có thể cập nhật lại dữ liệu hoặc reload trang.
+            },
+            onError: () => {
+              message.error('Đăng ký thất bại!');
+            }
+          }
+        );
+      }
+    });
   };
 
-  // Xử lý click "chiến dịch tương tự"
+  // Hàm xử lý khi click vào campaign tương tự
   const handleSimilarClick = (similarId: number) => {
     navigate(`/publisher/campaign-detail/${similarId}`);
+  };
+
+  // Hàm xử lý khi bấm "Lấy link"
+  const handleCopyLink = (e: React.MouseEvent, campaignId: number) => {
+    e.stopPropagation();
+    const link = `${window.location.origin}/link/${PUBLISHER_ID}/${campaignId}`;
+    navigator.clipboard
+      .writeText(link)
+      .then(() => {
+        message.success('Copy link thành công!');
+      })
+      .catch(() => {
+        message.error('Copy link thất bại!');
+      });
   };
 
   // Cấu hình slider
@@ -174,16 +235,29 @@ const CampaignDetailPage: React.FC = () => {
                 {campaign.averageStarRate?.toFixed(1)}
               </span>
             </div>
-            {/* Nút đăng ký */}
-            <Button
-              type="primary"
-              onClick={handleRegister}
-              className="mt-4 rounded-full border-none bg-[#9B52BF] 
-                         bg-gradient-to-r from-purple-600 to-indigo-600 text-white 
-                         hover:!border-[#9B52BF] hover:!bg-white hover:!text-[#9B52BF]"
-            >
-              Đăng ký
-            </Button>
+            {/* Nút đăng ký / Lấy link */}
+            {campaign.publisherStatus ? (
+              <Button
+                type="default"
+                onClick={(e) => handleCopyLink(e, campaign.id)}
+                className="mt-4 rounded-full border-none bg-[#9B52BF] 
+                           bg-gradient-to-r from-purple-600 to-indigo-600 text-white 
+                           hover:!border-[#9B52BF] hover:!bg-white hover:!text-[#9B52BF]"
+              >
+                Lấy link
+              </Button>
+            ) : (
+              <Button
+                type="primary"
+                onClick={handleRegister}
+                loading={isRegisterLoading}
+                className="mt-4 rounded-full border-none bg-[#9B52BF] 
+                           bg-gradient-to-r from-purple-600 to-indigo-600 text-white 
+                           hover:!border-[#9B52BF] hover:!bg-white hover:!text-[#9B52BF]"
+              >
+                Đăng ký
+              </Button>
+            )}
             {/* Thông tin tóm tắt */}
             <div className="mt-6 w-full space-y-2 text-sm text-gray-700">
               <div>
@@ -218,8 +292,8 @@ const CampaignDetailPage: React.FC = () => {
                   <div key={item.id} className="px-2">
                     <motion.div
                       className="flex cursor-pointer flex-col items-center justify-center 
-                        rounded-xl bg-white p-4 shadow transition-all duration-300 
-                        hover:scale-105"
+                                 rounded-xl bg-white p-4 shadow transition-all duration-300 
+                                 hover:scale-105"
                       onClick={() => handleSimilarClick(item.id)}
                     >
                       <div className="relative h-[100px] w-[150px]">

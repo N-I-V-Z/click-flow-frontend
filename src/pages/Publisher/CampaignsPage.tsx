@@ -1,11 +1,15 @@
 import React, { useState, useEffect } from 'react';
-import { Form, Select, Button, Modal } from 'antd';
+import { Form, Select, Button, Modal, message } from 'antd';
 import { useNavigate } from 'react-router-dom';
-
+import { TokenDecoded } from '@/types';
 import PaginationSection from '@/components/shared/pagination-section';
 import { useGetCampaignsJoinedByPublisher } from '@/queries/campaign.query';
+import helpers from '@/helpers';
 
 const { Option } = Select;
+const decodedToken: TokenDecoded = helpers.decodeTokens();
+// PublisherId lấy từ token (hoặc từ context, store,...)
+const PUBLISHER_ID = decodedToken.Id;
 
 // Số item mỗi trang (client side)
 const PAGE_SIZE = 10;
@@ -25,9 +29,7 @@ const CampaignsPage: React.FC = () => {
     null
   );
 
-  // Giả sử publisherId = 1
-
-  // Gọi Hook để lấy data
+  // Gọi Hook để lấy data từ server
   const {
     data: campaignsResponse,
     isLoading,
@@ -36,27 +38,26 @@ const CampaignsPage: React.FC = () => {
 
   const navigate = useNavigate();
 
-  // Mỗi khi có data mới từ server, set lại danh sách campaign
+  // Mỗi khi có data mới từ server, cập nhật danh sách campaign
   useEffect(() => {
     if (campaignsResponse?.result?.datas) {
       setCampaigns(campaignsResponse.result.datas);
     }
   }, [campaignsResponse]);
 
-  // Xử lý mở Modal đăng ký
+  // Mở Modal xác nhận đăng ký
   const handleRegisterClick = (campaignId: number) => {
     setSelectedCampaignId(campaignId);
     setIsModalVisible(true);
   };
 
-  // Xác nhận đăng ký
+  // Khi người dùng bấm "Đồng ý" trong Modal → cập nhật state (demo client-side)
   const handleConfirmRegister = () => {
     if (selectedCampaignId !== null) {
-      // Ví dụ: Cập nhật tạm phía client
       setCampaigns((prev) =>
         prev.map((c) =>
           c.id === selectedCampaignId
-            ? { ...c, isRegistered: true, isRunning: true }
+            ? { ...c, publisherStatus: 'Pending' } // Ví dụ: gán tạm là 'Pending'
             : c
         )
       );
@@ -65,7 +66,7 @@ const CampaignsPage: React.FC = () => {
     setSelectedCampaignId(null);
   };
 
-  // Huỷ đăng ký
+  // Khi người dùng bấm "Hủy" trong Modal
   const handleCancelRegister = () => {
     setIsModalVisible(false);
     setSelectedCampaignId(null);
@@ -77,31 +78,30 @@ const CampaignsPage: React.FC = () => {
 
     let filtered = [...campaignsResponse.result.datas];
 
-    // 1) Lọc trạng thái khoá (demo)
+    // Lọc trạng thái khóa (demo)
     if (values.status === 'active') {
       filtered = filtered.filter((c) => !c.locked);
     } else if (values.status === 'locked') {
       filtered = filtered.filter((c) => c.locked);
     }
 
-    // 2) Lọc nhóm ngành (demo)
+    // Lọc nhóm ngành (demo)
     if (values.group && values.group !== 'all') {
       filtered = filtered.filter((c) => c.industryGroup === values.group);
     }
 
-    // 3) Lọc trạng thái chạy (demo)
+    // Lọc trạng thái chạy (demo)
     if (values.industryStatus === 'running') {
       filtered = filtered.filter((c) => c.isRunning === true);
     } else if (values.industryStatus === 'not_running') {
       filtered = filtered.filter((c) => c.isRunning === false);
     }
 
-    // 4) Lọc loại hình (demo)
+    // Lọc loại hình (demo)
     if (values.type && values.type !== 'all') {
       filtered = filtered.filter((c) => c.typePay === values.type);
     }
 
-    // set lại campaigns hiển thị
     setCampaigns(filtered);
     setCurrentPage(1);
   };
@@ -115,9 +115,7 @@ const CampaignsPage: React.FC = () => {
     setCurrentPage(1);
   };
 
-  // Nếu muốn phân trang hoàn toàn phía server,
-  // bạn có thể bỏ đoạn slice() này và dựa vào server trả về totalPages, totalItems...
-  // Ở đây minh hoạ filter + phân trang phía client, do "datas" là mảng
+  // Phân trang client side
   const startIndex = (currentPage - 1) * PAGE_SIZE;
   const endIndex = startIndex + PAGE_SIZE;
   const currentCampaigns = campaigns.slice(startIndex, endIndex);
@@ -194,13 +192,11 @@ const CampaignsPage: React.FC = () => {
       {/* Danh sách chiến dịch */}
       <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6">
         {currentCampaigns.map((campaign) => {
-          // Tuỳ thuộc vào cấu trúc object trả về từ server
-          // Ở ví dụ này: campaign.id, campaign.name, campaign.image, campaign.commission, ...
-          const isLocked = false; // Tự bạn xử lý logic khoá/ẩn
-          const isRegistered = false; // Demo
-          const isRunning = false; // Demo
-
-          // Demo cứng rating
+          // Demo cứng "locked" = false
+          const isLocked = false;
+          // Kiểm tra xem campaign đã tham gia chưa (nếu publisherStatus có giá trị)
+          const hasPublisherStatus = !!campaign.publisherStatus;
+          // Demo cứng rating, ratingCount, totalConversion
           const rating = 4.28;
           const ratingCount = 323;
           const totalConversion = 577866;
@@ -209,13 +205,12 @@ const CampaignsPage: React.FC = () => {
             <div
               key={campaign.id}
               className={`flex flex-col items-center rounded-lg bg-white p-4 shadow transition-transform duration-300 
-                ${
-                  !isLocked
-                    ? 'cursor-pointer hover:scale-105 hover:shadow-xl'
-                    : 'pointer-events-none opacity-50'
-                }`}
+                ${!isLocked ? 'cursor-pointer hover:scale-105 hover:shadow-xl' : 'pointer-events-none opacity-50'}`}
+              // Khi click vào campaign ở CampaignsPage:
               onClick={() =>
-                navigate(`/publisher/campaign-detail/${campaign.id}`)
+                navigate(`/publisher/campaign-detail/${campaign.id}`, {
+                  state: { participated: hasPublisherStatus } // hasPublisherStatus là boolean
+                })
               }
             >
               {/* Logo */}
@@ -238,7 +233,9 @@ const CampaignsPage: React.FC = () => {
               {/* Hoa hồng */}
               <div className="mb-1 text-sm text-gray-600">Hoa hồng</div>
               <div className="mb-2 text-lg font-bold text-[#8229B0]">
-                {campaign.commission?.toLocaleString()} đ
+                {campaign.percents
+                  ? `${campaign.percents}%`
+                  : `${campaign.commission?.toLocaleString()} đ`}
               </div>
 
               {/* Rating + conversions (demo cứng) */}
@@ -259,29 +256,39 @@ const CampaignsPage: React.FC = () => {
               {/* Nút hành động */}
               {isLocked ? (
                 <p className="text-red-500 mt-2 font-medium">Đã bị khóa</p>
+              ) : hasPublisherStatus ? (
+                // Nếu campaign đã tham gia (publisherStatus có giá trị)
+                // Nút "Lấy link" copy link vào clipboard và hiển thị thông báo
+                <Button
+                  type="default"
+                  className="w-full bg-white text-[#8229B0] hover:!border-[#9B52BF] hover:!bg-[#8229B0] hover:!text-white"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    const link = `${window.location.origin}/link/${PUBLISHER_ID}/${campaign.id}`;
+                    navigator.clipboard
+                      .writeText(link)
+                      .then(() => {
+                        message.success('Copy link thành công!');
+                      })
+                      .catch(() => {
+                        message.error('Copy link thất bại!');
+                      });
+                  }}
+                >
+                  Lấy link
+                </Button>
               ) : (
-                <div className="w-full">
-                  {isRegistered && isRunning ? (
-                    <Button
-                      type="default"
-                      className="w-full bg-[#8229B0] text-white hover:!border-[#9B52BF] hover:bg-white hover:!text-[#9B52BF]"
-                      onClick={(e) => e.stopPropagation()}
-                    >
-                      Tạo link
-                    </Button>
-                  ) : (
-                    <Button
-                      type="default"
-                      className="w-full bg-[#8229B0] text-white hover:!border-[#9B52BF] hover:bg-white hover:!text-[#9B52BF]"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleRegisterClick(campaign.id);
-                      }}
-                    >
-                      Đăng ký
-                    </Button>
-                  )}
-                </div>
+                // Nếu chưa tham gia => Nút "Đăng ký"
+                <Button
+                  type="default"
+                  className="w-full bg-[#8229B0] text-white hover:!border-[#9B52BF] hover:bg-white hover:!text-[#9B52BF]"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleRegisterClick(campaign.id);
+                  }}
+                >
+                  Đăng ký
+                </Button>
               )}
             </div>
           );
