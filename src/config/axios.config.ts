@@ -1,5 +1,6 @@
-import axios, { AxiosRequestConfig } from 'axios';
+import axios, { AxiosRequestConfig, AxiosResponse } from 'axios';
 import helpers from '../helpers';
+import { ApiResponse } from '@/types';
 
 const baseURL = 'https://localhost:7087/';
 const token = helpers.cookie_get('AT');
@@ -38,8 +39,10 @@ const onRequestError = (error: any) => {
  * Hàm này được gọi khi một phản hồi từ máy chủ được nhận thành công.
  * Nó trả về dữ liệu từ phản hồi.
  */
-const onResponseSuccess = (response: any) => {
-  return response.data;
+const onResponseSuccess = <T>(
+  response: AxiosResponse<ApiResponse<T>>
+): AxiosResponse<ApiResponse<T>> => {
+  return response;
 };
 
 /**
@@ -109,21 +112,17 @@ axios.interceptors.response.use(onResponseSuccess, onResponseError);
 axios.defaults.baseURL = baseURL;
 
 const BaseRequest = {
-  Get: async (url: string) => {
-    try {
-      const response = await axios.get(url);
-      return response;
-    } catch (err) {
-      console.log('err', err);
-    }
+  Get: async <T>(url: string): Promise<ApiResponse<T>> => {
+    const response = await axios.get<ApiResponse<T>>(url);
+    return response.data;
   },
-  Post: async (url: string, data?: any, config?: AxiosRequestConfig) => {
-    try {
-      const response = await axios.post<any>(url, data);
-      return response;
-    } catch (err) {
-      console.log('err', err);
-    }
+  Post: async <T>(
+    url: string,
+    data?: any,
+    config?: AxiosRequestConfig
+  ): Promise<ApiResponse<T>> => {
+    const response = await axios.post<ApiResponse<T>>(url, data, config);
+    return response.data;
   },
   Put: async (url: string, data: any) => {
     try {

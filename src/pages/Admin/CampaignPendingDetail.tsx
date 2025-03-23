@@ -19,28 +19,11 @@ import {
   useGetCampaignById,
   useUpdateCampaignStatus
 } from '@/queries/campaign.query';
+import { ApiResponse, Campaign, CampaignApiResponse } from '@/types';
 
 const { Content } = Layout;
 const { Title, Paragraph, Text } = Typography;
 const { confirm } = Modal;
-
-interface Campaign {
-  id: number;
-  name: string;
-  advertiserId: number;
-  advertiserName: string;
-  description: string;
-  originUrl: string;
-  budget: number;
-  startDate: string;
-  endDate: string;
-  method: string; // CPC, CPA, CPS
-  status: string; // "Bị từ chối" / "Hoạt động" / "Chờ duyệt"
-  category: string; // "Thực phẩm&Đồ uống", "Du lịch& Nghỉ dưỡng", ...
-  commissionType: string; // "VND" hoặc "%"
-  commissionValue: number; // Số tiền hoa hồng hoặc %
-  imageUrl: string;
-}
 
 const CampaignPendingDetail: React.FC = () => {
   const { id } = useParams();
@@ -78,7 +61,7 @@ const CampaignPendingDetail: React.FC = () => {
   }
 
   // Lấy đối tượng campaign từ API
-  const apiCampaign = data?.result;
+  const apiCampaign = (data as ApiResponse<CampaignApiResponse>)?.result;
   if (!apiCampaign) {
     return (
       <Layout className="min-h-screen bg-gray-50">
@@ -96,12 +79,12 @@ const CampaignPendingDetail: React.FC = () => {
     id: apiCampaign.id,
     name: apiCampaign.name,
     advertiserId: apiCampaign.advertiserId,
-    advertiserName: apiCampaign.advertiserName ?? '',
+    advertiserName: apiCampaign.Advertiser.applicationUser.fullName ?? '',
     description: apiCampaign.description,
     originUrl: apiCampaign.originURL,
     budget: apiCampaign.budget,
-    startDate: apiCampaign.startDate,
-    endDate: apiCampaign.endDate,
+    startDate: apiCampaign.startDate.toUTCString(),
+    endDate: apiCampaign.endDate.toUTCString(),
     method: apiCampaign.typePay,
     status: apiCampaign.status,
     category: apiCampaign.typeCampaign,
@@ -137,7 +120,7 @@ const CampaignPendingDetail: React.FC = () => {
   const commissionText =
     campaign.commissionType === '%'
       ? `${campaign.commissionValue}%`
-      : `${campaign.commissionValue.toLocaleString()} VND`;
+      : `${campaign.commissionValue?.toLocaleString()} VND`;
 
   // Hỏi xác nhận và cập nhật status
   const confirmUpdateStatus = (action: 'approve' | 'reject') => {
@@ -230,7 +213,7 @@ const CampaignPendingDetail: React.FC = () => {
                   {/* Ảnh */}
                   <div className="mb-4 flex justify-center">
                     <img
-                      src={campaign.imageUrl}
+                      src={campaign.imageUrl ?? ''}
                       alt={campaign.name}
                       className="h-40 w-40 rounded-md object-cover shadow-md"
                     />

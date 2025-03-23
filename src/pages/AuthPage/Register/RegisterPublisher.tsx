@@ -18,7 +18,7 @@ type FormPublisher = {
 type FormError = Partial<FormPublisher>;
 
 export default function RegisterPublisherPage() {
-  const { mutateAsync, isLoading } = useRegisterPublisher();
+  const { mutateAsync, isPending } = useRegisterPublisher();
   const [showPassword, setShowPassword] = useState(false);
   // State lưu trữ dữ liệu form
   const [formPublisher, setFormPublisher] = useState<FormPublisher>({
@@ -238,9 +238,9 @@ export default function RegisterPublisherPage() {
                 <Button
                   className="hover:bg-yellow-600 w-full rounded-lg bg-purple-600 text-white"
                   onClick={handleRegister}
-                  disabled={isLoading}
+                  disabled={isPending}
                 >
-                  {isLoading ? 'Đang xử lý...' : 'Hoàn tất'}
+                  {isPending ? 'Đang xử lý...' : 'Hoàn tất'}
                 </Button>
               </div>
             </div>

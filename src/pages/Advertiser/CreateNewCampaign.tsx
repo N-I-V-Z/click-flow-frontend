@@ -11,8 +11,7 @@ import {
   Upload,
   Tabs,
   Row,
-  Col,
-  Typography
+  Col
 } from 'antd';
 import { PlusOutlined } from '@ant-design/icons';
 import type { UploadProps } from 'antd';
@@ -21,7 +20,6 @@ import { toast } from 'react-toastify';
 
 const { Option } = Select;
 const { TabPane } = Tabs;
-const { Text } = Typography;
 
 export interface CreateCampaignPayload {
   name: string;

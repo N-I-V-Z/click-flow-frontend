@@ -1,12 +1,15 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { Modal, Button, Input } from 'antd';
+import { Modal } from 'antd';
 import { EyeOutlined, CloseCircleOutlined } from '@ant-design/icons';
-import { BiBuildings } from 'react-icons/bi';
-import DataTable from '@/components/shared/data-table';
 import { ColumnDef } from '@tanstack/react-table';
-import { AdvertiserDetailModal } from './AdvertiserDetailModal';
 // Import 2 hook dưới:
 import { useGetUsersByRole } from '@/queries/user.query';
+import {
+  ApiResponse,
+  ApplicationUserApiResponse,
+  PagingResponse
+} from '@/types';
+import DataTable from '@/components/shared/data-table';
 
 interface Advertiser {
   id: number;
@@ -59,10 +62,12 @@ const AdvertiserList: React.FC = () => {
   // 2) Mỗi khi data?.result thay đổi, map sang Advertiser[]
   useEffect(() => {
     if (data?.result) {
-      const mapped = data.result.map((user: any) =>
+      const mapped = (
+        data as ApiResponse<PagingResponse<ApplicationUserApiResponse>>
+      ).result?.datas.map((user: ApplicationUserApiResponse) =>
         mapApiUserToAdvertiser(user)
       );
-      setDataSource(mapped);
+      setDataSource(mapped ?? []);
     }
   }, [data]);
 

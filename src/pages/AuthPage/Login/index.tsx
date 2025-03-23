@@ -11,7 +11,7 @@ import { Eye, EyeOff } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import ImageLeft from '../Image';
 import { useRouter } from '@/routes/hooks';
-import { TokenDecoded } from '@/types';
+import { ApiResponse, LoginApiResponse, TokenDecoded } from '@/types';
 
 type FormLogin = {
   userNameOrEmail: string;
@@ -62,8 +62,14 @@ export default function LoginPage() {
     try {
       const data = await Login(formLogin);
       console.log('Login response:', data);
-      helpers.cookie_set('AT', data.result.token);
-      helpers.cookie_set('RT', data.result.refreshToken);
+      helpers.cookie_set(
+        'AT',
+        (data as ApiResponse<LoginApiResponse>).result?.token ?? ''
+      );
+      helpers.cookie_set(
+        'RT',
+        (data as ApiResponse<LoginApiResponse>).result?.refreshToken ?? ''
+      );
       dispatch(login());
       const decodedToken: TokenDecoded = helpers.decodeTokens();
       // Chuyển role thành chữ thường để so sánh không phân biệt chữ hoa chữ thường

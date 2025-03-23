@@ -18,12 +18,10 @@ import { logout } from '@/redux/auth.slice';
 const { SubMenu } = Menu;
 
 const SidebarAdmin: React.FC = () => {
-
-  const { mutateAsync: logoutAccount } = useLogout();
+  const { mutateAsync: logoutAccount, isPending } = useLogout();
   const router = useRouter();
   const dispatch = useDispatch();
   const refreshToken = helpers.cookie_get('RT');
-  const { mutateAsync, isPending } = useLogout();
 
   const handleLogout = async () => {
     await logoutAccount({
@@ -36,7 +34,6 @@ const SidebarAdmin: React.FC = () => {
   };
   const location = useLocation();
   const [selectedKey, setSelectedKey] = useState(location.pathname);
-
 
   return (
     <div
@@ -149,15 +146,12 @@ const SidebarAdmin: React.FC = () => {
             key="/logout"
             icon={<LogoutOutlined />}
             style={{ color: 'red' }}
-
             onClick={handleLogout}
             disabled={isPending}
-
             className={`
               hover:!border-[#9B52BF] hover:bg-white hover:!text-[#9B52BF]
               ${selectedKey === '/logout' ? '!bg-[#9B52BF] !text-white' : ''}
             `}
-
           >
             {/* Khi click vào Đăng xuất, hiển thị modal xác nhận */}
             <p>{isPending ? 'Đang xử lý...' : 'Đăng xuất'}</p>

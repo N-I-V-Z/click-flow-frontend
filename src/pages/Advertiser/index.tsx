@@ -3,13 +3,14 @@ import { FaClock, FaTimesCircle, FaPause, FaCheckCircle } from 'react-icons/fa';
 import CreateNewCampaign from './CreateNewCampaign';
 import CampaignRequest from './CampaignRequest';
 import { useGetUserDetail } from '@/queries/user.query';
+import { ApiResponse, UserDetailApiResponse } from '@/types';
 
 const AdvertiserDashboard: React.FC = () => {
   const [isModalVisible, setIsModalVisible] = useState<boolean>(false);
 
   // Gọi API lấy thông tin người dùng (chỉ lấy fullName)
-  const { data, isLoading, error } = useGetUserDetail(1);
-  const user = data?.result;
+  const { data, isLoading } = useGetUserDetail(1);
+  const user = (data as ApiResponse<UserDetailApiResponse>)?.result;
 
   // Nếu đang loading hoặc có lỗi, có thể hiển thị fallback cho tên
   const greetingName = user?.fullName || (isLoading ? '...' : 'User');

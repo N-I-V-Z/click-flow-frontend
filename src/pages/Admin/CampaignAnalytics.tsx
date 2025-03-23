@@ -114,7 +114,7 @@ const CampaignAnalytics: React.FC<Props> = ({
   };
 
   // Hàm xử lý khi đổi RangePicker
-  const handleRangeChange: OnRangeChange = (values, formatString) => {
+  const handleRangeChange: OnRangeChange = (values) => {
     if (!values) {
       // Clear -> reset
       setChartData(initialClickData);

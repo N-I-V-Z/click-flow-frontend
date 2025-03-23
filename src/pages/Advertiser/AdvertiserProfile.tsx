@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { useRouter } from '@/routes/hooks';
 import { motion } from 'framer-motion';
 import { useGetUserDetail } from '@/queries/user.query';
+import { ApiResponse } from '@/types';
 
 interface UserProfile {
   fullName: string;
@@ -22,7 +23,7 @@ const AdvertiserProfile: React.FC = () => {
   const { data, isLoading, error } = useGetUserDetail(1);
 
   // user object (assuming `data?.result` is a single user, not an array)
-  const user: UserProfile | undefined = data?.result;
+  const user = (data as ApiResponse<UserProfile>)?.result;
 
   if (isLoading) {
     return <div>Loading user details...</div>;

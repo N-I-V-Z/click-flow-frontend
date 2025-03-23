@@ -6,14 +6,7 @@ import { Button } from '@/components/ui/button';
 import { useRouter } from '@/routes/hooks';
 import { motion } from 'framer-motion';
 import { useGetUserDetail } from '@/queries/user.query';
-
-interface UserProfile {
-  fullName: string;
-  dateOfBirth: string; // hoặc Date, tùy format API
-  gender: string;
-  avatarURL: string;
-  address: string;
-}
+import { ApiResponse, UserDetailApiResponse } from '@/types';
 
 const AdvertiserProfile: React.FC = () => {
   const router = useRouter();
@@ -22,7 +15,7 @@ const AdvertiserProfile: React.FC = () => {
   const { data, isLoading, error } = useGetUserDetail(2);
 
   // user object (assuming `data?.result` is a single user, not an array)
-  const user: UserProfile | undefined = data?.result;
+  const user = (data as ApiResponse<UserDetailApiResponse>)?.result;
 
   if (isLoading) {
     return <div>Loading user details...</div>;

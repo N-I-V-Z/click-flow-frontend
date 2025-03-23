@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { Button, Tag, Input, message } from 'antd';
 import { EyeOutlined, EditOutlined } from '@ant-design/icons';
 import { ColumnDef } from '@tanstack/react-table';
@@ -10,6 +10,7 @@ import { useGetReports } from '@/queries/report.query';
 // 2 modal tách file
 import ReportDetailModal from './ReportDetailModal';
 import ReportResponseModal from './ReportResponseModal';
+import { ApiResponse, PagingResponse, ReportApiResponse } from '@/types';
 
 interface Report {
   id: string;
@@ -67,11 +68,13 @@ export default function ReportTable() {
   const { data, isLoading, error } = useGetReports(1, 10);
 
   useEffect(() => {
-    if (data?.result?.datas) {
-      const mapped = data.result.datas.map((item: any) =>
-        mapApiReportToLocal(item)
-      );
-      setReports(mapped);
+    if (
+      (data as ApiResponse<PagingResponse<ReportApiResponse>>)?.result?.datas
+    ) {
+      const mapped = (
+        data as ApiResponse<PagingResponse<ReportApiResponse>>
+      ).result?.datas.map((item: any) => mapApiReportToLocal(item));
+      setReports(mapped ?? []);
     }
   }, [data]);
 

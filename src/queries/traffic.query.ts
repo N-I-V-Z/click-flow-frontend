@@ -1,7 +1,7 @@
 import BaseRequest from '@/config/axios.config';
 import { useQuery } from '@tanstack/react-query';
 
-const SUB_URL = 'api/Traffics/campaign';
+const SUB_URL = 'api/Traffics/';
 
 export const useGetTraffics = (
   campaignId = 1,
@@ -14,7 +14,7 @@ export const useGetTraffics = (
     queryFn: async () => {
       // Gửi request kèm các query params
       return await BaseRequest.Get(
-        `/${SUB_URL}/${campaignId}?PageIndex=${PageIndex}&PageSize=${PageSize}`
+        `/${SUB_URL}/campaign/${campaignId}?PageIndex=${PageIndex}&PageSize=${PageSize}`
       );
     }
   });

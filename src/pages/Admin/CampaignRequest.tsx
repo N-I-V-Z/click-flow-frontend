@@ -13,6 +13,7 @@ import {
   useGetCampaign,
   useUpdateCampaignStatus
 } from '@/queries/campaign.query';
+import { ApiResponse, CampaignApiResponse, PagingResponse } from '@/types';
 
 // Hàm format ngày "YYYY-MM-DD" => "DD/MM/YYYY"
 function formatDate(dateStr: string): string {
@@ -41,7 +42,9 @@ const CampaignRequest: React.FC = () => {
   // Lấy danh sách campaign trạng thái "Pending"
   const { data, isLoading, error, refetch } = useGetCampaign('Pending', 1, 10);
   // Giả sử API trả về dữ liệu trong trường result
-  const rawCampaigns = data?.result.datas ?? [];
+  const rawCampaigns =
+    (data as ApiResponse<PagingResponse<CampaignApiResponse>>)?.result?.datas ??
+    [];
 
   // Map dữ liệu API thành interface RequestCampaign
   const campaigns: RequestCampaign[] = rawCampaigns.map((item: any) => ({
