@@ -256,3 +256,13 @@ export function useGetCampaignByIdd(id?: number) {
     }
   });
 }
+export const useRegisterCampaign = () => {
+  return useMutation({
+    // payload ở đây giả sử chỉ cần { campaignId: number }
+    mutationFn: async (payload: { campaignId: number }) => {
+      // Gọi API POST /api/Campaigns/register
+      // (Thay đổi endpoint hoặc body theo thực tế backend của bạn)
+      return await BaseRequest.Post('/api/Campaigns/register', payload);
+    }
+  });
+};
