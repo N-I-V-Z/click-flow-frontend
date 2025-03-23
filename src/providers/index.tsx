@@ -29,9 +29,7 @@ const ErrorFallback = ({ error }: FallbackProps) => {
       className="text-red-500 flex h-screen w-screen flex-col  items-center justify-center"
       role="alert"
     >
-      <h2 className="text-2xl font-semibold">
-        Ooops, something went wrong :({' '}
-      </h2>
+      <h2 className="text-2xl font-semibold">Something went wrong :( </h2>
       <pre className="text-2xl font-bold">{error.message}</pre>
       <pre>{error.stack}</pre>
       <Button className="mt-4" onClick={() => router.back()}>
