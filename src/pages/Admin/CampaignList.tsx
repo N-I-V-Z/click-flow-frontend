@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Modal } from 'antd';
 import {
@@ -12,44 +12,31 @@ import { ColumnDef } from '@tanstack/react-table';
 
 // **Import hook** gọi API
 import { useGetCampaignListExcpPending } from '@/queries/campaign.query';
+import { ApiResponse, CampaignApiResponse, PagingResponse } from '@/types';
+import __helpers from '@/helpers';
+import { DataTableSkeleton } from '@/components/shared/data-table-skeleton';
 // (tuỳ đường dẫn file bạn đặt)
 
-interface Campaign {
-  id: number;
-  name: string;
-  advertiserId: number;
-  advertiserName: string;
-  description: string;
-  originUrl: string;
-  budget: number;
-  startDate: string;
-  endDate: string;
-  method: string;
-  status: string;
-  category: string;
-  commissionType: string;
-  commissionValue: number;
-  imageUrl: string;
-}
-
 const CampaignList: React.FC = () => {
-  // Quản lý tìm kiếm
-  const [searchValue, setSearchValue] = useState('');
   // Mảng data hiển thị trên bảng (đã filter cục bộ)
-  const [dataSource, setDataSource] = useState<Campaign[]>([]);
+  const [dataSource, setDataSource] = useState<CampaignApiResponse[]>([]);
 
   // Modal xác nhận dừng chiến dịch
   const [isModalVisible, setIsModalVisible] = useState(false);
-  const [selectedCampaign, setSelectedCampaign] = useState<Campaign | null>(
-    null
-  );
+  const [selectedCampaign, setSelectedCampaign] =
+    useState<CampaignApiResponse | null>(null);
 
   // Điều hướng router
   const navigate = useNavigate();
 
   // ---- (1) Gọi API ----
+  const { pageIndex, pageSize } = __helpers.usePaginationParams();
+
   // Giả sử ta muốn pageIndex=1, pageSize=10
-  const { data, isLoading, error } = useGetCampaignListExcpPending(1, 10);
+  const { data, isLoading, error, isSuccess } = useGetCampaignListExcpPending(
+    pageIndex,
+    pageSize
+  );
 
   /**
    * Khi data từ API trả về, ta lưu vào dataSource.
@@ -57,37 +44,21 @@ const CampaignList: React.FC = () => {
    * Tuỳ theo shape thật của response mà bạn chỉnh sửa.
    */
   useEffect(() => {
-    if (data?.result.datas) {
-      setDataSource(data?.result.datas);
+    if (isSuccess) {
+      setDataSource(
+        (data as ApiResponse<PagingResponse<CampaignApiResponse>>).result
+          ?.datas ?? []
+      );
     }
-  }, [data]);
-
-  /**
-   * Filter cục bộ theo searchValue.
-   * Nếu muốn filter server-side, bạn sẽ gọi API khác kèm query (tuỳ backend).
-   */
-  useEffect(() => {
-    if (!data?.result.datas) return;
-    // Map dữ liệu để thêm trường companyName từ advertiser.companyName
-    const campaigns = data.result.datas.map((item: any) => ({
-      ...item,
-      companyName: item.advertiser?.companyName ?? ''
-    }));
-
-    // Sau đó thực hiện lọc theo searchValue (bạn có thể lọc theo name hoặc companyName nếu cần)
-    const lower = searchValue.toLowerCase();
-    const filtered = campaigns.filter(
-      (item: any) =>
-        item.name.toLowerCase().includes(lower) ||
-        item.companyName.toLowerCase().includes(lower)
-    );
-    setDataSource(filtered);
-  }, [searchValue, data]);
+  }, [data, isSuccess]);
 
   // Bấm "Xem" => điều hướng sang /admin/campaign-detail/:id
-  const handleView = (record: Campaign) => {
-    navigate(`/admin/campaign-detail/${record.id}`);
-  };
+  const handleView = useCallback(
+    (record: CampaignApiResponse) => {
+      navigate(`/admin/campaign-detail/${record.id}`);
+    },
+    [navigate]
+  );
 
   // Xác nhận "Dừng chiến dịch"
   const handleDelete = () => {
@@ -100,7 +71,7 @@ const CampaignList: React.FC = () => {
   };
 
   // Định nghĩa cột
-  const columns = useMemo<ColumnDef<Campaign>[]>(
+  const columns = useMemo<ColumnDef<CampaignApiResponse>[]>(
     () => [
       {
         accessorKey: 'name',
@@ -115,7 +86,7 @@ const CampaignList: React.FC = () => {
         header: 'NGÀY KẾT THÚC'
       },
       {
-        accessorKey: 'companyName', // Sử dụng companyName thay cho advertiserName
+        accessorKey: 'advertiser.companyName', // Sử dụng companyName thay cho advertiserName
         header: 'NHÀ QUẢNG CÁO'
       },
       {
@@ -160,13 +131,9 @@ const CampaignList: React.FC = () => {
         }
       }
     ],
-    []
+    [handleView]
   );
 
-  // Xử lý trạng thái loading / error
-  if (isLoading) {
-    return <div>Đang tải danh sách chiến dịch...</div>;
-  }
   if (error) {
     return <div>Đã có lỗi xảy ra khi tải dữ liệu!</div>;
   }
@@ -175,14 +142,17 @@ const CampaignList: React.FC = () => {
     <div className="p-4">
       <h2 className="mb-4 text-xl font-semibold">Danh sách chiến dịch</h2>
 
-      <DataTable
-        columns={columns}
-        data={dataSource}
-        // Nếu backend có totalPage, bạn có thể truyền vào pageCount
-        pageCount={1}
-        pageSizeOptions={[10, 20, 50, 100]}
-        showAdd={false}
-      />
+      {isLoading ? (
+        <DataTableSkeleton columnCount={6} rowCount={pageSize} />
+      ) : (
+        <DataTable
+          columns={columns}
+          data={dataSource}
+          // Nếu backend có totalPage, bạn có thể truyền vào pageCount
+          pageCount={1}
+          showAdd={false}
+        />
+      )}
 
       {/* Modal xác nhận dừng chiến dịch */}
       <Modal

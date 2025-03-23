@@ -78,10 +78,9 @@ export const useGetCampaignPublisher = (
   return useQuery({
     queryKey: ['get-campaigns-publisher', publisherId, pageIndex, pageSize],
     queryFn: async () => {
-      const response = await BaseRequest.Get(
+      return await BaseRequest.Get(
         `/${SUB_URL}/get-all-campaign-for-publisher/${publisherId}?PageIndex=${pageIndex}&PageSize=${pageSize}`
       );
-      return response;
     }
   });
 };
@@ -102,11 +101,7 @@ export const useCreateCampaign = () => {
       percents: number;
       image: string;
     }) => {
-      const response = await BaseRequest.Post(
-        `/${SUB_URL}/create-campaign`,
-        model
-      );
-      return response;
+      return await BaseRequest.Post(`/${SUB_URL}/create-campaign`, model);
     }
   });
 };
@@ -117,7 +112,7 @@ export const useUploadImage = () => {
     mutationFn: async (file: File) => {
       const formData = new FormData();
       formData.append('File', file);
-      const response = await BaseRequest.Post(
+      return await BaseRequest.Post(
         `/${SUB_URL_IMAGE}/upload-image`,
         formData,
         {
@@ -126,7 +121,6 @@ export const useUploadImage = () => {
           }
         }
       );
-      return response;
     }
   });
 };
@@ -144,10 +138,9 @@ export const useGetPublisherParticipationByStatusForAdvertiser = (
       campaignParticipationStatus
     ],
     queryFn: async () => {
-      const response = await BaseRequest.Get(
-        `/${SUB_URL}/${pageIndex}/${pageSize}?campaignParticipationStatus=${campaignParticipationStatus}`
+      return await BaseRequest.Get(
+        `/${SUB_URL}/get-publisher-paticipation-by-status-for-advertiser/${pageIndex}/${pageSize}?campaignParticipationStatus=${campaignParticipationStatus}`
       );
-      return response.result;
     }
   });
 };
@@ -165,10 +158,9 @@ export const useGetCampaignsJoinedByPublisher = (
       pageSize
     ],
     queryFn: async () => {
-      const response = await BaseRequest.Get(
+      return await BaseRequest.Get(
         `${SUB_URL}/get-campaigns-joined-by-publisher/${publisherId}/${pageIndex}/${pageSize}`
       );
-      return response;
     }
   });
 };

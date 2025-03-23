@@ -90,7 +90,7 @@ export type CampaignApiResponse = {
   image: string | null;
   averageStarRate: number | null;
   advertiserId: number | null;
-  Advertiser: AdvertiserApiResponse;
+  advertiser: AdvertiserApiResponse;
 };
 
 export type AdvertiserApiResponse = {
