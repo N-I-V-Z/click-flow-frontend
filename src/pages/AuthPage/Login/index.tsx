@@ -12,6 +12,7 @@ import { Link } from 'react-router-dom';
 import ImageLeft from '../Image';
 import { useRouter } from '@/routes/hooks';
 import { ApiResponse, LoginApiResponse, TokenDecoded } from '@/types';
+import __helpers from '@/helpers';
 
 type FormLogin = {
   userNameOrEmail: string;
@@ -71,9 +72,11 @@ export default function LoginPage() {
         (data as ApiResponse<LoginApiResponse>).result?.refreshToken ?? ''
       );
       dispatch(login());
-      const decodedToken: TokenDecoded = helpers.decodeTokens();
+      const decodedToken: TokenDecoded | null = helpers.decodeTokens(
+        __helpers.cookie_get('AT')
+      );
       // Chuyển role thành chữ thường để so sánh không phân biệt chữ hoa chữ thường
-      const role = decodedToken.Role.toLowerCase();
+      const role = decodedToken?.Role.toLowerCase();
       if (role === 'admin') {
         router.push('/admin');
       } else if (role === 'advertiser') {

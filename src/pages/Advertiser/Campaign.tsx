@@ -7,6 +7,7 @@ import DataTable from '@/components/shared/data-table';
 import { Button } from '@/components/ui/button';
 
 import { useGetPublisherParticipationByStatusForAdvertiser } from '@/queries/campaign.query';
+import { ApiResponse, CampaignApiResponse, PagingResponse } from '@/types';
 
 // Kiểu gốc API
 type CampaignParticipationStatus = 'Pending' | 'Participated' | 'Rejected';
@@ -50,10 +51,9 @@ const AdvertiserCampaigns = () => {
     );
 
   // Mảng items
-  const campaigns = data?.items ?? [];
 
   const [rowSelection, setRowSelection] = useState<Record<string, boolean>>({});
-  const [selectedRows, setSelectedRows] = useState<any[]>([]);
+  const [selectedRows, setSelectedRows] = useState<Project[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
 
   // Modal states
@@ -64,20 +64,25 @@ const AdvertiserCampaigns = () => {
 
   // Map dữ liệu trả về sang Project
   const mappedData: Project[] = useMemo(() => {
-    return campaigns.map((c: any) => {
+    const campaigns =
+      (data as ApiResponse<PagingResponse<CampaignApiResponse>>).result
+        ?.datas ?? [];
+
+    return campaigns.map((c: CampaignApiResponse) => {
       const foundStatus = statusOptions.find(
         (option) => option.name === c.status
-      );
+      )?.displayName as Project['status'];
+
       return {
         id: c.id,
-        name: c.campaign?.name ?? 'N/A',
-        createdDate: c.createAt ?? '',
-        advertiser: `Advertiser #${c.campaign?.advertiserId ?? ''}`,
-        status: foundStatus ? foundStatus.displayName : 'Chờ duyệt',
-        deadline: c.campaign?.endDate ?? ''
+        name: c.name ?? 'N/A',
+        createdDate: new Date(c.startDate).toLocaleDateString() ?? '',
+        advertiser: `Advertiser #${c.advertiser.id ?? ''}`,
+        status: foundStatus || 'Chờ duyệt',
+        deadline: new Date(c.endDate).toLocaleDateString() ?? ''
       };
     });
-  }, [campaigns]);
+  }, [data]);
 
   // Lọc dữ liệu theo search
   const filteredData = useMemo(() => {

@@ -7,9 +7,9 @@ import { useGetCampaignsJoinedByPublisher } from '@/queries/campaign.query';
 import helpers from '@/helpers';
 
 const { Option } = Select;
-const decodedToken: TokenDecoded = helpers.decodeTokens();
+const decodedToken: TokenDecoded | null = helpers.decodeTokens();
 // PublisherId lấy từ token (hoặc từ context, store,...)
-const PUBLISHER_ID = decodedToken.Id;
+const PUBLISHER_ID = decodedToken?.Id;
 
 // Số item mỗi trang (client side)
 const PAGE_SIZE = 10;
