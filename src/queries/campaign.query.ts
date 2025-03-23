@@ -177,7 +177,7 @@ export const useGetCampaignListExcpPending = (
     }
   });
 };
-export const useGetCampaignsJoinedByPublisher = (
+export const useGetAllCampaignForPublisher = (
   pageIndex: number = 1,
   pageSize: number = 10
 ) => {
