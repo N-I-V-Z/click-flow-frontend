@@ -5,7 +5,7 @@ import Slider from 'react-slick';
 import { LeftOutlined, RightOutlined } from '@ant-design/icons';
 import { useParams, useNavigate } from 'react-router-dom';
 import helpers from '@/helpers';
-
+import Feedback from './Feedback';
 import {
   useGetCampaignByIdd,
   useGetSimilarCampaigns,
@@ -385,7 +385,7 @@ const CampaignDetailPage: React.FC = () => {
             </TabPane>
             <TabPane tab="Feedbacks" key="feedbacks">
               <p className="mt-4 text-gray-700">
-                Khu vực hiển thị nhận xét, đánh giá của người dùng...
+                <Feedback campaignId={campaignId} />
               </p>
             </TabPane>
           </Tabs>

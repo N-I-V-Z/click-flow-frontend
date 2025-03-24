@@ -171,7 +171,45 @@ export type LoginApiResponse = {
   token: string;
   refreshToken: string;
 };
+export interface IUserDetail {
+  id: number;
+  dateOfBirth: string;
+  gender: string;
+  avatarURL: string;
+  address: string;
+  applicationUserId: number;
+}
 
+export interface IApplicationUser {
+  fullName: string;
+  role: string;
+  isDeleted: boolean;
+  email: string;
+  userDetail?: IUserDetail;
+}
+
+export interface IFeedbacker {
+  id: number;
+  userId: number;
+  applicationUser?: IApplicationUser;
+}
+
+export interface IFeedback {
+  id: number;
+  description: string;
+  starRate: number;
+  timestamp: string; // "2025-03-24T06:06:20.2711005"
+  campaignId: number;
+  feedbackerId: number;
+  feedbacker?: IFeedbacker;
+}
+
+export interface IFeedbackAPIResponse {
+  statusCode: string; // "OK"
+  isSuccess: boolean; // true / false
+  message: string; // "Get data success"
+  result: IFeedback[]; // Mảng feedback
+}
 /**
  *
  */
