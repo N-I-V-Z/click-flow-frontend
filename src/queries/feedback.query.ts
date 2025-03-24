@@ -43,3 +43,19 @@ export const useCreateFeedback = () => {
     }
   });
 };
+export const useUpdateFeedback = () => {
+  return useMutation({
+    mutationFn: async (payload: {
+      id: number;
+      description: string;
+      starRate: number;
+    }) => {
+      // Gọi PUT /api/feedbacks/update-feedback với payload
+      const response = await BaseRequest.Put(
+        '/api/feedbacks/update-feedback',
+        payload
+      );
+      return response;
+    }
+  });
+};

@@ -19,11 +19,11 @@ export const useGetTraffics = (
 };
 
 export interface ICreateTrafficPayload {
-  ipAddress: string;
   deviceType: string;
   orderId: string;
   browser: string;
-  referrerUrl: string; // Updated key name
+  referrerURL: string;
+  timestamp: string;
   campaignId: number;
   publisherId: number;
 }
