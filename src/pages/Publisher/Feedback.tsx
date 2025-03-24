@@ -1,11 +1,21 @@
 import React, { useState } from 'react';
 import {
   useGetFeedbacksByCampaign,
-  useCreateFeedback
+  useCreateFeedback,
+  useUpdateFeedback
 } from '@/queries/feedback.query';
 import { AiOutlineLoading3Quarters } from 'react-icons/ai';
+import { FiMoreVertical } from 'react-icons/fi'; // Icon ba chấm
 import { IFeedback } from '@/types/index';
-
+import { TokenDecoded } from '@/types';
+import helpers from '@/helpers';
+import __helpers from '@/helpers';
+const decodedToken: TokenDecoded | null = helpers.decodeTokens(
+  __helpers.cookie_get('AT')
+);
+// PublisherId lấy từ token (hoặc từ context, store,...)
+const PUBLISHER_ID =
+  decodedToken?.Id !== undefined ? parseInt(decodedToken?.Id) : 0;
 /** Tính phân bố sao (trả về [count1, count2, count3, count4, count5]) */
 function computeStarDistribution(feedbacks: IFeedback[]) {
   const distribution = [0, 0, 0, 0, 0];
@@ -14,11 +24,12 @@ function computeStarDistribution(feedbacks: IFeedback[]) {
       distribution[fb.starRate - 1]++;
     }
   });
+
   return distribution;
 }
 
 const Feedback: React.FC<{ campaignId: number }> = ({ campaignId }) => {
-  // ---- (1) Tất cả hook đều ở top-level ----
+  // Lấy danh sách feedback
   const {
     data: feedbackData,
     isLoading,
@@ -27,12 +38,26 @@ const Feedback: React.FC<{ campaignId: number }> = ({ campaignId }) => {
     refetch
   } = useGetFeedbacksByCampaign(campaignId, 1, 50);
 
+  // Tạo mới feedback
   const { mutateAsync: createFeedback, isLoading: isCreating } =
     useCreateFeedback();
 
+  // Cập nhật feedback
+  const { mutateAsync: updateFeedback, isLoading: isUpdating } =
+    useUpdateFeedback();
+
+  // State Modal tạo mới feedback
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [newRating, setNewRating] = useState<number>(0);
   const [newContent, setNewContent] = useState<string>('');
+
+  // State Modal sửa feedback
+  const [editModalOpen, setEditModalOpen] = useState(false);
+  const [editingFeedbackId, setEditingFeedbackId] = useState<number | null>(
+    null
+  );
+  const [editingStarRate, setEditingStarRate] = useState<number>(0);
+  const [editingContent, setEditingContent] = useState<string>('');
 
   // Bộ lọc
   const [sortOption, setSortOption] = useState<'newest' | 'oldest'>('newest');
@@ -42,7 +67,7 @@ const Feedback: React.FC<{ campaignId: number }> = ({ campaignId }) => {
   const [currentPage, setCurrentPage] = useState<number>(1);
   const itemsPerPage = 3;
 
-  // ---- (2) Xử lý “loading” / “error” sau khi hook đã được khai báo ----
+  // Loading state
   if (isLoading) {
     return (
       <div className="flex items-center justify-center p-4 text-center text-gray-500">
@@ -59,7 +84,7 @@ const Feedback: React.FC<{ campaignId: number }> = ({ campaignId }) => {
     );
   }
 
-  // ---- (3) Logic xử lý dữ liệu, không thay đổi số hook ----
+  // Danh sách feedback sau khi load
   const feedbacks = feedbackData || [];
   const totalFeedback = feedbacks.length;
   const avgRating = totalFeedback
@@ -71,7 +96,7 @@ const Feedback: React.FC<{ campaignId: number }> = ({ campaignId }) => {
     totalFeedback > 0 ? Math.round((count / totalFeedback) * 100) : 0
   );
 
-  // Lọc theo star
+  // Lọc theo sao
   let displayedFeedbacks = [...feedbacks];
   if (starFilter > 0) {
     displayedFeedbacks = displayedFeedbacks.filter(
@@ -86,7 +111,7 @@ const Feedback: React.FC<{ campaignId: number }> = ({ campaignId }) => {
     return sortOption === 'newest' ? dateB - dateA : dateA - dateB;
   });
 
-  // Tính pagination
+  // Phân trang
   const totalPages = Math.ceil(displayedFeedbacks.length / itemsPerPage);
   const indexOfLastItem = currentPage * itemsPerPage;
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
@@ -95,7 +120,7 @@ const Feedback: React.FC<{ campaignId: number }> = ({ campaignId }) => {
     indexOfLastItem
   );
 
-  // ---- (4) Hàm render sao (không chứa hook) => OK ----
+  /** Render các ngôi sao */
   const renderStars = (rating: number) => (
     <div className="flex items-center">
       {Array.from({ length: 5 }).map((_, index) => {
@@ -130,7 +155,7 @@ const Feedback: React.FC<{ campaignId: number }> = ({ campaignId }) => {
     </div>
   );
 
-  // ---- (5) Hàm mở/đóng modal, tạo feedback ----
+  /** Mở modal tạo feedback */
   const openModal = () => setIsModalOpen(true);
   const closeModal = () => {
     setIsModalOpen(false);
@@ -138,6 +163,7 @@ const Feedback: React.FC<{ campaignId: number }> = ({ campaignId }) => {
     setNewContent('');
   };
 
+  /** Submit tạo feedback */
   const handleSubmitReview = async () => {
     if (newRating === 0 || !newContent.trim()) {
       alert('Vui lòng chọn số sao và nhập nội dung đánh giá!');
@@ -149,7 +175,6 @@ const Feedback: React.FC<{ campaignId: number }> = ({ campaignId }) => {
         starRate: newRating,
         description: newContent
       });
-      // Gọi lại API để cập nhật
       await refetch();
       closeModal();
     } catch (err: any) {
@@ -157,13 +182,48 @@ const Feedback: React.FC<{ campaignId: number }> = ({ campaignId }) => {
     }
   };
 
+  /** Mở modal sửa feedback */
+  const openEditModal = (fb: IFeedback) => {
+    setEditingFeedbackId(fb.id);
+    setEditingStarRate(fb.starRate);
+    setEditingContent(fb.description);
+    setEditModalOpen(true);
+  };
+
+  /** Đóng modal sửa feedback */
+  const closeEditModal = () => {
+    setEditModalOpen(false);
+    setEditingFeedbackId(null);
+    setEditingStarRate(0);
+    setEditingContent('');
+  };
+
+  /** Submit cập nhật feedback */
+  const handleEditSubmit = async () => {
+    if (editingStarRate === 0 || !editingContent.trim()) {
+      alert('Vui lòng chọn số sao và nhập nội dung đánh giá!');
+      return;
+    }
+    try {
+      await updateFeedback({
+        id: editingFeedbackId!,
+        description: editingContent,
+        starRate: editingStarRate
+      });
+      await refetch();
+      closeEditModal();
+    } catch (err: any) {
+      alert(`Cập nhật feedback thất bại: ${err.message}`);
+    }
+  };
+
+  /** Chuyển trang */
   const handlePageChange = (page: number) => {
     if (page >= 1 && page <= totalPages) {
       setCurrentPage(page);
     }
   };
 
-  // ---- (6) JSX render cuối ----
   return (
     <div className="mx-auto max-w-7xl px-4 py-8">
       {/* 2 cột: Thống kê & Danh sách feedback */}
@@ -274,8 +334,22 @@ const Feedback: React.FC<{ campaignId: number }> = ({ campaignId }) => {
                   <div key={fb.id} className="border-b border-gray-200 pb-4">
                     <div className="mb-1">{renderStars(fb.starRate)}</div>
                     <p className="mb-2 text-gray-700">{fb.description}</p>
-                    <div className="text-sm text-gray-500">
-                      {authorName} • {dateStr}
+                    <div className="flex items-center justify-between text-sm text-gray-500">
+                      <span>
+                        {authorName} • {dateStr}
+                      </span>
+                      {/* Nếu userId = 3 thì cho chỉnh sửa */}
+                      {fb.feedbacker?.userId === PUBLISHER_ID && (
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            openEditModal(fb);
+                          }}
+                          className="ml-2 text-gray-400 hover:text-gray-600"
+                        >
+                          <FiMoreVertical size={16} />
+                        </button>
+                      )}
                     </div>
                   </div>
                 );
@@ -316,7 +390,7 @@ const Feedback: React.FC<{ campaignId: number }> = ({ campaignId }) => {
         </div>
       </div>
 
-      {/* Modal đánh giá */}
+      {/* Modal Tạo feedback */}
       {isModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center">
           {/* Overlay mờ */}
@@ -385,6 +459,81 @@ const Feedback: React.FC<{ campaignId: number }> = ({ campaignId }) => {
                 className="rounded bg-purple-600 px-4 py-2 text-white hover:bg-purple-700 disabled:opacity-50"
               >
                 {isCreating ? 'Đang gửi...' : 'Đánh giá'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal Sửa feedback */}
+      {editModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center">
+          {/* Overlay mờ */}
+          <div
+            className="absolute inset-0 bg-black bg-opacity-40"
+            onClick={closeEditModal}
+          />
+          {/* Nội dung modal */}
+          <div className="relative w-full max-w-md rounded-lg bg-white p-6 shadow-lg">
+            <h3 className="mb-4 text-xl font-semibold">Chỉnh sửa đánh giá</h3>
+            {/* Chọn số sao */}
+            <div className="mb-4 flex items-center">
+              {Array.from({ length: 5 }).map((_, index) => {
+                const starValue = index + 1;
+                return (
+                  <button
+                    type="button"
+                    key={index}
+                    onClick={() => setEditingStarRate(starValue)}
+                    className="focus:outline-none"
+                  >
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      fill={starValue <= editingStarRate ? '#fbbf24' : 'none'}
+                      viewBox="0 0 24 24"
+                      stroke="#fbbf24"
+                      className="mr-1 h-8 w-8"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={starValue <= editingStarRate ? 2 : 1}
+                        d="M11.049 2.927c.3-.921 1.603-.921 1.902 
+                            0l1.286 3.966a1 1 0 00.95.69h4.184c.969 
+                            0 1.371 1.24.588 1.81l-3.39 
+                            2.463a1 1 0 00-.363 1.118l1.296 
+                            3.993c.285.877-.722 1.601-1.487 
+                            1.073l-3.365-2.452a1 1 0 
+                            00-1.176 0l-3.365 2.452c-.765.528-1.772-.196-1.487-1.073l1.296-3.993a1 
+                            1 0 00-.363-1.118L2.78 9.393c-.783-.57-.38-1.81.588-1.81h4.184a1 
+                            1 0 00.95-.69l1.286-3.966z"
+                      />
+                    </svg>
+                  </button>
+                );
+              })}
+            </div>
+            {/* Nội dung đánh giá */}
+            <textarea
+              className="mb-4 h-24 w-full rounded border border-gray-300 p-2"
+              placeholder="Nội dung đánh giá..."
+              value={editingContent}
+              onChange={(e) => setEditingContent(e.target.value)}
+            />
+            {/* Nút hành động */}
+            <div className="flex justify-end space-x-2">
+              <button
+                onClick={closeEditModal}
+                className="rounded border border-gray-300 px-4 py-2 hover:bg-gray-100"
+              >
+                Hủy
+              </button>
+              <button
+                onClick={handleEditSubmit}
+                disabled={isUpdating}
+                className="rounded bg-purple-600 px-4 py-2 text-white hover:bg-purple-700 disabled:opacity-50"
+              >
+                {isUpdating ? 'Đang cập nhật...' : 'Cập nhật'}
               </button>
             </div>
           </div>

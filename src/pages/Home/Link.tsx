@@ -1,6 +1,7 @@
 import React, { useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import { useCreateTraffic } from '@/queries/traffic.query';
+import { log } from 'console';
 
 const LinkPage: React.FC = () => {
   const { publisherId, campaignId } = useParams<{
@@ -9,16 +10,6 @@ const LinkPage: React.FC = () => {
   }>();
 
   const { mutateAsync: createTraffic } = useCreateTraffic();
-
-  const fetchClientIP = async () => {
-    try {
-      const res = await fetch('https://api.ipify.org?format=json');
-      const data = await res.json();
-      return data.ip as string;
-    } catch {
-      return '';
-    }
-  };
 
   const getDeviceAndBrowser = () => {
     const ua = navigator.userAgent.toLowerCase();
@@ -41,18 +32,20 @@ const LinkPage: React.FC = () => {
     if (!publisherId || !campaignId) return;
 
     (async () => {
-      const ip = await fetchClientIP();
       const { deviceType, browser } = getDeviceAndBrowser();
 
+      // Lấy thông tin OS từ navigator.platform
+      const deviceOs = navigator.platform || 'unknown';
+
       const payload = {
-        ipAddress: ip,
-        deviceType,
-        orderId: 'CPC',
-        browser,
-        referrerUrl: referrerURL, // Updated key name to match server expectations
+        deviceType: deviceType,
+        browser: browser,
+        referrerURL: referrerURL,
+        timestamp: new Date().toISOString(),
         campaignId: Number(campaignId),
         publisherId: Number(publisherId)
       };
+      console.log('fsadfasd ', payload);
 
       try {
         const response = await createTraffic(payload);

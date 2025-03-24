@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Form, Select, Button, Modal, message } from 'antd';
+import { Form, Select, Button, Modal, message, Rate } from 'antd';
 import { useNavigate } from 'react-router-dom';
 import { TokenDecoded } from '@/types';
 import PaginationSection from '@/components/shared/pagination-section';
@@ -222,10 +222,6 @@ const CampaignsPage: React.FC = () => {
           const isLocked = false;
           // Kiểm tra xem campaign đã tham gia chưa (nếu publisherStatus có giá trị)
           const hasPublisherStatus = !!campaign.publisherStatus;
-          // Demo cứng rating, ratingCount, totalConversion
-          const rating = 4.28;
-          const ratingCount = 323;
-          const totalConversion = 577866;
 
           return (
             <div
@@ -262,19 +258,18 @@ const CampaignsPage: React.FC = () => {
                   : `${campaign.commission?.toLocaleString()} đ`}
               </div>
 
-              {/* Rating + conversions (demo cứng) */}
-              <div className="mb-3 flex items-center gap-1 text-sm text-gray-600">
-                <span>{rating.toFixed(2).replace('.', ',')}</span>
-                <svg
-                  className="text-yellow-400 h-4 w-4"
-                  fill="currentColor"
-                  viewBox="0 0 20 20"
-                >
-                  <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.189 3.674a1 1 0 00.95.69h3.862c.969 0 1.37 1.24.588 1.81l-3.127 2.27a1 1 0 00-.363 1.118l1.2 3.697c.29.894-.755 1.63-1.54 1.081l-3.105-2.186a1 1 0 00-1.157 0l-3.105 2.186c-.785.55-1.83-.187-1.54-1.08l1.2-3.698a1 1 0 00-.363-1.118l-3.127-2.27c-.781-.57-.38-1.81.589-1.81h3.862a1 1 0 00.95-.69l1.148-3.673z" />
-                </svg>
-                <span>({ratingCount})</span>
-                <span className="mx-1 text-gray-400">|</span>
-                <span>{totalConversion.toLocaleString('vi-VN')}</span>
+              {/* Hiển thị rating dựa trên averageStarRate */}
+              <div className="mb-3 items-center gap-2  text-gray-600">
+                <Rate
+                  disabled
+                  allowHalf
+                  defaultValue={campaign.averageStarRate}
+                />
+                <span className="block w-full text-center">
+                  {'('}
+                  {campaign.averageStarRate.toFixed(2).replace('.', ',')}
+                  {')'}
+                </span>
               </div>
 
               {/* Nút hành động */}
@@ -286,7 +281,7 @@ const CampaignsPage: React.FC = () => {
                   // Khi Activing thì cho phép copy link
                   <Button
                     type="default"
-                    className="w-full bg-white text-[#8229B0] hover:!border-[#9B52BF] hover:!bg-[#8229B52BF] hover:!text-white"
+                    className="w-full bg-white text-[#8229B0] hover:!border-[#9B52BF] hover:!bg-[#9B52BF] hover:!text-white"
                     onClick={(e) => {
                       e.stopPropagation();
                       const link = `${window.location.origin}/link/${PUBLISHER_ID}/${campaign.id}`;
