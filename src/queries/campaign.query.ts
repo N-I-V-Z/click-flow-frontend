@@ -276,3 +276,40 @@ export const useRegisterCampaign = () => {
     }
   });
 };
+type CampaignCount = number;
+export const useGetCampaignCountByAdvertiser = (
+  advertiserId: number,
+  status: string
+) => {
+  return useQuery<CampaignCount>({
+    queryKey: ['campaign-count-by-advertiser', advertiserId, status],
+    queryFn: async () => {
+      // Giả sử backend trả về { result: number }
+      const response = await BaseRequest.Get(
+        `/api/Campaigns/campaigns/count-by-advertiser/${advertiserId}?status=${status}`
+      );
+      // Ép kiểu, ví dụ: return response.result as number
+      return response.result as number;
+    },
+    enabled: !!advertiserId && !!status
+  });
+};
+export const useGetCampaignParticipationCountByStatusForAdvertiser = (
+  status: 'Pending' | 'Participated' | 'Rejected'
+) => {
+  return useQuery<number>({
+    // Mỗi cặp advertiserId + status sẽ có cache riêng
+    queryKey: ['campaign-participations-count', status],
+    // QueryFn gọi endpoint backend
+    queryFn: async () => {
+      // Backend URL ví dụ:
+      // GET /api/Campaigns/campaign-participations/count-by-status-for-advertiser/{advertiserId}?campaignParticipationStatus=xxx
+      const response = await BaseRequest.Get(
+        `/api/Campaigns/campaign-participations/count-by-status-for-advertiser?campaignParticipationStatus=${status}`
+      );
+      // Giả sử backend trả về { result: number }
+      return response.result as number;
+    },
+    enabled: !!status
+  });
+};

@@ -16,6 +16,11 @@ import { ApiResponse, CampaignApiResponse, PagingResponse } from '@/types';
 const decodedToken: TokenDecoded | null = helpers.decodeTokens(
   __helpers.cookie_get('AT')
 );
+
+const editableStatusOptions = [
+  { name: 'Paused', displayName: 'Tạm dừng', color: 'bg-orange-500' },
+  { name: 'Completed', displayName: 'Hoàn thành', color: 'bg-gray-500' }
+];
 // Các trạng thái có thể chọn (cả "All" để lấy tất cả)
 type AdvertiserCampaignStatus =
   | 'All'
@@ -41,7 +46,7 @@ const statusOptions = [
   { name: 'All', displayName: 'Tất cả', color: 'bg-gray-400' },
   { name: 'Pending', displayName: 'Chờ duyệt', color: 'bg-yellow-400' },
   { name: 'Approved', displayName: 'Đã duyệt', color: 'bg-green-500' },
-  { name: 'Activing', displayName: 'Đang chạy', color: 'bg-blue-500' },
+  { name: 'Activing', displayName: 'Đang chạy', color: 'bg-[#1BA6F9]' },
   { name: 'Paused', displayName: 'Tạm dừng', color: 'bg-orange-500' },
   { name: 'Canceled', displayName: 'Đã hủy', color: 'bg-red-500' },
   { name: 'Completed', displayName: 'Hoàn thành', color: 'bg-gray-500' }
@@ -125,7 +130,7 @@ const AdvertiserCampaigns = () => {
       header: 'Tên chiến dịch'
     },
     {
-      accessorKey: 'advertiser',
+      accessorKey: 'advertiser.companyName',
       header: 'Nhà quảng cáo'
     },
     {
@@ -143,7 +148,7 @@ const AdvertiserCampaigns = () => {
       }
     },
     {
-      accessorKey: 'deadline',
+      accessorKey: 'endDate',
       header: 'Ngày kết thúc'
     },
     {
@@ -185,6 +190,7 @@ const AdvertiserCampaigns = () => {
       )
     }
   ];
+  console.log('campaigns:   ', campaigns);
 
   // Xử lý xóa đơn lẻ
   const handleDeleteSingle = () => {
@@ -293,11 +299,15 @@ const AdvertiserCampaigns = () => {
             </h2>
             <p>
               Nhà quảng cáo:{' '}
-              {selectedProject.advertiser.applicationUser.fullName}
+              {selectedProject.advertiser.companyName || 'Chưa cập nhật'}
             </p>
             <p>Trạng thái: {selectedProject.status}</p>
-            <p>Ngày bắt đầu: {selectedProject.startDate.toUTCString()}</p>
-            <p>Ngày kết thúc: {selectedProject.endDate.toUTCString()}</p>
+            <p>
+              Ngày bắt đầu: {new Date(selectedProject.startDate).toUTCString()}
+            </p>
+            <p>
+              Ngày kết thúc: {new Date(selectedProject.endDate).toUTCString()}
+            </p>
             <div className="mt-4 flex justify-end">
               <Button onClick={() => setIsViewOpen(false)}>Đóng</Button>
             </div>
@@ -329,20 +339,13 @@ const AdvertiserCampaigns = () => {
                 value={selectedProject.status}
                 onChange={(e) =>
                   setSelectedProject((prev) =>
-                    prev
-                      ? {
-                          ...prev,
-                          status: e.target
-                            .value as CampaignApiResponse['status']
-                        }
-                      : null
+                    prev ? { ...prev, status: e.target.value } : null
                   )
                 }
                 className="rounded border p-2"
               >
-                {statusOptions.map((option) => (
-                  // option.displayName -> hiển thị
-                  <option key={option.name} value={option.displayName}>
+                {editableStatusOptions.map((option) => (
+                  <option key={option.name} value={option.name}>
                     {option.displayName}
                   </option>
                 ))}
