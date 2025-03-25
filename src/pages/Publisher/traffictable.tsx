@@ -1,5 +1,4 @@
-// src/components/TrafficTable.tsx
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { useGetPublisherTraffic } from '@/queries/traffic.query';
 import { DataTableSkeleton } from '@/components/shared/data-table-skeleton';
 import {
@@ -11,26 +10,29 @@ import {
   TableRow
 } from '@/components/ui/table';
 
-// Thay vì pdfmake, ta dùng jsPDF + autoTable
 import { jsPDF } from 'jspdf';
 import 'jspdf-autotable';
 import { format } from 'date-fns';
 
 const formatTimestamp = (timestamp: string) => {
-  return format(new Date(timestamp), 'dd/MM/yyyy HH:mm:ss'); // Ví dụ: 25/03/2025 09:15:51
+  return format(new Date(timestamp), 'dd/MM/yyyy HH:mm:ss');
 };
-const TrafficTable: React.FC = () => {
-  // Gọi API với React Query; bạn có thể truyền pageIndex, pageSize, keyword từ props nếu cần
-  const { data, isLoading, isError, error } = useGetPublisherTraffic(1, 10);
 
-  // trafficData là mảng TrafficItem
+const TrafficTable: React.FC = () => {
+  // Khai báo state để theo dõi trang hiện tại
+  const [page, setPage] = useState(1);
+  const pageSize = 10;
+
+  // Gọi API với trang hiện tại và số lượng phần tử trên mỗi trang
+  const { data, isLoading, isError, error } = useGetPublisherTraffic(
+    page,
+    pageSize
+  );
   const trafficData = data?.result?.datas || [];
 
-  // ------------ XUẤT CSV ------------
+  // Hàm xuất CSV và PDF giữ nguyên
   const handleExportCSV = () => {
     if (!trafficData.length) return;
-
-    // Tiêu đề cột
     const headers = [
       'ID',
       'IP',
@@ -39,8 +41,6 @@ const TrafficTable: React.FC = () => {
       'ReferrerURL',
       'Timestamp'
     ];
-
-    // Tạo các dòng dữ liệu
     const rows = trafficData.map((item) => [
       item.id.toString(),
       item.ipAddress,
@@ -49,13 +49,9 @@ const TrafficTable: React.FC = () => {
       item.referrerURL,
       item.timestamp
     ]);
-
-    // Ghép thành chuỗi CSV
     const csvContent =
       'data:text/csv;charset=utf-8,' +
       [headers.join(','), ...rows.map((r) => r.join(','))].join('\n');
-
-    // Tạo link download và click
     const encodedUri = encodeURI(csvContent);
     const link = document.createElement('a');
     link.setAttribute('href', encodedUri);
@@ -65,14 +61,9 @@ const TrafficTable: React.FC = () => {
     document.body.removeChild(link);
   };
 
-  // ------------ XUẤT PDF bằng jsPDF + autoTable ------------
   const handleExportPDF = () => {
     if (!trafficData.length) return;
-
-    // Khởi tạo jsPDF
     const doc = new jsPDF();
-
-    // Định nghĩa cột (header) cho autoTable
     const columns = [
       { header: 'ID', dataKey: 'id' },
       { header: 'IP', dataKey: 'ipAddress' },
@@ -81,24 +72,27 @@ const TrafficTable: React.FC = () => {
       { header: 'ReferrerURL', dataKey: 'referrerURL' },
       { header: 'Timestamp', dataKey: 'timestamp' }
     ];
-
-    // autoTable cần body là mảng object, mà trafficData đã sẵn là object
-    // => Chỉ cần bảo đảm tên property trùng dataKey.
-    // Lưu ý: trafficData phải có { id, ipAddress, browser, ... } đúng như columns.
-
     doc.autoTable({
       columns,
       body: trafficData,
-      styles: { fontSize: 8 }, // Tùy chỉnh
-      headStyles: { fillColor: [22, 160, 133] }, // Màu header
-      startY: 10 // Cách top 10px
+      styles: { fontSize: 8 },
+      headStyles: { fillColor: [22, 160, 133] },
+      startY: 10
     });
-
-    // Xuất PDF
     doc.save('traffic.pdf');
   };
 
-  // ------------ RENDER ------------
+  // Các hàm xử lý phân trang
+  const handleNextPage = () => {
+    setPage((prev) => prev + 1);
+  };
+
+  const handlePrevPage = () => {
+    if (page > 1) {
+      setPage((prev) => prev - 1);
+    }
+  };
+
   if (isLoading) {
     return (
       <DataTableSkeleton
@@ -125,12 +119,13 @@ const TrafficTable: React.FC = () => {
         >
           Xuất Excel (CSV)
         </button>
+        {/* Có thể bật nút xuất PDF nếu cần */}
         {/* <button
-                    onClick={handleExportPDF}
-                    className="rounded bg-red-500 px-4 py-2 font-semibold text-black hover:bg-red-600"
-                >
-                    Xuất PDF
-                </button> */}
+          onClick={handleExportPDF}
+          className="rounded bg-red-500 px-4 py-2 font-semibold text-black hover:bg-red-600"
+        >
+          Xuất PDF
+        </button> */}
       </div>
 
       {/* Bảng Traffic */}
@@ -159,6 +154,24 @@ const TrafficTable: React.FC = () => {
             ))}
           </TableBody>
         </Table>
+      </div>
+
+      {/* Điều hướng phân trang */}
+      <div className="flex items-center justify-between">
+        <button
+          onClick={handlePrevPage}
+          disabled={page === 1}
+          className="rounded bg-gray-300 px-4 py-2 disabled:opacity-50"
+        >
+          Trang trước
+        </button>
+        <span>Trang {page}</span>
+        <button
+          onClick={handleNextPage}
+          className="rounded bg-gray-300 px-4 py-2"
+        >
+          Trang sau
+        </button>
       </div>
     </div>
   );
