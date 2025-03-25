@@ -9,7 +9,7 @@ import { Button } from '@/components/ui/button';
 import { TokenDecoded } from '@/types';
 import helpers from '@/helpers';
 import __helpers from '@/helpers';
-// Đây là hook đã sửa để nhận status qua query param (hoặc bỏ nếu = undefined).
+
 import { useGetCampaignAdvertiser } from '@/queries/campaign.query';
 import { ApiResponse, CampaignApiResponse, PagingResponse } from '@/types';
 
@@ -18,10 +18,10 @@ const decodedToken: TokenDecoded | null = helpers.decodeTokens(
 );
 
 const editableStatusOptions = [
-  { name: 'Paused', displayName: 'Tạm dừng', color: 'bg-orange-500' },
-  { name: 'Completed', displayName: 'Hoàn thành', color: 'bg-gray-500' }
+  { name: 'Paused', displayName: 'Tạm dừng', color: 'bg-orange' },
+  { name: 'Completed', displayName: 'Hoàn thành', color: 'bg-gray' }
 ];
-// Các trạng thái có thể chọn (cả "All" để lấy tất cả)
+
 type AdvertiserCampaignStatus =
   | 'All'
   | 'Pending'
@@ -31,95 +31,80 @@ type AdvertiserCampaignStatus =
   | 'Canceled'
   | 'Completed';
 
-// Giao diện hiển thị
-interface Project {
-  id: number;
-  name: string;
-  createdDate: string;
-  advertiser: string;
-  status: string;
-  deadline: string;
-}
-
-// Khai báo các cặp name/displayName/color
 const statusOptions = [
-  { name: 'All', displayName: 'Tất cả', color: 'bg-gray-400' },
-  { name: 'Pending', displayName: 'Chờ duyệt', color: 'bg-yellow-400' },
-  { name: 'Approved', displayName: 'Đã duyệt', color: 'bg-green-500' },
+  { name: 'All', displayName: 'Tất cả', color: 'bg-gray' },
+  { name: 'Pending', displayName: 'Chờ duyệt', color: 'bg-yellow' },
+  { name: 'Approved', displayName: 'Đã duyệt', color: 'bg-green' },
   { name: 'Activing', displayName: 'Đang chạy', color: 'bg-[#1BA6F9]' },
-  { name: 'Paused', displayName: 'Tạm dừng', color: 'bg-orange-500' },
-  { name: 'Canceled', displayName: 'Đã hủy', color: 'bg-red-500' },
-  { name: 'Completed', displayName: 'Hoàn thành', color: 'bg-gray-500' }
+  { name: 'Paused', displayName: 'Tạm dừng', color: 'bg-orange' },
+  { name: 'Canceled', displayName: 'Đã hủy', color: 'bg-red' },
+  { name: 'Completed', displayName: 'Hoàn thành', color: 'bg-gray' }
 ];
 
-// Hàm lấy CSS class theo displayName
-const getStatusClass = (displayName: string) => {
-  const option = statusOptions.find((opt) => opt.displayName === displayName);
-  return option ? option.color : 'bg-gray-400';
-};
+const Modal = ({
+  title,
+  onClose,
+  children
+}: {
+  title: string;
+  onClose: () => void;
+  children: React.ReactNode;
+}) => (
+  <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+    <div className="w-full max-w-md rounded-lg bg-white p-6 shadow-lg">
+      <div className="mb-4 flex items-center justify-between">
+        <h2 className="text-lg font-semibold">{title}</h2>
+        <button
+          onClick={onClose}
+          className="text-2xl leading-none text-gray-500"
+        >
+          &times;
+        </button>
+      </div>
+      {children}
+    </div>
+  </div>
+);
 
 const AdvertiserCampaigns = () => {
-  // Chọn trạng thái (hoặc "All")
   const [campaignStatus, setCampaignStatus] =
     useState<AdvertiserCampaignStatus>('All');
 
-  // pageIndex, pageSize (demo cứng)
   const { pageIndex, pageSize } = __helpers.usePaginationParams();
   const advertiserId =
     decodedToken?.Id !== undefined ? parseInt(decodedToken?.Id) : 0;
-  // Gọi API: nếu = "All" thì không truyền status (undefined) => lấy tất cả
+
   const { data, isLoading, isError } = useGetCampaignAdvertiser(
-    advertiserId, // advertiserId giả sử = 3
+    advertiserId,
     campaignStatus === 'All' ? undefined : campaignStatus,
     pageIndex,
     pageSize
   );
 
-  // Mảng items
-
   const [rowSelection, setRowSelection] = useState<Record<string, boolean>>({});
   const [selectedRows, setSelectedRows] = useState<CampaignApiResponse[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
 
-  // Modal states
   const [selectedProject, setSelectedProject] =
     useState<CampaignApiResponse | null>(null);
   const [isViewOpen, setIsViewOpen] = useState(false);
   const [isEditOpen, setIsEditOpen] = useState(false);
   const [isDeleteOpen, setIsDeleteOpen] = useState(false);
 
-  const campaigns =
-    (data as ApiResponse<PagingResponse<CampaignApiResponse>>)?.result?.datas ||
-    [];
+  const campaigns = useMemo(() => {
+    return (
+      (data as ApiResponse<PagingResponse<CampaignApiResponse>>)?.result
+        ?.datas || []
+    );
+  }, [data]);
 
-  // Map dữ liệu trả về sang Project
-
-  // Lọc dữ liệu theo search
   const filteredData = useMemo(() => {
     return campaigns.filter((project) =>
       project.name.toLowerCase().includes(searchTerm.toLowerCase())
     );
   }, [campaigns, searchTerm]);
 
-  // Cột cho DataTable
   const columns: ColumnDef<CampaignApiResponse>[] = [
-    {
-      id: 'select',
-      header: ({ table }) => (
-        <input
-          type="checkbox"
-          checked={table.getIsAllRowsSelected()}
-          onChange={(e) => table.toggleAllRowsSelected(e.target.checked)}
-        />
-      ),
-      cell: ({ row }) => (
-        <input
-          type="checkbox"
-          checked={row.getIsSelected()}
-          onChange={(e) => row.toggleSelected(e.target.checked)}
-        />
-      )
-    },
     {
       id: 'stt',
       header: 'STT',
@@ -127,7 +112,24 @@ const AdvertiserCampaigns = () => {
     },
     {
       accessorKey: 'name',
-      header: 'Tên chiến dịch'
+      header: 'Tên chiến dịch',
+      cell: ({ row }) => {
+        const name = row.original.name;
+        const createdAt = row.original.startDate;
+        const createdDate = createdAt
+          ? new Date(createdAt).toLocaleDateString('vi-VN', {
+              day: '2-digit',
+              month: '2-digit',
+              year: 'numeric'
+            })
+          : 'Chưa cập nhật';
+        return (
+          <div>
+            <div className="font-medium">{name}</div>
+            <div className="text-xs text-gray-500">Ngày tạo: {createdDate}</div>
+          </div>
+        );
+      }
     },
     {
       accessorKey: 'advertiser.companyName',
@@ -138,25 +140,46 @@ const AdvertiserCampaigns = () => {
       header: 'Trạng thái',
       cell: ({ row }) => {
         const status = row.original.status;
+        const option = statusOptions.find((opt) => opt.name === status);
+
+        if (!option) {
+          return (
+            <span className="bg-gray rounded px-2 py-1 text-white">
+              {status}
+            </span>
+          );
+        }
+
         return (
-          <span
-            className={`rounded px-2 py-1 text-white ${getStatusClass(status)}`}
-          >
-            {status}
+          <span className={`rounded px-2 py-1 text-white ${option.color}`}>
+            {option.displayName}
           </span>
         );
       }
     },
+
     {
       accessorKey: 'endDate',
-      header: 'Ngày kết thúc'
+      header: 'Ngày kết thúc',
+      cell: ({ row }) => {
+        const dateString = row.original.endDate;
+        if (!dateString) return 'Chưa cập nhật';
+        const date = new Date(dateString);
+        return date.toLocaleDateString('vi-VN', {
+          day: '2-digit',
+          month: '2-digit',
+          year: 'numeric'
+        });
+      }
     },
+
     {
       id: 'actions',
       header: 'Thao tác',
       cell: ({ row }) => (
-        <div className="-ml-6 flex">
+        <div className="flex space-x-2">
           <Button
+            className="-ml-8"
             variant="ghost"
             size="sm"
             onClick={() => {
@@ -164,7 +187,7 @@ const AdvertiserCampaigns = () => {
               setIsViewOpen(true);
             }}
           >
-            <Eye size={18} className="text-blue-500" />
+            <Eye size={18} className="text-blue" />
           </Button>
           <Button
             variant="ghost"
@@ -174,7 +197,7 @@ const AdvertiserCampaigns = () => {
               setIsEditOpen(true);
             }}
           >
-            <Pencil size={18} className="text-yellow-500" />
+            <Pencil size={18} className="text-yellow" />
           </Button>
           <Button
             variant="ghost"
@@ -184,15 +207,13 @@ const AdvertiserCampaigns = () => {
               setIsDeleteOpen(true);
             }}
           >
-            <Trash2 size={18} className="text-red-500" />
+            <Trash2 size={18} className="text-red" />
           </Button>
         </div>
       )
     }
   ];
-  console.log('campaigns:   ', campaigns);
 
-  // Xử lý xóa đơn lẻ
   const handleDeleteSingle = () => {
     if (selectedProject) {
       toast.success(`Xóa chiến dịch "${selectedProject.name}" thành công!`);
@@ -201,7 +222,6 @@ const AdvertiserCampaigns = () => {
     setSelectedProject(null);
   };
 
-  // Xử lý xóa nhiều
   const handleBulkDelete = () => {
     if (selectedRows.length === 0) return;
     toast.success(`Đã xóa ${selectedRows.length} chiến dịch thành công!`);
@@ -218,112 +238,112 @@ const AdvertiserCampaigns = () => {
 
   return (
     <div className="p-6">
-      {/* (1) Chọn status để gọi API */}
-      <div className="mb-4 flex items-center gap-2">
-        <label>Trạng thái:</label>
-        <select
-          value={campaignStatus}
-          onChange={(e) =>
-            setCampaignStatus(e.target.value as AdvertiserCampaignStatus)
-          }
-          className="rounded border p-2"
-        >
-          {statusOptions.map((x) => (
-            <option value={x.name}>{x.displayName}</option>
-          ))}
-        </select>
-      </div>
-
-      {/* Thanh công cụ: xóa nhiều, v.v. */}
-      <div className="mb-4 flex items-center justify-between">
-        <h2 className="text-xl font-semibold">Danh sách yêu cầu</h2>
+      <div className="mb-6 flex items-center justify-between">
+        <h2 className="text-2xl font-bold">Danh sách yêu cầu</h2>
         {selectedRows.length > 0 && (
-          <button
-            onClick={handleBulkDelete}
-            className="hover:bg-red-600 bg-red-500 rounded px-4 py-2 text-white"
-          >
+          <Button variant="destructive" onClick={handleBulkDelete}>
             Xóa đã chọn ({selectedRows.length})
-          </button>
+          </Button>
         )}
       </div>
-
-      {/* Thanh search */}
-      <div className="mb-4">
-        <input
-          type="text"
-          placeholder="Tìm theo tên chiến dịch..."
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-          className="rounded border p-2"
-        />
+      <div className="mb-4 grid grid-cols-1 gap-4 md:grid-cols-2">
+        <div className="flex items-center space-x-2">
+          <label className="font-medium">Trạng thái:</label>
+          <select
+            value={campaignStatus}
+            onChange={(e) =>
+              setCampaignStatus(e.target.value as AdvertiserCampaignStatus)
+            }
+            className="rounded border p-2"
+          >
+            {statusOptions.map((x) => (
+              <option key={x.name} value={x.name}>
+                {x.displayName}
+              </option>
+            ))}
+          </select>
+        </div>
+        <div>
+          <input
+            type="text"
+            placeholder="Tìm theo tên chiến dịch..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="w-full rounded border p-2"
+          />
+        </div>
       </div>
 
-      {/* Bảng DataTable */}
       <DataTable
         columns={columns}
         data={filteredData}
-        // Nếu muốn server-side pagination thì cần xử lý pageCount & onPageChange
         pageCount={Math.ceil(filteredData.length / 10)}
         rowSelection={rowSelection}
         onRowSelectionChange={setRowSelection}
         onSelectedRowsChange={setSelectedRows}
       />
 
-      {/* Modal Xóa (đơn lẻ) */}
       {isDeleteOpen && selectedProject && (
-        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
-          <div className="w-full max-w-md rounded-lg bg-white p-6 shadow-lg">
-            <h2 className="mb-4 text-lg font-semibold">Xác nhận xóa</h2>
-            <p className="mb-6 text-sm">
-              Bạn có chắc chắn muốn xóa chiến dịch{' '}
-              <span className="font-medium">{selectedProject.name}</span>?
-            </p>
-            <div className="flex justify-end gap-2">
-              <Button variant="outline" onClick={() => setIsDeleteOpen(false)}>
-                Hủy
-              </Button>
-              <Button variant="destructive" onClick={handleDeleteSingle}>
-                Xóa
-              </Button>
-            </div>
+        <Modal title="Xác nhận xóa" onClose={() => setIsDeleteOpen(false)}>
+          <p className="mb-6 text-sm">
+            Bạn có chắc chắn muốn xóa chiến dịch{' '}
+            <span className="font-medium">{selectedProject.name}</span>?
+          </p>
+          <div className="flex justify-end space-x-2">
+            <Button variant="outline" onClick={() => setIsDeleteOpen(false)}>
+              Hủy
+            </Button>
+            <Button variant="destructive" onClick={handleDeleteSingle}>
+              Xóa
+            </Button>
           </div>
-        </div>
+        </Modal>
       )}
 
-      {/* Modal Xem chi tiết */}
       {isViewOpen && selectedProject && (
-        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
-          <div className="w-full max-w-md rounded-lg bg-white p-6 shadow-lg">
-            <h2 className="mb-4 text-lg font-semibold">
-              Chi tiết: {selectedProject.name}
-            </h2>
+        <Modal
+          title={`Chi tiết: ${selectedProject.name}`}
+          onClose={() => setIsViewOpen(false)}
+        >
+          <div className="space-y-2 text-sm">
             <p>
-              Nhà quảng cáo:{' '}
+              <strong>Nhà quảng cáo:</strong>{' '}
               {selectedProject.advertiser.companyName || 'Chưa cập nhật'}
             </p>
-            <p>Trạng thái: {selectedProject.status}</p>
             <p>
-              Ngày bắt đầu: {new Date(selectedProject.startDate).toUTCString()}
+              <strong>Trạng thái:</strong> {selectedProject.status}
             </p>
             <p>
-              Ngày kết thúc: {new Date(selectedProject.endDate).toUTCString()}
+              <strong>Ngày bắt đầu:</strong>{' '}
+              {new Date(selectedProject.startDate).toLocaleDateString('vi-VN', {
+                day: '2-digit',
+                month: '2-digit',
+                year: 'numeric'
+              })}
             </p>
-            <div className="mt-4 flex justify-end">
-              <Button onClick={() => setIsViewOpen(false)}>Đóng</Button>
-            </div>
+            <p>
+              <strong>Ngày kết thúc:</strong>{' '}
+              {new Date(selectedProject.endDate).toLocaleDateString('vi-VN', {
+                day: '2-digit',
+                month: '2-digit',
+                year: 'numeric'
+              })}
+            </p>
           </div>
-        </div>
+          <div className="mt-4 flex justify-end">
+            <Button onClick={() => setIsViewOpen(false)}>Đóng</Button>
+          </div>
+        </Modal>
       )}
 
-      {/* Modal Sửa */}
       {isEditOpen && selectedProject && (
-        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
-          <div className="w-full max-w-md rounded-lg bg-white p-6 shadow-lg">
-            <h2 className="mb-4 text-lg font-semibold">
-              Sửa: {selectedProject.name}
-            </h2>
-            <div className="flex flex-col gap-2">
-              <label>Tên chiến dịch</label>
+        <Modal
+          title={`Sửa: ${selectedProject.name}`}
+          onClose={() => setIsEditOpen(false)}
+        >
+          <div className="flex flex-col gap-3">
+            <div>
+              <label className="mb-1 block font-medium">Tên chiến dịch</label>
               <input
                 type="text"
                 value={selectedProject.name}
@@ -332,9 +352,11 @@ const AdvertiserCampaigns = () => {
                     prev ? { ...prev, name: e.target.value } : null
                   )
                 }
-                className="rounded border p-2"
+                className="w-full rounded border p-2"
               />
-              <label>Trạng thái</label>
+            </div>
+            <div>
+              <label className="mb-1 block font-medium">Trạng thái</label>
               <select
                 value={selectedProject.status}
                 onChange={(e) =>
@@ -342,7 +364,7 @@ const AdvertiserCampaigns = () => {
                     prev ? { ...prev, status: e.target.value } : null
                   )
                 }
-                className="rounded border p-2"
+                className="w-full rounded border p-2"
               >
                 {editableStatusOptions.map((option) => (
                   <option key={option.name} value={option.name}>
@@ -351,25 +373,21 @@ const AdvertiserCampaigns = () => {
                 ))}
               </select>
             </div>
-            <div className="mt-4 flex justify-end gap-2">
-              <Button variant="outline" onClick={() => setIsEditOpen(false)}>
-                Hủy
-              </Button>
-              <Button
-                onClick={() => {
-                  // Thường bạn sẽ gọi API cập nhật:
-                  // let newApiStatus = statusOptions.find(
-                  //   (o) => o.displayName === selectedProject.status
-                  // )?.name;
-                  toast.success(`Đã cập nhật "${selectedProject.name}"!`);
-                  setIsEditOpen(false);
-                }}
-              >
-                Lưu
-              </Button>
-            </div>
           </div>
-        </div>
+          <div className="mt-4 flex justify-end space-x-2">
+            <Button variant="outline" onClick={() => setIsEditOpen(false)}>
+              Hủy
+            </Button>
+            <Button
+              onClick={() => {
+                toast.success(`Đã cập nhật "${selectedProject.name}"!`);
+                setIsEditOpen(false);
+              }}
+            >
+              Lưu
+            </Button>
+          </div>
+        </Modal>
       )}
 
       <ToastContainer
