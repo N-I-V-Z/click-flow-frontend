@@ -210,6 +210,17 @@ export interface IFeedbackAPIResponse {
   message: string; // "Get data success"
   result: IFeedback[]; // Mảng feedback
 }
+export interface TrafficItem {
+  id: number;
+  ipAddress: string;
+  isValid: boolean;
+  revenue: number;
+  deviceType: string;
+  orderId: string;
+  browser: string;
+  referrerURL: string;
+  timestamp: string;
+}
 /**
  *
  */

@@ -11,9 +11,12 @@ export const useGetTraffics = (
   return useQuery({
     queryKey: ['get-traffics', campaignId, pageIndex, pageSize],
     queryFn: async () => {
-      return await BaseRequest.Get(
+      // Chú ý: BaseRequest.Get(...) thường trả về AxiosResponse,
+      // ta cần destructuring lấy data
+      const { data } = await BaseRequest.Get(
         `/${SUB_URL}/campaign/${campaignId}?PageIndex=${pageIndex}&PageSize=${pageSize}`
       );
+      return data; // data mới là payload JSON trả về
     }
   });
 };
@@ -23,7 +26,7 @@ export interface ICreateTrafficPayload {
   orderId: string;
   browser: string;
   referrerURL: string;
-  timestamp: string;
+  timestamp: Date;
   campaignId: number;
   publisherId: number;
 }
@@ -31,7 +34,27 @@ export interface ICreateTrafficPayload {
 export const useCreateTraffic = () => {
   return useMutation({
     mutationFn: async (payload: ICreateTrafficPayload) => {
-      return await BaseRequest.Post(`/${SUB_URL}`, payload);
+      const { data } = await BaseRequest.Post(`/${SUB_URL}`, payload);
+      return data;
     }
   });
 };
+
+/**
+ * Hook lấy danh sách traffic của publisher
+ * @param pageIndex Số trang
+ * @param pageSize Kích thước trang
+ * @param keyword Từ khóa tìm kiếm
+ */
+export function useGetPublisherTraffic(pageIndex = 1, pageSize = 10) {
+  return useQuery({
+    queryKey: ['publisher-traffic', pageIndex, pageSize],
+    queryFn: async () => {
+      // Gọi axios
+      return await BaseRequest.Get(
+        `/api/Traffics/publisher?PageIndex=${pageIndex}&PageSize=${pageSize}`
+      );
+      // data ở đây chính là payload JSON
+    }
+  });
+}

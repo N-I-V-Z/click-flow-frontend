@@ -14,7 +14,7 @@ import {
   Pie,
   Cell
 } from 'recharts';
-
+import TrafficTable from './traffictable';
 /* ----------------- PHẦN DASHBOARD ----------------- */
 const PublisherDashboard: React.FC = () => {
   // -------------------- DỮ LIỆU MẪU --------------------
@@ -181,7 +181,7 @@ const PublisherDashboard: React.FC = () => {
             </ResponsiveContainer>
           </div>
         </motion.div>
-
+        <TrafficTable />
         {/* Bảng thông tin */}
         <div className="mb-5 grid grid-cols-1 gap-6 md:grid-cols-2">
           {/* Bảng Trình duyệt */}
