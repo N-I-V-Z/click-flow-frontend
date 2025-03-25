@@ -26,7 +26,7 @@ const LinkPage: React.FC = () => {
     return { deviceType, browser };
   };
 
-  const referrerURL = document.referrer || '';
+  const referrerURL = document.referrer || 'unknown';
 
   useEffect(() => {
     if (!publisherId || !campaignId) return;
@@ -39,6 +39,7 @@ const LinkPage: React.FC = () => {
 
       const payload = {
         deviceType: deviceType,
+        orderId: '',
         browser: browser,
         referrerURL: referrerURL,
         timestamp: new Date().toISOString(),
@@ -60,15 +61,7 @@ const LinkPage: React.FC = () => {
     })();
   }, [publisherId, campaignId, createTraffic]);
 
-  return (
-    <div style={{ padding: '2rem' }}>
-      <h1>Đang ghi nhận lượt truy cập...</h1>
-      <p>Publisher ID: {publisherId}</p>
-      <p>Campaign ID: {campaignId}</p>
-      <p>Referrer: {referrerURL}</p>
-      <p>Vui lòng chờ...</p>
-    </div>
-  );
+  return <div style={{ padding: '2rem' }}></div>;
 };
 
 export default LinkPage;

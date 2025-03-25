@@ -228,7 +228,7 @@ const CampaignDetailPage: React.FC = () => {
           Lấy link
         </Button>
       );
-    } else if (campaign.publisherStatus === 'Activing') {
+    } else if (campaign.publisherStatus === 'Participated') {
       // Đã được duyệt => Có thể lấy link
       return (
         <Button

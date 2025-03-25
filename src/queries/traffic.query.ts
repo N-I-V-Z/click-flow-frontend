@@ -11,9 +11,10 @@ export const useGetTraffics = (
   return useQuery({
     queryKey: ['get-traffics', campaignId, pageIndex, pageSize],
     queryFn: async () => {
-      return await BaseRequest.Get(
+      const { data } = await BaseRequest.Get(
         `/${SUB_URL}/campaign/${campaignId}?PageIndex=${pageIndex}&PageSize=${pageSize}`
       );
+      return data; 
     }
   });
 };
@@ -23,7 +24,7 @@ export interface ICreateTrafficPayload {
   orderId: string;
   browser: string;
   referrerURL: string;
-  timestamp: string;
+  timestamp: Date;
   campaignId: number;
   publisherId: number;
 }
@@ -31,7 +32,8 @@ export interface ICreateTrafficPayload {
 export const useCreateTraffic = () => {
   return useMutation({
     mutationFn: async (payload: ICreateTrafficPayload) => {
-      return await BaseRequest.Post(`/${SUB_URL}`, payload);
+      const { data } = await BaseRequest.Post(`/${SUB_URL}`, payload);
+      return data;
     }
   });
 };
@@ -42,13 +44,23 @@ export const useGetTrafficForAdvertiser = (
   keyword: string = ''
 ) => {
   return useQuery({
-    // Thêm keyword vào queryKey để quản lý cache chính xác
     queryKey: ['get-traffics-advertiser', pageIndex, pageSize, keyword],
     queryFn: async () => {
-      // Tuỳ backend định nghĩa query param tên gì, ví dụ: ?PageIndex=1&PageSize=10&Keyword=...
       return await BaseRequest.Get(
         `/${SUB_URL}/advertiser?PageIndex=${pageIndex}&PageSize=${pageSize}&Keyword=${keyword}`
       );
     }
   });
 };
+
+
+export function useGetPublisherTraffic(pageIndex = 1, pageSize = 10) {
+  return useQuery({
+    queryKey: ['publisher-traffic', pageIndex, pageSize],
+    queryFn: async () => {
+      return await BaseRequest.Get(
+        `/api/Traffics/publisher?PageIndex=${pageIndex}&PageSize=${pageSize}`
+      );
+    }
+  });
+}
