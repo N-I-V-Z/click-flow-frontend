@@ -1,7 +1,6 @@
 import React, { useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import { useCreateTraffic } from '@/queries/traffic.query';
-import { log } from 'console';
 
 const LinkPage: React.FC = () => {
   const { publisherId, campaignId } = useParams<{
@@ -9,7 +8,7 @@ const LinkPage: React.FC = () => {
     campaignId: string;
   }>();
 
-  const { mutateAsync: createTraffic } = useCreateTraffic();
+  const { mutateAsync: createTraffic, isSuccess } = useCreateTraffic();
 
   const getDeviceAndBrowser = () => {
     const ua = navigator.userAgent.toLowerCase();
@@ -34,9 +33,6 @@ const LinkPage: React.FC = () => {
     (async () => {
       const { deviceType, browser } = getDeviceAndBrowser();
 
-      // Lấy thông tin OS từ navigator.platform
-      const deviceOs = navigator.platform || 'unknown';
-
       const payload = {
         deviceType: deviceType,
         orderId: '',
@@ -46,12 +42,11 @@ const LinkPage: React.FC = () => {
         campaignId: Number(campaignId),
         publisherId: Number(publisherId)
       };
-      console.log('fsadfasd ', payload);
 
       try {
         const response = await createTraffic(payload);
-        if (response.isSuccess && response.result) {
-          window.location.href = response.result;
+        if (isSuccess) {
+          window.location.replace(response.result as string);
         } else {
           console.error('Traffic created but no redirect URL found:', response);
         }
@@ -59,7 +54,7 @@ const LinkPage: React.FC = () => {
         console.error('Tạo traffic thất bại:', err);
       }
     })();
-  }, [publisherId, campaignId, createTraffic]);
+  }, [referrerURL, isSuccess, publisherId, campaignId, createTraffic]);
 
   return <div style={{ padding: '2rem' }}></div>;
 };

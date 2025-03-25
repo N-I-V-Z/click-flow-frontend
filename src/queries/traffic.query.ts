@@ -14,7 +14,7 @@ export const useGetTraffics = (
       const { data } = await BaseRequest.Get(
         `/${SUB_URL}/campaign/${campaignId}?PageIndex=${pageIndex}&PageSize=${pageSize}`
       );
-      return data; 
+      return data;
     }
   });
 };
@@ -32,8 +32,7 @@ export interface ICreateTrafficPayload {
 export const useCreateTraffic = () => {
   return useMutation({
     mutationFn: async (payload: ICreateTrafficPayload) => {
-      const { data } = await BaseRequest.Post(`/${SUB_URL}`, payload);
-      return data;
+      return await BaseRequest.Post(`/${SUB_URL}`, payload);
     }
   });
 };
@@ -52,7 +51,6 @@ export const useGetTrafficForAdvertiser = (
     }
   });
 };
-
 
 export function useGetPublisherTraffic(pageIndex = 1, pageSize = 10) {
   return useQuery({
