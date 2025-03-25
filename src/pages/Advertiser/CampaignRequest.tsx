@@ -66,6 +66,8 @@ interface IApiResponse<T> {
 }
 
 const AttractivePublisherParticipationRequest: React.FC = () => {
+  const [pageCount, setPageCount] = useState(0);
+
   const { data, isLoading, error, refetch } =
     useGetPublisherParticipationByStatusForAdvertiser(1, 10, 'Pending');
   const { mutate: updateParticipationStatus } = useUpdateParticipationStatus();
@@ -82,6 +84,7 @@ const AttractivePublisherParticipationRequest: React.FC = () => {
     if (data) {
       const apiData = data as IApiResponse<IPublisherParticipation>;
       setLocalParticipations(apiData?.result?.datas ?? []);
+      setPageCount(apiData?.result?.totalPages ?? 0);
     }
   }, [data]);
 
@@ -207,7 +210,7 @@ const AttractivePublisherParticipationRequest: React.FC = () => {
       <DataTable
         columns={columns}
         data={localParticipations}
-        pageCount={-1}
+        pageCount={pageCount}
         pageSizeOptions={[10, 20, 30, 40, 50]}
         showAdd={false}
       />
