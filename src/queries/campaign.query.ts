@@ -135,25 +135,6 @@ export const useUploadImage = () => {
     }
   });
 };
-export const useGetPublisherParticipationByStatusForAdvertiser = (
-  pageIndex: number,
-  pageSize: number,
-  campaignParticipationStatus: 'Pending' | 'Participated' | 'Rejected'
-) => {
-  return useQuery({
-    queryKey: [
-      'get-publisher-participation-by-status-for-advertiser',
-      pageIndex,
-      pageSize,
-      campaignParticipationStatus
-    ],
-    queryFn: async () => {
-      return await BaseRequest.Get(
-        `/${SUB_URL}/get-publisher-paticipation-by-status-for-advertiser/${pageIndex}/${pageSize}?campaignParticipationStatus=${campaignParticipationStatus}`
-      );
-    }
-  });
-};
 
 export const useGetCampaignsJoinedByPublisher = (
   publisherId: number,
@@ -203,7 +184,6 @@ export const useGetAllCampaignForPublisher = (
   });
 };
 
-// Hook lấy danh sách chiến dịch tương tự
 export const useGetSimilarCampaigns = (
   campaignId?: number,
   pageIndex: number = 1,
@@ -211,7 +191,7 @@ export const useGetSimilarCampaigns = (
 ) => {
   return useQuery({
     queryKey: ['get-similar-campaigns', campaignId, pageIndex, pageSize],
-    enabled: !!campaignId, // chỉ gọi nếu có campaignId
+    enabled: !!campaignId,
     queryFn: async () => {
       const response = await BaseRequest.Get(
         `/api/Campaigns/get-similar-campaigns/${campaignId}/${pageIndex}/${pageSize}`
@@ -254,24 +234,18 @@ export interface IApiCampaign {
 export function useGetCampaignByIdd(id?: number) {
   return useQuery({
     queryKey: ['get-campaign-by-id-for-publisher', id],
-    // Chỉ gọi nếu có id
     enabled: !!id,
-    // Trả về dữ liệu gốc (IApiCampaign)
     queryFn: async (): Promise<IApiCampaign> => {
       const response = await BaseRequest.Get(
         `/api/Campaigns/get-campaign-by-id-for-publisher/${id}`
       );
-      // Giả sử server trả về { result: { ... } }
       return response.result as IApiCampaign;
     }
   });
 }
 export const useRegisterCampaign = () => {
   return useMutation({
-    // payload ở đây giả sử chỉ cần { campaignId: number }
     mutationFn: async (payload: { campaignId: number }) => {
-      // Gọi API POST /api/Campaigns/register
-      // (Thay đổi endpoint hoặc body theo thực tế backend của bạn)
       return await BaseRequest.Post('/api/Campaigns/register', payload);
     }
   });
@@ -284,32 +258,62 @@ export const useGetCampaignCountByAdvertiser = (
   return useQuery<CampaignCount>({
     queryKey: ['campaign-count-by-advertiser', advertiserId, status],
     queryFn: async () => {
-      // Giả sử backend trả về { result: number }
       const response = await BaseRequest.Get(
         `/api/Campaigns/campaigns/count-by-advertiser/${advertiserId}?status=${status}`
       );
-      // Ép kiểu, ví dụ: return response.result as number
       return response.result as number;
     },
     enabled: !!advertiserId && !!status
   });
 };
+
 export const useGetCampaignParticipationCountByStatusForAdvertiser = (
   status: 'Pending' | 'Participated' | 'Rejected'
 ) => {
   return useQuery<number>({
-    // Mỗi cặp advertiserId + status sẽ có cache riêng
     queryKey: ['campaign-participations-count', status],
-    // QueryFn gọi endpoint backend
     queryFn: async () => {
-      // Backend URL ví dụ:
-      // GET /api/Campaigns/campaign-participations/count-by-status-for-advertiser/{advertiserId}?campaignParticipationStatus=xxx
       const response = await BaseRequest.Get(
         `/api/Campaigns/campaign-participations/count-by-status-for-advertiser?campaignParticipationStatus=${status}`
       );
-      // Giả sử backend trả về { result: number }
       return response.result as number;
     },
     enabled: !!status
+  });
+};
+
+export const useGetPublisherParticipationByStatusForAdvertiser = (
+  pageIndex: number,
+  pageSize: number,
+  campaignParticipationStatus: 'Pending' | 'Participated' | 'Rejected'
+) => {
+  return useQuery({
+    queryKey: [
+      'get-publisher-participation-by-status-for-advertiser',
+      pageIndex,
+      pageSize,
+      campaignParticipationStatus
+    ],
+    queryFn: async () => {
+      return await BaseRequest.Get(
+        `/${SUB_URL}/get-publisher-paticipation-by-status-for-advertiser/${pageIndex}/${pageSize}?campaignParticipationStatus=${campaignParticipationStatus}`
+      );
+    }
+  });
+};
+
+export const useUpdateParticipationStatus = () => {
+  return useMutation({
+    mutationFn: async (payload: {
+      publisherId: number;
+      campaignParticipationId: number;
+      newStatus: 'Pending' | 'Participated' | 'Rejected';
+    }) => {
+      const { publisherId, campaignParticipationId, newStatus } = payload;
+      return await BaseRequest.Put(
+        `/api/campaigns/update-status/${publisherId}/${campaignParticipationId}/${newStatus}`,
+        {}
+      );
+    }
   });
 };
