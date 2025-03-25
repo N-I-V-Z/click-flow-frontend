@@ -277,7 +277,7 @@ const CampaignsPage: React.FC = () => {
                 <p className="text-red-500 mt-2 font-medium">Đã bị khóa</p>
               ) : hasPublisherStatus ? (
                 // Nếu campaign đã tham gia, phân biệt 2 trường hợp:
-                campaign.publisherStatus === 'Activing' ? (
+                campaign.publisherStatus === 'Participated' ? (
                   // Khi Activing thì cho phép copy link
                   <Button
                     type="default"
