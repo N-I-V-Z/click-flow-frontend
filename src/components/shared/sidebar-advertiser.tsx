@@ -1,6 +1,12 @@
 import React from 'react';
 import { Menu } from 'antd';
-import { HomeOutlined, UserOutlined, LogoutOutlined } from '@ant-design/icons';
+import {
+  HomeOutlined,
+  UserOutlined,
+  LogoutOutlined,
+  LinkOutlined,
+  UnorderedListOutlined
+} from '@ant-design/icons';
 import { NavLink } from 'react-router-dom';
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
@@ -9,6 +15,7 @@ import { useLogout } from '@/queries/auth.query';
 import { useDispatch } from 'react-redux';
 import { useRouter } from '@/routes/hooks';
 import { logout } from '@/redux/auth.slice';
+
 const SidebarAdvertiser: React.FC = () => {
   const { mutateAsync: logoutAccount } = useLogout();
   const router = useRouter();
@@ -44,8 +51,11 @@ const SidebarAdvertiser: React.FC = () => {
         <Menu.Item key="overview" icon={<HomeOutlined />}>
           <NavLink to="/advertiser/dashboard">Tổng quan</NavLink>
         </Menu.Item>
-        <Menu.Item key="campaign" icon={<HomeOutlined />}>
+        <Menu.Item key="campaign" icon={<UnorderedListOutlined />}>
           <NavLink to="/advertiser/campaigns">Chiến dịch</NavLink>
+        </Menu.Item>
+        <Menu.Item key="traffic" icon={<LinkOutlined />}>
+          <NavLink to="/advertiser/traffics">Truy cập</NavLink>
         </Menu.Item>
       </Menu>
 

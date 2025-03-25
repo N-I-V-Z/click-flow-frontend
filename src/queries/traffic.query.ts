@@ -35,3 +35,20 @@ export const useCreateTraffic = () => {
     }
   });
 };
+
+export const useGetTrafficForAdvertiser = (
+  pageIndex: number = 1,
+  pageSize: number = 10,
+  keyword: string = ''
+) => {
+  return useQuery({
+    // Thêm keyword vào queryKey để quản lý cache chính xác
+    queryKey: ['get-traffics-advertiser', pageIndex, pageSize, keyword],
+    queryFn: async () => {
+      // Tuỳ backend định nghĩa query param tên gì, ví dụ: ?PageIndex=1&PageSize=10&Keyword=...
+      return await BaseRequest.Get(
+        `/${SUB_URL}/advertiser?PageIndex=${pageIndex}&PageSize=${pageSize}&Keyword=${keyword}`
+      );
+    }
+  });
+};
