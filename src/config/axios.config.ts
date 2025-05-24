@@ -2,7 +2,7 @@ import axios, { AxiosRequestConfig, AxiosResponse } from 'axios';
 import helpers from '../helpers';
 import { ApiResponse } from '@/types';
 
-const baseURL = 'https://api.clickfront.theanh0804.duckdns.org/';
+const baseURL = 'https://localhost:7087';
 
 const token = helpers.cookie_get('AT');
 

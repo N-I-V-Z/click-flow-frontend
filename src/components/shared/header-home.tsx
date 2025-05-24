@@ -3,6 +3,7 @@ import { cn } from '@/lib/utils';
 import { NavItem } from '@/types';
 import { Dispatch, SetStateAction } from 'react';
 import RegisterChoiceModal from '@/pages/AuthPage/Register/RegisterChoise';
+import helpers from '@/helpers';
 import {
   Tooltip,
   TooltipContent,
@@ -16,7 +17,6 @@ import { useState } from 'react';
 import { Button } from '../ui/button';
 import { useSelector } from 'react-redux';
 import { RootState } from '@/redux/store';
-import helpers from '@/helpers';
 import { logout } from '@/redux/auth.slice';
 import { useLogout } from '@/queries/auth.query';
 import { useDispatch } from 'react-redux';
@@ -48,14 +48,14 @@ export default function HeaderNav({ setOpen }: DashboardNavProps) {
     dispatch(logout());
   };
   return (
-    <nav className="grid grid-cols-[15%,55%,25%] items-center bg-[#8329af] shadow-md">
+    <nav className="grid grid-cols-[15%,55%,25%] items-center bg-gradient-to-r from-purple-600 via-purple-700 to-purple-800 py-4 shadow-md">
       {/* LOGO */}
       <div className="flex items-center">
         <Link to="/" className="flex items-center gap-2">
           <img
             src="src/assets/logo.jpg"
             alt="Logo"
-            className="ml-20 h-[100px] w-[140px] rounded-lg"
+            className="ml-20 h-[60px] w-[90px] rounded-lg"
           />
         </Link>
       </div>

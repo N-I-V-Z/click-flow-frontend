@@ -92,7 +92,7 @@ const PublisherDashboard: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen p-6">
+    <div className="min-h-screen bg-gradient-to-br from-indigo-100 via-purple-50 to-blue p-6">
       <motion.div initial="initial" animate="animate" variants={fadeInUp}>
         <div className="mb-6">
           <h1 className="bg-gradient-to-r from-indigo-600 to-pink-600 bg-clip-text text-4xl font-extrabold text-transparent drop-shadow-lg">

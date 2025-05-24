@@ -6,6 +6,7 @@ import { useGetUserDetail } from '@/queries/user.query';
 import { ApiResponse, UserDetailApiResponse, TokenDecoded } from '@/types';
 import helpers from '@/helpers';
 import __helpers from '@/helpers';
+import { usePageTitle } from '@/hooks/use-pagetitle';
 
 // Hook đếm campaign (Canceled, Completed)
 import { useGetCampaignCountByAdvertiser } from '@/queries/campaign.query';
@@ -20,6 +21,7 @@ const advertiserId =
   decodedToken?.Id !== undefined ? parseInt(decodedToken.Id) : 0;
 
 const AdvertiserDashboard: React.FC = () => {
+  usePageTitle('Tổng quan | Click Flow');
   const [isModalVisible, setIsModalVisible] = useState<boolean>(false);
 
   // Lấy user

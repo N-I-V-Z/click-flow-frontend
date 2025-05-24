@@ -126,7 +126,7 @@ export default function RegisterPublisherPage() {
             <p className="mb-3 text-center text-lg font-medium text-[#FFD000]">
               Dành cho Publisher
             </p>
-            <div className="mt-2 rounded-lg bg-purple-100 p-4 text-center">
+            <div className="mt-2 rounded-lg bg-purple-100 p-2 text-center">
               <p className="text-sm text-gray-700">
                 Nếu bạn đã{' '}
                 <span className="font-semibold text-purple-500">
@@ -143,7 +143,7 @@ export default function RegisterPublisherPage() {
               </p>
             </div>
 
-            <div className="mt-6 space-y-4">
+            <div className="mt-2 space-y-4">
               {/* Tên đăng nhập */}
               <div>
                 <label className="text-sm font-medium text-gray-700">
@@ -234,7 +234,7 @@ export default function RegisterPublisherPage() {
               </div>
 
               {/* Nút đăng ký */}
-              <div className="flex justify-center pt-4">
+              <div className="flex justify-center">
                 <Button
                   className="hover:bg-yellow-600 w-full rounded-lg bg-purple-600 text-white"
                   onClick={handleRegister}

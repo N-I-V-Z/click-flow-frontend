@@ -5,6 +5,7 @@ import { ColumnDef } from '@tanstack/react-table';
 import DataTable from '@/components/shared/data-table';
 import { useGetTrafficForAdvertiser } from '@/queries/traffic.query';
 import helpers from '@/helpers';
+import { usePageTitle } from '@/hooks/use-pagetitle';
 
 type TrafficType = {
   id: number;
@@ -16,6 +17,7 @@ type TrafficType = {
 };
 
 export default function Traffic() {
+  usePageTitle('Truy cập | Click Flow');
   const { pageIndex, pageSize } = helpers.usePaginationParams();
   const [searchTerm, setSearchTerm] = useState('');
 

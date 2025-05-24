@@ -43,7 +43,7 @@ export default function Footer() {
 
       {/* Footer Bottom */}
       <div className="mt-8 border-t border-gray-700 pt-4 text-center text-sm text-gray-400">
-        © 2025 Công ty TNHH Một Mình Tao Click FLow. All rights reserved.
+        © 2025 Click FLow. All rights reserved.
       </div>
     </footer>
   );
