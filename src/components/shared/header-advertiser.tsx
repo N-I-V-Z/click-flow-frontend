@@ -1,14 +1,17 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
-// Import react-toastify
 import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+import UpgradePackage from '@/pages/Publisher/UpgradePackage';
+import NotificationBell from '@/pages/Publisher/Notification';
 
 export default function HeaderAd() {
-  const [isLogoutOpen, setIsLogoutOpen] = useState(false);
+  const [isLogoutOpen, setIsLogoutOpen] = useState<boolean>(false);
+  // State giả sử quản lý gói hiện tại
+  const [currentPlan, setCurrentPlan] = useState<string>('basic');
 
   // Hàm xử lý đăng xuất
-  const handleLogout = () => {
+  const handleLogout = (): void => {
     // Giả sử gọi API đăng xuất hoặc xóa token...
     // Thông báo thành công
     toast.success('Đăng xuất thành công!', {
@@ -19,14 +22,6 @@ export default function HeaderAd() {
     setIsLogoutOpen(false);
     // Ví dụ: route.push('/login');
   };
-
-  // Nếu muốn mô phỏng thất bại, bạn có thể dùng toast.error(...)
-  // const handleLogoutFail = () => {
-  //   toast.error('Đăng xuất thất bại!', {
-  //     position: 'top-right',
-  //     autoClose: 3000
-  //   });
-  // };
 
   return (
     <>
@@ -40,6 +35,18 @@ export default function HeaderAd() {
               className="h-[80px] w-[120px] rounded-lg"
             />
           </Link>
+        </div>
+
+        {/* Header Actions */}
+        <div className="flex items-center gap-4">
+          {/* Notification Bell */}
+          <NotificationBell />
+
+          {/* Upgrade Package Button */}
+          <UpgradePackage
+            currentPlan={currentPlan}
+            setCurrentPlan={setCurrentPlan}
+          />
         </div>
       </nav>
 
@@ -62,10 +69,6 @@ export default function HeaderAd() {
               >
                 Đăng xuất
               </button>
-              {/* 
-                  Nếu muốn mô phỏng thất bại, bạn có thể gọi handleLogoutFail() ở đây 
-                  thay vì handleLogout()
-                */}
             </div>
           </div>
         </div>

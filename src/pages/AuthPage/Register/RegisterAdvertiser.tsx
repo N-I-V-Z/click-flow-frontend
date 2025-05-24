@@ -123,7 +123,7 @@ const RegisterAdvertiserPage: React.FC = () => {
           { title: 'Đăng ký', link: '/register-advertiser' }
         ]}
       >
-        <div className="mx-auto mt-5 flex min-h-[400px] w-full rounded-xl bg-white p-6 shadow-xl">
+        <div className="mx-auto mt-4 flex min-h-[400px] w-full rounded-xl bg-white p-4 shadow-xl">
           {/* Bên trái - Hình ảnh */}
           <div className="hidden lg:block lg:w-1/2">
             <ImageLeft />
@@ -160,12 +160,9 @@ const RegisterAdvertiserPage: React.FC = () => {
               </p>
             </div>
 
-            <div className="space-y-6">
+            <div className="mt-6 space-y-6">
               {/* Phần 1: Thông tin cá nhân */}
               <div>
-                <h2 className="mb-4 text-xl font-semibold text-gray-700">
-                  Thông tin cá nhân
-                </h2>
                 <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                   <div>
                     <label className="text-sm font-medium text-gray-700">
@@ -254,9 +251,6 @@ const RegisterAdvertiserPage: React.FC = () => {
 
               {/* Phần 2: Thông tin công ty */}
               <div>
-                <h2 className="mb-4 text-xl font-semibold text-gray-700">
-                  Thông tin công ty
-                </h2>
                 <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                   <div>
                     <label className="text-sm font-medium text-gray-700">
@@ -299,9 +293,6 @@ const RegisterAdvertiserPage: React.FC = () => {
 
               {/* Phần 3: Thông tin hoạt động */}
               <div>
-                <h2 className="mb-4 text-xl font-semibold text-gray-700">
-                  Thông tin hoạt động
-                </h2>
                 <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                   <div>
                     <label className="text-sm font-medium text-gray-700">
@@ -332,11 +323,15 @@ const RegisterAdvertiserPage: React.FC = () => {
                           industry: e.target.value
                         })
                       }
-                      className="w-full rounded-md border p-2"
+                      className="w-full rounded-md border p-2 text-sm font-medium"
                     >
                       <option value="">Chọn ngành nghề</option>
                       {industryOptions.map((option) => (
-                        <option key={option.value} value={option.name}>
+                        <option
+                          key={option.value}
+                          value={option.name}
+                          className="text-sm font-medium"
+                        >
                           {option.displayName}
                         </option>
                       ))}
@@ -349,9 +344,9 @@ const RegisterAdvertiserPage: React.FC = () => {
               </div>
             </div>
 
-            <div className="flex justify-center pt-6">
+            <div className="flex justify-center pt-10">
               <Button
-                className="hover:bg-yellow-600 w-full rounded-lg bg-purple-600 text-white"
+                className="hover:bg-yellow-500 w-full rounded-lg bg-purple-600 text-white"
                 onClick={handleRegister}
                 disabled={isPending}
               >
@@ -362,7 +357,6 @@ const RegisterAdvertiserPage: React.FC = () => {
         </div>
       </BasePages>
       <Footer />
-      {/* ToastContainer hiển thị popup thông báo */}
       <ToastContainer />
     </>
   );

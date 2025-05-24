@@ -67,7 +67,6 @@ interface IApiResponse<T> {
 
 const AttractivePublisherParticipationRequest: React.FC = () => {
   const [pageCount, setPageCount] = useState(0);
-
   const { data, isLoading, error, refetch } =
     useGetPublisherParticipationByStatusForAdvertiser(1, 10, 'Pending');
   const { mutate: updateParticipationStatus } = useUpdateParticipationStatus();

@@ -157,7 +157,7 @@ const CampaignsPage: React.FC = () => {
   }
 
   return (
-    <div className="bg-gray-100 p-6">
+    <div className="bg-gray-100 bg-gradient-to-br from-indigo-200 via-purple-50 to-blue p-6">
       <h1 className="mb-6 text-center text-2xl font-bold text-gray-800">
         Danh sách Chiến dịch
       </h1>

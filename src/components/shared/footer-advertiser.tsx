@@ -49,8 +49,7 @@ const FooterAd: React.FC = () => {
 
       {/* Footer Bottom */}
       <div className="mt-8 border-t border-gray-700 pt-4 text-center text-sm text-gray-400">
-        © {new Date().getFullYear()} Công ty TNHH Một Mình Tao Click Flow. All
-        rights reserved.
+        © {new Date().getFullYear()} Click Flow. All rights reserved.
       </div>
     </footer>
   );

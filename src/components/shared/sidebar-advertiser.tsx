@@ -5,7 +5,8 @@ import {
   UserOutlined,
   LogoutOutlined,
   LinkOutlined,
-  UnorderedListOutlined
+  UnorderedListOutlined,
+  PaperClipOutlined
 } from '@ant-design/icons';
 import { NavLink } from 'react-router-dom';
 import { ToastContainer } from 'react-toastify';
@@ -56,6 +57,9 @@ const SidebarAdvertiser: React.FC = () => {
         </Menu.Item>
         <Menu.Item key="traffic" icon={<LinkOutlined />}>
           <NavLink to="/advertiser/traffics">Truy cập</NavLink>
+        </Menu.Item>
+        <Menu.Item key="course" icon={<PaperClipOutlined />}>
+          <NavLink to="/advertiser/course">Khóa học</NavLink>
         </Menu.Item>
       </Menu>
 

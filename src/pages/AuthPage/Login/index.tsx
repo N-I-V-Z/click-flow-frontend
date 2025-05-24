@@ -95,19 +95,18 @@ export default function LoginPage() {
     <>
       <BasePages
         className="relative mx-auto mb-20 max-h-screen w-[80%] flex-1 p-2"
-        pageHead="Login | Click Flow"
         breadcrumbs={[
           { title: 'Trang chủ', link: '/' },
           { title: 'Đăng nhập', link: '/login' }
         ]}
       >
-        <div className="mx-auto flex w-[60%] rounded-xl bg-background p-5 shadow-lg">
+        <div className="h mx-auto flex w-[60%] rounded-xl bg-background p-8 shadow-lg">
           {/* Bên trái - Hình ảnh */}
           <div className="hidden w-full lg:block lg:w-1/2">
             <ImageLeft />
           </div>
           {/* Bên phải - Form đăng nhập */}
-          <div className="w-1/2 p-8">
+          <div className="w-1/2 p-5">
             <h1 className="mb-2 text-center text-xl font-bold">Đăng nhập</h1>
             <p className="text-center text-sm text-gray-500">
               Để truy cập{' '}
@@ -136,6 +135,9 @@ export default function LoginPage() {
                       userNameOrEmail: e.target.value
                     })
                   }
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') handleLogin();
+                  }}
                 />
                 {error.userNameOrEmail && (
                   <p className="text-[12px] text-red">
@@ -155,7 +157,11 @@ export default function LoginPage() {
                     onChange={(e) =>
                       setFormLogin({ ...formLogin, password: e.target.value })
                     }
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') handleLogin();
+                    }}
                   />
+
                   <button
                     type="button"
                     className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500"

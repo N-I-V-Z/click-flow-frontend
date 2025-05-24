@@ -5,7 +5,7 @@ import 'react-toastify/dist/ReactToastify.css';
 import { ColumnDef } from '@tanstack/react-table';
 import DataTable from '@/components/shared/data-table';
 import { Button } from '@/components/ui/button';
-
+import { usePageTitle } from '@/hooks/use-pagetitle';
 import { TokenDecoded } from '@/types';
 import helpers from '@/helpers';
 import __helpers from '@/helpers';
@@ -67,6 +67,7 @@ const Modal = ({
 );
 
 const AdvertiserCampaigns = () => {
+  usePageTitle('Chiến dịch | Click Flow');
   const [campaignStatus, setCampaignStatus] =
     useState<AdvertiserCampaignStatus>('All');
 

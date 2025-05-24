@@ -16,7 +16,7 @@ const ChangePassword = lazy(
 );
 const Wallet = lazy(() => import('@/pages/Advertiser/Wallet'));
 const Traffic = lazy(() => import('@/pages/Advertiser/Traffic'));
-
+const Course = lazy(() => import('@/pages/Advertiser/Course'));
 const advertiserRoutes = [
   {
     path: '/advertiser',
@@ -77,6 +77,14 @@ const advertiserRoutes = [
         element: (
           <RoleRoute allowedRoles={['Advertiser']}>
             <Traffic />
+          </RoleRoute>
+        )
+      },
+      {
+        path: 'course',
+        element: (
+          <RoleRoute allowedRoles={['Advertiser']}>
+            <Course />
           </RoleRoute>
         )
       }

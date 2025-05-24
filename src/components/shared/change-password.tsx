@@ -3,8 +3,9 @@ import { FaEye, FaEyeSlash, FaLock, FaTimes } from 'react-icons/fa';
 import { motion } from 'framer-motion';
 import { ToastContainer, toast } from 'react-toastify';
 import { useChangePassword } from './../../queries/auth.query';
-
+import { usePageTitle } from '@/hooks/use-pagetitle';
 const ChangePassword: React.FC = () => {
+  usePageTitle('Đổi mật khẩu | Click Flow');
   const [formData, setFormData] = useState({
     oldPassword: '',
     newPassword: '',
