@@ -53,9 +53,9 @@ export default function HeaderNav({ setOpen }: DashboardNavProps) {
       <div className="flex items-center">
         <Link to="/" className="flex items-center gap-2">
           <img
-            src="src/assets/logo.jpg"
+            src="src/assets/logo.png"
             alt="Logo"
-            className="ml-20 h-[60px] w-[90px] rounded-lg"
+            className="ml-20 h-[30px] w-[100px] rounded-lg"
           />
         </Link>
       </div>
