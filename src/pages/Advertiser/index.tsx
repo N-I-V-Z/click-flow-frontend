@@ -22,9 +22,7 @@ const advertiserId =
 
 const AdvertiserDashboard: React.FC = () => {
   usePageTitle('Tổng quan | Click Flow');
-  const [isModalVisible, setIsModalVisible] = useState<boolean>(false);
-
-  // Lấy user
+  const [isModalVisible, setIsModalVisible] = useState(false);
   const { data, isLoading } = useGetUserDetail(1);
   const user = (data as ApiResponse<UserDetailApiResponse>)?.result;
   const greetingName = user?.fullName || (isLoading ? '...' : 'User');
@@ -62,46 +60,62 @@ const AdvertiserDashboard: React.FC = () => {
           <button
             type="button"
             onClick={() => setIsModalVisible(true)}
-            className="rounded bg-[#ff7f50] px-4 py-2 text-white"
+            className="hover:from-orange-600 hover:to-red-600 transform rounded-lg bg-gradient-to-r from-orange to-red px-6 py-3 font-semibold text-white shadow-lg transition-all duration-300 hover:scale-105 hover:shadow-xl"
           >
-            Tạo mới chiến dịch
+            ✨ Tạo mới chiến dịch
           </button>
         </div>
 
         {/* Các thẻ thống kê trạng thái chiến dịch */}
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-4">
+        <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 md:grid-cols-4">
           {/* Cần phê duyệt (Pending) */}
-          <div className="rounded-xl bg-blue p-5 text-center text-white backdrop-blur hover:shadow-lg">
-            <FaClock size={30} />
-            <h4 className="my-2 text-xl font-bold text-white">Cần phê duyệt</h4>
-            <p className="text-2xl font-bold">
+          <div className="transform rounded-xl bg-gradient-to-br from-blue to-blue p-6 text-center text-white backdrop-blur transition-all duration-300 hover:scale-105 hover:shadow-xl">
+            <div className="mb-3 flex justify-center">
+              <div className="rounded-full bg-white/20 p-3">
+                <FaClock size={32} />
+              </div>
+            </div>
+            <h4 className="mb-2 text-lg font-bold text-white">Cần phê duyệt</h4>
+            <p className="text-3xl font-bold">
               {isPendingLoading ? '...' : pendingCount ?? 0}
             </p>
           </div>
 
           {/* Đã từ chối (Rejected) */}
-          <div className="rounded-xl bg-[#E54646] p-5 text-center text-white backdrop-blur hover:shadow-lg">
-            <FaTimesCircle size={30} />
-            <h4 className="my-2 text-xl font-bold text-white">Đã từ chối</h4>
-            <p className="text-2xl font-bold">
+          <div className="transform rounded-xl bg-gradient-to-br from-red to-red p-6 text-center text-white backdrop-blur transition-all duration-300 hover:scale-105 hover:shadow-xl">
+            <div className="mb-3 flex justify-center">
+              <div className="rounded-full bg-white/20 p-3">
+                <FaTimesCircle size={32} />
+              </div>
+            </div>
+            <h4 className="mb-2 text-lg font-bold text-white">Đã từ chối</h4>
+            <p className="text-3xl font-bold">
               {isRejectedLoading ? '...' : rejectedCount ?? 0}
             </p>
           </div>
 
           {/* Tạm dừng (Canceled) */}
-          <div className="rounded-xl bg-[#EC870E] p-5 text-center text-white backdrop-blur hover:shadow-lg">
-            <FaPause size={30} />
-            <h4 className="my-2 text-xl font-bold text-white">Tạm dừng</h4>
-            <p className="text-2xl font-bold">
+          <div className="transform rounded-xl bg-gradient-to-br from-orange to-orange p-6 text-center text-white backdrop-blur transition-all duration-300 hover:scale-105 hover:shadow-xl">
+            <div className="mb-3 flex justify-center">
+              <div className="rounded-full bg-white/20 p-3">
+                <FaPause size={32} />
+              </div>
+            </div>
+            <h4 className="mb-2 text-lg font-bold text-white">Tạm dừng</h4>
+            <p className="text-3xl font-bold">
               {isCanceledLoading ? '...' : canceledCount ?? 0}
             </p>
           </div>
 
           {/* Đã hoàn thành (Completed) */}
-          <div className="rounded-xl bg-[#00AE72] p-5 text-center text-white backdrop-blur hover:shadow-lg">
-            <FaCheckCircle size={30} />
-            <h4 className="my-2 text-xl font-bold text-white">Đã hoàn thành</h4>
-            <p className="text-2xl font-bold">
+          <div className="transform rounded-xl bg-gradient-to-br from-green-500 to-green-600 p-6 text-center text-white backdrop-blur transition-all duration-300 hover:scale-105 hover:shadow-xl">
+            <div className="mb-3 flex justify-center">
+              <div className="rounded-full bg-white/20 p-3">
+                <FaCheckCircle size={32} />
+              </div>
+            </div>
+            <h4 className="mb-2 text-lg font-bold text-white">Đã hoàn thành</h4>
+            <p className="text-3xl font-bold">
               {isCompletedLoading ? '...' : completedCount ?? 0}
             </p>
           </div>
@@ -118,7 +132,6 @@ const AdvertiserDashboard: React.FC = () => {
         visible={isModalVisible}
         onCancel={() => setIsModalVisible(false)}
         onCreate={(values: boolean) => {
-          console.log('Dữ liệu chiến dịch:', values);
           setIsModalVisible(false);
         }}
       />
