@@ -55,7 +55,7 @@ const PublisherProfile = () => {
                 <h2 className="text-3xl font-bold text-gray-800">
                   {user.fullName}
                 </h2>
-                <p className="text-blue-600 mt-1">Advertiser</p>
+                <p className="text-blue-600 mt-1">Publisher</p>
               </div>
             </div>
 

@@ -1,5 +1,6 @@
 import Footer from '@/components/shared/footer-home';
 import React, { useState } from 'react';
+import { Link } from 'react-router-dom';
 
 type FAQItemProps = {
   question: string;
@@ -91,9 +92,11 @@ const LearnMorePage: React.FC = () => {
                 trình biến ý tưởng thành lợi nhuận với rủi ro thấp và sự hỗ trợ
                 toàn diện từ đội ngũ chuyên gia.
               </p>
-              <button className="transform rounded-full bg-gradient-to-r from-amber-400 to-purple-500 px-12 py-4 font-bold text-black shadow-xl transition-transform duration-300 hover:scale-110">
-                Tham gia ngay!
-              </button>
+              <Link to="/login">
+                <button className="transform rounded-full bg-gradient-to-r from-amber-400 to-purple-500 px-12 py-4 font-bold text-black shadow-xl transition-transform duration-300 hover:scale-110">
+                  Tham gia ngay!
+                </button>
+              </Link>
             </div>
             <div>
               <img

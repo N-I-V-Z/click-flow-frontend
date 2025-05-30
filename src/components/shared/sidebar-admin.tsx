@@ -6,6 +6,7 @@ import {
   LogoutOutlined,
   FileTextOutlined,
   OrderedListOutlined,
+  BellOutlined,
   PullRequestOutlined
 } from '@ant-design/icons';
 import { NavLink, useLocation } from 'react-router-dom';
@@ -122,10 +123,20 @@ const SidebarAdmin: React.FC = () => {
         >
           <NavLink to="/admin/managereport">Báo cáo</NavLink>
         </Menu.Item>
+        <Menu.Item
+          key="/admin/support"
+          icon={<BellOutlined />}
+          className={`
+            hover:!border-[#9B52BF] hover:bg-white hover:!text-[#9B52BF]
+            ${selectedKey === '/admin/support' ? '!bg-[#9B52BF] !text-white' : ''}
+          `}
+        >
+          <NavLink to="/admin/support">Hỗ trợ</NavLink>
+        </Menu.Item>
       </Menu>
 
       {/* Khu vực dưới cùng (Hồ sơ, Đăng xuất) */}
-      <div className="bg-gray-100 p-3">
+      <div className="border-t p-3">
         <Menu
           mode="inline"
           selectedKeys={[selectedKey]}
