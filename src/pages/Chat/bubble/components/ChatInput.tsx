@@ -1,8 +1,8 @@
 import React, { useRef, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
-import { Send, Mic, Smile } from 'lucide-react';
-import ImageUpload from './ImageUploadComponent';
-import { EmojiPicker } from './EmojiPicker';
+import { Send, Smile } from 'lucide-react';
+import ImageUpload from '../../components/ImageUploadComponent';
+import EmojiPicker from '../../components/EmojiPicker';
 
 interface ChatInputProps {
   input: string;
@@ -25,25 +25,6 @@ export const ChatInput: React.FC<ChatInputProps> = ({
 }) => {
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
-
-  const emojis = [
-    '😊',
-    '👍',
-    '❤️',
-    '😂',
-    '😮',
-    '😢',
-    '🔥',
-    '💯',
-    '🎉',
-    '👏',
-    '🤔',
-    '😍',
-    '💪',
-    '🙏',
-    '✨',
-    '🎯'
-  ];
 
   // Auto-resize textarea function
   const adjustTextareaHeight = () => {
@@ -73,33 +54,31 @@ export const ChatInput: React.FC<ChatInputProps> = ({
     }
   };
 
-  const handleEmojiClick = (emoji: string) => {
+  // Handle emoji selection from EmojiPicker
+  const handleEmojiSelect = (emoji: string) => {
     onInputChange(input + emoji);
-    onToggleEmojiPicker();
+    // Focus back to textarea after selecting emoji
     textareaRef.current?.focus();
+  };
+
+  // Handle closing emoji picker
+  const handleCloseEmojiPicker = () => {
+    onToggleEmojiPicker();
   };
 
   return (
     <div className="relative border-t border-gray-100 bg-white p-4">
-      {/* Emoji Picker */}
-      {showEmojiPicker && (
-        <EmojiPicker emojis={emojis} onEmojiClick={handleEmojiClick} />
-      )}
+      {/* EmojiPicker Component */}
+      <EmojiPicker
+        isVisible={showEmojiPicker}
+        onEmojiSelect={handleEmojiSelect}
+        onClose={handleCloseEmojiPicker}
+        className="absolute bottom-20 left-4" // Position above the input area
+      />
 
       <div className="flex w-full items-end gap-2">
         {/* File Upload Button */}
         <ImageUpload onSendFile={onSendFile} disabled={isSending} />
-
-        {/* Voice Button */}
-        <Button
-          variant="ghost"
-          size="icon"
-          className="flex-shrink-0 text-gray-600 hover:bg-gray-100"
-          onClick={() => alert('Tính năng ghi âm sẽ được cập nhật sớm')}
-          disabled={isSending}
-        >
-          <Mic size={18} />
-        </Button>
 
         {/* Emoji Button */}
         <Button

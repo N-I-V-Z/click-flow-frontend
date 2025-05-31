@@ -1,7 +1,11 @@
 import BaseRequest from '@/config/axios.config';
 import { useMutation, useQuery } from '@tanstack/react-query';
 import helpers from '@/helpers';
-import { ConversationApiResponse, PagingResponse } from '@/types';
+import {
+  ConversationApiResponse,
+  ConversationListApiResponse,
+  PagingResponse
+} from '@/types';
 
 const SUB_URL = `api/Conversations`;
 
@@ -21,7 +25,7 @@ export const useGetOwnConversations = () => {
   return useQuery({
     queryKey: ['get-own-conversation'],
     queryFn: async () => {
-      return await BaseRequest.Get<ConversationApiResponse[]>(
+      return await BaseRequest.Get<ConversationListApiResponse[]>(
         `/${SUB_URL}/own`
       );
     }

@@ -49,7 +49,7 @@ export const useMaskAsRead = () => {
   return useMutation({
     mutationKey: ['mask-as-read'],
     mutationFn: async (model: { conversationId: number }) => {
-      return await BaseRequest.Post(`/${SUB_URL}`, model);
+      return await BaseRequest.Post(`/${SUB_URL}/mark-as-read`, model);
     }
   });
 };
