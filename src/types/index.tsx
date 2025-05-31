@@ -110,6 +110,12 @@ export enum MessageType {
   Voice = 'Voice'
 }
 
+export enum Role {
+  Admin = 'Admin',
+  Advertiser = 'Advertiser',
+  Publisher = 'Publisher'
+}
+
 export type CampaignApiResponse = {
   id: number;
   name: string;
@@ -146,6 +152,17 @@ export type ApplicationUserApiResponse = {
   role: string;
   isDeleted: boolean;
   advertiser: AdvertiserApiResponse;
+  userDetail: UserDetail;
+};
+
+export type UserDetail = {
+  id: number;
+  dateOfBirth: Date;
+  gender: string;
+  avatarURL: string;
+  address: string;
+  applicationUserId: number;
+  fullName: string;
 };
 
 export type PublisherApiResponse = {
@@ -258,6 +275,9 @@ export interface TrafficItem {
   referrerURL: string;
   timestamp: string;
 }
-/**
- *
- */
+
+export enum ChatTab {
+  All = 'all',
+  Advertiser = 'advertiser',
+  Publisher = 'publisher'
+}

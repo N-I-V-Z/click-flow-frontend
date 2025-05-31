@@ -1,11 +1,9 @@
-// components/chat/ChatUI.tsx
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { MessageApiResponse, TokenDecoded } from '@/types';
 import __helpers from '@/helpers';
 
-// Import các components con
 import { ChatHeader } from './ChatHeader';
 import { SearchBar } from './SearchBar';
 import { MessageBubble } from './MessageBubble';

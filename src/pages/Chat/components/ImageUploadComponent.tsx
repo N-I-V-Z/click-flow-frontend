@@ -1,4 +1,5 @@
 import React, { useState, useRef } from 'react';
+import { createPortal } from 'react-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import {
@@ -145,6 +146,119 @@ const ImageUpload: React.FC<ImageUploadProps> = ({
     return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
   };
 
+  // Modal Component
+  const Modal = () => (
+    <div
+      className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/50 p-4"
+      style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0 }}
+    >
+      <Card className="max-h-[90vh] w-full max-w-md overflow-hidden">
+        <div className="flex items-center justify-between border-b p-4">
+          <h3 className="flex items-center gap-2 text-lg font-semibold">
+            <FileImage size={20} className="text-blue" />
+            Gửi hình ảnh
+          </h3>
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={handleCloseModal}
+            className="h-8 w-8"
+          >
+            <X size={16} />
+          </Button>
+        </div>
+
+        <CardContent className="space-y-4 p-4">
+          {/* Image Preview */}
+          <div className="relative">
+            <img
+              src={imagePreview}
+              alt="Preview"
+              className="h-48 w-full rounded-lg border object-cover"
+            />
+            <div className="absolute right-2 top-2 rounded bg-black/50 px-2 py-1 text-xs text-white">
+              {selectedImage && formatFileSize(selectedImage.size)}
+            </div>
+          </div>
+
+          {/* File Info */}
+          {selectedImage && (
+            <div className="space-y-1 text-sm text-gray-600">
+              <div className="flex justify-between">
+                <span>Tên file:</span>
+                <span
+                  className="max-w-32 truncate font-medium"
+                  title={selectedImage.name}
+                >
+                  {selectedImage.name}
+                </span>
+              </div>
+              <div className="flex justify-between">
+                <span>Định dạng:</span>
+                <span className="font-medium uppercase">
+                  {selectedImage.type.split('/')[1]}
+                </span>
+              </div>
+            </div>
+          )}
+
+          {/* Error Message */}
+          {uploadError && (
+            <div className="bg-red-50 flex items-center gap-2 rounded-lg border border-red p-3 text-sm text-red">
+              <AlertCircle size={16} />
+              <span>{uploadError}</span>
+            </div>
+          )}
+
+          {/* Action Buttons */}
+          <div className="flex gap-2 pt-2">
+            <Button
+              variant="outline"
+              onClick={handleCloseModal}
+              disabled={isUploading}
+              className="flex-1"
+            >
+              Hủy
+            </Button>
+            <Button
+              onClick={handleSendImage}
+              disabled={isUploading || !selectedImage}
+              className="flex-1 bg-gradient-to-r from-blue to-blue hover:from-blue hover:to-blue"
+            >
+              {isUploading ? (
+                <Loader2 size={16} className="mr-2 animate-spin" />
+              ) : (
+                <Send size={16} className="mr-2" />
+              )}
+              {isUploading ? 'Đang gửi...' : 'Gửi'}
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+    </div>
+  );
+
+  // Drag Overlay Component
+  const DragOverlay = () => (
+    <div
+      className="bg-blue-500/20 fixed inset-0 z-[9998] flex items-center justify-center"
+      style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0 }}
+      onDragOver={handleDragOver}
+      onDragLeave={handleDragLeave}
+      onDrop={handleDrop}
+    >
+      <div className="rounded-lg border-2 border-dashed border-blue bg-white p-8 shadow-lg">
+        <div className="text-center">
+          <Upload size={48} className="mx-auto mb-4 text-blue" />
+          <p className="text-gray text-lg font-semibold">
+            Thả hình ảnh vào đây
+          </p>
+          <p className="text-sm text-gray-600">để gửi ngay</p>
+        </div>
+      </div>
+    </div>
+  );
+
   return (
     <>
       {/* Image Upload Button */}
@@ -173,114 +287,15 @@ const ImageUpload: React.FC<ImageUploadProps> = ({
         multiple={false}
       />
 
-      {/* Image Preview Modal */}
-      {showImageModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-          <Card className="max-h-[90vh] w-full max-w-md overflow-hidden">
-            <div className="flex items-center justify-between border-b p-4">
-              <h3 className="flex items-center gap-2 text-lg font-semibold">
-                <FileImage size={20} className="text-blue" />
-                Gửi hình ảnh
-              </h3>
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={handleCloseModal}
-                className="h-8 w-8"
-              >
-                <X size={16} />
-              </Button>
-            </div>
+      {/* Portal-based Modal */}
+      {showImageModal &&
+        typeof document !== 'undefined' &&
+        createPortal(<Modal />, document.body)}
 
-            <CardContent className="space-y-4 p-4">
-              {/* Image Preview */}
-              <div className="relative">
-                <img
-                  src={imagePreview}
-                  alt="Preview"
-                  className="h-48 w-full rounded-lg border object-cover"
-                />
-                <div className="absolute right-2 top-2 rounded bg-black/50 px-2 py-1 text-xs text-white">
-                  {selectedImage && formatFileSize(selectedImage.size)}
-                </div>
-              </div>
-
-              {/* File Info */}
-              {selectedImage && (
-                <div className="space-y-1 text-sm text-gray-600">
-                  <div className="flex justify-between">
-                    <span>Tên file:</span>
-                    <span
-                      className="max-w-32 truncate font-medium"
-                      title={selectedImage.name}
-                    >
-                      {selectedImage.name}
-                    </span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span>Định dạng:</span>
-                    <span className="font-medium uppercase">
-                      {selectedImage.type.split('/')[1]}
-                    </span>
-                  </div>
-                </div>
-              )}
-
-              {/* Error Message */}
-              {uploadError && (
-                <div className="bg-red-50 flex items-center gap-2 rounded-lg border border-red p-3 text-sm text-red">
-                  <AlertCircle size={16} />
-                  <span>{uploadError}</span>
-                </div>
-              )}
-
-              {/* Action Buttons */}
-              <div className="flex gap-2 pt-2">
-                <Button
-                  variant="outline"
-                  onClick={handleCloseModal}
-                  disabled={isUploading}
-                  className="flex-1"
-                >
-                  Hủy
-                </Button>
-                <Button
-                  onClick={handleSendImage}
-                  disabled={isUploading || !selectedImage}
-                  className="flex-1 bg-gradient-to-r from-blue to-blue hover:from-blue hover:to-blue"
-                >
-                  {isUploading ? (
-                    <Loader2 size={16} className="mr-2 animate-spin" />
-                  ) : (
-                    <Send size={16} className="mr-2" />
-                  )}
-                  {isUploading ? 'Đang gửi...' : 'Gửi'}
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-      )}
-
-      {/* Drag & Drop Overlay */}
-      {dragOver && (
-        <div
-          className="bg-blue-500/20 fixed inset-0 z-40 flex items-center justify-center"
-          onDragOver={handleDragOver}
-          onDragLeave={handleDragLeave}
-          onDrop={handleDrop}
-        >
-          <div className="rounded-lg border-2 border-dashed border-blue bg-white p-8 shadow-lg">
-            <div className="text-center">
-              <Upload size={48} className="mx-auto mb-4 text-blue" />
-              <p className="text-gray text-lg font-semibold">
-                Thả hình ảnh vào đây
-              </p>
-              <p className="text-sm text-gray-600">để gửi ngay</p>
-            </div>
-          </div>
-        </div>
-      )}
+      {/* Portal-based Drag Overlay */}
+      {dragOver &&
+        typeof document !== 'undefined' &&
+        createPortal(<DragOverlay />, document.body)}
     </>
   );
 };
