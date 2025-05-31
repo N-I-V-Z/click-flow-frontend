@@ -2,7 +2,7 @@ import axios, { AxiosRequestConfig, AxiosResponse } from 'axios';
 import helpers from '../helpers';
 import { ApiResponse } from '@/types';
 
-const baseURL = 'https://localhost:7087';
+const baseURL = import.meta.env.VITE_API_URL;
 
 const token = helpers.cookie_get('AT');
 

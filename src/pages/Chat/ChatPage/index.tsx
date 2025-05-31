@@ -36,7 +36,7 @@ interface Message {
   fileSize?: string;
 }
 
-const AdminChat: React.FC = () => {
+const ChatPage: React.FC = () => {
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
   const [message, setMessage] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
@@ -549,4 +549,4 @@ const AdminChat: React.FC = () => {
   );
 };
 
-export default AdminChat;
+export default ChatPage;
