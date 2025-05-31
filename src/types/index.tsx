@@ -73,6 +73,43 @@ export type PagingResponse<T = unknown> = {
   datas: T[];
 };
 
+export type ConversationApiResponse = {
+  id: number;
+  user1Id: number;
+  User2Id: number;
+  createdAt: Date;
+  user1: ApplicationUserApiResponse;
+  user2: ApplicationUserApiResponse;
+  messages: MessageApiResponse[];
+};
+
+export type ConversationListApiResponse = {
+  id: number;
+  parnerId: number;
+  parner: ApplicationUserApiResponse;
+  lastMessage: MessageApiResponse;
+  unreadCount: number;
+};
+
+export type MessageApiResponse = {
+  id: number;
+  conversationId: number;
+  conversation: ConversationApiResponse;
+  senderId: number;
+  sender: ApplicationUserApiResponse;
+  text: string;
+  type: MessageType;
+  fileUrl: string;
+  sentAt: Date;
+  isRead: boolean;
+};
+
+export enum MessageType {
+  Text = 'Text',
+  Image = 'Image',
+  Voice = 'Voice'
+}
+
 export type CampaignApiResponse = {
   id: number;
   name: string;

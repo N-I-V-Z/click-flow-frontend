@@ -77,5 +77,15 @@ module.exports = {
       }
     }
   },
-  plugins: [require('tailwindcss-animate')]
+  plugins: [
+    require('tailwindcss-animate'),
+    function ({ addUtilities }) {
+      addUtilities({
+        '.break-anywhere': {
+          overflowWrap: 'anywhere',
+          wordBreak: 'break-word'
+        }
+      });
+    }
+  ]
 };
