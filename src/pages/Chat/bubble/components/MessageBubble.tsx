@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { Bot, User, Clock, Copy, Check, CheckCheck, X } from 'lucide-react';
+import { Bot, User, Clock, Copy, Check, CheckCheck } from 'lucide-react';
 import { MessageApiResponse, MessageType, TokenDecoded } from '@/types';
+import { ImageViewer } from '../../components/ImageViewer';
 
 interface MessageBubbleProps {
   msg: MessageApiResponse;
@@ -53,12 +54,6 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({
 
   const handleCloseViewer = () => {
     setIsImageViewerOpen(false);
-  };
-
-  const handleBackdropClick = (e: React.MouseEvent) => {
-    if (e.target === e.currentTarget) {
-      handleCloseViewer();
-    }
   };
 
   return (
@@ -151,40 +146,16 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({
         </div>
       </div>
 
-      {/* Image Viewer Modal */}
-      {isImageViewerOpen && msg?.type === MessageType.Image && msg?.fileUrl && (
-        <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm"
-          onClick={handleBackdropClick}
-        >
-          <div className="relative max-h-[90vh] max-w-[90vw] p-4">
-            {/* Close button */}
-            <Button
-              size="sm"
-              variant="ghost"
-              className="absolute -right-2 -top-2 z-10 h-8 w-8 rounded-full bg-white/90 p-0 shadow-lg hover:bg-white"
-              onClick={handleCloseViewer}
-            >
-              <X size={16} className="text-gray-700" />
-            </Button>
-
-            {/* Large image */}
-            <img
-              src={msg.fileUrl}
-              alt="Enlarged view"
-              className="max-h-full max-w-full rounded-lg object-contain shadow-2xl"
-              onClick={(e) => e.stopPropagation()}
-            />
-
-            {/* Image info */}
-            <div className="absolute bottom-0 left-0 right-0 rounded-b-lg bg-gradient-to-t from-black/60 to-transparent p-4">
-              <p className="text-sm text-white opacity-80">
-                Gửi lúc {formatTime(msg.sentAt)} - {formatDate(msg.sentAt)}
-              </p>
-            </div>
-          </div>
-        </div>
-      )}
+      {/* Sử dụng ImageViewer component */}
+      <ImageViewer
+        isOpen={
+          isImageViewerOpen && msg?.type === MessageType.Image && !!msg?.fileUrl
+        }
+        imageUrl={msg?.fileUrl || ''}
+        imageAlt="Enlarged view"
+        timestamp={msg?.sentAt}
+        onClose={handleCloseViewer}
+      />
     </>
   );
 };

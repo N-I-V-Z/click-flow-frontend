@@ -1,5 +1,6 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { MessageApiResponse, MessageType } from '@/types';
+import { ImageViewer } from '../../components/ImageViewer';
 
 interface MessageGroupProps {
   messages: MessageApiResponse[];
@@ -10,6 +11,15 @@ const MessageGroup: React.FC<MessageGroupProps> = ({
   messages,
   currentUserId
 }) => {
+  const [imageViewerState, setImageViewerState] = useState<{
+    isOpen: boolean;
+    imageUrl: string;
+    timestamp?: string | Date;
+  }>({
+    isOpen: false,
+    imageUrl: ''
+  });
+
   const formatTime = (timestamp: string | Date) => {
     const date = new Date(timestamp);
     return date.toLocaleTimeString('vi-VN', {
@@ -31,6 +41,21 @@ const MessageGroup: React.FC<MessageGroupProps> = ({
     } else {
       return date.toLocaleDateString('vi-VN');
     }
+  };
+
+  const handleImageClick = (imageUrl: string, timestamp: string | Date) => {
+    setImageViewerState({
+      isOpen: true,
+      imageUrl,
+      timestamp
+    });
+  };
+
+  const handleCloseImageViewer = () => {
+    setImageViewerState({
+      isOpen: false,
+      imageUrl: ''
+    });
   };
 
   // Logic nhóm tin nhắn theo ngày
@@ -56,60 +81,77 @@ const MessageGroup: React.FC<MessageGroupProps> = ({
   const groupedMessages = groupMessagesByDate(messages || []);
 
   return (
-    <div className="space-y-6">
-      {groupedMessages.map((group) => (
-        <div key={group.date} className="mb-6">
-          {/* Header ngày */}
-          <div className="mb-4 text-center">
-            <span className="rounded-full bg-gray-100 px-3 py-1 text-xs font-medium text-gray-500">
-              {formatDateHeader(group.date)}
-            </span>
-          </div>
+    <>
+      <div className="space-y-6">
+        {groupedMessages.map((group) => (
+          <div key={group.date} className="mb-6">
+            {/* Header ngày */}
+            <div className="mb-4 text-center">
+              <span className="rounded-full bg-gray-100 px-3 py-1 text-xs font-medium text-gray-500">
+                {formatDateHeader(group.date)}
+              </span>
+            </div>
 
-          {/* Tin nhắn trong ngày */}
-          <div className="space-y-4">
-            {group.messages.map((msg) => {
-              const isSender =
-                currentUserId !== undefined && msg?.senderId === currentUserId;
-              return (
-                <div
-                  key={msg.id}
-                  className={`flex ${isSender ? 'justify-end' : 'justify-start'}`}
-                >
+            {/* Tin nhắn trong ngày */}
+            <div className="space-y-4">
+              {group.messages.map((msg) => {
+                const isSender =
+                  currentUserId !== undefined &&
+                  msg?.senderId === currentUserId;
+                return (
                   <div
-                    className={`max-w-xs rounded-2xl px-4 py-3 shadow-sm lg:max-w-md ${
-                      isSender
-                        ? 'bg-gradient-to-r from-purple-500 to-indigo-500 text-white'
-                        : 'border border-gray-200 bg-white text-gray-900'
-                    }`}
+                    key={msg.id}
+                    className={`flex ${isSender ? 'justify-end' : 'justify-start'}`}
                   >
-                    {msg?.type === MessageType.Image && (
-                      <div className="space-y-2">
-                        <img
-                          src={msg.fileUrl}
-                          alt="Shared image"
-                          className="max-w-full cursor-pointer rounded-lg transition-opacity hover:opacity-90"
-                          loading="lazy"
-                          title="Click để xem ảnh lớn"
-                        />
-                      </div>
-                    )}
-                    <p className="text-sm leading-relaxed">{msg?.text}</p>
-                    <p
-                      className={`mt-2 text-xs ${
-                        isSender ? 'text-purple-100' : 'text-gray-500'
+                    <div
+                      className={`max-w-xs rounded-2xl px-4 py-3 shadow-sm lg:max-w-md ${
+                        isSender
+                          ? 'bg-gradient-to-r from-purple-500 to-indigo-500 text-white'
+                          : 'border border-gray-200 bg-white text-gray-900'
                       }`}
                     >
-                      {formatTime(msg?.sentAt)}
-                    </p>
+                      {msg?.type === MessageType.Image && msg?.fileUrl && (
+                        <div className="space-y-2">
+                          <img
+                            src={msg.fileUrl}
+                            alt="Shared image"
+                            className="max-w-full cursor-pointer rounded-lg transition-opacity hover:opacity-90"
+                            loading="lazy"
+                            title="Click để xem ảnh lớn"
+                            onClick={() =>
+                              handleImageClick(msg.fileUrl!, msg.sentAt)
+                            }
+                          />
+                        </div>
+                      )}
+                      {msg?.text && (
+                        <p className="text-sm leading-relaxed">{msg.text}</p>
+                      )}
+                      <p
+                        className={`mt-2 text-xs ${
+                          isSender ? 'text-purple-100' : 'text-gray-500'
+                        }`}
+                      >
+                        {formatTime(msg?.sentAt)}
+                      </p>
+                    </div>
                   </div>
-                </div>
-              );
-            })}
+                );
+              })}
+            </div>
           </div>
-        </div>
-      ))}
-    </div>
+        ))}
+      </div>
+
+      {/* ImageViewer Modal */}
+      <ImageViewer
+        isOpen={imageViewerState.isOpen}
+        imageUrl={imageViewerState.imageUrl}
+        imageAlt="Enlarged view"
+        timestamp={imageViewerState.timestamp}
+        onClose={handleCloseImageViewer}
+      />
+    </>
   );
 };
 
