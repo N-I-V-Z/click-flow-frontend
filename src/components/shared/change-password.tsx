@@ -4,6 +4,7 @@ import { motion } from 'framer-motion';
 import { ToastContainer, toast } from 'react-toastify';
 import { useChangePassword } from './../../queries/auth.query';
 import { usePageTitle } from '@/hooks/use-pagetitle';
+import PageHead from './page-head';
 const ChangePassword: React.FC = () => {
   usePageTitle('Đổi mật khẩu | Click Flow');
   const [formData, setFormData] = useState({
@@ -74,6 +75,8 @@ const ChangePassword: React.FC = () => {
 
   return (
     <div className="mx-80 mt-5 flex max-h-screen items-center p-1">
+      <PageHead title={'ClickFlow - Đổi mật khẩu'} />
+
       <motion.div
         className="w-full max-w-md overflow-hidden rounded-2xl bg-white shadow-xl"
         initial={{ opacity: 0, scale: 0.95 }}

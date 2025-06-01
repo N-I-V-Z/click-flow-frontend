@@ -7,6 +7,7 @@ import {
 } from '@ant-design/icons';
 import DataTable from '@/components/shared/data-table'; // Điều chỉnh đường dẫn theo dự án của bạn
 import { ColumnDef } from '@tanstack/react-table';
+import PageHead from '@/components/shared/page-head';
 
 interface Publisher {
   id: number;
@@ -178,6 +179,8 @@ const PublisherList: React.FC = () => {
 
   return (
     <div className="mb-10 p-4">
+      <PageHead title={'ClickFlow - Nhà tiếp thị'} />
+
       <h2 className="mb-4 text-xl font-semibold">Nhà tiếp thị</h2>
 
       {/* Sử dụng DataTable mới (tích hợp tìm kiếm, phân trang, sắp xếp client-side) */}

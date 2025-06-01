@@ -1,6 +1,7 @@
 import React, { useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import { useCreateTraffic } from '@/queries/traffic.query';
+import PageHead from '@/components/shared/page-head';
 
 const LinkPage: React.FC = () => {
   const { publisherId, campaignId } = useParams<{
@@ -56,7 +57,11 @@ const LinkPage: React.FC = () => {
     })();
   }, [referrerURL, isSuccess, publisherId, campaignId, createTraffic]);
 
-  return <div style={{ padding: '2rem' }}></div>;
+  return (
+    <div style={{ padding: '2rem' }}>
+      <PageHead title={'Đang chuyển trang...'} />
+    </div>
+  );
 };
 
 export default LinkPage;

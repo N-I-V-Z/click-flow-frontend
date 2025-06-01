@@ -1,3 +1,4 @@
+import PageHead from '@/components/shared/page-head';
 import React from 'react';
 import {
   LineChart,
@@ -31,6 +32,8 @@ const AdminDashboard: React.FC = () => {
 
   return (
     <div className="mb-10 p-4">
+      <PageHead title={'ClickFlow - Dashboard'} />
+
       {/* 4 ô thống kê (canh đều) */}
       <div className="mb-6 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
         {/* Doanh thu tháng này */}

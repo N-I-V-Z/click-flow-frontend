@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Mail, Phone } from 'lucide-react';
 import Footer from '@/components/shared/footer-home';
+import PageHead from '@/components/shared/page-head';
 
 const sections = [
   {
@@ -86,6 +87,8 @@ const PrivacyPolicy: React.FC = () => {
 
   return (
     <div className="flex min-h-screen flex-col justify-between bg-gray-50">
+      <PageHead title={'ClickFlow - Chính sách bảo mật'} />
+
       {/* Header */}
       <header className="relative flex h-60 items-center justify-center bg-gradient-to-tr from-purple-700 to-purple-500 text-center text-white">
         <div>

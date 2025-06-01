@@ -14,6 +14,7 @@ import {
   Download,
   Share2
 } from 'lucide-react';
+import PageHead from '@/components/shared/page-head';
 
 const PublisherWallet = () => {
   const router = useRouter();
@@ -95,6 +96,8 @@ const PublisherWallet = () => {
 
   return (
     <div className="min-h-screen bg-gray-50">
+      <PageHead title={'ClickFlow - Ví'} />
+
       {/* Top Header */}
       <div className="bg-white ">
         <div className="container mx-auto px-4">

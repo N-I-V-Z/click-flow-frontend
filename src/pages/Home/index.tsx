@@ -8,7 +8,7 @@ export default function HomePage() {
   return (
     <BasePages
       className="relative mx-auto w-full flex-1 overflow-y-auto"
-      pageHead="Home Page"
+      pageHead="ClickFlow - Trang chủ"
     >
       {/* Background Section */}
       <Background />

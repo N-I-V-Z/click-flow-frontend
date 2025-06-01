@@ -15,6 +15,7 @@ import __helpers from '@/helpers';
 import Pusher from 'pusher-js';
 import ChatSidebar from './components/ChatSidebar';
 import ChatArea from './components/ChatArea';
+import PageHead from '@/components/shared/page-head';
 
 const ChatPage: React.FC = () => {
   // States
@@ -222,6 +223,8 @@ const ChatPage: React.FC = () => {
 
   return (
     <div className="flex h-[95%] bg-gradient-to-br from-purple-50 to-indigo-50">
+      <PageHead title={'ClickFlow - Hỗ trợ'} />
+
       <ChatSidebar
         conversations={conversations?.result}
         selectedConversation={selectedConversation}

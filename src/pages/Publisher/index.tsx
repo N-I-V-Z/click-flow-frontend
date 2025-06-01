@@ -15,6 +15,7 @@ import {
   Cell
 } from 'recharts';
 import TrafficTable from './traffictable';
+import PageHead from '@/components/shared/page-head';
 /* ----------------- PHẦN DASHBOARD ----------------- */
 const PublisherDashboard: React.FC = () => {
   // -------------------- DỮ LIỆU MẪU --------------------
@@ -93,6 +94,8 @@ const PublisherDashboard: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-indigo-100 via-purple-50 to-blue p-6">
+      <PageHead title={'ClickFlow - Dashboard'} />
+
       <motion.div initial="initial" animate="animate" variants={fadeInUp}>
         <div className="mb-6">
           <h1 className="bg-gradient-to-r from-indigo-600 to-pink-600 bg-clip-text text-4xl font-extrabold text-transparent drop-shadow-lg">
