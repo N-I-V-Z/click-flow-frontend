@@ -88,7 +88,7 @@ export default function RegisterPage() {
     <>
       <BasePages
         className="relative mx-auto max-h-screen w-[80%] flex-1 p-4"
-        pageHead="Đăng ký | Click Flow"
+        pageHead="ClickFlow - Đăng ký"
         breadcrumbs={[
           { title: 'Trang chủ', link: '/' },
           { title: 'Đăng ký', link: '/register' }

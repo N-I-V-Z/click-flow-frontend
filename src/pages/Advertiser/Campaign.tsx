@@ -12,6 +12,7 @@ import __helpers from '@/helpers';
 
 import { useGetCampaignAdvertiser } from '@/queries/campaign.query';
 import { ApiResponse, CampaignApiResponse, PagingResponse } from '@/types';
+import PageHead from '@/components/shared/page-head';
 
 const decodedToken: TokenDecoded | null = helpers.decodeTokens(
   __helpers.cookie_get('AT')
@@ -239,6 +240,8 @@ const AdvertiserCampaigns = () => {
 
   return (
     <div className="p-6">
+      <PageHead title={'ClickFlow - Danh sách yêu cầu'} />
+
       <div className="mb-6 flex items-center justify-between">
         <h2 className="text-2xl font-bold">Danh sách yêu cầu</h2>
         {selectedRows.length > 0 && (

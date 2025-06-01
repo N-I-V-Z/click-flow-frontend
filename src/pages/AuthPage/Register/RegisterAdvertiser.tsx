@@ -117,7 +117,7 @@ const RegisterAdvertiserPage: React.FC = () => {
     <>
       <BasePages
         className="relative mx-auto mb-20 w-[70%] flex-1 p-3"
-        pageHead="Đăng ký advertiser | Click Flow"
+        pageHead="ClickFlow - Đăng ký Advertiser"
         breadcrumbs={[
           { title: 'Trang chủ', link: '/' },
           { title: 'Đăng ký', link: '/register-advertiser' }

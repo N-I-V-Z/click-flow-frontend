@@ -12,6 +12,7 @@ import { usePageTitle } from '@/hooks/use-pagetitle';
 import { useGetCampaignCountByAdvertiser } from '@/queries/campaign.query';
 // Hook đếm participations (Pending, Rejected)
 import { useGetCampaignParticipationCountByStatusForAdvertiser } from '@/queries/campaign.query';
+import PageHead from '@/components/shared/page-head';
 
 const decodedToken: TokenDecoded | null = helpers.decodeTokens(
   __helpers.cookie_get('AT')
@@ -43,6 +44,8 @@ const AdvertiserDashboard: React.FC = () => {
 
   return (
     <div className="min-h-screen">
+      <PageHead title={'ClickFlow - Dashboard'} />
+
       {/* HEADER */}
       <header className="bg-transparent px-10 py-5">
         <div className="text-center text-white">

@@ -1,4 +1,5 @@
 import Footer from '@/components/shared/footer-home';
+import PageHead from '@/components/shared/page-head';
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 
@@ -12,6 +13,8 @@ const FAQItem: React.FC<FAQItemProps> = ({ question, answer }) => {
 
   return (
     <div className="border-b border-gray-200 py-4">
+      <PageHead title={'ClickFlow - Khám phá'} />
+
       <button
         className="flex w-full items-center justify-between text-left focus:outline-none"
         onClick={() => setIsOpen(!isOpen)}

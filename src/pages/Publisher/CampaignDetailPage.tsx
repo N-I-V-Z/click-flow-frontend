@@ -17,6 +17,7 @@ import 'slick-carousel/slick/slick.css';
 import 'slick-carousel/slick/slick-theme.css';
 import { ApiResponse, CampaignApiResponse, PagingResponse } from '@/types';
 import __helpers from '@/helpers';
+import PageHead from '@/components/shared/page-head';
 
 // Decode token để lấy publisher id (giả sử trường Id có trong token)
 const decodedToken = helpers.decodeTokens(__helpers.cookie_get('AT'));
@@ -262,6 +263,8 @@ const CampaignDetailPage: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 p-6">
+      <PageHead title={'ClickFlow - Chi tiết chiến dịch'} />
+
       <motion.div>
         {/* PHẦN TRÊN: Thông tin campaign & Chiến dịch tương tự */}
         <div className="flex flex-col gap-6 rounded-2xl bg-white p-6 shadow-lg md:flex-row">

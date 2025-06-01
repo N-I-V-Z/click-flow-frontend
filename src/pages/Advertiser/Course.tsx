@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { usePageTitle } from '@/hooks/use-pagetitle';
+import PageHead from '@/components/shared/page-head';
 
 type Course = {
   id: number;
@@ -160,6 +161,8 @@ type CourseDetailProps = {
 const CourseDetail = ({ course, onClose }: CourseDetailProps) => {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-70 p-4">
+      <PageHead title={'ClickFlow - Chi tiết khóa học'} />
+
       <div className="relative max-h-full w-full max-w-4xl overflow-y-auto rounded-lg bg-white shadow-lg">
         <button
           onClick={onClose}

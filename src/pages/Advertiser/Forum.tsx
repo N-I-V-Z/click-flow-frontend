@@ -13,6 +13,7 @@ import {
 } from 'react-icons/fa';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+import PageHead from '@/components/shared/page-head';
 
 interface Comment {
   id: string;
@@ -254,6 +255,8 @@ export default function Forum() {
   // Main render
   return (
     <div className="min-h-screen bg-gray-50 p-8">
+      <PageHead title={'ClickFlow - Diễn đàn'} />
+
       <ToastContainer />
       {!selectedPost ? (
         <>
