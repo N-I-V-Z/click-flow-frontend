@@ -2,10 +2,10 @@ import { Navigate } from 'react-router-dom';
 import { Suspense, lazy } from 'react';
 import LoginRoute from './private/LoginRoute';
 import RoleRoute from './private/RoleRoute';
-
-const AdvertiserLayout = lazy(
-  () => import('@/components/layout/AdvertiserLayout/index')
-);
+import AdvertiserLayout from '@/components/layout/AdvertiserLayout/index';
+// const AdvertiserLayout = lazy(
+//   () => import('@/components/layout/AdvertiserLayout/index')
+// );
 const AdvertiserDashboard = lazy(() => import('@/pages/Advertiser'));
 const AdvertiserCampaigns = lazy(() => import('@/pages/Advertiser/Campaign'));
 const AdvertiserProfile = lazy(

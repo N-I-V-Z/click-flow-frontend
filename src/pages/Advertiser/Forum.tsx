@@ -1,51 +1,31 @@
-import React, { useState, FormEvent, useRef } from 'react';
+// File: src/pages/Advertiser/Forum.tsx
+
+import React, { useState, useEffect, useRef, FormEvent } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
+  FaPlus,
   FaRegHeart,
   FaHeart,
   FaComment,
-  FaEye,
-  FaPlus,
+  FaSearch,
   FaTimes,
-  FaImage,
-  FaRegSmile,
-  FaMapMarkerAlt
+  FaEllipsisH
 } from 'react-icons/fa';
-import { ToastContainer, toast } from 'react-toastify';
-import 'react-toastify/dist/ReactToastify.css';
+import ForumDetail from './ForumDetail';
 import PageHead from '@/components/shared/page-head';
 
-interface Comment {
-  id: string;
-  author: string;
-  avatarUrl: string;
-  content: string;
-  likes: number;
-  liked: boolean;
-  createdAt: number;
-  children?: Comment[];
-}
-interface Post {
-  id: string;
-  author: string;
-  avatarUrl: string;
-  title: string;
-  content: string;
-  likes: number;
-  liked: boolean;
-  comments: Comment[];
-  createdAt: number;
-}
-
-const initialPosts: Post[] = [
+// ----------------------------------------------
+// Fake data (initialPosts) dùng làm mẫu
+// ----------------------------------------------
+const initialPosts = [
   {
     id: '1',
     author: 'Admin',
     avatarUrl: 'https://i.pravatar.cc/40?u=admin',
     title: 'Chào mừng đến với diễn đàn!',
     content:
-      'Đây là bài viết mẫu để bạn kiểm tra giao diện và tính năng like/comment.',
-    likes: 4,
+      'Đây là bài viết mẫu để bạn kiểm tra giao diện và tính năng like/comment. Hy vọng bạn sẽ đóng góp xây dựng cộng đồng tốt hơn nhé!',
+    likes: 5,
     liked: false,
     comments: [
       {
@@ -56,7 +36,7 @@ const initialPosts: Post[] = [
         likes: 2,
         liked: false,
         createdAt: Date.now() - 600000,
-        children: [
+        replies: [
           {
             id: 'c1-1',
             author: 'Trần Thị B',
@@ -65,6 +45,42 @@ const initialPosts: Post[] = [
             likes: 1,
             liked: false,
             createdAt: Date.now() - 300000
+          },
+          {
+            id: 'c1-2',
+            author: 'Bạn',
+            avatarUrl: 'https://i.pravatar.cc/40?u=me',
+            content: 'Ok',
+            likes: 0,
+            liked: false,
+            createdAt: Date.now() - 200000
+          },
+          {
+            id: 'c1-3',
+            author: 'Khách',
+            avatarUrl: 'https://i.pravatar.cc/40?u=guest',
+            content: 'Cám ơn!',
+            likes: 0,
+            liked: false,
+            createdAt: Date.now() - 100000
+          },
+          {
+            id: 'c1-4',
+            author: 'Bạn',
+            avatarUrl: 'https://i.pravatar.cc/40?u=me',
+            content: 'Thử thêm bình luận dài hơn để test hiển thị.',
+            likes: 0,
+            liked: false,
+            createdAt: Date.now() - 50000
+          },
+          {
+            id: 'c1-5',
+            author: 'Người khác',
+            avatarUrl: 'https://i.pravatar.cc/40?u=other',
+            content: 'Một reply thứ 5 để test Xem thêm.',
+            likes: 0,
+            liked: false,
+            createdAt: Date.now() - 20000
           }
         ]
       },
@@ -82,8 +98,8 @@ const initialPosts: Post[] = [
   },
   {
     id: '2',
-    author: 'User123',
-    avatarUrl: 'https://i.pravatar.cc/40?u=user123',
+    author: 'Bạn',
+    avatarUrl: 'https://i.pravatar.cc/40?u=me',
     title: 'Mình có thắc mắc về TypeScript',
     content: 'Bạn nào giúp mình cách sửa lỗi type trong React hook useState?',
     likes: 1,
@@ -91,35 +107,91 @@ const initialPosts: Post[] = [
     comments: [],
     createdAt: Date.now() - 7200000
   }
+  // Thêm nhiều bài “fake” hơn nếu cần
 ];
 
-const sortComments = (list: Comment[], by: 'time' | 'likes') =>
-  [...list].sort((a, b) =>
-    by === 'likes' ? b.likes - a.likes : a.createdAt - b.createdAt
-  );
+// ----------------------------------------------
+// Kiểu dữ liệu Comment & Post
+// ----------------------------------------------
+interface Comment {
+  id: string;
+  author: string;
+  avatarUrl: string;
+  content: string;
+  likes: number;
+  liked: boolean;
+  createdAt: number;
+  replies?: Comment[];
+}
+
+interface Post {
+  id: string;
+  author: string;
+  avatarUrl: string;
+  title: string;
+  content: string;
+  likes: number;
+  liked: boolean;
+  comments: Comment[];
+  createdAt: number;
+}
 
 export default function Forum() {
-  const [posts, setPosts] = useState<Post[]>(initialPosts);
+  // --------------------------------------------
+  // State & refs
+  // --------------------------------------------
+  const [posts, setPosts] = useState<Post[]>([]);
+  const [filteredPosts, setFilteredPosts] = useState<Post[]>([]);
+  const [loading, setLoading] = useState<boolean>(true);
+
   const [selectedPost, setSelectedPost] = useState<Post | null>(null);
   const [showCreate, setShowCreate] = useState(false);
-  const [sortBy, setSortBy] = useState<'time' | 'likes'>('time');
-  const [newComment, setNewComment] = useState('');
-  const [replyTo, setReplyTo] = useState<Comment | null>(null);
-  const titleRef = useRef<HTMLInputElement>(null);
-  const contentRef = useRef<HTMLTextAreaElement>(null);
-  const commentRef = useRef<HTMLTextAreaElement>(null);
 
-  // Create post
-  const handleCreate = (e: FormEvent) => {
+  const [searchText, setSearchText] = useState<string>('');
+  const searchRef = useRef<HTMLInputElement>(null);
+
+  const contentRef = useRef<HTMLTextAreaElement>(null);
+
+  // --------------------------------------------
+  // 1) Load dữ liệu fake
+  // --------------------------------------------
+  useEffect(() => {
+    setTimeout(() => {
+      setPosts(initialPosts);
+      setFilteredPosts(initialPosts);
+      setLoading(false);
+    }, 300);
+  }, []);
+
+  // --------------------------------------------
+  // 2) Tìm kiếm (filter)
+  // --------------------------------------------
+  useEffect(() => {
+    if (!searchText.trim()) {
+      setFilteredPosts(posts);
+      return;
+    }
+    const txt = searchText.trim().toLowerCase();
+    const filtered = posts.filter(
+      (p) =>
+        p.title.toLowerCase().includes(txt) ||
+        p.content.toLowerCase().includes(txt)
+    );
+    setFilteredPosts(filtered);
+  }, [searchText, posts]);
+
+  // --------------------------------------------
+  // 3) Tạo bài mới (fake)
+  // --------------------------------------------
+  const handleCreatePost = (e: FormEvent) => {
     e.preventDefault();
-    const title = titleRef.current!.value.trim();
     const content = contentRef.current!.value.trim();
-    if (!title || !content) return toast.error('Nhập tiêu đề và nội dung!');
+    if (!content) return;
     const newPost: Post = {
       id: Date.now().toString(),
       author: 'Bạn',
       avatarUrl: 'https://i.pravatar.cc/40?u=me',
-      title,
+      title: content.length > 30 ? content.substring(0, 30) + '...' : content,
       content,
       likes: 0,
       liked: false,
@@ -127,344 +199,264 @@ export default function Forum() {
       createdAt: Date.now()
     };
     setPosts([newPost, ...posts]);
+    setFilteredPosts([newPost, ...filteredPosts]);
     setShowCreate(false);
-    toast.success('Tạo bài viết thành công!');
+    contentRef.current!.value = '';
   };
 
-  // Like post or comment
+  // --------------------------------------------
+  // 4) Toggle like cho post (fake)
+  // --------------------------------------------
   const toggleLikePost = (p: Post) => {
-    setPosts(
-      posts.map((x) =>
-        x.id === p.id
-          ? { ...x, liked: !x.liked, likes: x.likes + (x.liked ? -1 : 1) }
-          : x
-      )
-    );
-    if (selectedPost?.id === p.id)
-      setSelectedPost({
-        ...p,
-        liked: !p.liked,
-        likes: p.likes + (p.liked ? -1 : 1)
-      });
-  };
-  const toggleLikeComment = (c: Comment) => {
-    const update = (list: Comment[]): Comment[] =>
-      list.map((item) => {
-        if (item.id === c.id)
-          return {
-            ...item,
-            liked: !item.liked,
-            likes: item.likes + (item.liked ? -1 : 1)
-          };
-        if (item.children) return { ...item, children: update(item.children) };
-        return item;
-      });
-    setPosts(
-      posts.map((p) =>
-        p.id === selectedPost?.id ? { ...p, comments: update(p.comments) } : p
-      )
-    );
-    if (selectedPost)
-      setSelectedPost({
-        ...selectedPost,
-        comments: update(selectedPost.comments)
-      });
-  };
-
-  // Add comment or reply
-  const handleComment = () => {
-    if (!commentRef.current) return;
-    const txt = commentRef.current.value.trim();
-    if (!txt) return toast.error('Nhập nội dung bình luận!');
-    const newC: Comment = {
-      id: Date.now().toString(),
-      author: 'Bạn',
-      avatarUrl: 'https://i.pravatar.cc/40?u=me',
-      content: txt,
-      likes: 0,
-      liked: false,
-      createdAt: Date.now()
+    const updated = {
+      ...p,
+      liked: !p.liked,
+      likes: p.likes + (p.liked ? -1 : 1)
     };
-    let updated: Comment[];
-    if (replyTo) {
-      const attach = (list: Comment[]): Comment[] =>
-        list.map((item) => {
-          if (item.id === replyTo.id)
-            return {
-              ...item,
-              children: item.children ? [newC, ...item.children] : [newC]
-            };
-          if (item.children)
-            return { ...item, children: attach(item.children) };
-          return item;
-        });
-      updated = attach(selectedPost!.comments);
-    } else updated = [newC, ...selectedPost!.comments];
-    setPosts(
-      posts.map((p) =>
-        p.id === selectedPost?.id ? { ...p, comments: updated } : p
-      )
-    );
-    setSelectedPost({ ...selectedPost!, comments: updated });
-    setReplyTo(null);
-    setNewComment('');
-    commentRef.current.value = '';
-    toast.success('Đã gửi bình luận!');
+    setPosts((prev) => prev.map((x) => (x.id === p.id ? updated : x)));
+    setFilteredPosts((prev) => prev.map((x) => (x.id === p.id ? updated : x)));
+    if (selectedPost && selectedPost.id === p.id) {
+      setSelectedPost(updated);
+    }
   };
 
-  // Render comments
-  const renderComments = (list: Comment[], depth = 0) =>
-    sortComments(list, sortBy).map((c) => (
-      <div
-        key={c.id}
-        className={`mb-6 flex ${depth > 0 ? 'ml-8 border-l border-gray-300 pl-4' : ''}`}
+  // --------------------------------------------
+  // Like button component (kèm animation)
+  // --------------------------------------------
+  interface LikeButtonProps {
+    p: Post;
+    onToggleLike: (p: Post) => void;
+  }
+  function LikeButton({ p, onToggleLike }: LikeButtonProps) {
+    const [animating, setAnimating] = useState(false);
+
+    const handleClick = (e: React.MouseEvent) => {
+      e.stopPropagation();
+      setAnimating(true);
+      onToggleLike(p);
+      setTimeout(() => setAnimating(false), 800);
+    };
+
+    return (
+      <motion.button
+        onClick={handleClick}
+        whileTap={{ scale: 0.8 }}
+        className="relative flex items-center space-x-1"
       >
-        <img
-          src={c.avatarUrl}
-          alt={c.author}
-          className="mr-4 h-10 w-10 rounded-full"
-        />
-        <div className="flex-1">
-          <div className="flex items-center justify-between">
-            <span className="font-semibold text-gray-800">{c.author}</span>
-            <span className="text-xs text-gray-500">
-              {new Date(c.createdAt).toLocaleTimeString()}
-            </span>
+        <motion.div
+          animate={p.liked ? { scale: [1, 1.3, 1] } : { scale: 1 }}
+          transition={{ duration: 0.4 }}
+        >
+          {p.liked ? (
+            <FaHeart className="text-xl text-[#E54646]" />
+          ) : (
+            <FaRegHeart className="text-xl text-gray-500 transition hover:text-[#E54646]" />
+          )}
+        </motion.div>
+        <span className="text-base font-medium text-gray-700">{p.likes}</span>
+
+        {animating && (
+          <div className="absolute -left-2 -top-2 flex space-x-1">
+            {[...Array(6)].map((_, i) => (
+              <span
+                key={i}
+                className="bg-yellow-400 block h-1 w-1 animate-ping rounded-full"
+                style={{ animationDelay: `${i * 80}ms`, opacity: 0.8 }}
+              />
+            ))}
           </div>
-          <p className="mt-1 text-gray-700">{c.content}</p>
-          <div className="mt-2 flex items-center space-x-4 text-gray-500">
-            <button
-              onClick={() => toggleLikeComment(c)}
-              className="flex items-center space-x-1"
-            >
-              {c.liked ? <FaHeart className="text-red-500" /> : <FaRegHeart />}{' '}
-              <span>{c.likes}</span>
-            </button>
-            <button
-              onClick={() => setReplyTo(c)}
-              className="flex items-center space-x-1"
-            >
-              <FaComment /> <span>Reply</span>
-            </button>
-          </div>
-          {c.children && renderComments(c.children, depth + 1)}
+        )}
+      </motion.button>
+    );
+  }
+
+  // --------------------------------------------
+  // Giao diện Home (danh sách bài + search + modal)
+  // --------------------------------------------
+  const renderHome = () => {
+    if (loading) {
+      return (
+        <div className="flex min-h-screen items-center justify-center overflow-x-hidden bg-gray-100">
+          <span className="text-gray-600">Đang tải bài viết…</span>
         </div>
-      </div>
-    ));
+      );
+    }
 
-  // Main render
-  return (
-    <div className="min-h-screen bg-gray-50 p-8">
-      <PageHead title={'ClickFlow - Diễn đàn'} />
-
-      <ToastContainer />
-      {!selectedPost ? (
-        <>
-          <div className="mb-8 flex items-center justify-between">
-            <h1 className="text-4xl font-bold text-gray-900">Diễn đàn</h1>
+    return (
+      <div className="min-h-screen overflow-x-hidden bg-gray-50 p-6">
+        <PageHead title={'ClickFlow - Diễn đàn'} />
+        {/* Search + nút tạo bài */}
+        <div className="mb-6 flex flex-col px-2 md:flex-row md:items-center md:justify-between">
+          <h1 className="text-3xl font-bold text-gray-900">Diễn đàn</h1>
+          <div className="mt-4 flex flex-col space-y-4 sm:flex-row sm:items-center sm:space-x-4 sm:space-y-0 md:mt-0">
+            <div className="relative w-full sm:w-64">
+              <FaSearch className="absolute left-3 top-1/2 -translate-y-1/2 transform text-gray-400" />
+              <input
+                ref={searchRef}
+                type="text"
+                value={searchText}
+                onChange={(e) => setSearchText(e.target.value)}
+                placeholder="Tìm kiếm..."
+                className="w-full rounded-lg border border-gray-300 bg-white py-2 pl-10 pr-3 text-sm placeholder-gray-400 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              />
+            </div>
             <button
               onClick={() => setShowCreate(true)}
-              className="flex items-center rounded-lg bg-indigo-600 px-6 py-2 text-white transition hover:bg-indigo-700"
+              className="flex transform items-center justify-center space-x-2 rounded-lg bg-indigo-600 px-4 py-2 text-sm text-white transition-transform hover:scale-105 hover:bg-indigo-700"
             >
-              <FaPlus className="mr-2" /> Tạo bài viết
+              <FaPlus className="text-base" />
+              <span>Tạo bài</span>
             </button>
           </div>
-          <AnimatePresence>
-            {showCreate && (
+        </div>
+
+        {/* Modal tạo bài */}
+        <AnimatePresence>
+          {showCreate && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 backdrop-blur-sm"
+            >
               <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50"
+                initial={{ scale: 0.9, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                exit={{ scale: 0.9, opacity: 0 }}
+                transition={{ type: 'spring', stiffness: 300, damping: 30 }}
+                className="w-full max-w-md rounded-xl bg-white p-6 shadow-2xl"
               >
-                <motion.div
-                  initial={{ scale: 0.9 }}
-                  animate={{ scale: 1 }}
-                  exit={{ scale: 0.9 }}
-                  className="w-full max-w-md rounded-xl bg-white p-6 shadow-xl"
-                >
-                  <div className="mb-4 flex items-center justify-between">
-                    <h2 className="text-xl font-semibold">Tạo bài viết</h2>
-                    <FaTimes
-                      onClick={() => setShowCreate(false)}
-                      className="cursor-pointer"
-                    />
-                  </div>
-                  <form onSubmit={handleCreate} className="space-y-4">
-                    <input
-                      ref={titleRef}
-                      placeholder="Tiêu đề"
-                      className="w-full rounded-lg border p-3 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                    />
-                    <textarea
-                      ref={contentRef}
-                      rows={4}
-                      placeholder="Nội dung"
-                      className="w-full rounded-lg border p-3 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                    />
-                    <div className="flex justify-end">
-                      <button
-                        type="submit"
-                        className="rounded-lg bg-indigo-600 px-6 py-2 text-white hover:bg-indigo-700"
-                      >
-                        Đăng
-                      </button>
-                    </div>
-                  </form>
-                </motion.div>
+                <div className="mb-4 flex items-center justify-between">
+                  <h2 className="text-xl font-semibold text-gray-800">
+                    Tạo bài viết
+                  </h2>
+                  <FaTimes
+                    onClick={() => setShowCreate(false)}
+                    className="cursor-pointer text-gray-500 transition hover:text-gray-700"
+                  />
+                </div>
+
+                <div className="mb-4 flex items-start space-x-3">
+                  <img
+                    src="https://i.pravatar.cc/40?u=me"
+                    alt="Bạn"
+                    className="h-10 w-10 rounded-full border-2 border-indigo-500 object-cover"
+                  />
+                  <textarea
+                    ref={contentRef}
+                    rows={4}
+                    placeholder="Bạn đang nghĩ gì?"
+                    className="flex-1 resize-none rounded-lg border border-gray-300 px-4 py-3 text-sm text-gray-900 placeholder-gray-500 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                  />
+                </div>
+
+                <div className="flex justify-end space-x-3">
+                  <button
+                    onClick={() => setShowCreate(false)}
+                    className="rounded-lg border border-gray-300 px-4 py-1 text-sm text-gray-700 transition hover:bg-gray-100"
+                  >
+                    Hủy
+                  </button>
+                  <button
+                    onClick={handleCreatePost}
+                    className="transform rounded-lg bg-indigo-600 px-4 py-1 text-sm text-white transition-transform hover:scale-105 hover:bg-indigo-700"
+                  >
+                    Đăng
+                  </button>
+                </div>
               </motion.div>
-            )}
-          </AnimatePresence>
-          <div className="space-y-8">
-            {posts.map((p) => (
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        {/* Danh sách bài viết */}
+        <div className="grid grid-cols-1 gap-6">
+          {filteredPosts.length === 0 ? (
+            <div className="py-16 text-center text-gray-500">
+              Không tìm thấy bài viết.
+            </div>
+          ) : (
+            filteredPosts.map((p) => (
               <motion.div
                 key={p.id}
-                whileHover={{ scale: 1.02 }}
-                transition={{ type: 'spring' }}
-                className="cursor-pointer rounded-xl bg-white p-6 shadow-lg hover:shadow-2xl"
+                whileHover={{ scale: 1.01 }}
+                transition={{ type: 'spring', stiffness: 300 }}
+                className="transform cursor-pointer rounded-lg bg-white p-4 shadow-md transition-transform hover:scale-100 hover:shadow-lg"
                 onClick={() => setSelectedPost(p)}
               >
-                <div className="mb-4 flex items-center">
+                <div className="mb-2 flex items-center">
                   <img
                     src={p.avatarUrl}
                     alt={p.author}
-                    className="mr-4 h-12 w-12 rounded-full"
+                    className="mr-2 h-8 w-8 rounded-full border-2 border-indigo-500 object-cover"
                   />
                   <div>
-                    <div className="font-semibold text-gray-900">
+                    <div className="text-sm font-semibold text-gray-900">
                       {p.author}
                     </div>
                     <div className="text-xs text-gray-500">
                       {new Date(p.createdAt).toLocaleDateString()}
                     </div>
                   </div>
+                  {/* Nếu bài này do “Bạn” tạo, hiển thị 3-chấm để Edit/Xóa*/}
+                  {p.author === 'Bạn' && (
+                    <div
+                      className="relative ml-auto"
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      <FaEllipsisH
+                        onClick={(e) => {
+                          // Vì chưa làm API thật nên hiển alert tạm
+                          e.stopPropagation();
+                          alert('Tính năng chỉnh sửa/xóa bài (fake)');
+                        }}
+                        className="cursor-pointer text-xl text-gray-500 hover:text-gray-700"
+                      />
+                    </div>
+                  )}
                 </div>
-                <h2 className="mb-2 text-2xl font-semibold text-gray-800">
+                <h2 className="mb-1 line-clamp-2 text-lg font-semibold text-gray-800">
                   {p.title}
                 </h2>
-                <p className="mb-4 line-clamp-2 text-gray-700">{p.content}</p>
-                <div className="flex items-center space-x-6 text-gray-500">
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      toggleLikePost(p);
-                    }}
-                    className="flex items-center space-x-1"
-                  >
-                    <FaRegHeart />
-                    <span>{p.likes}</span>
-                  </button>
-                  <button className="flex items-center space-x-1">
-                    <FaComment />
-                    <span>{p.comments.length}</span>
-                  </button>
+                <p className="mb-3 line-clamp-3 whitespace-pre-wrap text-sm text-gray-700">
+                  {p.content}
+                </p>
+                <div className="flex items-center space-x-6 text-gray-600">
+                  <LikeButton p={p} onToggleLike={toggleLikePost} />
                   <div className="flex items-center space-x-1">
-                    <FaEye />
-                    <span>Xem</span>
+                    <FaComment className="hover:text-blue-500 text-base text-gray-500 transition" />
+                    <span className="text-sm font-medium text-gray-700">
+                      {p.comments.length}
+                    </span>
                   </div>
                 </div>
               </motion.div>
-            ))}
-          </div>
-        </>
-      ) : (
-        <div>
-          <button
-            onClick={() => setSelectedPost(null)}
-            className="mb-4 text-indigo-600 hover:underline"
-          >
-            &larr; Quay lại
-          </button>
-          <div className="mb-6 rounded-xl bg-white p-6 shadow-lg">
-            <div className="mb-4 flex items-center">
-              <img
-                src={selectedPost.avatarUrl}
-                alt={selectedPost.author}
-                className="mr-4 h-12 w-12 rounded-full"
-              />
-              <div>
-                <div className="font-semibold text-gray-900">
-                  {selectedPost.author}
-                </div>
-                <div className="text-xs text-gray-500">
-                  {new Date(selectedPost.createdAt).toLocaleString()}
-                </div>
-              </div>
-            </div>
-            <h2 className="mb-2 text-3xl font-bold text-gray-900">
-              {selectedPost.title}
-            </h2>
-            <p className="mb-4 text-gray-800">{selectedPost.content}</p>
-            <div className="mb-4 flex items-center space-x-6 text-gray-600">
-              <button
-                onClick={() => toggleLikePost(selectedPost)}
-                className="flex items-center space-x-1"
-              >
-                <FaRegHeart />
-                <span>{selectedPost.likes}</span>
-              </button>
-              <div className="flex items-center space-x-1">
-                <FaComment />
-                <span>{selectedPost.comments.length}</span>
-              </div>
-              <div className="flex items-center space-x-1">
-                <FaEye />
-                <span>Xem</span>
-              </div>
-            </div>
-            <div className="mb-6 rounded-xl bg-gray-100 p-4">
-              <div className="mb-2 flex items-center">
-                <img
-                  src="https://i.pravatar.cc/40?u=me"
-                  alt="Bạn"
-                  className="mr-3 h-10 w-10 rounded-full"
-                />
-                <textarea
-                  ref={commentRef}
-                  value={newComment}
-                  onChange={(e) => setNewComment(e.target.value)}
-                  rows={2}
-                  className="flex-1 rounded-lg border p-3 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                  placeholder={
-                    replyTo ? `Trả lời ${replyTo.author}` : 'Viết bình luận...'
-                  }
-                />
-              </div>
-              <div className="flex items-center justify-between">
-                <div className="flex space-x-4 text-gray-500">
-                  <FaImage className="cursor-pointer hover:text-gray-700" />
-                  <FaRegSmile className="cursor-pointer hover:text-gray-700" />
-                  <FaMapMarkerAlt className="cursor-pointer hover:text-gray-700" />
-                </div>
-                <button
-                  onClick={handleComment}
-                  className="rounded-lg bg-indigo-600 px-4 py-2 text-white transition hover:bg-indigo-700"
-                >
-                  {replyTo ? 'Reply' : 'Comment'}
-                </button>
-              </div>
-            </div>
-            <div className="mb-4 flex space-x-4">
-              <button
-                onClick={() => setSortBy('time')}
-                className={`${sortBy === 'time' ? 'bg-indigo-600 text-white' : 'bg-white'} rounded-lg border px-4 py-2`}
-              >
-                Mới nhất
-              </button>
-              <button
-                onClick={() => setSortBy('likes')}
-                className={`${sortBy === 'likes' ? 'bg-indigo-600 text-white' : 'bg-white'} rounded-lg border px-4 py-2`}
-              >
-                Hot nhất
-              </button>
-            </div>
-            <div style={{ maxHeight: '60vh', overflowY: 'auto' }}>
-              {' '}
-              {renderComments(selectedPost.comments)}{' '}
-            </div>
-          </div>
+            ))
+          )}
         </div>
-      )}
-    </div>
+      </div>
+    );
+  };
+
+  // --------------------------------------------
+  // Nếu đã chọn 1 post → show ForumDetail, ngược lại render Home
+  // --------------------------------------------
+  return selectedPost ? (
+    <ForumDetail
+      post={selectedPost}
+      onBack={() => setSelectedPost(null)}
+      toggleLikePost={toggleLikePost}
+      updatePost={(updated: Post) => {
+        setPosts((prev) =>
+          prev.map((x) => (x.id === updated.id ? updated : x))
+        );
+        setFilteredPosts((prev) =>
+          prev.map((x) => (x.id === updated.id ? updated : x))
+        );
+        setSelectedPost(updated);
+      }}
+    />
+  ) : (
+    renderHome()
   );
 }

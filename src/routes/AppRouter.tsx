@@ -5,6 +5,7 @@ import publisherRoutes from './publisherRoutes';
 import adminRoutes from './adminRoutes';
 import NotFound from '@/pages/NotFound';
 import LinkRoutes from './linkRoutes';
+import adverAndPubRoutes from './adverAndPubRoute';
 
 export default function AppRouter() {
   const routes = useRoutes([
@@ -12,6 +13,7 @@ export default function AppRouter() {
     ...advertiserRoutes,
     ...publisherRoutes,
     ...adminRoutes,
+    ...adverAndPubRoutes,
     ...LinkRoutes,
     { path: '/404', element: <NotFound /> },
     { path: '*', element: <Navigate to="/404" replace /> }

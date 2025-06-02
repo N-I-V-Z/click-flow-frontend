@@ -70,7 +70,7 @@ const SidebarAdvertiser: React.FC = () => {
           <NavLink to="/advertiser/course">Khóa học</NavLink>
         </Menu.Item>
         <Menu.Item key="forum" icon={<WechatOutlined />}>
-          <NavLink to="/advertiser/forum">Diễn đàn</NavLink>
+          <NavLink to="/all/forum">Diễn đàn</NavLink>
         </Menu.Item>
       </Menu>
 

@@ -1,41 +1,41 @@
-import React from 'react';
+// src/components/layout/PublisherLayout.tsx
+import React, { Suspense } from 'react';
 import { Outlet } from 'react-router-dom';
 import { Layout } from 'antd';
 import HeaderAd from '@/components/shared/header-advertiser';
 import SidebarPublisher from '@/components/shared/sidebar-publisher';
-import ChatBubble from '@/pages/Chat/bubble';
 
+import ChatBubble from '@/pages/Chat/bubble';
 const PublisherLayout: React.FC = () => {
   const { Content, Footer } = Layout;
+
   return (
     <Layout className="h-screen bg-white">
-      {/* Header cố định trên cùng (cao 64px) */}
+      {/* Header Publisher */}
       <HeaderAd />
-      {/* Sidebar cố định bên trái, ngay dưới Header */}
+
+      {/* Sidebar Publisher */}
       <div className="fixed left-0 top-[64px]">
         <SidebarPublisher />
       </div>
-      {/* Nội dung chính (scroll) có khoảng trắng trên-dưới */}
-      <Content
-        className="
-           relative
-    ml-64
-    mt-[64px] 
-    h-[calc(100vh-64px-64px-30px)] 
-    bg-white
-    p-6
-    pb-8
-        "
-      >
-        <Outlet />
+
+      {/* Nội dung chính */}
+      <Content className="relative ml-64 mt-[64px] h-[calc(100vh-64px-64px-30px)] bg-white p-6 pb-8">
+        {/* 
+          Suspense + Outlet cho phép render mọi route con nằm dưới "/publisher/*" 
+          Ví dụ: /publisher/dashboard, /publisher/mission, /publisher/forum, v.v.
+        */}
+        <Suspense fallback={<div>Đang tải nội dung…</div>}>
+          <Outlet />
+        </Suspense>
       </Content>
 
-      {/* Footer cố định dưới cùng */}
+      {/* Footer */}
       <Footer className="fixed bottom-0 left-0 z-10 w-full bg-gray-200 p-4 text-center">
         © {new Date().getFullYear()} ClickFlow. All rights reserved.
       </Footer>
 
-      {/* Bong bóng chat */}
+      {/* Chat bubble & window */}
       <ChatBubble />
     </Layout>
   );
