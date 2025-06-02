@@ -10,6 +10,7 @@ import {
   PagingResponse
 } from '@/types';
 import DataTable from '@/components/shared/data-table';
+import PageHead from '@/components/shared/page-head';
 
 interface Advertiser {
   id: number;
@@ -163,6 +164,8 @@ const AdvertiserList: React.FC = () => {
 
   return (
     <div className="mb-10 p-4">
+      <PageHead title={'ClickFlow - Nhà quảng cáo'} />
+
       <h2 className="mb-4 text-xl font-semibold">Nhà quảng cáo</h2>
 
       {/* DataTable hiển thị advertisers */}

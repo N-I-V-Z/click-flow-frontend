@@ -73,6 +73,49 @@ export type PagingResponse<T = unknown> = {
   datas: T[];
 };
 
+export type ConversationApiResponse = {
+  id: number;
+  user1Id: number;
+  User2Id: number;
+  createdAt: Date;
+  user1: ApplicationUserApiResponse;
+  user2: ApplicationUserApiResponse;
+  messages: MessageApiResponse[];
+};
+
+export type ConversationListApiResponse = {
+  id: number;
+  parnerId: number;
+  parner: ApplicationUserApiResponse;
+  lastMessage: MessageApiResponse;
+  unreadCount: number;
+};
+
+export type MessageApiResponse = {
+  id: number;
+  conversationId: number;
+  conversation: ConversationApiResponse;
+  senderId: number;
+  sender: ApplicationUserApiResponse;
+  text: string;
+  type: MessageType;
+  fileUrl: string;
+  sentAt: Date;
+  isRead: boolean;
+};
+
+export enum MessageType {
+  Text = 'Text',
+  Image = 'Image',
+  Voice = 'Voice'
+}
+
+export enum Role {
+  Admin = 'Admin',
+  Advertiser = 'Advertiser',
+  Publisher = 'Publisher'
+}
+
 export type CampaignApiResponse = {
   id: number;
   name: string;
@@ -109,6 +152,17 @@ export type ApplicationUserApiResponse = {
   role: string;
   isDeleted: boolean;
   advertiser: AdvertiserApiResponse;
+  userDetail: UserDetail;
+};
+
+export type UserDetail = {
+  id: number;
+  dateOfBirth: Date;
+  gender: string;
+  avatarURL: string;
+  address: string;
+  applicationUserId: number;
+  fullName: string;
 };
 
 export type PublisherApiResponse = {
@@ -221,6 +275,9 @@ export interface TrafficItem {
   referrerURL: string;
   timestamp: string;
 }
-/**
- *
- */
+
+export enum ChatTab {
+  All = 'all',
+  Advertiser = 'advertiser',
+  Publisher = 'publisher'
+}

@@ -11,6 +11,7 @@ import { useGetReports } from '@/queries/report.query';
 import ReportDetailModal from './ReportDetailModal';
 import ReportResponseModal from './ReportResponseModal';
 import { ApiResponse, PagingResponse, ReportApiResponse } from '@/types';
+import PageHead from '@/components/shared/page-head';
 
 interface Report {
   id: string;
@@ -160,6 +161,8 @@ export default function ReportTable() {
 
   return (
     <div className="mb-10 p-4">
+      <PageHead title={'ClickFlow - Quản lý báo cáo'} />
+
       <h2 className="mb-4 text-xl font-semibold">Quản lý báo cáo</h2>
 
       {/* Tìm kiếm */}

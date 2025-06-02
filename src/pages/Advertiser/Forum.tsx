@@ -12,6 +12,7 @@ import {
   FaEllipsisH
 } from 'react-icons/fa';
 import ForumDetail from './ForumDetail';
+import PageHead from '@/components/shared/page-head';
 
 // ----------------------------------------------
 // Fake data (initialPosts) dùng làm mẫu
@@ -283,6 +284,7 @@ export default function Forum() {
 
     return (
       <div className="min-h-screen overflow-x-hidden bg-gray-50 p-6">
+        <PageHead title={'ClickFlow - Diễn đàn'} />
         {/* Search + nút tạo bài */}
         <div className="mb-6 flex flex-col px-2 md:flex-row md:items-center md:justify-between">
           <h1 className="text-3xl font-bold text-gray-900">Diễn đàn</h1>

@@ -13,6 +13,7 @@ import {
   Check,
   Star
 } from 'lucide-react';
+import PageHead from '@/components/shared/page-head';
 
 const MissionPage = () => {
   const [activeTab, setActiveTab] = useState('missions');
@@ -243,6 +244,8 @@ const MissionPage = () => {
 
   return (
     <div className="to-blue-100 min-h-screen bg-gradient-to-br from-indigo-100 via-purple-50 px-4 pb-12 pt-6">
+      <PageHead title={'ClickFlow - Nhiệm vụ'} />
+
       <style jsx>{`
         @keyframes fall {
           0% {

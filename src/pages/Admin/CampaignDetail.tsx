@@ -13,6 +13,7 @@ import {
 import CampaignAnalytics from './CampaignAnalytics';
 import 'antd/dist/reset.css';
 import TrafficTable from './TrafficTable';
+import PageHead from '@/components/shared/page-head';
 
 const { Content } = Layout;
 const { Title, Paragraph, Text } = Typography;
@@ -155,6 +156,8 @@ const CampaignDetail: React.FC = () => {
       className="min-h-screen"
       style={{ background: 'linear-gradient(to bottom, #f8fafc, #fff)' }}
     >
+      <PageHead title={'ClickFlow - Chi tiết chiến dịch'} />
+
       <Content className="p-6">
         <div className="mx-auto max-w-7xl">
           {/* Tiêu đề trang */}

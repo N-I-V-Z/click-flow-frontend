@@ -6,6 +6,7 @@ import { useGetUserDetail } from '@/queries/user.query';
 import { ApiResponse, UserDetailApiResponse } from '@/types';
 import { PencilLine, Wallet, KeySquare } from 'lucide-react';
 import { usePageTitle } from '@/hooks/use-pagetitle';
+import PageHead from '@/components/shared/page-head';
 const AdvertiserProfile = () => {
   usePageTitle('Hồ sơ | Click Flow');
   const router = useRouter();
@@ -40,6 +41,8 @@ const AdvertiserProfile = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-indigo-100 via-purple-50 text-black">
+      <PageHead title={'ClickFlow - Profile'} />
+
       <div className="container mx-auto px-4 pt-12">
         <div className="mx-auto max-w-6xl space-y-12">
           {/* Profile Header */}

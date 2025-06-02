@@ -1,3 +1,4 @@
+import PageHead from '@/components/shared/page-head';
 import React from 'react';
 import {
   LineChart,
@@ -22,6 +23,8 @@ const data = [
 const Wallet: React.FC = () => {
   return (
     <div className="from-yellow-100 to-yellow-50 min-h-screen bg-gradient-to-r p-6">
+      <PageHead title={'ClickFlow - Ví'} />
+
       <div className="mx-auto max-w-6xl">
         {/* Header với tiêu đề và card thông tin */}
         <div className="mb-8 flex flex-col items-center justify-between sm:flex-row">

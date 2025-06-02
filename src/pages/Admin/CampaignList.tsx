@@ -15,6 +15,7 @@ import { useGetCampaignListExcpPending } from '@/queries/campaign.query';
 import { ApiResponse, CampaignApiResponse, PagingResponse } from '@/types';
 import __helpers from '@/helpers';
 import { DataTableSkeleton } from '@/components/shared/data-table-skeleton';
+import PageHead from '@/components/shared/page-head';
 // (tuỳ đường dẫn file bạn đặt)
 
 const CampaignList: React.FC = () => {
@@ -140,6 +141,8 @@ const CampaignList: React.FC = () => {
 
   return (
     <div className="p-4">
+      <PageHead title={'ClickFlow - Danh sách chiến dịch'} />
+
       <h2 className="mb-4 text-xl font-semibold">Danh sách chiến dịch</h2>
 
       {isLoading ? (

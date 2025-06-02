@@ -14,6 +14,7 @@ import {
   useUpdateCampaignStatus
 } from '@/queries/campaign.query';
 import { ApiResponse, CampaignApiResponse, PagingResponse } from '@/types';
+import PageHead from '@/components/shared/page-head';
 
 // Hàm format ngày "YYYY-MM-DD" => "DD/MM/YYYY"
 function formatDate(dateStr: string): string {
@@ -184,6 +185,8 @@ const CampaignRequest: React.FC = () => {
 
   return (
     <div className="mb-10 p-4">
+      <PageHead title={'ClickFlow - Yêu cầu chiến dịch'} />
+
       <h2 className="mb-4 text-xl font-semibold">Yêu cầu chiến dịch</h2>
 
       <DataTable

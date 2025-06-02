@@ -18,7 +18,7 @@ const AdminManageReport = lazy(() => import('@/pages/Admin/ManageReport'));
 const AdminCampaignPendingDetail = lazy(
   () => import('@/pages/Admin/CampaignPendingDetail')
 );
-const Support = lazy(() => import('@/pages/Chat/ChatAdmin'));
+const Support = lazy(() => import('@/pages/Chat/ChatPage'));
 
 const adminRoutes = [
   {

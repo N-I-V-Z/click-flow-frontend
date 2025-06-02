@@ -9,6 +9,7 @@ import {
 } from '@/queries/campaign.query';
 import helpers from '@/helpers';
 import __helpers from '@/helpers';
+import PageHead from '@/components/shared/page-head';
 
 const { Option } = Select;
 const decodedToken: TokenDecoded | null = helpers.decodeTokens(
@@ -158,6 +159,8 @@ const CampaignsPage: React.FC = () => {
 
   return (
     <div className="bg-gray-100 bg-gradient-to-br from-indigo-200 via-purple-50 to-blue p-6">
+      <PageHead title={'ClickFlow - Danh sách chiến dịch'} />
+
       <h1 className="mb-6 text-center text-2xl font-bold text-gray-800">
         Danh sách Chiến dịch
       </h1>

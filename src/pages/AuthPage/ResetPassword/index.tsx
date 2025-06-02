@@ -59,7 +59,7 @@ export default function ResetPasswordPage() {
     <>
       <BasePages
         className="relative mx-auto w-[80%] flex-1 p-4"
-        pageHead="Reset Password | Click Flow"
+        pageHead="ClickFlow - Quên mật khẩu"
         breadcrumbs={[
           { title: 'Trang chủ', link: '/' },
           { title: 'Đặt lại mật khẩu', link: '/reset-password' }

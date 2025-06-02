@@ -95,6 +95,7 @@ export default function LoginPage() {
     <>
       <BasePages
         className="relative mx-auto mb-20 max-h-screen w-[80%] flex-1 p-2"
+        pageHead="ClickFlow - Đăng nhập"
         breadcrumbs={[
           { title: 'Trang chủ', link: '/' },
           { title: 'Đăng nhập', link: '/login' }

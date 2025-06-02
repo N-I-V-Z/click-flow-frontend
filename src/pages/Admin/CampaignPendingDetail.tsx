@@ -20,6 +20,7 @@ import {
   useUpdateCampaignStatus
 } from '@/queries/campaign.query';
 import { ApiResponse, Campaign, CampaignApiResponse } from '@/types';
+import PageHead from '@/components/shared/page-head';
 
 const { Content } = Layout;
 const { Title, Paragraph, Text } = Typography;
@@ -172,6 +173,8 @@ const CampaignPendingDetail: React.FC = () => {
       className="min-h-screen"
       style={{ background: 'linear-gradient(to bottom, #f8fafc, #fff)' }}
     >
+      <PageHead title={'ClickFlow - Chi tiết chiến dịch (chưa chạy)'} />
+
       <Content className="p-6">
         <div className="mx-auto max-w-7xl">
           {/* Thanh tiêu đề + nút Duyệt/Từ chối ở góc phải */}

@@ -6,6 +6,7 @@ import DataTable from '@/components/shared/data-table';
 import { useGetTrafficForAdvertiser } from '@/queries/traffic.query';
 import helpers from '@/helpers';
 import { usePageTitle } from '@/hooks/use-pagetitle';
+import PageHead from '@/components/shared/page-head';
 
 type TrafficType = {
   id: number;
@@ -107,6 +108,8 @@ export default function Traffic() {
 
   return (
     <div className="min-h-screen py-8">
+      <PageHead title={'ClickFlow - Danh sách Traffic'} />
+
       <div className="container mx-auto px-4">
         <div className="rounded-lg bg-white p-6">
           <div className="mb-6 flex flex-col pb-4 sm:flex-row sm:items-center sm:justify-between">
