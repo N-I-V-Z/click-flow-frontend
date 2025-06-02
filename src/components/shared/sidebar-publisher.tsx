@@ -5,7 +5,8 @@ import {
   UserOutlined,
   LogoutOutlined,
   ReadOutlined,
-  SolutionOutlined
+  SolutionOutlined,
+  WechatOutlined
 } from '@ant-design/icons';
 import { NavLink, useLocation } from 'react-router-dom';
 import { ToastContainer } from 'react-toastify';
@@ -92,6 +93,9 @@ const SidebarPublisher: React.FC = () => {
           `}
         >
           <NavLink to="/publisher/mission">Nhiệm vụ</NavLink>
+        </Menu.Item>
+        <Menu.Item key="forum" icon={<WechatOutlined />}>
+          <NavLink to="/all/forum">Diễn đàn</NavLink>
         </Menu.Item>
       </Menu>
 
