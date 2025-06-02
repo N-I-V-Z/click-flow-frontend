@@ -40,6 +40,8 @@ const ChatPage: React.FC = () => {
   const messagesEndRef = useRef<HTMLDivElement | null>(null);
   const messagesContainerRef = useRef<HTMLDivElement | null>(null);
   const lastMessageCountRef = useRef(0);
+  const pusherRef = useRef<Pusher | null>(null);
+  const subscribedChannelsRef = useRef<Set<string>>(new Set());
 
   // Helper functions
   const scrollToBottom = (behavior: 'smooth' | 'auto' = 'smooth') => {
@@ -128,38 +130,80 @@ const ChatPage: React.FC = () => {
     lastMessageCountRef.current = currentMessageCount;
   }, [messages?.result]);
 
-  // Pusher real-time messaging setup
+  // Global Pusher setup - lắng nghe tất cả conversations
   useEffect(() => {
-    if (!selectedConversation?.id) return;
+    if (!conversations?.result || conversations.result.length === 0) return;
 
-    const pusher = new Pusher(import.meta.env.VITE_PUSHER_KEY || '', {
-      cluster: import.meta.env.VITE_PUSHER_CLUSTER,
-      authEndpoint: `${import.meta.env.VITE_API_URL}/api/Pusher/auth`,
-      auth: {
-        headers: {
-          Authorization: `Bearer ${__helpers.cookie_get('AT')}`
+    // Initialize Pusher instance nếu chưa có
+    if (!pusherRef.current) {
+      pusherRef.current = new Pusher(import.meta.env.VITE_PUSHER_KEY || '', {
+        cluster: import.meta.env.VITE_PUSHER_CLUSTER,
+        authEndpoint: `${import.meta.env.VITE_API_URL}/api/Pusher/auth`,
+        auth: {
+          headers: {
+            Authorization: `Bearer ${__helpers.cookie_get('AT')}`
+          }
         }
+      });
+    }
+
+    const pusher = pusherRef.current;
+
+    // Subscribe to all conversations
+    conversations.result.forEach((conversation) => {
+      const channelName = `private-conversation-${conversation.id}`;
+
+      // Chỉ subscribe nếu chưa subscribe channel này
+      if (!subscribedChannelsRef.current.has(channelName)) {
+        const channel = pusher.subscribe(channelName);
+
+        channel.bind('new-message', (data: any) => {
+          // Nếu tin nhắn mới từ conversation đang active
+          if (conversation.id === selectedConversation?.id) {
+            refetchMessages();
+          }
+
+          // Luôn refetch conversations để cập nhật unread count và last message
+          refetchConversations();
+        });
+
+        channel.bind('messages-read', () => {
+          // Cập nhật conversation list khi có tin nhắn được đánh dấu là đã đọc
+          refetchConversations();
+
+          // Nếu là conversation hiện tại thì cũng refetch messages
+          if (conversation.id === selectedConversation?.id) {
+            refetchMessages();
+          }
+        });
+
+        subscribedChannelsRef.current.add(channelName);
       }
     });
 
-    const channel = pusher.subscribe(
-      `private-conversation-${selectedConversation.id}`
-    );
-
-    channel.bind('new-message', () => {
-      refetchMessages();
-    });
-
-    channel.bind('messages-read', () => {
-      refetchMessages();
-    });
-
+    // Cleanup function
     return () => {
-      channel.unbind_all();
-      channel.unsubscribe();
-      pusher.disconnect();
+      if (pusherRef.current) {
+        // Unsubscribe from all channels when component unmounts
+        subscribedChannelsRef.current.forEach((channelName) => {
+          const channel = pusherRef.current?.channel(channelName);
+          if (channel) {
+            channel.unbind_all();
+            pusherRef.current?.unsubscribe(channelName);
+          }
+        });
+
+        pusherRef.current.disconnect();
+        pusherRef.current = null;
+        subscribedChannelsRef.current.clear();
+      }
     };
-  }, [selectedConversation?.id, refetchMessages]);
+  }, [
+    conversations?.result,
+    selectedConversation?.id,
+    refetchConversations,
+    refetchMessages
+  ]);
 
   // Handlers
   const handleSendMessage = async () => {
