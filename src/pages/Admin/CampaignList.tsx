@@ -107,7 +107,7 @@ const CampaignList: React.FC = () => {
       },
       {
         id: 'actions',
-        header: 'HÀNH ĐỘNG',
+        header: () => <div className="w-full text-center">HÀNH ĐỘNG</div>,
         cell: ({ row }) => {
           const record = row.original;
           return (

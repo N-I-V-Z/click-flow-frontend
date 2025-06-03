@@ -1,13 +1,20 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { Modal, Button, Input } from 'antd';
 import {
   EyeOutlined,
   CloseCircleOutlined,
   UserOutlined
 } from '@ant-design/icons';
-import DataTable from '@/components/shared/data-table'; // Điều chỉnh đường dẫn theo dự án của bạn
+import DataTable from '@/components/shared/data-table';
 import { ColumnDef } from '@tanstack/react-table';
 import PageHead from '@/components/shared/page-head';
+// Import hook để gọi API
+import { useGetUsersByRole } from '@/queries/user.query';
+import {
+  ApiResponse,
+  ApplicationUserApiResponse,
+  PagingResponse
+} from '@/types';
 
 interface Publisher {
   id: number;
@@ -15,84 +22,56 @@ interface Publisher {
   name: string;
   phone: string;
   userName: string;
-  createdAt: string;
   email: string;
   bankAccount: string;
   bankName: string;
   status: string; // "Hoạt động" | "Bị khóa"
 }
 
-const initialPublishers: Publisher[] = [
-  {
-    id: 1,
-    code: 'PLS001',
-    name: 'Nguyễn Khải Qui',
-    phone: '0431343144',
-    userName: 'Quink333',
-    createdAt: '26/11/2024',
-    email: 'quink1234@gmail.com',
-    bankAccount: '0431343144',
-    bankName: 'MB BANK - Ngân hàng Quân Đội',
-    status: 'Hoạt động'
-  },
-  {
-    id: 2,
-    code: 'PLS002',
-    name: 'Trần Thị Hồng',
-    phone: '0123456789',
-    userName: 'TranHong',
-    createdAt: '15/10/2024',
-    email: 'tran.hong@example.com',
-    bankAccount: '1234567890',
-    bankName: 'Vietcombank',
-    status: 'Bị khóa'
-  },
-  {
-    id: 3,
-    code: 'PLS003',
-    name: 'Phạm Quang',
-    phone: '0987654321',
-    userName: 'PhQuang',
-    createdAt: '05/09/2024',
-    email: 'phquang@example.com',
-    bankAccount: '5678901234',
-    bankName: 'Techcombank',
-    status: 'Hoạt động'
-  },
-  {
-    id: 4,
-    code: 'PLS004',
-    name: 'Nguyễn Tuấn',
-    phone: '0909009009',
-    userName: 'NgTuan',
-    createdAt: '01/08/2024',
-    email: 'ngtuan@example.com',
-    bankAccount: '9876543210',
-    bankName: 'BIDV',
-    status: 'Bị khóa'
-  },
-  {
-    id: 5,
-    code: 'PLS005',
-    name: 'Võ Thị Xuân',
-    phone: '0777000111',
-    userName: 'VoXuan',
-    createdAt: '10/07/2024',
-    email: 'voxuan@example.com',
-    bankAccount: '0111001001',
-    bankName: 'Agribank',
-    status: 'Hoạt động'
-  }
-];
+// Hàm map từ API response sang Publisher interface
+function mapApiUserToPublisher(apiUser: any): Publisher {
+  return {
+    id: apiUser.id,
+    code: `PL${apiUser.id}`, // Format PLS001, PLS002...
+    name: apiUser.fullName ?? 'No name',
+    phone: apiUser.phone ?? '',
+    userName: apiUser.userName ?? '',
+    email: apiUser.email ?? '',
+    // Lấy thông tin ngân hàng từ publisher object (nếu có)
+    bankAccount: apiUser.publisher?.bankAccount ?? '',
+    bankName: apiUser.publisher?.bankName ?? '',
+    // Trạng thái dựa trên isDeleted
+    status: apiUser.isDeleted ? 'Bị khóa' : 'Hoạt động'
+  };
+}
 
 const PublisherList: React.FC = () => {
-  const [dataSource, setDataSource] = useState<Publisher[]>(initialPublishers);
+  // State chứa danh sách publisher
+  const [dataSource, setDataSource] = useState<Publisher[]>([]);
 
   // --- Modal "Xem chi tiết" ---
   const [isViewModalVisible, setIsViewModalVisible] = useState(false);
   const [selectedPublisher, setSelectedPublisher] = useState<Publisher | null>(
     null
   );
+
+  // --- Modal "Khóa/Mở khóa" ---
+  const [isLockModalVisible, setIsLockModalVisible] = useState(false);
+
+  // Gọi API lấy user role = "Publisher", page=1, size=10
+  const { data, isLoading, error } = useGetUsersByRole('Publisher', 1, 10);
+
+  // Mỗi khi data?.result thay đổi, map sang Publisher[]
+  useEffect(() => {
+    if (data?.result) {
+      const mapped = (
+        data as ApiResponse<PagingResponse<ApplicationUserApiResponse>>
+      ).result?.datas.map((user: ApplicationUserApiResponse) =>
+        mapApiUserToPublisher(user)
+      );
+      setDataSource(mapped ?? []);
+    }
+  }, [data]);
 
   const handleView = (record: Publisher) => {
     setSelectedPublisher(record);
@@ -103,9 +82,6 @@ const PublisherList: React.FC = () => {
     setIsViewModalVisible(false);
     setSelectedPublisher(null);
   };
-
-  // --- Modal "Khóa/Mở khóa" ---
-  const [isLockModalVisible, setIsLockModalVisible] = useState(false);
 
   const handleLockUnlock = (record: Publisher) => {
     setSelectedPublisher(record);
@@ -137,9 +113,13 @@ const PublisherList: React.FC = () => {
   // --- Định nghĩa cột cho DataTable ---
   const columns = useMemo<ColumnDef<Publisher>[]>(
     () => [
-      { accessorKey: 'code', header: 'MÃ' },
+      {
+        id: 'stt',
+        header: () => <div className="w-full text-center">STT</div>,
+        cell: ({ row }) => <div className="text-center">{row.index + 1}</div>
+      },
       { accessorKey: 'name', header: 'TÊN NHÀ TIẾP THỊ' },
-      { accessorKey: 'createdAt', header: 'NGÀY TẠO' },
+      { accessorKey: 'email', header: 'Email' },
       {
         accessorKey: 'status',
         header: 'TRẠNG THÁI',
@@ -156,7 +136,7 @@ const PublisherList: React.FC = () => {
       },
       {
         id: 'action',
-        header: 'HÀNH ĐỘNG',
+        header: () => <div className="w-full text-center">HÀNH ĐỘNG</div>,
         cell: ({ row }) => {
           const record = row.original;
           return (
@@ -177,13 +157,21 @@ const PublisherList: React.FC = () => {
     []
   );
 
+  // Xử lý trạng thái loading / error
+  if (isLoading) {
+    return <div>Đang tải danh sách nhà tiếp thị...</div>;
+  }
+  if (error) {
+    return <div>Đã có lỗi xảy ra khi tải dữ liệu!</div>;
+  }
+
   return (
     <div className="mb-10 p-4">
       <PageHead title={'ClickFlow - Nhà tiếp thị'} />
 
       <h2 className="mb-4 text-xl font-semibold">Nhà tiếp thị</h2>
 
-      {/* Sử dụng DataTable mới (tích hợp tìm kiếm, phân trang, sắp xếp client-side) */}
+      {/* Sử dụng DataTable với dữ liệu từ API */}
       <DataTable
         columns={columns}
         data={dataSource}
@@ -226,12 +214,6 @@ const PublisherList: React.FC = () => {
                   Tên người dùng
                 </label>
                 <Input readOnly value={selectedPublisher.userName} />
-              </div>
-              <div>
-                <label className="block font-semibold text-gray-600">
-                  Ngày tạo
-                </label>
-                <Input readOnly value={selectedPublisher.createdAt} />
               </div>
               <div>
                 <label className="block font-semibold text-gray-600">

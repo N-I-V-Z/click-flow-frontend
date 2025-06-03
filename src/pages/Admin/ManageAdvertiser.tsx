@@ -111,7 +111,11 @@ const AdvertiserList: React.FC = () => {
   // Định nghĩa cột cho DataTable
   const columns = useMemo<ColumnDef<Advertiser>[]>(
     () => [
-      { accessorKey: 'code', header: 'MÃ' },
+      {
+        id: 'stt',
+        header: () => <div className="w-full text-center">STT</div>,
+        cell: ({ row }) => <div className="text-center">{row.index + 1}</div>
+      },
       { accessorKey: 'name', header: 'TÊN NHÀ QUẢNG CÁO' },
       // BỎ cột { accessorKey: 'createdAt', header: 'NGÀY TẠO' },
       { accessorKey: 'company', header: 'TÊN CÔNG TY' },
@@ -131,7 +135,7 @@ const AdvertiserList: React.FC = () => {
       },
       {
         id: 'action',
-        header: 'HÀNH ĐỘNG',
+        header: () => <div className="w-full text-center">HÀNH ĐỘNG</div>,
         cell: ({ row }) => {
           const record = row.original;
           return (

@@ -141,7 +141,7 @@ const CampaignRequest: React.FC = () => {
         cell: ({ row }) => {
           const record = row.original;
           return (
-            <div className="flex justify-center gap-3">
+            <div className="flex gap-3">
               {/* Nút Duyệt */}
               <CheckCircleOutlined
                 onClick={() => {
