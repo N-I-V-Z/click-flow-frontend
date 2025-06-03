@@ -3,9 +3,7 @@ import { Suspense, lazy } from 'react';
 import LoginRoute from './private/LoginRoute';
 import RoleRoute from './private/RoleRoute';
 import AdvertiserLayout from '@/components/layout/AdvertiserLayout/index';
-// const AdvertiserLayout = lazy(
-//   () => import('@/components/layout/AdvertiserLayout/index')
-// );
+
 const AdvertiserDashboard = lazy(() => import('@/pages/Advertiser'));
 const AdvertiserCampaigns = lazy(() => import('@/pages/Advertiser/Campaign'));
 const AdvertiserProfile = lazy(
@@ -16,7 +14,7 @@ const ChangePassword = lazy(
 );
 const Wallet = lazy(() => import('@/pages/Advertiser/Wallet'));
 const Traffic = lazy(() => import('@/pages/Advertiser/Traffic'));
-const Course = lazy(() => import('@/pages/Advertiser/Course'));
+
 const Forum = lazy(() => import('@/pages/Advertiser/Forum'));
 const advertiserRoutes = [
   {
@@ -78,14 +76,6 @@ const advertiserRoutes = [
         element: (
           <RoleRoute allowedRoles={['Advertiser']}>
             <Traffic />
-          </RoleRoute>
-        )
-      },
-      {
-        path: 'course',
-        element: (
-          <RoleRoute allowedRoles={['Advertiser']}>
-            <Course />
           </RoleRoute>
         )
       },

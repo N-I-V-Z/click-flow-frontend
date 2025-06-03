@@ -10,7 +10,7 @@ import {
   useGetMessagesByConversationId,
   useMaskAsRead,
   useSendMessage
-} from '@/queries/message..query';
+} from '@/queries/message.query';
 import __helpers from '@/helpers';
 import Pusher from 'pusher-js';
 import ChatSidebar from './components/ChatSidebar';

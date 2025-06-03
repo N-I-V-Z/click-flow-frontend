@@ -123,22 +123,23 @@ const ChatSidebar: React.FC<ChatSidebarProps> = ({
                   alt={conversation?.parner.fullName}
                   className="h-12 w-12 rounded-full object-cover ring-2 ring-purple-100"
                 />
+                {/* Type badge overlay on avatar */}
+                <span
+                  className={`absolute -right-1 -top-1 flex h-4 w-4 items-center justify-center rounded-full text-[0.5rem] font-bold shadow-lg ring-2 ring-white ${getTypeColor(
+                    conversation?.parner.role
+                  )}`}
+                >
+                  {getTypeLabel(conversation?.parner.role)}
+                </span>
               </div>
 
               <div className="min-w-0 flex-1">
-                {/* Header row with name, badge and time */}
+                {/* Header row with name and time */}
                 <div className="mb-2 flex items-center justify-between">
-                  <div className="flex min-w-0 flex-1 items-center space-x-2">
+                  <div className="flex min-w-0 flex-1 items-center">
                     <h3 className="truncate text-sm font-semibold text-gray-900">
                       {conversation?.parner.fullName}
                     </h3>
-                    <span
-                      className={`flex-shrink-0 rounded-full px-2 py-0.5 text-xs font-medium ${getTypeColor(
-                        conversation?.parner.role
-                      )}`}
-                    >
-                      {getTypeLabel(conversation?.parner.role)}
-                    </span>
                   </div>
                   <div className="ml-3 flex-shrink-0 text-xs text-gray-400">
                     {formatTime(conversation?.lastMessage.sentAt)}

@@ -1,16 +1,8 @@
-// File: src/pages/Advertiser/Forum.tsx
-
-import React, { useState, useEffect, useRef, FormEvent } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import {
-  FaPlus,
-  FaComment,
-  FaSearch,
-  FaTimes,
-  FaEllipsisH
-} from 'react-icons/fa';
+import { FaPlus, FaComment, FaSearch, FaEllipsisH } from 'react-icons/fa';
 import ForumDetail from './ForumDetail';
-import PageHead from '@/components/shared/page-head';
+import BasePages from '@/components/shared/base-pages';
 import LikeButton from '@/components/ui/LikeButton';
 import ConfirmModal from '@/components/ui/ConfirmModal';
 import CreatePostModal from '@/components/ui/CreatePostModal';
@@ -342,253 +334,253 @@ export default function Forum() {
     }
 
     return (
-      <div
-        className="relative min-h-screen"
-        style={{
-          backgroundImage:
-            'url(https://24hstore.vn/upload_images/images/hinh-nen-mau-tim/Hinh-nen-mau-tim-dam-1.jpg)',
-          backgroundSize: 'cover',
-          backgroundPosition: 'center',
-          backgroundAttachment: 'fixed'
-        }}
-      >
-        <div className="absolute inset-0 bg-black/20 backdrop-blur-[1px]" />
+      <BasePages pageHead="ClickFlow - Diễn đàn ">
+        <div
+          className="relative min-h-screen"
+          style={{
+            backgroundImage:
+              'url(https://24hstore.vn/upload_images/images/hinh-nen-mau-tim/Hinh-nen-mau-tim-dam-1.jpg)',
+            backgroundSize: 'cover',
+            backgroundPosition: 'center',
+            backgroundAttachment: 'fixed'
+          }}
+        >
+          <div className="absolute inset-0 bg-black/20 backdrop-blur-[1px]" />
 
-        {/* Fixed: Tăng padding-bottom từ pb-32 lên pb-40 để tránh đè lên footer */}
-        <div className="relative z-10 space-y-6 px-4 py-6 pb-40">
-          <PageHead title={'ClickFlow - Diễn đàn'} />
+          {/* Fixed: Tăng padding-bottom từ pb-32 lên pb-40 để tránh đè lên footer */}
+          <div className="relative z-10 space-y-6 px-4 py-6 pb-40">
+            {/* Header với Search + nút tạo bài */}
+            <motion.div
+              initial={{ opacity: 0, y: -20 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between"
+            >
+              <h1 className="text-4xl font-bold text-white drop-shadow-lg">
+                Diễn đàn
+              </h1>
 
-          {/* Header với Search + nút tạo bài */}
-          <motion.div
-            initial={{ opacity: 0, y: -20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between"
-          >
-            <h1 className="text-4xl font-bold text-white drop-shadow-lg">
-              Diễn đàn
-            </h1>
+              <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
+                <div className="relative w-full sm:w-64">
+                  <FaSearch className="absolute left-3 top-1/2 -translate-y-1/2 transform text-purple-400" />
+                  <input
+                    ref={searchRef}
+                    type="text"
+                    value={searchText}
+                    onChange={(e) => setSearchText(e.target.value)}
+                    placeholder="Tìm kiếm..."
+                    className="w-full rounded-xl border border-purple-200 bg-white/90 py-3 pl-10 pr-4 text-sm placeholder-purple-400 shadow-lg backdrop-blur-sm focus:border-purple-500 focus:outline-none focus:ring-2 focus:ring-purple-200"
+                  />
+                </div>
 
-            <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
-              <div className="relative w-full sm:w-64">
-                <FaSearch className="absolute left-3 top-1/2 -translate-y-1/2 transform text-purple-400" />
-                <input
-                  ref={searchRef}
-                  type="text"
-                  value={searchText}
-                  onChange={(e) => setSearchText(e.target.value)}
-                  placeholder="Tìm kiếm..."
-                  className="w-full rounded-xl border border-purple-200 bg-white/90 py-3 pl-10 pr-4 text-sm placeholder-purple-400 shadow-lg backdrop-blur-sm focus:border-purple-500 focus:outline-none focus:ring-2 focus:ring-purple-200"
-                />
+                <motion.button
+                  onClick={() => setShowCreate(true)}
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  className="flex items-center justify-center space-x-2 rounded-xl bg-gradient-to-r from-purple-500 to-pink-500 px-6 py-3 text-sm font-medium text-white shadow-lg transition-all hover:from-purple-600 hover:to-pink-600 hover:shadow-xl"
+                >
+                  <FaPlus className="text-base" />
+                  <span>Tạo bài</span>
+                </motion.button>
               </div>
+            </motion.div>
 
-              <motion.button
-                onClick={() => setShowCreate(true)}
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-                className="flex items-center justify-center space-x-2 rounded-xl bg-gradient-to-r from-purple-500 to-pink-500 px-6 py-3 text-sm font-medium text-white shadow-lg transition-all hover:from-purple-600 hover:to-pink-600 hover:shadow-xl"
-              >
-                <FaPlus className="text-base" />
-                <span>Tạo bài</span>
-              </motion.button>
-            </div>
-          </motion.div>
+            {/* Modal tạo bài */}
+            <CreatePostModal
+              isOpen={showCreate}
+              onClose={() => setShowCreate(false)}
+              onSubmit={handleCreatePost}
+            />
 
-          {/* Modal tạo bài */}
-          <CreatePostModal
-            isOpen={showCreate}
-            onClose={() => setShowCreate(false)}
-            onSubmit={handleCreatePost}
-          />
+            {/* Danh sách bài viết */}
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.2 }}
+              className="grid grid-cols-1 gap-6"
+            >
+              {filteredPosts.length === 0 ? (
+                <motion.div
+                  initial={{ opacity: 0, scale: 0.9 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  className="rounded-3xl border border-white/50 bg-white/90 py-16 text-center shadow-xl backdrop-blur-sm"
+                >
+                  <div className="mb-4 text-6xl">📝</div>
+                  <h3 className="mb-2 text-xl font-semibold text-gray-700">
+                    Không tìm thấy bài viết
+                  </h3>
+                  <p className="text-gray-500">
+                    Hãy thử tìm kiếm với từ khóa khác hoặc tạo bài viết mới!
+                  </p>
+                </motion.div>
+              ) : (
+                filteredPosts.map((p, index) => {
+                  // Truncate HTML content for preview (keep first 300 chars of HTML)
+                  const preview =
+                    p.content.length > 300
+                      ? p.content.substring(0, 300) + '...'
+                      : p.content;
 
-          {/* Danh sách bài viết */}
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.2 }}
-            className="grid grid-cols-1 gap-6"
-          >
-            {filteredPosts.length === 0 ? (
-              <motion.div
-                initial={{ opacity: 0, scale: 0.9 }}
-                animate={{ opacity: 1, scale: 1 }}
-                className="rounded-3xl border border-white/50 bg-white/90 py-16 text-center shadow-xl backdrop-blur-sm"
-              >
-                <div className="mb-4 text-6xl">📝</div>
-                <h3 className="mb-2 text-xl font-semibold text-gray-700">
-                  Không tìm thấy bài viết
-                </h3>
-                <p className="text-gray-500">
-                  Hãy thử tìm kiếm với từ khóa khác hoặc tạo bài viết mới!
-                </p>
-              </motion.div>
-            ) : (
-              filteredPosts.map((p, index) => {
-                // Truncate HTML content for preview (keep first 300 chars of HTML)
-                const preview =
-                  p.content.length > 300
-                    ? p.content.substring(0, 300) + '...'
-                    : p.content;
-
-                return (
-                  <motion.div
-                    key={p.id}
-                    initial={{ opacity: 0, y: 30 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: index * 0.1, duration: 0.4 }}
-                    whileHover={{ scale: 1.01, y: -2 }}
-                    className="transform cursor-pointer rounded-3xl border border-white/50 bg-white/95 p-6 shadow-xl backdrop-blur-sm transition-all duration-300 hover:shadow-2xl"
-                  >
-                    <div className="mb-4 flex items-center">
-                      <motion.img
-                        whileHover={{ scale: 1.1, rotate: 5 }}
-                        src={p.avatarUrl}
-                        alt={p.author}
-                        className="border-3 mr-3 h-12 w-12 rounded-full border-purple-400 object-cover shadow-lg"
-                      />
-                      <div
-                        onClick={() => setSelectedPost(p)}
-                        className="flex-1"
-                      >
-                        <div className="text-base font-bold text-gray-900">
-                          {p.author}
+                  return (
+                    <motion.div
+                      key={p.id}
+                      initial={{ opacity: 0, y: 30 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: index * 0.1, duration: 0.4 }}
+                      whileHover={{ scale: 1.01, y: -2 }}
+                      className="transform cursor-pointer rounded-3xl border border-white/50 bg-white/95 p-6 shadow-xl backdrop-blur-sm transition-all duration-300 hover:shadow-2xl"
+                    >
+                      <div className="mb-4 flex items-center">
+                        <motion.img
+                          whileHover={{ scale: 1.1, rotate: 5 }}
+                          src={p.avatarUrl}
+                          alt={p.author}
+                          className="border-3 mr-3 h-12 w-12 rounded-full border-purple-400 object-cover shadow-lg"
+                        />
+                        <div
+                          onClick={() => setSelectedPost(p)}
+                          className="flex-1"
+                        >
+                          <div className="text-base font-bold text-gray-900">
+                            {p.author}
+                          </div>
+                          <div className="text-sm text-gray-500">
+                            {formatTimeAgo(p.createdAt)}
+                          </div>
                         </div>
-                        <div className="text-sm text-gray-500">
-                          {formatTimeAgo(p.createdAt)}
-                        </div>
+
+                        {/* Menu cho bài của "Bạn" */}
+                        {p.author === 'Bạn' && (
+                          <div
+                            className="relative"
+                            onClick={(e) => e.stopPropagation()}
+                          >
+                            <motion.button
+                              whileHover={{ scale: 1.1 }}
+                              whileTap={{ scale: 0.9 }}
+                              onClick={() =>
+                                setMenuOpenId((prev) =>
+                                  prev === p.id ? null : p.id
+                                )
+                              }
+                              className="rounded-full p-2 transition-colors hover:bg-purple-100/50"
+                            >
+                              <FaEllipsisH className="text-gray-500" />
+                            </motion.button>
+                            <AnimatePresence>
+                              {menuOpenId === p.id && (
+                                <motion.div
+                                  initial={{ opacity: 0, scale: 0.9, y: -10 }}
+                                  animate={{ opacity: 1, scale: 1, y: 0 }}
+                                  exit={{ opacity: 0, scale: 0.9, y: -10 }}
+                                  className="absolute right-0 z-10 mt-2 w-32 origin-top-right rounded-xl border border-purple-200 bg-white/95 shadow-xl backdrop-blur-sm"
+                                >
+                                  <div className="py-2">
+                                    <div
+                                      onClick={() => handleEditPost(p.id)}
+                                      className="cursor-pointer px-4 py-2 text-sm text-gray-700 hover:bg-purple-50"
+                                    >
+                                      Chỉnh sửa
+                                    </div>
+                                    <div
+                                      onClick={() => handleDeleteClick(p.id)}
+                                      className="text-red-600 hover:bg-red-50 cursor-pointer px-4 py-2 text-sm"
+                                    >
+                                      Xóa
+                                    </div>
+                                  </div>
+                                </motion.div>
+                              )}
+                            </AnimatePresence>
+                          </div>
+                        )}
                       </div>
 
-                      {/* Menu cho bài của "Bạn" */}
-                      {p.author === 'Bạn' && (
+                      {/* Content hoặc RichTextEditor nếu đang edit */}
+                      {editingPostId === p.id ? (
                         <div
-                          className="relative"
+                          className="mb-4"
                           onClick={(e) => e.stopPropagation()}
                         >
-                          <motion.button
-                            whileHover={{ scale: 1.1 }}
-                            whileTap={{ scale: 0.9 }}
-                            onClick={() =>
-                              setMenuOpenId((prev) =>
-                                prev === p.id ? null : p.id
-                              )
-                            }
-                            className="rounded-full p-2 transition-colors hover:bg-purple-100/50"
-                          >
-                            <FaEllipsisH className="text-gray-500" />
-                          </motion.button>
-                          <AnimatePresence>
-                            {menuOpenId === p.id && (
-                              <motion.div
-                                initial={{ opacity: 0, scale: 0.9, y: -10 }}
-                                animate={{ opacity: 1, scale: 1, y: 0 }}
-                                exit={{ opacity: 0, scale: 0.9, y: -10 }}
-                                className="absolute right-0 z-10 mt-2 w-32 origin-top-right rounded-xl border border-purple-200 bg-white/95 shadow-xl backdrop-blur-sm"
-                              >
-                                <div className="py-2">
-                                  <div
-                                    onClick={() => handleEditPost(p.id)}
-                                    className="cursor-pointer px-4 py-2 text-sm text-gray-700 hover:bg-purple-50"
-                                  >
-                                    Chỉnh sửa
-                                  </div>
-                                  <div
-                                    onClick={() => handleDeleteClick(p.id)}
-                                    className="text-red-600 hover:bg-red-50 cursor-pointer px-4 py-2 text-sm"
-                                  >
-                                    Xóa
-                                  </div>
-                                </div>
-                              </motion.div>
-                            )}
-                          </AnimatePresence>
+                          <RichTextEditor
+                            value={editingPostText}
+                            onChange={setEditingPostText}
+                            placeholder="Chỉnh sửa nội dung..."
+                            height={200}
+                            className="mb-3"
+                          />
+                          <div className="flex justify-end space-x-2">
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setEditingPostId(null);
+                                setEditingPostText('');
+                              }}
+                              className="rounded-lg border border-gray-300 px-3 py-1 text-xs text-gray-700 transition hover:bg-gray-100"
+                            >
+                              Hủy
+                            </button>
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                saveEditedPost(p.id);
+                              }}
+                              className="transform rounded-lg bg-purple-500 px-3 py-1 text-xs text-white transition hover:scale-105 hover:bg-purple-600"
+                            >
+                              Lưu
+                            </button>
+                          </div>
+                        </div>
+                      ) : (
+                        <div onClick={() => setSelectedPost(p)}>
+                          <div
+                            className="prose prose-purple mb-4 max-w-none leading-relaxed text-gray-700 [&>*:first-child]:mt-0 [&>*:last-child]:mb-0"
+                            dangerouslySetInnerHTML={{ __html: preview }}
+                          />
                         </div>
                       )}
-                    </div>
 
-                    {/* Content hoặc RichTextEditor nếu đang edit */}
-                    {editingPostId === p.id ? (
-                      <div
-                        className="mb-4"
-                        onClick={(e) => e.stopPropagation()}
-                      >
-                        <RichTextEditor
-                          value={editingPostText}
-                          onChange={setEditingPostText}
-                          placeholder="Chỉnh sửa nội dung..."
-                          height={200}
-                          className="mb-3"
-                        />
-                        <div className="flex justify-end space-x-2">
-                          <button
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              setEditingPostId(null);
-                              setEditingPostText('');
-                            }}
-                            className="rounded-lg border border-gray-300 px-3 py-1 text-xs text-gray-700 transition hover:bg-gray-100"
+                      <div className="flex items-center justify-between text-gray-600">
+                        <div className="flex items-center space-x-6">
+                          <LikeButton
+                            liked={p.liked}
+                            likes={p.likes}
+                            onToggle={() => toggleLikePost(p)}
+                            size="md"
+                          />
+
+                          <div
+                            className="flex cursor-pointer items-center space-x-2 transition-colors hover:text-purple-500"
+                            onClick={() => setSelectedPost(p)}
                           >
-                            Hủy
-                          </button>
-                          <button
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              saveEditedPost(p.id);
-                            }}
-                            className="transform rounded-lg bg-purple-500 px-3 py-1 text-xs text-white transition hover:scale-105 hover:bg-purple-600"
-                          >
-                            Lưu
-                          </button>
+                            <FaComment className="text-lg" />
+                            <span className="font-medium">
+                              {formatCommentCount(
+                                getTotalCommentCount(p.comments)
+                              )}
+                            </span>
+                          </div>
                         </div>
                       </div>
-                    ) : (
-                      <div onClick={() => setSelectedPost(p)}>
-                        <div
-                          className="prose prose-purple mb-4 max-w-none leading-relaxed text-gray-700 [&>*:first-child]:mt-0 [&>*:last-child]:mb-0"
-                          dangerouslySetInnerHTML={{ __html: preview }}
-                        />
-                      </div>
-                    )}
+                    </motion.div>
+                  );
+                })
+              )}
+            </motion.div>
 
-                    <div className="flex items-center justify-between text-gray-600">
-                      <div className="flex items-center space-x-6">
-                        <LikeButton
-                          liked={p.liked}
-                          likes={p.likes}
-                          onToggle={() => toggleLikePost(p)}
-                          size="md"
-                        />
-
-                        <div
-                          className="flex cursor-pointer items-center space-x-2 transition-colors hover:text-purple-500"
-                          onClick={() => setSelectedPost(p)}
-                        >
-                          <FaComment className="text-lg" />
-                          <span className="font-medium">
-                            {formatCommentCount(
-                              getTotalCommentCount(p.comments)
-                            )}
-                          </span>
-                        </div>
-                      </div>
-                    </div>
-                  </motion.div>
-                );
-              })
-            )}
-          </motion.div>
-
-          {/* Modal xác nhận xóa */}
-          <ConfirmModal
-            isOpen={deleteModal.isOpen}
-            onClose={() => setDeleteModal({ isOpen: false, postId: '' })}
-            onConfirm={handleDeleteConfirm}
-            title="Xóa bài viết"
-            message="Bạn có chắc chắn muốn xóa bài viết này? Tất cả bình luận cũng sẽ bị xóa."
-            confirmText="Xóa"
-            cancelText="Hủy"
-            type="danger"
-          />
+            {/* Modal xác nhận xóa */}
+            <ConfirmModal
+              isOpen={deleteModal.isOpen}
+              onClose={() => setDeleteModal({ isOpen: false, postId: '' })}
+              onConfirm={handleDeleteConfirm}
+              title="Xóa bài viết"
+              message="Bạn có chắc chắn muốn xóa bài viết này? Tất cả bình luận cũng sẽ bị xóa."
+              confirmText="Xóa"
+              cancelText="Hủy"
+              type="danger"
+            />
+          </div>
         </div>
-      </div>
+      </BasePages>
     );
   };
 

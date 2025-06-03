@@ -19,7 +19,7 @@ const PublisherProfile = lazy(
 );
 const Misson = lazy(() => import('@/pages/Publisher/Misson'));
 const Wallet = lazy(() => import('@/pages/Publisher/Wallet'));
-const Courses = lazy(() => import('@/pages/Advertiser/Course'));
+const Courses = lazy(() => import('@/pages/Publisher/Course'));
 
 const PublisherRoutes = [
   {

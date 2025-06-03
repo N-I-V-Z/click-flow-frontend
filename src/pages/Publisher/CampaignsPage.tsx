@@ -9,7 +9,7 @@ import {
 } from '@/queries/campaign.query';
 import helpers from '@/helpers';
 import __helpers from '@/helpers';
-import PageHead from '@/components/shared/page-head';
+import BasePages from '@/components/shared/base-pages';
 
 const { Option } = Select;
 const decodedToken: TokenDecoded | null = helpers.decodeTokens(
@@ -158,202 +158,204 @@ const CampaignsPage: React.FC = () => {
   }
 
   return (
-    <div className="bg-gray-100 bg-gradient-to-br from-indigo-200 via-purple-50 to-blue p-6">
-      <PageHead title={'ClickFlow - Danh sách chiến dịch'} />
+    <BasePages pageHead="ClickFlow - Danh sách chiến dịch">
+      <div className="bg-gray-100 bg-gradient-to-br from-indigo-200 via-purple-50 to-blue p-6">
+        <h1 className="mb-6 text-center text-2xl font-bold text-gray-800">
+          Danh sách Chiến dịch
+        </h1>
 
-      <h1 className="mb-6 text-center text-2xl font-bold text-gray-800">
-        Danh sách Chiến dịch
-      </h1>
+        {/* Form Lọc */}
+        <div className="mb-6 rounded-lg bg-white p-6 shadow">
+          <Form
+            form={form}
+            layout="vertical"
+            onFinish={onFinish}
+            className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-4"
+          >
+            <Form.Item name="status" label="Trạng thái">
+              <Select placeholder="Chọn trạng thái" allowClear>
+                <Option value="active">Đang hoạt động</Option>
+                <Option value="locked">Đã bị khóa</Option>
+              </Select>
+            </Form.Item>
+            <Form.Item name="group" label="Nhóm ngành hàng">
+              <Select placeholder="Chọn nhóm ngành hàng" allowClear>
+                <Option value="all">Tất cả</Option>
+                <Option value="Thực phẩm & đồ uống">Thực phẩm & đồ uống</Option>
+                <Option value="Du lịch & nghỉ dưỡng">
+                  Du lịch & nghỉ dưỡng
+                </Option>
+                <Option value="Khác">Khác</Option>
+              </Select>
+            </Form.Item>
+            <Form.Item name="industryStatus" label="Trạng thái chạy">
+              <Select placeholder="Chọn trạng thái chạy" allowClear>
+                <Option value="running">Đang chạy</Option>
+                <Option value="not_running">Chưa chạy</Option>
+              </Select>
+            </Form.Item>
+            <Form.Item name="type" label="Loại hình">
+              <Select placeholder="Chọn loại hình" allowClear>
+                <Option value="all">Tất cả</Option>
+                <Option value="CPC">CPC</Option>
+                <Option value="CPA">CPA</Option>
+                <Option value="CPS">CPS</Option>
+              </Select>
+            </Form.Item>
+            <div className="col-span-1 flex items-end gap-2 sm:col-span-4">
+              <Button
+                className="hover:!border-[#9B52BF] hover:bg-white hover:!text-[#9B52BF]"
+                onClick={onReset}
+              >
+                Đặt lại
+              </Button>
+              <Button
+                className="bg-[#9B52BF] text-white hover:!border-[#9B52BF] hover:bg-white hover:!text-[#9B52BF]"
+                htmlType="submit"
+              >
+                Áp dụng
+              </Button>
+            </div>
+          </Form>
+        </div>
 
-      {/* Form Lọc */}
-      <div className="mb-6 rounded-lg bg-white p-6 shadow">
-        <Form
-          form={form}
-          layout="vertical"
-          onFinish={onFinish}
-          className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-4"
-        >
-          <Form.Item name="status" label="Trạng thái">
-            <Select placeholder="Chọn trạng thái" allowClear>
-              <Option value="active">Đang hoạt động</Option>
-              <Option value="locked">Đã bị khóa</Option>
-            </Select>
-          </Form.Item>
-          <Form.Item name="group" label="Nhóm ngành hàng">
-            <Select placeholder="Chọn nhóm ngành hàng" allowClear>
-              <Option value="all">Tất cả</Option>
-              <Option value="Thực phẩm & đồ uống">Thực phẩm & đồ uống</Option>
-              <Option value="Du lịch & nghỉ dưỡng">Du lịch & nghỉ dưỡng</Option>
-              <Option value="Khác">Khác</Option>
-            </Select>
-          </Form.Item>
-          <Form.Item name="industryStatus" label="Trạng thái chạy">
-            <Select placeholder="Chọn trạng thái chạy" allowClear>
-              <Option value="running">Đang chạy</Option>
-              <Option value="not_running">Chưa chạy</Option>
-            </Select>
-          </Form.Item>
-          <Form.Item name="type" label="Loại hình">
-            <Select placeholder="Chọn loại hình" allowClear>
-              <Option value="all">Tất cả</Option>
-              <Option value="CPC">CPC</Option>
-              <Option value="CPA">CPA</Option>
-              <Option value="CPS">CPS</Option>
-            </Select>
-          </Form.Item>
-          <div className="col-span-1 flex items-end gap-2 sm:col-span-4">
-            <Button
-              className="hover:!border-[#9B52BF] hover:bg-white hover:!text-[#9B52BF]"
-              onClick={onReset}
-            >
-              Đặt lại
-            </Button>
-            <Button
-              className="bg-[#9B52BF] text-white hover:!border-[#9B52BF] hover:bg-white hover:!text-[#9B52BF]"
-              htmlType="submit"
-            >
-              Áp dụng
-            </Button>
-          </div>
-        </Form>
-      </div>
+        {/* Danh sách chiến dịch */}
+        <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6">
+          {currentCampaigns.map((campaign) => {
+            // Demo cứng "locked" = false
+            const isLocked = false;
+            // Kiểm tra xem campaign đã tham gia chưa (nếu publisherStatus có giá trị)
+            const hasPublisherStatus = !!campaign.publisherStatus;
 
-      {/* Danh sách chiến dịch */}
-      <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6">
-        {currentCampaigns.map((campaign) => {
-          // Demo cứng "locked" = false
-          const isLocked = false;
-          // Kiểm tra xem campaign đã tham gia chưa (nếu publisherStatus có giá trị)
-          const hasPublisherStatus = !!campaign.publisherStatus;
-
-          return (
-            <div
-              key={campaign.id}
-              className={`flex flex-col items-center rounded-lg bg-white p-4 shadow transition-transform duration-300 
+            return (
+              <div
+                key={campaign.id}
+                className={`flex flex-col items-center rounded-lg bg-white p-4 shadow transition-transform duration-300 
                 ${!isLocked ? 'cursor-pointer hover:scale-105 hover:shadow-xl' : 'pointer-events-none opacity-50'}`}
-              // Khi click vào campaign ở CampaignsPage:
-              onClick={() =>
-                navigate(`/publisher/campaign-detail/${campaign.id}`)
-              }
-            >
-              {/* Logo */}
-              <div className="mb-4 h-32 w-32 overflow-hidden rounded-full">
-                <img
-                  src={
-                    campaign.image ||
-                    'https://via.placeholder.com/150?text=No+Image'
-                  }
-                  alt="logo"
-                  className="h-full w-full object-cover"
-                />
-              </div>
+                // Khi click vào campaign ở CampaignsPage:
+                onClick={() =>
+                  navigate(`/publisher/campaign-detail/${campaign.id}`)
+                }
+              >
+                {/* Logo */}
+                <div className="mb-4 h-32 w-32 overflow-hidden rounded-full">
+                  <img
+                    src={
+                      campaign.image ||
+                      'https://via.placeholder.com/150?text=No+Image'
+                    }
+                    alt="logo"
+                    className="h-full w-full object-cover"
+                  />
+                </div>
 
-              {/* Tên chiến dịch */}
-              <h3 className="mb-2 line-clamp-2 text-center text-sm font-semibold text-gray-800">
-                {campaign.name}
-              </h3>
+                {/* Tên chiến dịch */}
+                <h3 className="mb-2 line-clamp-2 text-center text-sm font-semibold text-gray-800">
+                  {campaign.name}
+                </h3>
 
-              {/* Hoa hồng */}
-              <div className="mb-1 text-sm text-gray-600">Hoa hồng</div>
-              <div className="mb-2 text-lg font-bold text-[#8229B0]">
-                {campaign.percents
-                  ? `${campaign.percents}%`
-                  : `${campaign.commission?.toLocaleString()} đ`}
-              </div>
+                {/* Hoa hồng */}
+                <div className="mb-1 text-sm text-gray-600">Hoa hồng</div>
+                <div className="mb-2 text-lg font-bold text-[#8229B0]">
+                  {campaign.percents
+                    ? `${campaign.percents}%`
+                    : `${campaign.commission?.toLocaleString()} đ`}
+                </div>
 
-              {/* Hiển thị rating dựa trên averageStarRate */}
-              <div className="mb-3 items-center gap-2  text-gray-600">
-                <Rate
-                  disabled
-                  allowHalf
-                  defaultValue={campaign.averageStarRate}
-                />
-                <span className="block w-full text-center">
-                  {'('}
-                  {campaign.averageStarRate.toFixed(2).replace('.', ',')}
-                  {')'}
-                </span>
-              </div>
+                {/* Hiển thị rating dựa trên averageStarRate */}
+                <div className="mb-3 items-center gap-2  text-gray-600">
+                  <Rate
+                    disabled
+                    allowHalf
+                    defaultValue={campaign.averageStarRate}
+                  />
+                  <span className="block w-full text-center">
+                    {'('}
+                    {campaign.averageStarRate.toFixed(2).replace('.', ',')}
+                    {')'}
+                  </span>
+                </div>
 
-              {/* Nút hành động */}
-              {isLocked ? (
-                <p className="text-red-500 mt-2 font-medium">Đã bị khóa</p>
-              ) : hasPublisherStatus ? (
-                // Nếu campaign đã tham gia, phân biệt 2 trường hợp:
-                campaign.publisherStatus === 'Participated' ? (
-                  // Khi Activing thì cho phép copy link
+                {/* Nút hành động */}
+                {isLocked ? (
+                  <p className="text-red-500 mt-2 font-medium">Đã bị khóa</p>
+                ) : hasPublisherStatus ? (
+                  // Nếu campaign đã tham gia, phân biệt 2 trường hợp:
+                  campaign.publisherStatus === 'Participated' ? (
+                    // Khi Activing thì cho phép copy link
+                    <Button
+                      type="default"
+                      className="w-full bg-white text-[#8229B0] hover:!border-[#9B52BF] hover:!bg-[#9B52BF] hover:!text-white"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        const link = `${window.location.origin}/link/${PUBLISHER_ID}/${campaign.id}`;
+                        navigator.clipboard
+                          .writeText(link)
+                          .then(() => {
+                            message.success('Copy link thành công!');
+                          })
+                          .catch(() => {
+                            message.error('Copy link thất bại!');
+                          });
+                      }}
+                    >
+                      Lấy link
+                    </Button>
+                  ) : (
+                    // Nếu publisherStatus khác Activing (ví dụ: Pending)
+                    <Button
+                      type="default"
+                      className="w-full bg-white text-[#8229B0] hover:!border-[#9B52BF] hover:!bg-[#8229B0] hover:!text-white"
+                      onClick={handlePendingClick}
+                    >
+                      Lấy link
+                    </Button>
+                  )
+                ) : (
+                  // Nếu chưa tham gia => Nút "Đăng ký"
                   <Button
                     type="default"
-                    className="w-full bg-white text-[#8229B0] hover:!border-[#9B52BF] hover:!bg-[#9B52BF] hover:!text-white"
+                    className="w-full bg-[#8229B0] text-white hover:!border-[#9B52BF] hover:bg-white hover:!text-[#9B52BF]"
                     onClick={(e) => {
                       e.stopPropagation();
-                      const link = `${window.location.origin}/link/${PUBLISHER_ID}/${campaign.id}`;
-                      navigator.clipboard
-                        .writeText(link)
-                        .then(() => {
-                          message.success('Copy link thành công!');
-                        })
-                        .catch(() => {
-                          message.error('Copy link thất bại!');
-                        });
+                      handleRegisterClick(campaign.id);
                     }}
                   >
-                    Lấy link
+                    Đăng ký
                   </Button>
-                ) : (
-                  // Nếu publisherStatus khác Activing (ví dụ: Pending)
-                  <Button
-                    type="default"
-                    className="w-full bg-white text-[#8229B0] hover:!border-[#9B52BF] hover:!bg-[#8229B0] hover:!text-white"
-                    onClick={handlePendingClick}
-                  >
-                    Lấy link
-                  </Button>
-                )
-              ) : (
-                // Nếu chưa tham gia => Nút "Đăng ký"
-                <Button
-                  type="default"
-                  className="w-full bg-[#8229B0] text-white hover:!border-[#9B52BF] hover:bg-white hover:!text-[#9B52BF]"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    handleRegisterClick(campaign.id);
-                  }}
-                >
-                  Đăng ký
-                </Button>
-              )}
-            </div>
-          );
-        })}
-      </div>
+                )}
+              </div>
+            );
+          })}
+        </div>
 
-      {/* Phân trang (client side) */}
-      <div className="mb-8 mt-4">
-        <PaginationSection
-          totalPosts={campaigns.length}
-          postsPerPage={PAGE_SIZE}
-          currentPage={currentPage}
-          setCurrentPage={setCurrentPage}
-        />
-      </div>
+        {/* Phân trang (client side) */}
+        <div className="mb-8 mt-4">
+          <PaginationSection
+            totalPosts={campaigns.length}
+            postsPerPage={PAGE_SIZE}
+            currentPage={currentPage}
+            setCurrentPage={setCurrentPage}
+          />
+        </div>
 
-      {/* Modal xác nhận đăng ký */}
-      <Modal
-        title="Xác nhận đăng ký"
-        open={isModalVisible}
-        onOk={handleConfirmRegister}
-        onCancel={handleCancelRegister}
-        okText="Đồng ý"
-        cancelText="Hủy"
-        confirmLoading={isRegisterLoading}
-        okButtonProps={{
-          className: 'bg-[#9B52BF] text-white border-[#9B52BF]'
-        }}
-      >
-        <p>Bạn có chắc muốn đăng ký chiến dịch này không?</p>
-      </Modal>
-    </div>
+        {/* Modal xác nhận đăng ký */}
+        <Modal
+          title="Xác nhận đăng ký"
+          open={isModalVisible}
+          onOk={handleConfirmRegister}
+          onCancel={handleCancelRegister}
+          okText="Đồng ý"
+          cancelText="Hủy"
+          confirmLoading={isRegisterLoading}
+          okButtonProps={{
+            className: 'bg-[#9B52BF] text-white border-[#9B52BF]'
+          }}
+        >
+          <p>Bạn có chắc muốn đăng ký chiến dịch này không?</p>
+        </Modal>
+      </div>
+    </BasePages>
   );
 };
 

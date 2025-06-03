@@ -5,8 +5,7 @@ import { ColumnDef } from '@tanstack/react-table';
 import DataTable from '@/components/shared/data-table';
 import { useGetTrafficForAdvertiser } from '@/queries/traffic.query';
 import helpers from '@/helpers';
-import { usePageTitle } from '@/hooks/use-pagetitle';
-import PageHead from '@/components/shared/page-head';
+import BasePages from '@/components/shared/base-pages';
 
 type TrafficType = {
   id: number;
@@ -18,7 +17,6 @@ type TrafficType = {
 };
 
 export default function Traffic() {
-  usePageTitle('Truy cập | Click Flow');
   const { pageIndex, pageSize } = helpers.usePaginationParams();
   const [searchTerm, setSearchTerm] = useState('');
 
@@ -107,20 +105,20 @@ export default function Traffic() {
   }
 
   return (
-    <div className="min-h-screen py-8">
-      <PageHead title={'ClickFlow - Danh sách Traffic'} />
-
-      <div className="container mx-auto px-4">
-        <div className="rounded-lg bg-white p-6">
-          <div className="mb-6 flex flex-col pb-4 sm:flex-row sm:items-center sm:justify-between">
-            <h2 className="mb-4 text-3xl font-bold text-gray-800 sm:mb-0">
-              Danh sách Traffic
-            </h2>
+    <BasePages pageHead="ClickFlow - Truy cập">
+      <div className="min-h-screen py-8">
+        <div className="container mx-auto px-4">
+          <div className="rounded-lg bg-white p-6">
+            <div className="mb-6 flex flex-col pb-4 sm:flex-row sm:items-center sm:justify-between">
+              <h2 className="mb-4 text-3xl font-bold text-gray-800 sm:mb-0">
+                Danh sách Traffic
+              </h2>
+            </div>
+            <DataTable columns={columns} data={filteredData} pageCount={1} />
           </div>
-          <DataTable columns={columns} data={filteredData} pageCount={1} />
         </div>
+        <ToastContainer position="top-center" autoClose={3000} />
       </div>
-      <ToastContainer position="top-center" autoClose={3000} />
-    </div>
+    </BasePages>
   );
 }

@@ -3,10 +3,11 @@ import { FaEye, FaEyeSlash, FaLock, FaTimes } from 'react-icons/fa';
 import { motion } from 'framer-motion';
 import { ToastContainer, toast } from 'react-toastify';
 import { useChangePassword } from './../../queries/auth.query';
-import { usePageTitle } from '@/hooks/use-pagetitle';
-import PageHead from './page-head';
+import BasePages from './base-pages';
+import { Card } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+
 const ChangePassword: React.FC = () => {
-  usePageTitle('Đổi mật khẩu | Click Flow');
   const [formData, setFormData] = useState({
     oldPassword: '',
     newPassword: '',
@@ -61,7 +62,12 @@ const ChangePassword: React.FC = () => {
         {
           onSuccess: () => {
             toast.success('Đổi mật khẩu thành công!');
-            // Reset form hoặc xử lý bổ sung nếu cần
+            // Reset form
+            setFormData({
+              oldPassword: '',
+              newPassword: '',
+              confirmPassword: ''
+            });
           },
           onError: () => {
             toast.error('Có lỗi xảy ra, vui lòng thử lại!');
@@ -74,143 +80,253 @@ const ChangePassword: React.FC = () => {
   };
 
   return (
-    <div className="mx-80 mt-5 flex max-h-screen items-center p-1">
-      <PageHead title={'ClickFlow - Đổi mật khẩu'} />
+    <BasePages pageHead="ClickFlow - Đổi mật khẩu ">
+      <div className="via-blue-50 min-h-screen bg-gradient-to-br from-slate-50 to-indigo-100">
+        <div className="mx-auto max-w-7xl px-24 py-12">
+          <div className="grid grid-cols-1 gap-8 lg:grid-cols-3">
+            {/* Form đổi mật khẩu */}
+            <div className="lg:col-span-2">
+              <Card className="overflow-hidden border-0 shadow-xl">
+                <div className="bg-gradient-to-r from-blue to-purple-600 p-6">
+                  <div className="flex items-center space-x-3">
+                    <FaLock className="h-6 w-6 text-white" />
+                    <h2 className="text-2xl font-bold text-white">
+                      Đổi mật khẩu
+                    </h2>
+                  </div>
+                </div>
 
-      <motion.div
-        className="w-full max-w-md overflow-hidden rounded-2xl bg-white shadow-xl"
-        initial={{ opacity: 0, scale: 0.95 }}
-        animate={{ opacity: 1, scale: 1 }}
-        transition={{ duration: 0.5 }}
-      >
-        <div className="p-6 text-center">
-          <FaLock className="mx-auto h-10 w-10 text-black" />
-          <h2 className="mt-3 text-2xl font-bold text-black">
-            Thay đổi mật khẩu
-          </h2>
+                <div className="p-12">
+                  <form className="max-w-4xl space-y-6" onSubmit={handleSubmit}>
+                    {/* Mật khẩu cũ */}
+                    <div>
+                      <label
+                        htmlFor="oldPassword"
+                        className="mb-2 block text-sm font-medium text-gray-700"
+                      >
+                        Mật khẩu hiện tại
+                      </label>
+                      <div className="relative">
+                        <input
+                          id="oldPassword"
+                          name="oldPassword"
+                          type={showOldPassword ? 'text' : 'password'}
+                          required
+                          className="block w-full rounded-xl border border-gray-300 px-4 py-3 pr-12 shadow-sm transition-colors focus:border-indigo-500 focus:ring-indigo-500"
+                          value={formData.oldPassword}
+                          onChange={(e) =>
+                            setFormData({
+                              ...formData,
+                              oldPassword: e.target.value
+                            })
+                          }
+                        />
+                        <button
+                          type="button"
+                          className="absolute inset-y-0 right-0 flex items-center pr-4 text-gray-500 hover:text-gray-700"
+                          onClick={() => setShowOldPassword(!showOldPassword)}
+                        >
+                          {showOldPassword ? (
+                            <FaEyeSlash className="h-5 w-5" />
+                          ) : (
+                            <FaEye className="h-5 w-5" />
+                          )}
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* Mật khẩu mới */}
+                    <div>
+                      <label
+                        htmlFor="newPassword"
+                        className="mb-2 block text-sm font-medium text-gray-700"
+                      >
+                        Mật khẩu mới
+                      </label>
+                      <div className="relative">
+                        <input
+                          id="newPassword"
+                          name="newPassword"
+                          type={showNewPassword ? 'text' : 'password'}
+                          required
+                          className="block w-full rounded-xl border border-gray-300 px-4 py-3 pr-12 shadow-sm transition-colors focus:border-indigo-500 focus:ring-indigo-500"
+                          value={formData.newPassword}
+                          onChange={(e) =>
+                            setFormData({
+                              ...formData,
+                              newPassword: e.target.value
+                            })
+                          }
+                        />
+                        <button
+                          type="button"
+                          className="absolute inset-y-0 right-0 flex items-center pr-4 text-gray-500 hover:text-gray-700"
+                          onClick={() => setShowNewPassword(!showNewPassword)}
+                        >
+                          {showNewPassword ? (
+                            <FaEyeSlash className="h-5 w-5" />
+                          ) : (
+                            <FaEye className="h-5 w-5" />
+                          )}
+                        </button>
+                      </div>
+                      {errors.newPassword && (
+                        <p className="mt-2 flex items-center text-sm text-red">
+                          <FaTimes className="mr-2 h-4 w-4" />{' '}
+                          {errors.newPassword}
+                        </p>
+                      )}
+                    </div>
+
+                    {/* Xác nhận mật khẩu */}
+                    <div>
+                      <label
+                        htmlFor="confirmPassword"
+                        className="mb-2 block text-sm font-medium text-gray-700"
+                      >
+                        Xác nhận mật khẩu
+                      </label>
+                      <div className="relative">
+                        <input
+                          id="confirmPassword"
+                          name="confirmPassword"
+                          type={showConfirmPassword ? 'text' : 'password'}
+                          required
+                          className="block w-full rounded-xl border border-gray-300 px-4 py-3 pr-12 shadow-sm transition-colors focus:border-indigo-500 focus:ring-indigo-500"
+                          value={formData.confirmPassword}
+                          onChange={(e) =>
+                            setFormData({
+                              ...formData,
+                              confirmPassword: e.target.value
+                            })
+                          }
+                        />
+                        <button
+                          type="button"
+                          className="absolute inset-y-0 right-0 flex items-center pr-4 text-gray-500 hover:text-gray-700"
+                          onClick={() =>
+                            setShowConfirmPassword(!showConfirmPassword)
+                          }
+                        >
+                          {showConfirmPassword ? (
+                            <FaEyeSlash className="h-5 w-5" />
+                          ) : (
+                            <FaEye className="h-5 w-5" />
+                          )}
+                        </button>
+                      </div>
+                      {errors.confirmPassword && (
+                        <p className="mt-2 flex items-center text-sm text-red">
+                          <FaTimes className="mr-2 h-4 w-4" />{' '}
+                          {errors.confirmPassword}
+                        </p>
+                      )}
+                    </div>
+
+                    <div className="pt-4">
+                      <motion.div
+                        whileHover={{ scale: 1.02 }}
+                        whileTap={{ scale: 0.98 }}
+                      >
+                        <Button
+                          type="submit"
+                          disabled={
+                            Object.keys(errors).length > 0 ||
+                            changePasswordMutation.isPending
+                          }
+                          className="w-full rounded-xl bg-indigo-600 px-4 py-3 font-semibold text-white transition-all duration-200 hover:bg-indigo-700 disabled:cursor-not-allowed disabled:bg-gray-400"
+                        >
+                          {changePasswordMutation.isPending
+                            ? 'Đang cập nhật...'
+                            : 'Cập nhật mật khẩu'}
+                        </Button>
+                      </motion.div>
+                    </div>
+                    <p className="text-center text-xs text-gray-600">
+                      Nếu gặp vấn đề khi đổi mật khẩu, xin vui lòng liên hệ bộ
+                      phận hỗ trợ
+                      <br />
+                      <span className="font-semibold">
+                        clickflow.connect@gmail.com
+                      </span>{' '}
+                      hoặc số điện thoại{' '}
+                      <span className="font-semibold">0123-456-789</span>.
+                    </p>
+                  </form>
+                </div>
+              </Card>
+            </div>
+
+            {/* Sidebar */}
+            <div className="space-y-4">
+              <Card className="border-0 shadow-xl">
+                <div className="p-6">
+                  <h3 className="mb-4 text-lg font-bold text-gray-800">
+                    Yêu cầu mật khẩu
+                  </h3>
+                  <div className="space-y-3">
+                    <div className="flex items-start space-x-3">
+                      <div className="mt-2 h-2 w-2 flex-shrink-0 rounded-full bg-indigo-500"></div>
+                      <p className="text-sm text-gray-600">
+                        Mật khẩu phải có ít nhất 8 ký tự
+                      </p>
+                    </div>
+                    <div className="flex items-start space-x-3">
+                      <div className="mt-2 h-2 w-2 flex-shrink-0 rounded-full bg-indigo-500"></div>
+                      <p className="text-sm text-gray-600">
+                        Bao gồm chữ hoa và chữ thường
+                      </p>
+                    </div>
+                    <div className="flex items-start space-x-3">
+                      <div className="mt-2 h-2 w-2 flex-shrink-0 rounded-full bg-indigo-500"></div>
+                      <p className="text-sm text-gray-600">
+                        Bao gồm ít nhất một số
+                      </p>
+                    </div>
+                    <div className="flex items-start space-x-3">
+                      <div className="mt-2 h-2 w-2 flex-shrink-0 rounded-full bg-indigo-500"></div>
+                      <p className="text-sm text-gray-600">
+                        Bao gồm ký tự đặc biệt
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </Card>
+
+              <Card className="border-0 shadow-xl">
+                <div className="p-6">
+                  <h3 className="mb-4 text-lg font-bold text-gray-800">
+                    Bảo mật tài khoản
+                  </h3>
+                  <div className="space-y-4">
+                    <div className="bg-blue-50 border-blue-200 rounded-lg border p-4">
+                      <p className="text-blue-800 text-sm">
+                        <strong>Lưu ý:</strong> Không chia sẻ mật khẩu với bất
+                        kỳ ai và thường xuyên thay đổi mật khẩu để bảo vệ tài
+                        khoản của bạn.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </Card>
+            </div>
+          </div>
         </div>
-        <form className="space-y-5 p-6" onSubmit={handleSubmit}>
-          {/* Mật khẩu cũ */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700">
-              Mật khẩu cũ
-            </label>
-            <div className="relative mt-1">
-              <input
-                type={showOldPassword ? 'text' : 'password'}
-                required
-                className="block w-full rounded-md border border-gray-300 py-2 pl-3 pr-10 transition focus:border-indigo-500 focus:outline-none focus:ring-indigo-500"
-                value={formData.oldPassword}
-                onChange={(e) =>
-                  setFormData({ ...formData, oldPassword: e.target.value })
-                }
-              />
-              <button
-                type="button"
-                className="absolute inset-y-0 right-0 flex items-center pr-3"
-                onClick={() => setShowOldPassword(!showOldPassword)}
-              >
-                {showOldPassword ? (
-                  <FaEyeSlash className="h-5 w-5 text-gray-500" />
-                ) : (
-                  <FaEye className="h-5 w-5 text-gray-500" />
-                )}
-              </button>
-            </div>
-          </div>
 
-          {/* Mật khẩu mới */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700">
-              Mật khẩu mới
-            </label>
-            <div className="relative mt-1">
-              <input
-                type={showNewPassword ? 'text' : 'password'}
-                required
-                className="block w-full rounded-md border border-gray-300 py-2 pl-3 pr-10 transition focus:border-indigo-500 focus:outline-none focus:ring-indigo-500"
-                value={formData.newPassword}
-                onChange={(e) =>
-                  setFormData({ ...formData, newPassword: e.target.value })
-                }
-              />
-              <button
-                type="button"
-                className="absolute inset-y-0 right-0 flex items-center pr-3"
-                onClick={() => setShowNewPassword(!showNewPassword)}
-              >
-                {showNewPassword ? (
-                  <FaEyeSlash className="h-5 w-5 text-gray-500" />
-                ) : (
-                  <FaEye className="h-5 w-5 text-gray-500" />
-                )}
-              </button>
-            </div>
-            {errors.newPassword && (
-              <p className="mt-1 flex items-center text-sm text-red">
-                <FaTimes className="mr-1" /> {errors.newPassword}
-              </p>
-            )}
-          </div>
-
-          {/* Xác nhận mật khẩu */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700">
-              Xác nhận mật khẩu
-            </label>
-            <div className="relative mt-1">
-              <input
-                type={showConfirmPassword ? 'text' : 'password'}
-                required
-                className="block w-full rounded-md border border-gray-300 py-2 pl-3 pr-10 transition focus:border-indigo-500 focus:outline-none focus:ring-indigo-500"
-                value={formData.confirmPassword}
-                onChange={(e) =>
-                  setFormData({ ...formData, confirmPassword: e.target.value })
-                }
-              />
-              <button
-                type="button"
-                className="absolute inset-y-0 right-0 flex items-center pr-3"
-                onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-              >
-                {showConfirmPassword ? (
-                  <FaEyeSlash className="h-5 w-5 text-gray-500" />
-                ) : (
-                  <FaEye className="h-5 w-5 text-gray-500" />
-                )}
-              </button>
-            </div>
-            {errors.confirmPassword && (
-              <p className="mt-1 flex items-center text-sm text-red">
-                <FaTimes className="mr-1" /> {errors.confirmPassword}
-              </p>
-            )}
-          </div>
-
-          <motion.button
-            type="submit"
-            disabled={Object.keys(errors).length > 0}
-            whileHover={{ scale: 1.02 }}
-            whileTap={{ scale: 0.98 }}
-            className="w-full rounded-md bg-indigo-600 py-2 font-semibold text-white shadow transition-all duration-200 disabled:bg-gray-400"
-          >
-            Đổi mật khẩu
-          </motion.button>
-        </form>
-      </motion.div>
-      <ToastContainer
-        position="top-center"
-        autoClose={3000}
-        hideProgressBar={false}
-        newestOnTop={false}
-        closeOnClick={false}
-        rtl={false}
-        pauseOnFocusLoss
-        draggable
-        pauseOnHover
-        theme="colored"
-      />
-    </div>
+        <ToastContainer
+          position="top-center"
+          autoClose={3000}
+          hideProgressBar={false}
+          newestOnTop={false}
+          closeOnClick={false}
+          rtl={false}
+          pauseOnFocusLoss
+          draggable
+          pauseOnHover
+          theme="colored"
+        />
+      </div>
+    </BasePages>
   );
 };
 

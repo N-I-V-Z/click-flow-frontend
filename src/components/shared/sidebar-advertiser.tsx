@@ -66,9 +66,6 @@ const SidebarAdvertiser: React.FC = () => {
         <Menu.Item key="traffic" icon={<LinkOutlined />}>
           <NavLink to="/advertiser/traffics">Truy cập</NavLink>
         </Menu.Item>
-        <Menu.Item key="course" icon={<PaperClipOutlined />}>
-          <NavLink to="/advertiser/course">Khóa học</NavLink>
-        </Menu.Item>
         <Menu.Item key="forum" icon={<WechatOutlined />}>
           <NavLink to="/all/forum">Diễn đàn</NavLink>
         </Menu.Item>
