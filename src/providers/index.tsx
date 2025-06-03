@@ -8,6 +8,7 @@ import { HelmetProvider } from 'react-helmet-async';
 import { BrowserRouter } from 'react-router-dom';
 import ThemeProvider from './theme-provider';
 import { SidebarProvider } from '@/hooks/use-sidebar';
+import { MouseEffectProvider } from './MouseEffectProvider';
 
 export const queryClient = new QueryClient({
   defaultOptions: {
@@ -26,7 +27,7 @@ const ErrorFallback = ({ error }: FallbackProps) => {
   const router = useRouter();
   return (
     <div
-      className="text-red-500 flex h-screen w-screen flex-col  items-center justify-center"
+      className="text-red-500 flex h-screen w-screen flex-col items-center justify-center"
       role="alert"
     >
       <h2 className="text-2xl font-semibold">Something went wrong :( </h2>
@@ -50,6 +51,7 @@ const ErrorFallback = ({ error }: FallbackProps) => {
  * - `ReactQueryDevtools`: Công cụ phát triển cho react-query.
  * - `ThemeProvider`: Cung cấp chủ đề giao diện cho ứng dụng.
  * - `SidebarProvider`: Cung cấp ngữ cảnh cho sidebar.
+ * - `MouseEffectProvider`: Cung cấp Ultimate Cursor với particle system và advanced animations.
  *
  * @param children - Các thành phần con cần được bao bọc.
  */
@@ -66,7 +68,11 @@ export default function AppProvider({
             <QueryClientProvider client={queryClient}>
               <ReactQueryDevtools />
               <ThemeProvider defaultTheme="light" storageKey="vite-ui-theme">
-                <SidebarProvider>{children}</SidebarProvider>
+                <SidebarProvider>
+                  <MouseEffectProvider enabled={true}>
+                    {children}
+                  </MouseEffectProvider>
+                </SidebarProvider>
               </ThemeProvider>
             </QueryClientProvider>
           </ErrorBoundary>
