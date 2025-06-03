@@ -2,16 +2,16 @@
 
 import React, { useState, useRef, FC } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { FaComment, FaChevronDown, FaEllipsisH } from 'react-icons/fa';
+import LikeButton from '@/components/ui/LikeButton';
+import CommentForm from '@/components/ui/CommentForm';
+import ConfirmModal from '@/components/ui/ConfirmModal';
+import RichTextEditor from '@/components/ui/RichTextEditor';
 import {
-  FaRegHeart,
-  FaHeart,
-  FaComment,
-  FaImage,
-  FaRegSmile,
-  FaMapMarkerAlt,
-  FaChevronDown,
-  FaEllipsisH
-} from 'react-icons/fa';
+  getTotalCommentCount,
+  formatCommentCount,
+  formatTimeAgo
+} from '@/utils/commentUtils';
 
 // ----------------------------------------------
 // Kiểu dữ liệu Comment & Post
@@ -60,7 +60,7 @@ const ForumDetail: FC<ForumDetailProps> = ({
   // --------------------------------------------
   const [commentText, setCommentText] = useState('');
   const [replyToId, setReplyToId] = useState<string | null>(null);
-  const commentRef = useRef<HTMLTextAreaElement>(null);
+  const [replyToAuthor, setReplyToAuthor] = useState<string>('');
 
   const [filterOpen, setFilterOpen] = useState(false);
   const [sortBy, setSortBy] = useState<'newest' | 'oldest' | 'likes'>('newest');
@@ -77,6 +77,18 @@ const ForumDetail: FC<ForumDetailProps> = ({
     Record<string, number>
   >({});
 
+  // Modal xác nhận xóa
+  const [deleteModal, setDeleteModal] = useState<{
+    isOpen: boolean;
+    type: 'post' | 'comment';
+    id: string;
+    title?: string;
+  }>({
+    isOpen: false,
+    type: 'comment',
+    id: ''
+  });
+
   // --------------------------------------------
   // Sắp xếp comment dựa vào sortBy
   // --------------------------------------------
@@ -90,18 +102,6 @@ const ForumDetail: FC<ForumDetailProps> = ({
       arr.sort((a, b) => a.createdAt - b.createdAt);
     }
     return arr;
-  };
-
-  // --------------------------------------------
-  // Toggle like cho post (fake)
-  // --------------------------------------------
-  const handleToggleLikePost = () => {
-    const updated: Post = {
-      ...post,
-      liked: !post.liked,
-      likes: post.likes + (post.liked ? -1 : 1)
-    };
-    updatePost(updated);
   };
 
   // --------------------------------------------
@@ -132,8 +132,7 @@ const ForumDetail: FC<ForumDetailProps> = ({
   // Thêm comment hoặc reply (fake)
   // --------------------------------------------
   const handlePostComment = () => {
-    if (!commentRef.current) return;
-    const txt = commentRef.current.value.trim();
+    const txt = commentText.trim();
     if (!txt) return;
 
     const newC: Comment = {
@@ -163,6 +162,12 @@ const ForumDetail: FC<ForumDetailProps> = ({
           return item;
         });
       updatedComments = attach(post.comments);
+
+      // Tự động mở rộng replies cho comment được reply
+      setExpandedReplies((prev) => ({
+        ...prev,
+        [replyToId]: Math.max(prev[replyToId] || 0, 1)
+      }));
     } else {
       // Comment mới ở top-level
       updatedComments = [newC, ...post.comments];
@@ -172,7 +177,7 @@ const ForumDetail: FC<ForumDetailProps> = ({
 
     setCommentText('');
     setReplyToId(null);
-    commentRef.current.value = '';
+    setReplyToAuthor('');
   };
 
   // --------------------------------------------
@@ -189,6 +194,35 @@ const ForumDetail: FC<ForumDetailProps> = ({
     const updatedComments = removeRecursively(post.comments);
     const updatedPost: Post = { ...post, comments: updatedComments };
     updatePost(updatedPost);
+  };
+
+  // --------------------------------------------
+  // Xóa post
+  // --------------------------------------------
+  const deletePost = () => {
+    updatePost({ ...post, comments: [] });
+    onBack();
+  };
+
+  // --------------------------------------------
+  // Xử lý modal xóa
+  // --------------------------------------------
+  const handleDeleteClick = (
+    type: 'post' | 'comment',
+    id: string,
+    title?: string
+  ) => {
+    setDeleteModal({ isOpen: true, type, id, title });
+    setMenuOpenId(null);
+  };
+
+  const handleDeleteConfirm = () => {
+    if (deleteModal.type === 'post') {
+      deletePost();
+    } else {
+      deleteComment(deleteModal.id);
+    }
+    setDeleteModal({ isOpen: false, type: 'comment', id: '' });
   };
 
   // --------------------------------------------
@@ -216,395 +250,104 @@ const ForumDetail: FC<ForumDetailProps> = ({
   };
 
   // --------------------------------------------
-  // Render comment + replies (đệ quy)
+  // Handle Reply - Set reply target
   // --------------------------------------------
-  const renderComments = (list: Comment[]): JSX.Element[] =>
-    sortedComments(list).map((c) => {
-      const replies = c.replies || [];
-      const totalReplies = replies.length;
+  const handleReply = (commentId: string, authorName: string) => {
+    setReplyToId(commentId);
+    setReplyToAuthor(authorName);
+  };
 
-      // Số replies đang hiển: nếu chưa expand (undefined hoặc 0), show 0 (ẩn hết)
-      const shownCount = expandedReplies[c.id] || 0;
-      // Số replies cần hiển trong lần tiếp theo: 4, hoặc nếu còn ít hơn 4, hiển hết
-      const nextCount = Math.min(totalReplies, shownCount + 4);
+  const handleCancelReply = () => {
+    setReplyToId(null);
+    setReplyToAuthor('');
+    setCommentText('');
+  };
 
-      const numHiddenNow = totalReplies - shownCount; // số ẩn còn lại
+  // --------------------------------------------
+  // Render comment con (reply) với thụt lề
+  // --------------------------------------------
+  const renderReply = (
+    reply: Comment,
+    parentAuthor: string,
+    level: number = 1
+  ): JSX.Element => {
+    const maxLevel = 3;
+    const currentLevel = Math.min(level, maxLevel);
 
-      return (
-        <div
-          key={c.id}
-          className="mb-8 w-full rounded-lg bg-white p-4 shadow-sm"
-        >
+    return (
+      <motion.div
+        key={reply.id}
+        initial={{ opacity: 0, x: -20 }}
+        animate={{ opacity: 1, x: 0 }}
+        transition={{ duration: 0.3, delay: level * 0.05 }}
+        className={`mb-4 ${currentLevel === 1 ? 'ml-8' : currentLevel === 2 ? 'ml-12' : 'ml-16'}`}
+      >
+        <div className="rounded-2xl border border-white/50 bg-white/90 p-5 shadow-lg backdrop-blur-sm transition-all duration-300 hover:shadow-xl">
           {/* Avatar + header */}
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-2">
-              <img
-                src={c.avatarUrl}
-                alt={c.author}
-                className="h-9 w-9 rounded-full border-2 border-[#3B82F6] object-cover"
+          <div className="mb-3 flex items-center justify-between">
+            <div className="flex items-center space-x-3">
+              <motion.img
+                whileHover={{ scale: 1.1, rotate: 5 }}
+                src={reply.avatarUrl}
+                alt={reply.author}
+                className="h-8 w-8 rounded-full border-2 border-purple-400 object-cover shadow-md"
               />
-              <div className="flex items-center space-x-1">
-                <span className="text-sm font-medium text-gray-800">
-                  {c.author}
+              <div className="flex items-center space-x-2">
+                <span className="text-sm font-semibold text-gray-800">
+                  {reply.author}
                 </span>
-                {c.author === post.author && (
-                  <span className="text-xs font-semibold text-[#3B82F6]">
+                <span className="text-xs text-purple-400">→</span>
+                <span className="text-sm font-medium text-purple-600">
+                  {parentAuthor}
+                </span>
+                {reply.author === post.author && (
+                  <span className="rounded-full bg-purple-100 px-2 py-1 text-xs font-bold text-purple-600">
                     TÁC GIẢ
                   </span>
                 )}
               </div>
             </div>
-            <div className="flex items-center space-x-2">
-              {/* 3-chấm ⋯ (chỉ show nếu comment của “Bạn”) */}
-              {c.author === 'Bạn' && (
-                <div className="relative">
-                  <FaEllipsisH
-                    onClick={() =>
-                      setMenuOpenId((prev) => (prev === c.id ? null : c.id))
-                    }
-                    className="cursor-pointer text-xl text-gray-500 hover:text-gray-700"
-                  />
-                  <AnimatePresence>
-                    {menuOpenId === c.id && (
-                      <motion.div
-                        initial={{ opacity: 0, scale: 0.9 }}
-                        animate={{ opacity: 1, scale: 1 }}
-                        exit={{ opacity: 0, scale: 0.9 }}
-                        className="absolute right-0 z-10 mt-1 w-28 origin-top-right rounded-lg bg-white shadow-lg ring-1 ring-black ring-opacity-5"
-                      >
-                        <div className="py-1">
-                          <div
-                            onClick={() => {
-                              setEditingId(c.id);
-                              setEditingText(c.content);
-                              setMenuOpenId(null);
-                            }}
-                            className="cursor-pointer px-3 py-2 text-xs text-gray-700 hover:bg-gray-100"
-                          >
-                            Chỉnh sửa
-                          </div>
-                          <div
-                            onClick={() => {
-                              setMenuOpenId(null);
-                              if (
-                                window.confirm(
-                                  'Bạn có chắc chắn muốn xóa bình luận này?'
-                                )
-                              ) {
-                                deleteComment(c.id);
-                              }
-                            }}
-                            className="text-red-600 cursor-pointer px-3 py-2 text-xs hover:bg-gray-100"
-                          >
-                            Xóa
-                          </div>
-                        </div>
-                      </motion.div>
-                    )}
-                  </AnimatePresence>
-                </div>
-              )}
-            </div>
-          </div>
 
-          {/* Nội dung comment hoặc textarea nếu đang edit */}
-          {editingId === c.id ? (
-            <div className="mt-3">
-              <textarea
-                rows={2}
-                value={editingText}
-                onChange={(e) => setEditingText(e.target.value)}
-                className="w-full resize-none rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-900 placeholder-gray-500 focus:border-[#3B82F6] focus:outline-none focus:ring-2 focus:ring-[#3B82F6]"
-              />
-              <div className="mt-2 flex justify-end space-x-2">
-                <button
-                  onClick={() => {
-                    setEditingId(null);
-                    setEditingText('');
-                  }}
-                  className="rounded-lg border border-gray-300 px-3 py-1 text-xs text-gray-700 transition hover:bg-gray-100"
-                >
-                  Hủy
-                </button>
-                <button
-                  onClick={() => saveEditedComment(c.id)}
-                  className="hover:bg-blue-700 transform rounded-lg bg-[#3B82F6] px-3 py-1 text-xs text-white transition-transform hover:scale-105"
-                >
-                  Lưu
-                </button>
-              </div>
-            </div>
-          ) : (
-            <p className="mt-3 whitespace-pre-wrap text-sm text-gray-700">
-              {c.content}
-            </p>
-          )}
-
-          {/* Thời gian comment (nằm ngay dưới content, căn bên trái) */}
-          <div className="mb-3 mt-1 text-xs text-gray-400">
-            {new Date(c.createdAt).toLocaleTimeString()}
-          </div>
-
-          {/* Actions: Like + Reply */}
-          <div className="mb-3 flex items-center space-x-6 text-gray-500">
-            <motion.button
-              onClick={() => toggleLikeComment(c)}
-              whileTap={{ scale: 0.8 }}
-              className="relative flex transform items-center space-x-1 text-sm transition-transform hover:scale-110 hover:text-[#E54646]"
-            >
-              {c.liked ? (
-                <FaHeart className="text-lg text-[#E54646]" />
-              ) : (
-                <FaRegHeart className="text-lg text-gray-500 transition hover:text-[#E54646]" />
-              )}
-              <span className="text-sm font-medium">{c.likes}</span>
-              {c.liked && (
-                <div className="absolute -left-1 -top-2 flex space-x-1">
-                  {[...Array(5)].map((_, i) => (
-                    <span
-                      key={i}
-                      className="bg-yellow-400 block h-1 w-1 animate-ping rounded-full"
-                      style={{ animationDelay: `${i * 80}ms`, opacity: 0.8 }}
-                    />
-                  ))}
-                </div>
-              )}
-            </motion.button>
-
-            <motion.button
-              onClick={() => setReplyToId(c.id)}
-              whileTap={{ scale: 0.8 }}
-              className="hover:text-blue-500 flex transform items-center space-x-1 text-sm transition-transform hover:scale-110"
-            >
-              <FaComment className="text-lg" />
-              <span>Reply</span>
-            </motion.button>
-          </div>
-
-          {/* Nếu đang reply vào comment này, show textarea ngay dưới */}
-          {replyToId === c.id && (
-            <div className="mt-3">
-              <div className="flex items-start space-x-3">
-                <img
-                  src="https://i.pravatar.cc/40?u=me"
-                  alt="Bạn"
-                  className="h-8 w-8 rounded-full border-2 border-[#3B82F6] object-cover"
-                />
-                <div className="flex-1">
-                  <textarea
-                    ref={commentRef}
-                    value={commentText}
-                    onChange={(e) => setCommentText(e.target.value)}
-                    rows={2}
-                    className="w-full resize-none rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-900 placeholder-gray-500 focus:border-[#3B82F6] focus:outline-none focus:ring-2 focus:ring-[#3B82F6]"
-                    placeholder={`Trả lời ${c.author}`}
-                  />
-                  <div className="mt-2 flex justify-end space-x-2">
-                    <button
-                      onClick={() => {
-                        setReplyToId(null);
-                        setCommentText('');
-                      }}
-                      className="rounded-lg border border-gray-300 px-3 py-1 text-xs text-gray-700 transition hover:bg-gray-100"
-                    >
-                      Hủy
-                    </button>
-                    <button
-                      onClick={handlePostComment}
-                      className="hover:bg-blue-700 transform rounded-lg bg-[#3B82F6] px-3 py-1 text-xs text-white transition-transform hover:scale-105"
-                    >
-                      Trả lời
-                    </button>
-                  </div>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* Render replies (nằm ngang, background trắng) */}
-          {shownCount > 0 && (
-            <div className="mt-4 space-y-4">
-              {replies.slice(0, shownCount).map((r) => (
-                <div
-                  key={r.id}
-                  className="flex w-full items-start rounded-lg bg-white p-3 shadow-sm"
-                >
-                  <img
-                    src={r.avatarUrl}
-                    alt={r.author}
-                    className="mr-3 h-8 w-8 flex-shrink-0 rounded-full border-2 border-[#3B82F6] object-cover"
-                  />
-                  <div className="flex-1">
-                    <div className="flex items-center space-x-1">
-                      <span className="text-sm font-medium text-gray-800">
-                        {r.author}
-                      </span>
-                      <span className="text-xs text-gray-400">→</span>
-                      <span className="text-sm font-medium text-gray-800">
-                        {c.author}
-                      </span>
-                    </div>
-                    <p className="mt-1 whitespace-pre-wrap text-sm text-gray-700">
-                      {r.content}
-                    </p>
-                    <div className="mb-2 mt-1 text-xs text-gray-400">
-                      {new Date(r.createdAt).toLocaleTimeString()}
-                    </div>
-                    <div className="flex items-center space-x-6 text-gray-500">
-                      <motion.button
-                        onClick={() => toggleLikeComment(r)}
-                        whileTap={{ scale: 0.8 }}
-                        className="relative flex transform items-center space-x-1 text-sm transition-transform hover:scale-110 hover:text-[#E54646]"
-                      >
-                        {r.liked ? (
-                          <FaHeart className="text-lg text-[#E54646]" />
-                        ) : (
-                          <FaRegHeart className="text-lg text-gray-500 transition hover:text-[#E54646]" />
-                        )}
-                        <span className="text-sm font-medium">{r.likes}</span>
-                        {r.liked && (
-                          <div className="absolute -left-1 -top-2 flex space-x-1">
-                            {[...Array(5)].map((_, i) => (
-                              <span
-                                key={i}
-                                className="bg-yellow-400 block h-1 w-1 animate-ping rounded-full"
-                                style={{
-                                  animationDelay: `${i * 80}ms`,
-                                  opacity: 0.8
-                                }}
-                              />
-                            ))}
-                          </div>
-                        )}
-                      </motion.button>
-                      <motion.button
-                        onClick={() => setReplyToId(r.id)}
-                        whileTap={{ scale: 0.8 }}
-                        className="hover:text-blue-500 flex transform items-center space-x-1 text-sm transition-transform hover:scale-110"
-                      >
-                        <FaComment className="text-lg" /> <span>Reply</span>
-                      </motion.button>
-                    </div>
-                  </div>
-                </div>
-              ))}
-
-              {/* Dòng “Xem thêm …” hoặc “Ẩn” */}
-              {totalReplies > shownCount && (
-                <div>
-                  <div
-                    onClick={() => {
-                      setExpandedReplies((prev) => ({
-                        ...prev,
-                        [c.id]: nextCount
-                      }));
-                    }}
-                    className="cursor-pointer pl-11 text-xs text-[#3B82F6] hover:underline"
-                  >
-                    Xem thêm {numHiddenNow} bình luận
-                  </div>
-                </div>
-              )}
-              {shownCount === totalReplies && totalReplies > 4 && (
-                <div>
-                  <div
-                    onClick={() => {
-                      setExpandedReplies((prev) => ({
-                        ...prev,
-                        [c.id]: 0
-                      }));
-                    }}
-                    className="cursor-pointer pl-11 text-xs text-[#3B82F6] hover:underline"
-                  >
-                    Ẩn
-                  </div>
-                </div>
-              )}
-            </div>
-          )}
-        </div>
-      );
-    });
-
-  // --------------------------------------------
-  // Giao diện Detail (single scroll, container rộng hơn)
-  // --------------------------------------------
-  return (
-    <div className="min-h-screen overflow-y-auto overflow-x-hidden bg-gray-50">
-      {/* Nút “Quay lại” (sticky) */}
-      <div className="sticky top-0 z-10 flex items-center border-b border-gray-200 bg-gray-50 p-4">
-        <span
-          onClick={onBack}
-          className="cursor-pointer text-base font-medium text-indigo-600 hover:underline"
-        >
-          ← Quay lại
-        </span>
-      </div>
-
-      {/* Container chính */}
-      <div className="mx-auto max-w-3xl space-y-6 px-4 py-6">
-        {/* Post chính */}
-        <div className="rounded-lg bg-white p-6 shadow-md">
-          <div className="mb-4 flex items-center justify-between">
-            <div className="flex items-center space-x-3">
-              <img
-                src={post.avatarUrl}
-                alt={post.author}
-                className="h-8 w-8 rounded-full border-2 border-[#3B82F6] object-cover"
-              />
-              <div>
-                <div className="text-sm font-semibold text-gray-900">
-                  {post.author}
-                </div>
-                <div className="text-xs text-gray-400">
-                  {new Date(post.createdAt).toLocaleString()}
-                </div>
-              </div>
-            </div>
-            {/* 3-chấm ⋯ (chỉ show nếu bài này của “Bạn”) */}
-            {post.author === 'Bạn' && (
+            {/* 3-chấm cho reply của "Bạn" */}
+            {reply.author === 'Bạn' && (
               <div className="relative">
-                <FaEllipsisH
+                <motion.button
+                  whileHover={{ scale: 1.1 }}
+                  whileTap={{ scale: 0.9 }}
                   onClick={() =>
-                    setMenuOpenId((prev) => (prev === post.id ? null : post.id))
+                    setMenuOpenId((prev) =>
+                      prev === reply.id ? null : reply.id
+                    )
                   }
-                  className="cursor-pointer text-xl text-gray-500 hover:text-gray-700"
-                />
+                  className="rounded-full p-2 transition-colors hover:bg-purple-100/50"
+                >
+                  <FaEllipsisH className="text-gray-500" />
+                </motion.button>
                 <AnimatePresence>
-                  {menuOpenId === post.id && (
+                  {menuOpenId === reply.id && (
                     <motion.div
-                      initial={{ opacity: 0, scale: 0.9 }}
-                      animate={{ opacity: 1, scale: 1 }}
-                      exit={{ opacity: 0, scale: 0.9 }}
-                      className="absolute right-0 z-10 mt-1 w-28 origin-top-right rounded-lg bg-white shadow-lg ring-1 ring-black ring-opacity-5"
+                      initial={{ opacity: 0, scale: 0.9, y: -10 }}
+                      animate={{ opacity: 1, scale: 1, y: 0 }}
+                      exit={{ opacity: 0, scale: 0.9, y: -10 }}
+                      className="absolute right-0 z-20 mt-2 w-32 origin-top-right rounded-xl border border-purple-200 bg-white/95 shadow-xl backdrop-blur-sm"
                     >
-                      <div className="py-1">
-                        <div
+                      <div className="py-2">
+                        <button
                           onClick={() => {
-                            setEditingId(post.id);
-                            setEditingText(post.content);
+                            setEditingId(reply.id);
+                            setEditingText(reply.content);
                             setMenuOpenId(null);
                           }}
-                          className="cursor-pointer px-3 py-2 text-xs text-gray-700 hover:bg-gray-100"
+                          className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-purple-50"
                         >
                           Chỉnh sửa
-                        </div>
-                        <div
-                          onClick={() => {
-                            setMenuOpenId(null);
-                            if (
-                              window.confirm(
-                                'Bạn có chắc chắn muốn xóa bài viết?'
-                              )
-                            ) {
-                              updatePost({ ...post, comments: [] });
-                              onBack();
-                            }
-                          }}
-                          className="text-red-600 cursor-pointer px-3 py-2 text-xs hover:bg-gray-100"
+                        </button>
+                        <button
+                          onClick={() => handleDeleteClick('comment', reply.id)}
+                          className="text-red-600 hover:bg-red-50 w-full px-4 py-2 text-left text-sm"
                         >
                           Xóa
-                        </div>
+                        </button>
                       </div>
                     </motion.div>
                   )}
@@ -613,16 +356,17 @@ const ForumDetail: FC<ForumDetailProps> = ({
             )}
           </div>
 
-          {/* Tiêu đề hoặc textarea nếu edit */}
-          {editingId === post.id ? (
-            <div className="mb-4">
-              <textarea
-                rows={2}
+          {/* Nội dung reply */}
+          {editingId === reply.id ? (
+            <div className="mb-3">
+              <RichTextEditor
                 value={editingText}
-                onChange={(e) => setEditingText(e.target.value)}
-                className="w-full resize-none rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-900 placeholder-gray-500 focus:border-[#3B82F6] focus:outline-none focus:ring-2 focus:ring-[#3B82F6]"
+                onChange={setEditingText}
+                placeholder="Chỉnh sửa phản hồi..."
+                height={120}
+                className="mb-2"
               />
-              <div className="mt-2 flex justify-end space-x-2">
+              <div className="flex justify-end space-x-2">
                 <button
                   onClick={() => {
                     setEditingId(null);
@@ -633,158 +377,615 @@ const ForumDetail: FC<ForumDetailProps> = ({
                   Hủy
                 </button>
                 <button
-                  onClick={() => {
-                    const updatedPost: Post = {
-                      ...post,
-                      content: editingText,
-                      title:
-                        editingText.length > 30
-                          ? editingText.substring(0, 30) + '...'
-                          : editingText
-                    };
-                    updatePost(updatedPost);
-                    setEditingId(null);
-                    setEditingText('');
-                  }}
-                  className="hover:bg-blue-700 transform rounded-lg bg-[#3B82F6] px-3 py-1 text-xs text-white transition-transform hover:scale-105"
+                  onClick={() => saveEditedComment(reply.id)}
+                  className="rounded-lg bg-purple-500 px-3 py-1 text-xs text-white transition hover:bg-purple-600"
                 >
                   Lưu
                 </button>
               </div>
             </div>
           ) : (
-            <>
-              <h2 className="mb-2 text-xl font-bold text-gray-900">
-                {post.title}
-              </h2>
-              <p className="mb-4 whitespace-pre-wrap text-sm text-gray-800">
-                {post.content}
-              </p>
-            </>
+            <div
+              className="prose prose-sm mb-3 max-w-none whitespace-pre-wrap text-sm leading-relaxed text-gray-700"
+              dangerouslySetInnerHTML={{ __html: reply.content }}
+            />
           )}
 
-          <div className="flex items-center space-x-6 text-gray-600">
-            <motion.button
-              onClick={handleToggleLikePost}
-              whileTap={{ scale: 0.8 }}
-              className="relative flex transform items-center space-x-1 text-sm transition-transform hover:scale-110 hover:text-[#E54646]"
-            >
-              {post.liked ? (
-                <FaHeart className="text-lg text-[#E54646]" />
-              ) : (
-                <FaRegHeart className="text-lg text-gray-500 transition hover:text-[#E54646]" />
-              )}
-              <span className="text-sm font-medium">{post.likes}</span>
-              {post.liked && (
-                <div className="absolute -left-1 -top-2 flex space-x-1">
-                  {[...Array(5)].map((_, i) => (
-                    <span
-                      key={i}
-                      className="bg-yellow-400 block h-1 w-1 animate-ping rounded-full"
-                      style={{ animationDelay: `${i * 80}ms`, opacity: 0.8 }}
-                    />
-                  ))}
-                </div>
-              )}
-            </motion.button>
-            <div className="flex items-center space-x-1 text-sm text-gray-500">
-              <FaComment className="text-lg" />
-              <span>{post.comments.length}</span>
-            </div>
+          {/* Thời gian */}
+          <div className="mb-3 text-xs text-gray-400">
+            {formatTimeAgo(reply.createdAt)}
           </div>
-        </div>
 
-        {/* Khung nhập comment gốc */}
-        <div className="rounded-lg bg-white p-4 shadow-sm">
-          <div className="mb-3 flex items-center space-x-3">
-            <img
-              src="https://i.pravatar.cc/40?u=me"
-              alt="Bạn"
-              className="h-8 w-8 rounded-full border-2 border-[#3B82F6] object-cover"
-            />
-            <textarea
-              ref={commentRef}
-              value={commentText}
-              onChange={(e) => setCommentText(e.target.value)}
-              rows={2}
-              className="flex-1 resize-none rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-900 placeholder-gray-500 focus:border-[#3B82F6] focus:outline-none focus:ring-2 focus:ring-[#3B82F6]"
-              placeholder={replyToId ? `Trả lời…` : 'Viết bình luận…'}
-            />
-          </div>
+          {/* Actions: Like + Reply */}
           <div className="flex items-center justify-between">
-            <div className="flex space-x-3 text-gray-500">
-              <FaImage className="transform cursor-pointer text-sm transition-transform hover:scale-110 hover:text-gray-700" />
-              <FaRegSmile className="transform cursor-pointer text-sm transition-transform hover:scale-110 hover:text-gray-700" />
-              <FaMapMarkerAlt className="transform cursor-pointer text-sm transition-transform hover:scale-110 hover:text-gray-700" />
+            <div className="flex items-center space-x-4">
+              <LikeButton
+                liked={reply.liked}
+                likes={reply.likes}
+                onToggle={() => toggleLikeComment(reply)}
+                size="sm"
+              />
+
+              <motion.button
+                onClick={() => handleReply(reply.id, reply.author)}
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                className="flex items-center space-x-1 text-sm text-gray-500 transition-colors hover:text-purple-500"
+              >
+                <FaComment className="text-xs" />
+                <span>Reply</span>
+              </motion.button>
             </div>
-            <button
-              onClick={handlePostComment}
-              className="hover:bg-blue-700 transform rounded-lg bg-[#3B82F6] px-3 py-1 text-sm text-white transition-transform hover:scale-105"
-            >
-              {replyToId ? 'Trả lời' : 'Comment'}
-            </button>
           </div>
         </div>
 
-        {/* Dropdown lọc comment */}
-        <div className="relative mb-4 inline-block text-left">
-          <button
-            onClick={() => setFilterOpen(!filterOpen)}
-            className="inline-flex transform items-center space-x-1 rounded-lg border border-gray-300 bg-white px-3 py-1 text-sm transition-transform hover:scale-105 hover:bg-gray-100"
-          >
-            <span>
-              {sortBy === 'newest'
-                ? 'Mới nhất'
-                : sortBy === 'oldest'
-                  ? 'Cũ nhất'
-                  : 'Liên quan'}
-            </span>
-            <FaChevronDown className="text-sm text-gray-500" />
-          </button>
-          <AnimatePresence>
-            {filterOpen && (
-              <motion.div
-                initial={{ opacity: 0, y: -10 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -10 }}
-                className="absolute z-10 mt-1 w-40 origin-top-right rounded-lg bg-white shadow-lg ring-1 ring-black ring-opacity-5"
+        {/* Form reply cho reply này */}
+        {replyToId === reply.id && (
+          <div className="mt-3">
+            <CommentForm
+              value={commentText}
+              onChange={setCommentText}
+              onSubmit={handlePostComment}
+              onCancel={handleCancelReply}
+              placeholder={`Trả lời ${reply.author}...`}
+              replyTo={reply.author}
+              size="sm"
+              autoFocus={true}
+            />
+          </div>
+        )}
+
+        {/* Render nested replies */}
+        {reply.replies && reply.replies.length > 0 && (
+          <div className="mt-3">
+            {reply.replies.map((nestedReply) =>
+              renderReply(nestedReply, reply.author, level + 1)
+            )}
+          </div>
+        )}
+      </motion.div>
+    );
+  };
+
+  // --------------------------------------------
+  // Render comment chính + replies
+  // --------------------------------------------
+  const renderComments = (list: Comment[]): JSX.Element[] =>
+    sortedComments(list).map((c) => {
+      const replies = c.replies || [];
+      const totalReplies = replies.length;
+      const shownCount = expandedReplies[c.id] || 0;
+      const nextCount = Math.min(totalReplies, shownCount + 4);
+      const numHiddenNow = totalReplies - shownCount;
+
+      return (
+        <motion.div
+          key={c.id}
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.4 }}
+          className="mb-6 rounded-3xl border border-white/50 bg-white/95 p-8 shadow-xl backdrop-blur-sm transition-all duration-300 hover:shadow-2xl"
+        >
+          {/* Avatar + header của comment chính */}
+          <div className="mb-4 flex items-center justify-between">
+            <div className="flex items-center space-x-4">
+              <motion.img
+                whileHover={{ scale: 1.1, rotate: 5 }}
+                src={c.avatarUrl}
+                alt={c.author}
+                className="h-14 w-14 rounded-full border-4 border-purple-400 object-cover shadow-lg"
+              />
+              <div>
+                <div className="flex items-center space-x-2">
+                  <span className="text-lg font-bold text-gray-800">
+                    {c.author}
+                  </span>
+                  {c.author === post.author && (
+                    <span className="rounded-full bg-gradient-to-r from-purple-100 to-pink-100 px-3 py-1 text-xs font-bold text-purple-600">
+                      TÁC GIẢ
+                    </span>
+                  )}
+                </div>
+                <div className="text-sm text-gray-500">
+                  {formatTimeAgo(c.createdAt)}
+                </div>
+              </div>
+            </div>
+
+            {/* Menu cho comment của "Bạn" */}
+            {c.author === 'Bạn' && (
+              <div className="relative">
+                <motion.button
+                  whileHover={{ scale: 1.1 }}
+                  whileTap={{ scale: 0.9 }}
+                  onClick={() =>
+                    setMenuOpenId((prev) => (prev === c.id ? null : c.id))
+                  }
+                  className="rounded-full p-3 transition-colors hover:bg-purple-100/50"
+                >
+                  <FaEllipsisH className="text-gray-500" />
+                </motion.button>
+                <AnimatePresence>
+                  {menuOpenId === c.id && (
+                    <motion.div
+                      initial={{ opacity: 0, scale: 0.9, y: -10 }}
+                      animate={{ opacity: 1, scale: 1, y: 0 }}
+                      exit={{ opacity: 0, scale: 0.9, y: -10 }}
+                      className="absolute right-0 z-20 mt-2 w-36 origin-top-right rounded-xl border border-purple-200 bg-white/95 shadow-xl backdrop-blur-sm"
+                    >
+                      <div className="py-2">
+                        <button
+                          onClick={() => {
+                            setEditingId(c.id);
+                            setEditingText(c.content);
+                            setMenuOpenId(null);
+                          }}
+                          className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-purple-50"
+                        >
+                          Chỉnh sửa
+                        </button>
+                        <button
+                          onClick={() => handleDeleteClick('comment', c.id)}
+                          className="text-red-600 hover:bg-red-50 w-full px-4 py-2 text-left text-sm"
+                        >
+                          Xóa
+                        </button>
+                      </div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
+            )}
+          </div>
+
+          {/* Nội dung comment */}
+          {editingId === c.id ? (
+            <div className="mb-4">
+              <RichTextEditor
+                value={editingText}
+                onChange={setEditingText}
+                placeholder="Chỉnh sửa bình luận..."
+                height={150}
+                className="mb-3"
+              />
+              <div className="flex justify-end space-x-2">
+                <button
+                  onClick={() => {
+                    setEditingId(null);
+                    setEditingText('');
+                  }}
+                  className="rounded-lg border border-gray-300 px-4 py-2 text-sm text-gray-700 transition hover:bg-gray-100"
+                >
+                  Hủy
+                </button>
+                <button
+                  onClick={() => saveEditedComment(c.id)}
+                  className="rounded-lg bg-purple-500 px-4 py-2 text-sm text-white transition hover:bg-purple-600"
+                >
+                  Lưu
+                </button>
+              </div>
+            </div>
+          ) : (
+            <div
+              className="prose prose-sm mb-4 max-w-none whitespace-pre-wrap leading-relaxed text-gray-700"
+              dangerouslySetInnerHTML={{ __html: c.content }}
+            />
+          )}
+
+          {/* Actions: Like + Reply */}
+          <div className="mb-4 flex items-center justify-between">
+            <div className="flex items-center space-x-6">
+              <LikeButton
+                liked={c.liked}
+                likes={c.likes}
+                onToggle={() => toggleLikeComment(c)}
+                size="md"
+              />
+
+              <motion.button
+                onClick={() => handleReply(c.id, c.author)}
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                className="flex items-center space-x-2 text-gray-500 transition-colors hover:text-purple-500"
               >
-                <div className="py-1">
-                  <div
+                <FaComment className="text-lg" />
+                <span className="font-medium">Reply</span>
+              </motion.button>
+            </div>
+          </div>
+
+          {/* Form reply cho comment này */}
+          {replyToId === c.id && (
+            <div className="mb-4">
+              <CommentForm
+                value={commentText}
+                onChange={setCommentText}
+                onSubmit={handlePostComment}
+                onCancel={handleCancelReply}
+                placeholder={`Trả lời ${c.author}...`}
+                replyTo={c.author}
+                size="md"
+                autoFocus={true}
+              />
+            </div>
+          )}
+
+          {/* Hiển thị replies */}
+          {shownCount > 0 && (
+            <div className="mt-4">
+              {replies
+                .slice(0, shownCount)
+                .map((r) => renderReply(r, c.author))}
+
+              {/* Nút "Xem thêm" hoặc "Ẩn" */}
+              {totalReplies > shownCount && (
+                <div className="ml-8 mt-3">
+                  <motion.button
                     onClick={() => {
-                      setSortBy('newest');
-                      setFilterOpen(false);
+                      setExpandedReplies((prev) => ({
+                        ...prev,
+                        [c.id]: nextCount
+                      }));
                     }}
-                    className="cursor-pointer px-3 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                    className="text-sm font-medium text-purple-500 hover:text-purple-600"
                   >
-                    Mới nhất
+                    Xem thêm {numHiddenNow} bình luận
+                  </motion.button>
+                </div>
+              )}
+              {shownCount === totalReplies && totalReplies > 4 && (
+                <div className="ml-8 mt-3">
+                  <motion.button
+                    onClick={() => {
+                      setExpandedReplies((prev) => ({
+                        ...prev,
+                        [c.id]: 0
+                      }));
+                    }}
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                    className="text-sm font-medium text-purple-500 hover:text-purple-600"
+                  >
+                    Ẩn bình luận
+                  </motion.button>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Hiển thị nút xem replies nếu có nhưng chưa expand */}
+          {totalReplies > 0 && shownCount === 0 && (
+            <div className="ml-8 mt-3">
+              <motion.button
+                onClick={() => {
+                  setExpandedReplies((prev) => ({
+                    ...prev,
+                    [c.id]: Math.min(4, totalReplies)
+                  }));
+                }}
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+                className="text-sm font-medium text-purple-500 hover:text-purple-600"
+              >
+                Xem {totalReplies} bình luận
+              </motion.button>
+            </div>
+          )}
+        </motion.div>
+      );
+    });
+
+  // --------------------------------------------
+  // Giao diện Detail
+  // --------------------------------------------
+  return (
+    <div
+      className="relative min-h-screen"
+      style={{
+        backgroundImage:
+          'url(https://24hstore.vn/upload_images/images/hinh-nen-mau-tim/Hinh-nen-mau-tim-dam-1.jpg)',
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+        backgroundAttachment: 'fixed'
+      }}
+    >
+      {/* Overlay để làm mờ background */}
+      <div className="absolute inset-0 bg-black/20 backdrop-blur-[1px]" />
+
+      <div className="relative z-10">
+        {/* Header với nút quay lại */}
+        <motion.div
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="sticky top-0 z-30 border-b border-white/30 bg-white/80 shadow-lg backdrop-blur-lg"
+        >
+          <div className="mx-auto flex max-w-4xl items-center justify-between p-4">
+            <motion.button
+              onClick={onBack}
+              whileHover={{ scale: 1.02, x: -2 }}
+              whileTap={{ scale: 0.98 }}
+              className="flex items-center space-x-2 rounded-lg bg-white/90 px-4 py-2 font-semibold text-purple-600 shadow-md backdrop-blur-sm transition-all hover:text-purple-700 hover:shadow-lg"
+            >
+              <span>← Quay lại</span>
+            </motion.button>
+
+            <div className="flex items-center space-x-2 rounded-lg bg-white/90 px-3 py-2 text-sm text-gray-600 shadow-md backdrop-blur-sm">
+              <FaComment />
+              <span className="font-medium">
+                {formatCommentCount(getTotalCommentCount(post.comments))} bình
+                luận
+              </span>
+            </div>
+          </div>
+        </motion.div>
+
+        {/* Container chính */}
+        <div className="mx-auto max-w-4xl space-y-6 px-4 py-6 pb-32">
+          {/* Post chính */}
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5 }}
+            className="rounded-3xl border border-white/50 bg-white/95 p-8 shadow-2xl backdrop-blur-sm"
+          >
+            <div className="mb-6 flex items-center justify-between">
+              <div className="flex items-center space-x-4">
+                <motion.img
+                  whileHover={{ scale: 1.1, rotate: 5 }}
+                  src={post.avatarUrl}
+                  alt={post.author}
+                  className="h-16 w-16 rounded-full border-4 border-purple-400 object-cover shadow-xl"
+                />
+                <div>
+                  <div className="text-xl font-bold text-gray-900">
+                    {post.author}
                   </div>
-                  <div
-                    onClick={() => {
-                      setSortBy('oldest');
-                      setFilterOpen(false);
-                    }}
-                    className="cursor-pointer px-3 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                  >
-                    Cũ nhất
-                  </div>
-                  <div
-                    onClick={() => {
-                      setSortBy('likes');
-                      setFilterOpen(false);
-                    }}
-                    className="cursor-pointer px-3 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                  >
-                    Liên quan
+                  <div className="text-sm text-gray-500">
+                    {formatTimeAgo(post.createdAt)}
                   </div>
                 </div>
-              </motion.div>
+              </div>
+
+              {/* Menu cho post của "Bạn" */}
+              {post.author === 'Bạn' && (
+                <div className="relative">
+                  <motion.button
+                    whileHover={{ scale: 1.1 }}
+                    whileTap={{ scale: 0.9 }}
+                    onClick={() =>
+                      setMenuOpenId((prev) =>
+                        prev === post.id ? null : post.id
+                      )
+                    }
+                    className="rounded-full p-3 transition-colors hover:bg-purple-100/50"
+                  >
+                    <FaEllipsisH className="text-gray-500" />
+                  </motion.button>
+                  <AnimatePresence>
+                    {menuOpenId === post.id && (
+                      <motion.div
+                        initial={{ opacity: 0, scale: 0.9, y: -10 }}
+                        animate={{ opacity: 1, scale: 1, y: 0 }}
+                        exit={{ opacity: 0, scale: 0.9, y: -10 }}
+                        className="absolute right-0 z-20 mt-2 w-36 origin-top-right rounded-xl border border-purple-200 bg-white/95 shadow-xl backdrop-blur-sm"
+                      >
+                        <div className="py-2">
+                          <button
+                            onClick={() => {
+                              setEditingId(post.id);
+                              setEditingText(post.content);
+                              setMenuOpenId(null);
+                            }}
+                            className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-purple-50"
+                          >
+                            Chỉnh sửa
+                          </button>
+                          <button
+                            onClick={() =>
+                              handleDeleteClick('post', post.id, post.title)
+                            }
+                            className="text-red-600 hover:bg-red-50 w-full px-4 py-2 text-left text-sm"
+                          >
+                            Xóa
+                          </button>
+                        </div>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                </div>
+              )}
+            </div>
+
+            {/* Nội dung post */}
+            {editingId === post.id ? (
+              <div className="mb-6">
+                <RichTextEditor
+                  value={editingText}
+                  onChange={setEditingText}
+                  placeholder="Chỉnh sửa nội dung..."
+                  height={300}
+                  className="mb-3"
+                />
+                <div className="flex justify-end space-x-2">
+                  <button
+                    onClick={() => {
+                      setEditingId(null);
+                      setEditingText('');
+                    }}
+                    className="rounded-lg border border-gray-300 px-4 py-2 text-sm text-gray-700 transition hover:bg-gray-100"
+                  >
+                    Hủy
+                  </button>
+                  <button
+                    onClick={() => {
+                      const updatedPost: Post = {
+                        ...post,
+                        content: editingText
+                      };
+                      updatePost(updatedPost);
+                      setEditingId(null);
+                      setEditingText('');
+                    }}
+                    className="rounded-lg bg-purple-500 px-4 py-2 text-sm text-white transition hover:bg-purple-600"
+                  >
+                    Lưu
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <div
+                className="prose prose-purple mb-6 max-w-none text-lg leading-relaxed text-gray-700 [&>*:first-child]:mt-0"
+                dangerouslySetInnerHTML={{ __html: post.content }}
+              />
             )}
-          </AnimatePresence>
+
+            {/* Actions cho post */}
+            <div className="flex items-center justify-between border-t border-purple-200/50 pt-6">
+              <div className="flex items-center space-x-8">
+                <LikeButton
+                  liked={post.liked}
+                  likes={post.likes}
+                  onToggle={() => toggleLikePost(post)}
+                  size="lg"
+                />
+
+                <div className="flex items-center space-x-2 text-gray-500">
+                  <FaComment className="text-xl" />
+                  <span className="text-lg font-medium">
+                    {formatCommentCount(getTotalCommentCount(post.comments))}
+                  </span>
+                </div>
+              </div>
+            </div>
+          </motion.div>
+
+          {/* Khung nhập comment chính */}
+          {!replyToId && (
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.2 }}
+            >
+              <CommentForm
+                value={commentText}
+                onChange={setCommentText}
+                onSubmit={handlePostComment}
+                placeholder="Chia sẻ suy nghĩ của bạn..."
+                size="lg"
+              />
+            </motion.div>
+          )}
+
+          {/* Dropdown lọc comment */}
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.3 }}
+            className="relative inline-block"
+          >
+            <motion.button
+              onClick={() => setFilterOpen(!filterOpen)}
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+              className="flex items-center space-x-2 rounded-xl border border-purple-200 bg-white/90 px-4 py-2 text-sm font-medium shadow-lg backdrop-blur-sm transition-all hover:bg-white hover:shadow-xl"
+            >
+              <span>
+                {sortBy === 'newest'
+                  ? 'Mới nhất'
+                  : sortBy === 'oldest'
+                    ? 'Cũ nhất'
+                    : 'Liên quan'}
+              </span>
+              <motion.div
+                animate={{ rotate: filterOpen ? 180 : 0 }}
+                transition={{ duration: 0.2 }}
+              >
+                <FaChevronDown className="text-purple-500" />
+              </motion.div>
+            </motion.button>
+
+            <AnimatePresence>
+              {filterOpen && (
+                <motion.div
+                  initial={{ opacity: 0, y: -10, scale: 0.9 }}
+                  animate={{ opacity: 1, y: 0, scale: 1 }}
+                  exit={{ opacity: 0, y: -10, scale: 0.9 }}
+                  className="absolute z-10 mt-2 w-40 origin-top-left rounded-xl border border-purple-200 bg-white/95 shadow-xl backdrop-blur-sm"
+                >
+                  <div className="py-2">
+                    {[
+                      { value: 'newest', label: 'Mới nhất' },
+                      { value: 'oldest', label: 'Cũ nhất' },
+                      { value: 'likes', label: 'Liên quan' }
+                    ].map(({ value, label }) => (
+                      <button
+                        key={value}
+                        onClick={() => {
+                          setSortBy(value as any);
+                          setFilterOpen(false);
+                        }}
+                        className={`w-full px-4 py-2 text-left text-sm transition-colors ${
+                          sortBy === value
+                            ? 'bg-purple-50 font-medium text-purple-600'
+                            : 'text-gray-700 hover:bg-purple-50'
+                        }`}
+                      >
+                        {label}
+                      </button>
+                    ))}
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </motion.div>
+
+          {/* Danh sách comment */}
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.4 }}
+            className="space-y-6"
+          >
+            {renderComments(post.comments)}
+          </motion.div>
+
+          {/* Empty state */}
+          {post.comments.length === 0 && (
+            <motion.div
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ delay: 0.5 }}
+              className="rounded-3xl border border-white/50 bg-white/90 py-16 text-center shadow-xl backdrop-blur-sm"
+            >
+              <div className="mb-4 text-6xl">💬</div>
+              <h3 className="mb-2 text-xl font-semibold text-gray-700">
+                Chưa có bình luận nào
+              </h3>
+              <p className="text-gray-500">
+                Hãy là người đầu tiên chia sẻ suy nghĩ về bài viết này!
+              </p>
+            </motion.div>
+          )}
         </div>
 
-        {/* Danh sách comment */}
-        <div className="space-y-6">{renderComments(post.comments)}</div>
+        {/* Modal xác nhận xóa */}
+        <ConfirmModal
+          isOpen={deleteModal.isOpen}
+          onClose={() => setDeleteModal((prev) => ({ ...prev, isOpen: false }))}
+          onConfirm={handleDeleteConfirm}
+          title={deleteModal.type === 'post' ? 'Xóa bài viết' : 'Xóa bình luận'}
+          message={
+            deleteModal.type === 'post'
+              ? 'Bạn có chắc chắn muốn xóa bài viết này? Tất cả bình luận cũng sẽ bị xóa.'
+              : 'Bạn có chắc chắn muốn xóa bình luận này?'
+          }
+          confirmText="Xóa"
+          cancelText="Hủy"
+          type="danger"
+        />
       </div>
     </div>
   );
