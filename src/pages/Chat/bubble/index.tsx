@@ -5,7 +5,7 @@ import { ConversationApiResponse, MessageType } from '@/types';
 import {
   useGetMessagesByConversationId,
   useSendMessage
-} from '@/queries/message..query';
+} from '@/queries/message.query';
 import Pusher from 'pusher-js';
 import __helpers from '@/helpers';
 

@@ -15,7 +15,7 @@ import { useGetCampaignListExcpPending } from '@/queries/campaign.query';
 import { ApiResponse, CampaignApiResponse, PagingResponse } from '@/types';
 import __helpers from '@/helpers';
 import { DataTableSkeleton } from '@/components/shared/data-table-skeleton';
-import PageHead from '@/components/shared/page-head';
+import BasePages from '@/components/shared/base-pages';
 // (tuỳ đường dẫn file bạn đặt)
 
 const CampaignList: React.FC = () => {
@@ -140,46 +140,46 @@ const CampaignList: React.FC = () => {
   }
 
   return (
-    <div className="p-4">
-      <PageHead title={'ClickFlow - Danh sách chiến dịch'} />
+    <BasePages pageHead="ClickFlow - Danh sách chiến dịch ">
+      <div className="p-4">
+        <h2 className="mb-4 text-xl font-semibold">Danh sách chiến dịch</h2>
 
-      <h2 className="mb-4 text-xl font-semibold">Danh sách chiến dịch</h2>
-
-      {isLoading ? (
-        <DataTableSkeleton columnCount={6} rowCount={pageSize} />
-      ) : (
-        <DataTable
-          columns={columns}
-          data={dataSource}
-          // Nếu backend có totalPage, bạn có thể truyền vào pageCount
-          pageCount={1}
-          showAdd={false}
-        />
-      )}
-
-      {/* Modal xác nhận dừng chiến dịch */}
-      <Modal
-        title="Dừng chiến dịch"
-        open={isModalVisible}
-        onOk={handleDelete}
-        onCancel={() => setIsModalVisible(false)}
-        okText="Xác nhận"
-        cancelText="Hủy"
-        okButtonProps={{
-          className: 'bg-[#1570EF] text-white border-none'
-        }}
-        cancelButtonProps={{
-          className: 'text-[#DC0E0E] border-[#DC0E0E] hover:text-white'
-        }}
-      >
-        {selectedCampaign && (
-          <p>
-            Bạn có chắc muốn <b className="text-red-500">dừng</b> chiến dịch "
-            {selectedCampaign.name}" không?
-          </p>
+        {isLoading ? (
+          <DataTableSkeleton columnCount={6} rowCount={pageSize} />
+        ) : (
+          <DataTable
+            columns={columns}
+            data={dataSource}
+            // Nếu backend có totalPage, bạn có thể truyền vào pageCount
+            pageCount={1}
+            showAdd={false}
+          />
         )}
-      </Modal>
-    </div>
+
+        {/* Modal xác nhận dừng chiến dịch */}
+        <Modal
+          title="Dừng chiến dịch"
+          open={isModalVisible}
+          onOk={handleDelete}
+          onCancel={() => setIsModalVisible(false)}
+          okText="Xác nhận"
+          cancelText="Hủy"
+          okButtonProps={{
+            className: 'bg-[#1570EF] text-white border-none'
+          }}
+          cancelButtonProps={{
+            className: 'text-[#DC0E0E] border-[#DC0E0E] hover:text-white'
+          }}
+        >
+          {selectedCampaign && (
+            <p>
+              Bạn có chắc muốn <b className="text-red-500">dừng</b> chiến dịch "
+              {selectedCampaign.name}" không?
+            </p>
+          )}
+        </Modal>
+      </div>
+    </BasePages>
   );
 };
 

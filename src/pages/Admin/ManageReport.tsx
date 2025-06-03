@@ -11,7 +11,7 @@ import { useGetReports } from '@/queries/report.query';
 import ReportDetailModal from './ReportDetailModal';
 import ReportResponseModal from './ReportResponseModal';
 import { ApiResponse, PagingResponse, ReportApiResponse } from '@/types';
-import PageHead from '@/components/shared/page-head';
+import BasePages from '@/components/shared/base-pages';
 
 interface Report {
   id: string;
@@ -160,44 +160,44 @@ export default function ReportTable() {
   };
 
   return (
-    <div className="mb-10 p-4">
-      <PageHead title={'ClickFlow - Quản lý báo cáo'} />
+    <BasePages pageHead="ClickFlow - Quảng lý báo cáo">
+      <div className="mb-10 p-4">
+        <h2 className="mb-4 text-xl font-semibold">Quản lý báo cáo</h2>
 
-      <h2 className="mb-4 text-xl font-semibold">Quản lý báo cáo</h2>
+        {/* Tìm kiếm */}
+        <div className="mb-4 flex items-center gap-2">
+          <Input
+            placeholder="Tìm kiếm theo mã báo cáo hoặc tên người báo cáo"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            style={{ width: 300 }}
+          />
+        </div>
 
-      {/* Tìm kiếm */}
-      <div className="mb-4 flex items-center gap-2">
-        <Input
-          placeholder="Tìm kiếm theo mã báo cáo hoặc tên người báo cáo"
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          style={{ width: 300 }}
+        {/* Bảng */}
+        <DataTable
+          columns={columns}
+          data={filteredReports}
+          pageCount={-1}
+          pageSizeOptions={[5, 10, 20]}
+          showAdd={false}
+        />
+
+        {/* Modal Xem chi tiết */}
+        <ReportDetailModal
+          open={detailOpen}
+          onClose={() => setDetailOpen(false)}
+          report={detailReport}
+        />
+
+        {/* Modal Phản hồi */}
+        <ReportResponseModal
+          open={responseOpen}
+          onClose={() => setResponseOpen(false)}
+          report={responseReport}
+          onSubmit={handleSubmitResponse}
         />
       </div>
-
-      {/* Bảng */}
-      <DataTable
-        columns={columns}
-        data={filteredReports}
-        pageCount={-1}
-        pageSizeOptions={[5, 10, 20]}
-        showAdd={false}
-      />
-
-      {/* Modal Xem chi tiết */}
-      <ReportDetailModal
-        open={detailOpen}
-        onClose={() => setDetailOpen(false)}
-        report={detailReport}
-      />
-
-      {/* Modal Phản hồi */}
-      <ReportResponseModal
-        open={responseOpen}
-        onClose={() => setResponseOpen(false)}
-        report={responseReport}
-        onSubmit={handleSubmitResponse}
-      />
-    </div>
+    </BasePages>
   );
 }

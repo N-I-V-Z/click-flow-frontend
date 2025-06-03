@@ -281,3 +281,16 @@ export enum ChatTab {
   Advertiser = 'advertiser',
   Publisher = 'publisher'
 }
+
+export interface Course {
+  id: number;
+  title: string;
+  createAt: string;
+  updateAt: string;
+  createById: number;
+  avgRate: number;
+  price: number;
+  lessonLearned: string;
+  content: string;
+  description: string;
+}

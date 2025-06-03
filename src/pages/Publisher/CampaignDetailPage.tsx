@@ -17,7 +17,7 @@ import 'slick-carousel/slick/slick.css';
 import 'slick-carousel/slick/slick-theme.css';
 import { ApiResponse, CampaignApiResponse, PagingResponse } from '@/types';
 import __helpers from '@/helpers';
-import PageHead from '@/components/shared/page-head';
+import BasePages from '@/components/shared/base-pages';
 
 // Decode token để lấy publisher id (giả sử trường Id có trong token)
 const decodedToken = helpers.decodeTokens(__helpers.cookie_get('AT'));
@@ -262,139 +262,143 @@ const CampaignDetailPage: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 p-6">
-      <PageHead title={'ClickFlow - Chi tiết chiến dịch'} />
-
-      <motion.div>
-        {/* PHẦN TRÊN: Thông tin campaign & Chiến dịch tương tự */}
-        <div className="flex flex-col gap-6 rounded-2xl bg-white p-6 shadow-lg md:flex-row">
-          {/* Cột trái: Thông tin campaign */}
-          <div className="flex flex-col items-center border-r pr-6 md:w-1/3">
-            {/* Logo */}
-            <div className="relative h-20 w-20 overflow-hidden rounded-full shadow-xl">
-              <img
-                src={
-                  campaign.imageUrl ||
-                  'https://via.placeholder.com/150?text=No+Image'
-                }
-                alt="logo"
-                className="h-full w-full object-cover"
-              />
-            </div>
-            {/* Tên */}
-            <h2 className="mt-4 text-center text-xl font-bold text-gray-800">
-              {campaign.name}
-            </h2>
-            {/* Rating */}
-            <div className="mt-2 flex items-center">
-              <Rate disabled allowHalf value={campaign.averageStarRate || 0} />
-              <span className="ml-2 text-sm text-gray-600">
-                {campaign.averageStarRate?.toFixed(1)}
-              </span>
-            </div>
-
-            {/* Nút tuỳ theo trạng thái */}
-            {renderButton()}
-
-            {/* Thông tin tóm tắt */}
-            <div className="mt-6 w-full space-y-2 text-sm text-gray-700">
-              <div>
-                <span className="font-semibold">Hoa hồng:</span>{' '}
-                {campaign.commissionValue}
-                {campaign.commissionType}
+    <BasePages pageHead="ClickFlow - Chi tiết chiến dịch">
+      <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 p-6">
+        <motion.div>
+          {/* PHẦN TRÊN: Thông tin campaign & Chiến dịch tương tự */}
+          <div className="flex flex-col gap-6 rounded-2xl bg-white p-6 shadow-lg md:flex-row">
+            {/* Cột trái: Thông tin campaign */}
+            <div className="flex flex-col items-center border-r pr-6 md:w-1/3">
+              {/* Logo */}
+              <div className="relative h-20 w-20 overflow-hidden rounded-full shadow-xl">
+                <img
+                  src={
+                    campaign.imageUrl ||
+                    'https://via.placeholder.com/150?text=No+Image'
+                  }
+                  alt="logo"
+                  className="h-full w-full object-cover"
+                />
               </div>
-              <div>
-                <span className="font-semibold">Ngày mở:</span>{' '}
-                {campaign.startDate}
+              {/* Tên */}
+              <h2 className="mt-4 text-center text-xl font-bold text-gray-800">
+                {campaign.name}
+              </h2>
+              {/* Rating */}
+              <div className="mt-2 flex items-center">
+                <Rate
+                  disabled
+                  allowHalf
+                  value={campaign.averageStarRate || 0}
+                />
+                <span className="ml-2 text-sm text-gray-600">
+                  {campaign.averageStarRate?.toFixed(1)}
+                </span>
               </div>
-              <div>
-                <span className="font-semibold">Loại:</span> {campaign.method}
+
+              {/* Nút tuỳ theo trạng thái */}
+              {renderButton()}
+
+              {/* Thông tin tóm tắt */}
+              <div className="mt-6 w-full space-y-2 text-sm text-gray-700">
+                <div>
+                  <span className="font-semibold">Hoa hồng:</span>{' '}
+                  {campaign.commissionValue}
+                  {campaign.commissionType}
+                </div>
+                <div>
+                  <span className="font-semibold">Ngày mở:</span>{' '}
+                  {campaign.startDate}
+                </div>
+                <div>
+                  <span className="font-semibold">Loại:</span> {campaign.method}
+                </div>
               </div>
             </div>
-          </div>
 
-          {/* Cột phải: Chiến dịch tương tự */}
-          <div className="w-full p-4 md:w-2/3">
-            <h3 className="mb-4 text-xl font-bold text-gray-800">
-              Chiến dịch tương tự
-            </h3>
-            {isLoadingSimilar ? (
-              <p>Đang tải...</p>
-            ) : isErrorSimilar ? (
-              <p>Có lỗi khi tải danh sách tương tự.</p>
-            ) : similarCampaigns.length === 0 ? (
-              <p>Không có chiến dịch tương tự.</p>
-            ) : (
-              <Slider {...sliderSettings}>
-                {similarCampaigns.map((item: CampaignApiResponse) => (
-                  <div key={item.id} className="px-2">
-                    <motion.div
-                      className="flex cursor-pointer flex-col items-center justify-center 
+            {/* Cột phải: Chiến dịch tương tự */}
+            <div className="w-full p-4 md:w-2/3">
+              <h3 className="mb-4 text-xl font-bold text-gray-800">
+                Chiến dịch tương tự
+              </h3>
+              {isLoadingSimilar ? (
+                <p>Đang tải...</p>
+              ) : isErrorSimilar ? (
+                <p>Có lỗi khi tải danh sách tương tự.</p>
+              ) : similarCampaigns.length === 0 ? (
+                <p>Không có chiến dịch tương tự.</p>
+              ) : (
+                <Slider {...sliderSettings}>
+                  {similarCampaigns.map((item: CampaignApiResponse) => (
+                    <div key={item.id} className="px-2">
+                      <motion.div
+                        className="flex cursor-pointer flex-col items-center justify-center 
                                  rounded-xl bg-white p-4 shadow transition-all duration-300 
                                  hover:scale-105"
-                      onClick={() => handleSimilarClick(item.id)}
-                    >
-                      <div className="relative h-[100px] w-[150px]">
-                        <img
-                          src={
-                            item.image ||
-                            'https://via.placeholder.com/150?text=No+Image'
-                          }
-                          alt={item.name}
-                          className="h-full w-full rounded-md object-cover"
-                        />
-                      </div>
-                      <p className="mt-2 text-center text-sm font-medium text-gray-800">
-                        {item.name}
-                      </p>
-                    </motion.div>
-                  </div>
-                ))}
-              </Slider>
-            )}
+                        onClick={() => handleSimilarClick(item.id)}
+                      >
+                        <div className="relative h-[100px] w-[150px]">
+                          <img
+                            src={
+                              item.image ||
+                              'https://via.placeholder.com/150?text=No+Image'
+                            }
+                            alt={item.name}
+                            className="h-full w-full rounded-md object-cover"
+                          />
+                        </div>
+                        <p className="mt-2 text-center text-sm font-medium text-gray-800">
+                          {item.name}
+                        </p>
+                      </motion.div>
+                    </div>
+                  ))}
+                </Slider>
+              )}
+            </div>
           </div>
-        </div>
 
-        {/* PHẦN DƯỚI: Tabs mô tả, feedback, etc. */}
-        <div className="mb-10 mt-6 rounded-2xl bg-white p-6 shadow-lg">
-          <Tabs defaultActiveKey="information" size="large" tabBarGutter={32}>
-            <TabPane tab="Information" key="information">
-              <Collapse
-                bordered={false}
-                expandIconPosition="end"
-                className="mt-4"
-              >
-                <Panel header="Giới thiệu" key="1">
-                  <p className="text-gray-700">
-                    {campaign.description || 'Nội dung giới thiệu...'}
-                  </p>
-                </Panel>
-                <Panel header="Điều kiện ghi nhận" key="2">
-                  <p className="text-gray-700">
-                    Chi tiết điều kiện ghi nhận...
-                  </p>
-                </Panel>
-                <Panel header="Chính sách Commission" key="3">
-                  <p className="text-gray-700">
-                    Thông tin chính sách hoa hồng, thanh toán...
-                  </p>
-                </Panel>
-              </Collapse>
-            </TabPane>
-            <TabPane tab="Product link" key="product-link">
-              <p className="mt-4 text-gray-700">
-                Danh sách link sản phẩm, banner, v.v...
-              </p>
-            </TabPane>
-            <TabPane tab="Feedbacks" key="feedbacks">
-              <p className="mt-4 text-gray-700">
-                <Feedback campaignId={campaignId} />
-              </p>
-            </TabPane>
-          </Tabs>
-        </div>
-      </motion.div>
-    </div>
+          {/* PHẦN DƯỚI: Tabs mô tả, feedback, etc. */}
+          <div className="mb-10 mt-6 rounded-2xl bg-white p-6 shadow-lg">
+            <Tabs defaultActiveKey="information" size="large" tabBarGutter={32}>
+              <TabPane tab="Information" key="information">
+                <Collapse
+                  bordered={false}
+                  expandIconPosition="end"
+                  className="mt-4"
+                >
+                  <Panel header="Giới thiệu" key="1">
+                    <p className="text-gray-700">
+                      {campaign.description || 'Nội dung giới thiệu...'}
+                    </p>
+                  </Panel>
+                  <Panel header="Điều kiện ghi nhận" key="2">
+                    <p className="text-gray-700">
+                      Chi tiết điều kiện ghi nhận...
+                    </p>
+                  </Panel>
+                  <Panel header="Chính sách Commission" key="3">
+                    <p className="text-gray-700">
+                      Thông tin chính sách hoa hồng, thanh toán...
+                    </p>
+                  </Panel>
+                </Collapse>
+              </TabPane>
+              <TabPane tab="Product link" key="product-link">
+                <p className="mt-4 text-gray-700">
+                  Danh sách link sản phẩm, banner, v.v...
+                </p>
+              </TabPane>
+              <TabPane tab="Feedbacks" key="feedbacks">
+                <p className="mt-4 text-gray-700">
+                  <Feedback campaignId={campaignId} />
+                </p>
+              </TabPane>
+            </Tabs>
+          </div>
+        </motion.div>
+      </div>
+    </BasePages>
   );
 };
 

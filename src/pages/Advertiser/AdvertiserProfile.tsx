@@ -1,156 +1,338 @@
+import { useState } from 'react';
+import { useRouter } from '@/routes/hooks';
 import { Card } from '@/components/ui/card';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
-import { useRouter } from '@/routes/hooks';
+import {
+  Wallet,
+  KeySquare,
+  MapPin,
+  Calendar,
+  User,
+  CheckCircle,
+  Sparkles,
+  Edit3
+} from 'lucide-react';
+import ChangePassword from '@/components/shared/change-password';
 import { useGetUserDetail } from '@/queries/user.query';
 import { ApiResponse, UserDetailApiResponse } from '@/types';
-import { PencilLine, Wallet, KeySquare } from 'lucide-react';
-import { usePageTitle } from '@/hooks/use-pagetitle';
-import PageHead from '@/components/shared/page-head';
+import BasePages from '@/components/shared/base-pages';
 const AdvertiserProfile = () => {
-  usePageTitle('Hồ sơ | Click Flow');
   const router = useRouter();
+  const [activeSection, setActiveSection] = useState<
+    'personal' | 'changePassword'
+  >('personal');
 
-  // Fetch user data
   const { data, isLoading, error } = useGetUserDetail(2);
   const user = (data as ApiResponse<UserDetailApiResponse>)?.result;
 
   if (isLoading) {
     return (
-      <div className="flex h-screen items-center justify-center bg-white">
-        <div className="border-blue-300 border-t-blue-600 h-20 w-20 animate-pulse rounded-full border-4"></div>
+      <div className="to-blue-50 flex h-screen items-center justify-center bg-gradient-to-br from-slate-50">
+        <div className="text-center">
+          <div className="border-t-blue-600 mx-auto h-16 w-16 animate-spin rounded-full border-4 border-blue"></div>
+          <p className="mt-4 text-gray-600">Đang tải thông tin...</p>
+        </div>
       </div>
     );
   }
 
   if (error || !user) {
     return (
-      <div className="flex h-screen items-center justify-center bg-white text-gray-800">
-        <div className="text-center">
-          <h3 className="text-2xl font-bold">Data not available</h3>
+      <div className="flex h-screen items-center justify-center bg-gradient-to-br from-slate-50 to-blue">
+        <Card className="p-8 text-center shadow-xl">
+          <div className="bg-red-100 mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full">
+            <span className="text-2xl">😕</span>
+          </div>
+          <h3 className="mb-2 text-xl font-bold text-gray-800">
+            Không thể tải dữ liệu
+          </h3>
+          <p className="mb-4 text-gray-600">Vui lòng thử lại sau</p>
           <Button
-            className="hover:bg-blue-50 mt-4 rounded-md border border-blue bg-white text-blue"
+            className="bg-blue-600 hover:bg-blue-700 text-white"
             onClick={() => window.location.reload()}
           >
-            Retry
+            Thử lại
           </Button>
-        </div>
+        </Card>
       </div>
     );
   }
 
+  const quickActions = [
+    {
+      label: 'Ví cá nhân',
+      icon: Wallet,
+      color: 'from-blue to-blue',
+      action: () => router.push('/advertiser/wallet')
+    },
+    {
+      label: 'Đổi mật khẩu',
+      icon: KeySquare,
+      color: 'from-purple-500 to-purple-600',
+      action: () => setActiveSection('changePassword')
+    }
+  ];
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-indigo-100 via-purple-50 text-black">
-      <PageHead title={'ClickFlow - Profile'} />
-
-      <div className="container mx-auto px-4 pt-12">
-        <div className="mx-auto max-w-6xl space-y-12">
-          {/* Profile Header */}
-          <div className="flex flex-col items-center space-y-6 md:flex-row md:justify-between md:space-y-0">
-            <div className="flex items-center space-x-6">
-              <Avatar className="ring-blue-500 h-24 w-24 rounded-full ring-2">
-                <AvatarImage src={user.avatarURL} alt={user.fullName} />
-                <AvatarFallback className="bg-gradient-to-br from-blue to-purple-400 text-2xl font-bold text-white">
-                  {user.fullName?.charAt(0) ?? 'U'}
-                </AvatarFallback>
-              </Avatar>
-
-              <div>
-                <h2 className="text-3xl font-bold text-gray-800">
-                  {user.fullName}
-                </h2>
-                <p className="text-blue-600 mt-1">Publisher</p>
-              </div>
-            </div>
-
-            <div className="flex space-x-4">
-              <Button
-                className="hover:bg-blue-700 flex items-center space-x-2 rounded-md bg-blue px-6 py-6 text-black"
-                onClick={() => router.push('/advertiser/wallet')}
-              >
-                <Wallet className="h-5 w-5" />
-                <span>Ví cá nhân</span>
-              </Button>
-
-              <Button
-                className="hover:bg-blue-50 flex items-center space-x-2 rounded-md border border-blue bg-white px-6 py-6 text-blue"
-                onClick={() => router.push('/advertiser/change-password')}
-              >
-                <KeySquare className="h-5 w-5" />
-                <span>Đổi mật khẩu</span>
-              </Button>
-            </div>
+    <BasePages pageHead="ClickFlow - Hồ sơ">
+      <div className="via-blue-50 min-h-screen bg-gradient-to-br from-slate-50 to-indigo-100">
+        {/* Hero Header */}
+        <div className="relative overflow-hidden bg-gradient-to-r from-blue via-purple-600 to-indigo-700">
+          <div className="absolute inset-0">
+            <div className="absolute inset-0 bg-gradient-to-r from-blue to-purple-600/90"></div>
+            <div className='bg-[url(&apos;data:image/svg+xml,%3Csvg width="60" height="60" viewPort="0 0 60 60" xmlns="http://www.w3.org/2000/svg"%3E%3Cg fill="none" fill-rule="evenodd"%3E%3Cg fill="%23ffffff" fill-opacity="0.1"%3E%3Ccircle cx="30" cy="30" r="4"/%3E%3C/g%3E%3C/g%3E%3C/svg%3E&apos;)] absolute inset-0 opacity-20'></div>
           </div>
 
-          {/* Content Area */}
-          <div className="grid grid-cols-1 gap-8 md:grid-cols-2">
-            <Card className="rounded-lg border border-gray-200 bg-white p-8 shadow-md">
-              <div className="border-b border-gray-200 pb-4">
-                <div className="flex items-center justify-between">
-                  <h3 className="text-xl font-bold text-gray-800">
-                    Thông tin cá nhân
-                  </h3>
-                  <Button
-                    variant="ghost"
-                    className="hover:bg-blue-100 hover:text-blue-600 h-10 w-10 rounded-full p-0"
+          <div className="relative mx-auto max-w-7xl px-6 py-16">
+            <div className="flex flex-col items-center space-y-8 md:flex-row md:space-x-10 md:space-y-0">
+              {/* Avatar Section */}
+              <div className="group relative">
+                <div className="animate-tilt absolute -inset-1 rounded-full bg-gradient-to-r from-pink-300 to-blue opacity-75 blur transition duration-1000 group-hover:opacity-100 group-hover:duration-200"></div>
+                <Avatar className="relative h-36 w-36 border-4 border-white shadow-2xl">
+                  <AvatarImage
+                    src={user.avatarURL}
+                    alt={user.fullName}
+                    className="object-cover"
+                  />
+                  <AvatarFallback className="bg-gradient-to-br from-blue to-purple-600 text-4xl font-bold text-white">
+                    {user.fullName?.charAt(0) ?? 'U'}
+                  </AvatarFallback>
+                </Avatar>
+              </div>
+
+              {/* Profile Info */}
+              <div className="flex-1 text-center md:text-left">
+                <div className="flex flex-col items-center md:items-start">
+                  <div className="mb-2 flex items-center space-x-3">
+                    <h1 className="text-4xl font-bold text-white">
+                      {user.fullName}
+                    </h1>
+                  </div>
+
+                  {/* Quick Info Cards */}
+                  <div className="grid w-full max-w-2xl grid-cols-1 gap-4 md:grid-cols-3">
+                    <div className="rounded-xl border border-white/30 bg-white/20 p-4 backdrop-blur-sm">
+                      <div className="mb-2 flex items-center space-x-2">
+                        <Calendar className="h-5 w-5 text-black" />
+                        <span className="text-blue-100 text-sm">Ngày sinh</span>
+                      </div>
+                      <p className="font-semibold text-white">
+                        {new Date(user.dateOfBirth).toLocaleDateString('vi-VN')}
+                      </p>
+                    </div>
+
+                    <div className="rounded-xl border border-white/30 bg-white/20 p-4 backdrop-blur-sm">
+                      <div className="mb-2 flex items-center space-x-2">
+                        <User className="h-5 w-5 text-black" />
+                        <span className="text-blue-100 text-sm">Giới tính</span>
+                      </div>
+                      <p className="font-semibold text-white">{user.gender}</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Quick Actions */}
+        <div className="relative z-10 mx-auto -mt-8 max-w-7xl px-6">
+          <div className="mb-12 grid grid-cols-2 gap-4">
+            {quickActions.map((action, index) => (
+              <Card
+                key={index}
+                className="group cursor-pointer border-0 shadow-lg transition-all duration-300 hover:-translate-y-2 hover:shadow-xl"
+                onClick={action.action}
+              >
+                <div className="p-6 text-center">
+                  <div
+                    className={`mx-auto mb-4 h-14 w-14 rounded-2xl bg-gradient-to-r ${action.color} flex items-center justify-center transition-transform duration-300 group-hover:scale-110`}
                   >
-                    <PencilLine className="h-5 w-5" />
-                  </Button>
-                </div>
-              </div>
-
-              <div className="mt-8 grid gap-y-8">
-                <div className="group">
-                  <p className="text-sm text-gray-500">Họ và Tên</p>
-                  <p className="group-hover:text-blue-600 mt-2 text-lg font-medium text-gray-800">
-                    {user.fullName}
+                    <action.icon className="h-7 w-7 text-white" />
+                  </div>
+                  <p className="group-hover:text-blue-600 font-semibold text-gray-800 transition-colors">
+                    {action.label}
                   </p>
                 </div>
+              </Card>
+            ))}
+          </div>
+        </div>
 
-                <div className="group">
-                  <p className="text-sm text-gray-500">Ngày sinh</p>
-                  <p className="group-hover:text-blue-600 mt-2 text-lg font-medium text-gray-800">
-                    {new Date(user.dateOfBirth).toLocaleDateString()}
-                  </p>
-                </div>
-              </div>
-            </Card>
+        {/* Tab Navigation */}
+        <div className="mx-auto mb-6 max-w-7xl px-6">
+          <div className="flex border-b border-gray-200">
+            <button
+              className={`-mb-px px-4 py-2 font-medium ${
+                activeSection === 'personal'
+                  ? 'border-b-2 border-indigo-600 text-indigo-600'
+                  : 'text-gray-500 hover:text-gray-700'
+              }`}
+              onClick={() => setActiveSection('personal')}
+            >
+              Thông tin cá nhân
+            </button>
+            <button
+              className={`-mb-px px-4 py-2 font-medium ${
+                activeSection === 'changePassword'
+                  ? 'border-b-2 border-indigo-600 text-indigo-600'
+                  : 'text-gray-500 hover:text-gray-700'
+              }`}
+              onClick={() => setActiveSection('changePassword')}
+            >
+              Đổi mật khẩu
+            </button>
+          </div>
+        </div>
 
-            <Card className="rounded-lg border border-gray-200 bg-white p-8 shadow-md">
-              <div className="border-b border-gray-200 pb-4">
-                <div className="flex items-center justify-between">
-                  <h3 className="text-xl font-bold text-gray-800">
-                    Thông tin khác
-                  </h3>
-                  <Button
-                    variant="ghost"
-                    className="hover:bg-blue-100 hover:text-blue-600 h-10 w-10 rounded-full p-0"
-                  >
-                    <PencilLine className="h-5 w-5" />
-                  </Button>
-                </div>
-              </div>
+        {/* Main Content */}
+        <div className="mx-auto max-w-7xl px-6 pb-12">
+          <div className="grid grid-cols-1 gap-8 lg:grid-cols-3">
+            {activeSection === 'personal' ? (
+              <>
+                {/* Thông tin cá nhân */}
+                <div className="mb-10 lg:col-span-2">
+                  <Card className="overflow-hidden border-0 shadow-xl">
+                    <div className="bg-gradient-to-r from-blue to-purple-600 p-6">
+                      <div className="flex items-center justify-between">
+                        <h2 className="text-2xl font-bold text-white">
+                          Thông tin cá nhân
+                        </h2>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="rounded-xl text-white hover:bg-white/20"
+                        >
+                          <Edit3 className="mr-2 h-5 w-5" />
+                          Chỉnh sửa
+                        </Button>
+                      </div>
+                    </div>
 
-              <div className="mt-8 grid gap-y-8">
-                <div className="group">
-                  <p className="text-sm text-gray-500">Giới tính</p>
-                  <p className="group-hover:text-blue-600 mt-2 text-lg font-medium text-gray-800">
-                    {user.gender}
-                  </p>
+                    <div className="space-y-8 p-8">
+                      <div className="grid grid-cols-1 gap-8 md:grid-cols-2">
+                        <div className="space-y-6">
+                          <div className="group">
+                            <label className="text-sm font-medium uppercase tracking-wider text-gray-500">
+                              Họ và Tên
+                            </label>
+                            <div className="group-hover:bg-blue-50 mt-2 rounded-xl bg-gray-50 p-4 transition-colors">
+                              <p className="group-hover:text-blue-600 text-lg font-semibold text-gray-800">
+                                {user.fullName}
+                              </p>
+                            </div>
+                          </div>
+
+                          <div className="group">
+                            <label className="text-sm font-medium uppercase tracking-wider text-gray-500">
+                              Giới tính
+                            </label>
+                            <div className="group-hover:bg-blue-50 mt-2 rounded-xl bg-gray-50 p-4 transition-colors">
+                              <p className="group-hover:text-blue-600 text-lg font-semibold text-gray-800">
+                                {user.gender}
+                              </p>
+                            </div>
+                          </div>
+                        </div>
+
+                        <div className="space-y-6">
+                          <div className="group">
+                            <label className="text-sm font-medium uppercase tracking-wider text-gray-500">
+                              Ngày sinh
+                            </label>
+                            <div className="group-hover:bg-blue-50 mt-2 rounded-xl bg-gray-50 p-4 transition-colors">
+                              <p className="group-hover:text-blue-600 text-lg font-semibold text-gray-800">
+                                {new Date(user.dateOfBirth).toLocaleDateString(
+                                  'vi-VN',
+                                  {
+                                    year: 'numeric',
+                                    month: 'long',
+                                    day: 'numeric'
+                                  }
+                                )}
+                              </p>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="group">
+                        <label className="text-sm font-medium uppercase tracking-wider text-gray-500">
+                          Địa chỉ
+                        </label>
+                        <div className="group-hover:bg-blue-50 mt-2 rounded-xl bg-gray-50 p-4 transition-colors">
+                          <div className="flex items-start space-x-3">
+                            <MapPin className="group-hover:text-blue-500 mt-1 h-6 w-6 text-gray-400" />
+                            <p className="group-hover:text-blue-600 text-lg font-semibold leading-relaxed text-gray-800">
+                              {user.address}
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </Card>
                 </div>
 
-                <div className="group">
-                  <p className="text-sm text-gray-500">Địa chỉ</p>
-                  <p className="group-hover:text-blue-600 mt-2 text-lg font-medium text-gray-800">
-                    {user.address}
-                  </p>
+                {/* Side Panel */}
+                <div className="space-y-8">
+                  <Card className="border-0 shadow-xl">
+                    <div className="p-6">
+                      <h3 className="mb-4 text-lg font-bold text-gray-800">
+                        Hồ sơ hoàn thiện
+                      </h3>
+                      <div className="space-y-4">
+                        <div className="flex justify-between text-sm">
+                          <span>Thông tin cơ bản</span>
+                          <span className="font-semibold text-green-600">
+                            100%
+                          </span>
+                        </div>
+                        <div className="h-2 w-full rounded-full bg-gray-200">
+                          <div className="h-2 w-full rounded-full bg-gradient-to-r from-green-400 to-green-600" />
+                        </div>
+                        <p className="text-sm text-gray-600">
+                          Hồ sơ của bạn đã hoàn thiện! 🎉
+                        </p>
+                      </div>
+                    </div>
+                  </Card>
+
+                  <Card className="border-0 shadow-xl">
+                    <div className="p-6">
+                      <h3 className="mb-4 text-lg font-bold text-gray-800">
+                        Trạng thái tài khoản
+                      </h3>
+                      <div className="space-y-4">
+                        <div className="flex items-center space-x-3 rounded-lg bg-green-50 p-3">
+                          <CheckCircle className="h-5 w-5 text-green-600" />
+                          <span className="font-medium text-green-800">
+                            Đã xác thực
+                          </span>
+                        </div>
+                        <div className="bg-blue-50 flex items-center space-x-3 rounded-lg p-3">
+                          <Sparkles className="text-blue-600 h-5 w-5" />
+                          <span className="text-blue-800 font-medium">
+                            Thành viên Premium
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  </Card>
                 </div>
-              </div>
-            </Card>
+              </>
+            ) : (
+              <>
+                {/* Gọi component ChangePassword trực tiếp */}
+                <div className="lg:col-span-4">
+                  <ChangePassword />
+                </div>
+              </>
+            )}
           </div>
         </div>
       </div>
-    </div>
+    </BasePages>
   );
 };
 

@@ -7,7 +7,7 @@ import {
 } from '@ant-design/icons';
 import DataTable from '@/components/shared/data-table';
 import { ColumnDef } from '@tanstack/react-table';
-import PageHead from '@/components/shared/page-head';
+import BasePages from '@/components/shared/base-pages';
 // Import hook để gọi API
 import { useGetUsersByRole } from '@/queries/user.query';
 import {
@@ -166,104 +166,104 @@ const PublisherList: React.FC = () => {
   }
 
   return (
-    <div className="mb-10 p-4">
-      <PageHead title={'ClickFlow - Nhà tiếp thị'} />
+    <BasePages pageHead="ClickFlow - Nhà tiếp thị ">
+      <div className="mb-10 p-4">
+        <h2 className="mb-4 text-xl font-semibold">Nhà tiếp thị</h2>
 
-      <h2 className="mb-4 text-xl font-semibold">Nhà tiếp thị</h2>
+        {/* Sử dụng DataTable với dữ liệu từ API */}
+        <DataTable
+          columns={columns}
+          data={dataSource}
+          pageCount={-1} // -1 để DataTable tự tính số trang dựa trên dữ liệu
+          pageSizeOptions={[10, 20, 30, 40, 50]}
+          showAdd={false}
+        />
 
-      {/* Sử dụng DataTable với dữ liệu từ API */}
-      <DataTable
-        columns={columns}
-        data={dataSource}
-        pageCount={-1} // -1 để DataTable tự tính số trang dựa trên dữ liệu
-        pageSizeOptions={[10, 20, 30, 40, 50]}
-        showAdd={false}
-      />
-
-      {/* Modal "Xem chi tiết" */}
-      <Modal
-        open={isViewModalVisible}
-        onCancel={closeViewModal}
-        footer={<Button onClick={closeViewModal}>Đóng</Button>}
-        title={null}
-      >
-        {selectedPublisher && (
-          <div>
-            {/* Header tùy chỉnh */}
-            <div className="flex items-center gap-3">
-              <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-gray-200 text-2xl text-gray-600">
-                <UserOutlined />
+        {/* Modal "Xem chi tiết" */}
+        <Modal
+          open={isViewModalVisible}
+          onCancel={closeViewModal}
+          footer={<Button onClick={closeViewModal}>Đóng</Button>}
+          title={null}
+        >
+          {selectedPublisher && (
+            <div>
+              {/* Header tùy chỉnh */}
+              <div className="flex items-center gap-3">
+                <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-gray-200 text-2xl text-gray-600">
+                  <UserOutlined />
+                </div>
+                <div>
+                  <h3 className="text-lg font-semibold">
+                    {selectedPublisher.name}
+                  </h3>
+                  <p className="text-sm text-gray-500">Nhà tiếp thị</p>
+                </div>
               </div>
-              <div>
-                <h3 className="text-lg font-semibold">
-                  {selectedPublisher.name}
-                </h3>
-                <p className="text-sm text-gray-500">Nhà tiếp thị</p>
+              <hr className="my-4 border-gray-300" />
+              <div className="space-y-3">
+                <div>
+                  <label className="block font-semibold text-gray-600">
+                    Số điện thoại
+                  </label>
+                  <Input readOnly value={selectedPublisher.phone} />
+                </div>
+                <div>
+                  <label className="block font-semibold text-gray-600">
+                    Tên người dùng
+                  </label>
+                  <Input readOnly value={selectedPublisher.userName} />
+                </div>
+                <div>
+                  <label className="block font-semibold text-gray-600">
+                    Email
+                  </label>
+                  <Input readOnly value={selectedPublisher.email} />
+                </div>
+                <div>
+                  <label className="block font-semibold text-gray-600">
+                    Số tài khoản
+                  </label>
+                  <Input readOnly value={selectedPublisher.bankAccount} />
+                </div>
+                <div>
+                  <label className="block font-semibold text-gray-600">
+                    Tên ngân hàng
+                  </label>
+                  <Input readOnly value={selectedPublisher.bankName} />
+                </div>
               </div>
             </div>
-            <hr className="my-4 border-gray-300" />
-            <div className="space-y-3">
-              <div>
-                <label className="block font-semibold text-gray-600">
-                  Số điện thoại
-                </label>
-                <Input readOnly value={selectedPublisher.phone} />
-              </div>
-              <div>
-                <label className="block font-semibold text-gray-600">
-                  Tên người dùng
-                </label>
-                <Input readOnly value={selectedPublisher.userName} />
-              </div>
-              <div>
-                <label className="block font-semibold text-gray-600">
-                  Email
-                </label>
-                <Input readOnly value={selectedPublisher.email} />
-              </div>
-              <div>
-                <label className="block font-semibold text-gray-600">
-                  Số tài khoản
-                </label>
-                <Input readOnly value={selectedPublisher.bankAccount} />
-              </div>
-              <div>
-                <label className="block font-semibold text-gray-600">
-                  Tên ngân hàng
-                </label>
-                <Input readOnly value={selectedPublisher.bankName} />
-              </div>
-            </div>
-          </div>
-        )}
-      </Modal>
+          )}
+        </Modal>
 
-      {/* Modal "Khóa/Mở khóa" */}
-      <Modal
-        title={
-          selectedPublisher?.status === 'Hoạt động'
-            ? 'Xác nhận khóa'
-            : 'Xác nhận mở khóa'
-        }
-        open={isLockModalVisible}
-        onOk={confirmLockUnlock}
-        onCancel={cancelLockUnlock}
-        okText="Xác nhận"
-        cancelText="Hủy"
-        okButtonProps={{
-          className: 'bg-[#1570EF] text-white border-none'
-        }}
-        cancelButtonProps={{
-          className: 'text-[#DC0E0E] border-[#DC0E0E] hover:text-white'
-        }}
-      >
-        <p>
-          Bạn có chắc chắn muốn{' '}
-          {selectedPublisher?.status === 'Hoạt động' ? 'khóa' : 'mở khóa'} nhà
-          tiếp thị <strong>{selectedPublisher?.name}</strong> không?
-        </p>
-      </Modal>
-    </div>
+        {/* Modal "Khóa/Mở khóa" */}
+        <Modal
+          title={
+            selectedPublisher?.status === 'Hoạt động'
+              ? 'Xác nhận khóa'
+              : 'Xác nhận mở khóa'
+          }
+          open={isLockModalVisible}
+          onOk={confirmLockUnlock}
+          onCancel={cancelLockUnlock}
+          okText="Xác nhận"
+          cancelText="Hủy"
+          okButtonProps={{
+            className: 'bg-[#1570EF] text-white border-none'
+          }}
+          cancelButtonProps={{
+            className: 'text-[#DC0E0E] border-[#DC0E0E] hover:text-white'
+          }}
+        >
+          <p>
+            Bạn có chắc chắn muốn{' '}
+            {selectedPublisher?.status === 'Hoạt động' ? 'khóa' : 'mở khóa'} nhà
+            tiếp thị <strong>{selectedPublisher?.name}</strong> không?
+          </p>
+        </Modal>
+      </div>
+    </BasePages>
   );
 };
 

@@ -10,7 +10,7 @@ import {
   PagingResponse
 } from '@/types';
 import DataTable from '@/components/shared/data-table';
-import PageHead from '@/components/shared/page-head';
+import BasePages from '@/components/shared/base-pages';
 
 interface Advertiser {
   id: number;
@@ -167,53 +167,53 @@ const AdvertiserList: React.FC = () => {
   }
 
   return (
-    <div className="mb-10 p-4">
-      <PageHead title={'ClickFlow - Nhà quảng cáo'} />
+    <BasePages pageHead="ClickFlow - Nhà quảng cáo ">
+      <div className="mb-10 p-4">
+        <h2 className="mb-4 text-xl font-semibold">Nhà quảng cáo</h2>
 
-      <h2 className="mb-4 text-xl font-semibold">Nhà quảng cáo</h2>
+        {/* DataTable hiển thị advertisers */}
+        <DataTable
+          columns={columns}
+          data={dataSource}
+          pageCount={-1}
+          pageSizeOptions={[10, 20, 50, 100]}
+          showAdd={false}
+        />
 
-      {/* DataTable hiển thị advertisers */}
-      <DataTable
-        columns={columns}
-        data={dataSource}
-        pageCount={-1}
-        pageSizeOptions={[10, 20, 50, 100]}
-        showAdd={false}
-      />
-
-      {/* Modal "Xem chi tiết" */}
-      {/* <AdvertiserDetailModal
+        {/* Modal "Xem chi tiết" */}
+        {/* <AdvertiserDetailModal
         open={isViewModalVisible}
         onClose={closeViewModal}
         advertiserId={selectedId}
       /> */}
 
-      {/* Modal "Khóa/Mở khóa" */}
-      <Modal
-        title={
-          selectedAdvertiser?.status === 'Hoạt động'
-            ? 'Xác nhận khóa'
-            : 'Xác nhận mở khóa'
-        }
-        open={isLockModalVisible}
-        onOk={confirmLockUnlock}
-        onCancel={cancelLockUnlock}
-        okText="Xác nhận"
-        cancelText="Hủy"
-        okButtonProps={{
-          className: 'bg-[#1570EF] text-white border-none'
-        }}
-        cancelButtonProps={{
-          className: 'text-[#DC0E0E] border-[#DC0E0E] hover:text-white'
-        }}
-      >
-        <p>
-          Bạn có chắc chắn muốn{' '}
-          {selectedAdvertiser?.status === 'Hoạt động' ? 'khóa' : 'mở khóa'} nhà
-          quảng cáo <strong>{selectedAdvertiser?.name}</strong> không?
-        </p>
-      </Modal>
-    </div>
+        {/* Modal "Khóa/Mở khóa" */}
+        <Modal
+          title={
+            selectedAdvertiser?.status === 'Hoạt động'
+              ? 'Xác nhận khóa'
+              : 'Xác nhận mở khóa'
+          }
+          open={isLockModalVisible}
+          onOk={confirmLockUnlock}
+          onCancel={cancelLockUnlock}
+          okText="Xác nhận"
+          cancelText="Hủy"
+          okButtonProps={{
+            className: 'bg-[#1570EF] text-white border-none'
+          }}
+          cancelButtonProps={{
+            className: 'text-[#DC0E0E] border-[#DC0E0E] hover:text-white'
+          }}
+        >
+          <p>
+            Bạn có chắc chắn muốn{' '}
+            {selectedAdvertiser?.status === 'Hoạt động' ? 'khóa' : 'mở khóa'}{' '}
+            nhà quảng cáo <strong>{selectedAdvertiser?.name}</strong> không?
+          </p>
+        </Modal>
+      </div>
+    </BasePages>
   );
 };
 

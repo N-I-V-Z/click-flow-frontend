@@ -13,7 +13,7 @@ import {
 import CampaignAnalytics from './CampaignAnalytics';
 import 'antd/dist/reset.css';
 import TrafficTable from './TrafficTable';
-import PageHead from '@/components/shared/page-head';
+import BasePages from '@/components/shared/base-pages';
 
 const { Content } = Layout;
 const { Title, Paragraph, Text } = Typography;
@@ -152,116 +152,116 @@ const CampaignDetail: React.FC = () => {
       : `${campaign.commissionValue.toLocaleString()} VND`;
 
   return (
-    <Layout
-      className="min-h-screen"
-      style={{ background: 'linear-gradient(to bottom, #f8fafc, #fff)' }}
-    >
-      <PageHead title={'ClickFlow - Chi tiết chiến dịch'} />
+    <BasePages pageHead="ClickFlow - Chi tiết chiến dịch ">
+      <Layout
+        className="min-h-screen"
+        style={{ background: 'linear-gradient(to bottom, #f8fafc, #fff)' }}
+      >
+        <Content className="p-6">
+          <div className="mx-auto max-w-7xl">
+            {/* Tiêu đề trang */}
+            <Title level={2} className="mb-6">
+              Chi tiết chiến dịch
+            </Title>
 
-      <Content className="p-6">
-        <div className="mx-auto max-w-7xl">
-          {/* Tiêu đề trang */}
-          <Title level={2} className="mb-6">
-            Chi tiết chiến dịch
-          </Title>
+            {/* Dùng alignItems: 'stretch' để 2 cột cân chiều cao */}
+            <Row gutter={[24, 24]} style={{ alignItems: 'stretch' }}>
+              {/* Cột trái: flex container để card full height */}
+              <Col xs={24} md={8} style={{ display: 'flex' }}>
+                <div className="relative flex flex-1 flex-col overflow-hidden rounded-lg bg-white shadow">
+                  {/* Gradient header (chiều cao nhỏ hơn) */}
+                  <div
+                    className="absolute left-0 right-0 top-0 h-16"
+                    style={{
+                      background:
+                        'linear-gradient(120deg,rgb(6, 6, 212),rgb(166, 40, 201),rgb(174, 102, 241))'
+                    }}
+                  />
+                  {/* Nội dung card: p-5, pt-20 để đẩy xuống dưới gradient */}
+                  <div className="relative flex flex-1 flex-col p-5 pt-20 ">
+                    {/* Ảnh nằm giữa, bo góc, bóng đổ */}
+                    <div className=" flex flex-col items-center justify-center">
+                      <img
+                        src={campaign.imageUrl}
+                        alt={campaign.name}
+                        className="mb-4 h-40 w-40 rounded-md object-cover shadow-md "
+                      />
+                    </div>
 
-          {/* Dùng alignItems: 'stretch' để 2 cột cân chiều cao */}
-          <Row gutter={[24, 24]} style={{ alignItems: 'stretch' }}>
-            {/* Cột trái: flex container để card full height */}
-            <Col xs={24} md={8} style={{ display: 'flex' }}>
-              <div className="relative flex flex-1 flex-col overflow-hidden rounded-lg bg-white shadow">
-                {/* Gradient header (chiều cao nhỏ hơn) */}
-                <div
-                  className="absolute left-0 right-0 top-0 h-16"
-                  style={{
-                    background:
-                      'linear-gradient(120deg,rgb(6, 6, 212),rgb(166, 40, 201),rgb(174, 102, 241))'
-                  }}
-                />
-                {/* Nội dung card: p-5, pt-20 để đẩy xuống dưới gradient */}
-                <div className="relative flex flex-1 flex-col p-5 pt-20 ">
-                  {/* Ảnh nằm giữa, bo góc, bóng đổ */}
-                  <div className=" flex flex-col items-center justify-center">
-                    <img
-                      src={campaign.imageUrl}
-                      alt={campaign.name}
-                      className="mb-4 h-40 w-40 rounded-md object-cover shadow-md "
-                    />
-                  </div>
-
-                  <Title level={4}>
-                    <h3>{campaign.name}</h3>
-                  </Title>
-                  <Paragraph type="secondary" className="mb-3">
-                    Nhà quảng cáo: {campaign.advertiserName}
-                  </Paragraph>
-
-                  {/* Một vài thông tin tóm tắt, KHÔNG label */}
-                  <div className="flex flex-col gap-1 text-gray-700">
-                    <Text>{statusBadge}</Text>
-                    {/* Mô tả ngắn (nếu cần) */}
-                    <Paragraph className="my-3 max-w-sm">
-                      {campaign.description}
+                    <Title level={4}>
+                      <h3>{campaign.name}</h3>
+                    </Title>
+                    <Paragraph type="secondary" className="mb-3">
+                      Nhà quảng cáo: {campaign.advertiserName}
                     </Paragraph>
-                    <div className="flex gap-1">
-                      <Text>{categoryTag}</Text>
-                      <Text>{methodTag}</Text>
+
+                    {/* Một vài thông tin tóm tắt, KHÔNG label */}
+                    <div className="flex flex-col gap-1 text-gray-700">
+                      <Text>{statusBadge}</Text>
+                      {/* Mô tả ngắn (nếu cần) */}
+                      <Paragraph className="my-3 max-w-sm">
+                        {campaign.description}
+                      </Paragraph>
+                      <div className="flex gap-1">
+                        <Text>{categoryTag}</Text>
+                        <Text>{methodTag}</Text>
+                      </div>
                     </div>
                   </div>
                 </div>
-              </div>
-            </Col>
+              </Col>
 
-            {/* Cột phải: cũng stretch */}
-            <Col xs={24} md={16} style={{ display: 'flex' }}>
-              <Card className="flex-1 shadow-md">
-                <Title level={4} className="mb-4">
-                  Thông tin chi tiết
-                </Title>
-                <Descriptions
-                  bordered
-                  column={1}
-                  labelStyle={{ width: '200px', fontWeight: 'bold' }}
-                >
-                  <Descriptions.Item label="Mã chiến dịch">
-                    {campaign.id}
-                  </Descriptions.Item>
-                  <Descriptions.Item label="ID Nhà quảng cáo">
-                    {campaign.advertiserId}
-                  </Descriptions.Item>
-                  <Descriptions.Item label="Hoa hồng">
-                    {commissionText}
-                  </Descriptions.Item>
-                  <Descriptions.Item label="Ngân sách (Budget)">
-                    {campaign.budget.toLocaleString()} VND
-                  </Descriptions.Item>
-                  <Descriptions.Item label="Ngày bắt đầu">
-                    {campaign.startDate}
-                  </Descriptions.Item>
-                  <Descriptions.Item label="Ngày kết thúc">
-                    {campaign.endDate}
-                  </Descriptions.Item>
-                  <Descriptions.Item label="Origin URL">
-                    <a
-                      href={campaign.originUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-blue-600 break-all hover:underline"
-                    >
-                      {campaign.originUrl}
-                    </a>
-                  </Descriptions.Item>
-                </Descriptions>
-              </Card>
-            </Col>
-          </Row>
+              {/* Cột phải: cũng stretch */}
+              <Col xs={24} md={16} style={{ display: 'flex' }}>
+                <Card className="flex-1 shadow-md">
+                  <Title level={4} className="mb-4">
+                    Thông tin chi tiết
+                  </Title>
+                  <Descriptions
+                    bordered
+                    column={1}
+                    labelStyle={{ width: '200px', fontWeight: 'bold' }}
+                  >
+                    <Descriptions.Item label="Mã chiến dịch">
+                      {campaign.id}
+                    </Descriptions.Item>
+                    <Descriptions.Item label="ID Nhà quảng cáo">
+                      {campaign.advertiserId}
+                    </Descriptions.Item>
+                    <Descriptions.Item label="Hoa hồng">
+                      {commissionText}
+                    </Descriptions.Item>
+                    <Descriptions.Item label="Ngân sách (Budget)">
+                      {campaign.budget.toLocaleString()} VND
+                    </Descriptions.Item>
+                    <Descriptions.Item label="Ngày bắt đầu">
+                      {campaign.startDate}
+                    </Descriptions.Item>
+                    <Descriptions.Item label="Ngày kết thúc">
+                      {campaign.endDate}
+                    </Descriptions.Item>
+                    <Descriptions.Item label="Origin URL">
+                      <a
+                        href={campaign.originUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-blue-600 break-all hover:underline"
+                      >
+                        {campaign.originUrl}
+                      </a>
+                    </Descriptions.Item>
+                  </Descriptions>
+                </Card>
+              </Col>
+            </Row>
+          </div>
+        </Content>
+        <CampaignAnalytics />
+        <div className="mb-10">
+          <TrafficTable campaignId={campaign.id} />
         </div>
-      </Content>
-      <CampaignAnalytics />
-      <div className="mb-10">
-        <TrafficTable campaignId={campaign.id} />
-      </div>
-    </Layout>
+      </Layout>
+    </BasePages>
   );
 };
 
