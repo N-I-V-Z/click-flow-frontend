@@ -97,6 +97,9 @@ const SidebarPublisher: React.FC = () => {
         <Menu.Item key="forum" icon={<WechatOutlined />}>
           <NavLink to="/all/forum">Diễn đàn</NavLink>
         </Menu.Item>
+        <Menu.Item key="course" icon={<WechatOutlined />}>
+          <NavLink to="/publisher/courses">Khóa học</NavLink>
+        </Menu.Item>
       </Menu>
 
       {/* Khu vực dưới cùng (Hồ sơ, Đăng xuất) */}

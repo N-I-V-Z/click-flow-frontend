@@ -126,36 +126,46 @@ const ChatSidebar: React.FC<ChatSidebarProps> = ({
               </div>
 
               <div className="min-w-0 flex-1">
-                <div className="mb-1 flex items-center justify-between">
-                  <div className="flex items-center space-x-2">
+                {/* Header row with name, badge and time */}
+                <div className="mb-2 flex items-center justify-between">
+                  <div className="flex min-w-0 flex-1 items-center space-x-2">
                     <h3 className="truncate text-sm font-semibold text-gray-900">
                       {conversation?.parner.fullName}
                     </h3>
                     <span
-                      className={`rounded-full px-2 py-0.5 text-xs font-medium ${getTypeColor(
+                      className={`flex-shrink-0 rounded-full px-2 py-0.5 text-xs font-medium ${getTypeColor(
                         conversation?.parner.role
                       )}`}
                     >
                       {getTypeLabel(conversation?.parner.role)}
                     </span>
                   </div>
-                  <span className="text-xs font-medium text-gray-500">
-                    {`${formatDate(conversation?.lastMessage.sentAt)} - ${formatTime(
-                      conversation?.lastMessage.sentAt
-                    )}`}
-                  </span>
+                  <div className="ml-3 flex-shrink-0 text-xs text-gray-400">
+                    {formatTime(conversation?.lastMessage.sentAt)}
+                  </div>
                 </div>
 
+                {/* Message row with content and unread count */}
                 <div className="flex items-center justify-between">
-                  <p className="truncate text-sm text-gray-600">
-                    {conversation?.lastMessage.type === MessageType.Image
-                      ? `${conversation?.parner.fullName} đã gửi 1 ảnh`
-                      : conversation?.lastMessage.text}
-                  </p>
+                  <div className="min-w-0 flex-1">
+                    <p className="mb-1 truncate text-sm text-gray-600">
+                      {conversation?.lastMessage.type === MessageType.Image
+                        ? `${conversation?.parner.fullName} đã gửi 1 ảnh`
+                        : conversation?.lastMessage.text}
+                    </p>
+                    <div className="text-xs text-gray-400">
+                      {formatDate(conversation?.lastMessage.sentAt)}
+                    </div>
+                  </div>
+
                   {conversation?.unreadCount > 0 && (
-                    <span className="ml-2 min-w-[20px] rounded-full bg-gradient-to-r from-purple-500 to-pink-500 px-2 py-1 text-center text-xs font-medium text-white shadow-lg">
-                      {conversation?.unreadCount}
-                    </span>
+                    <div className="ml-3 flex-shrink-0">
+                      <span className="inline-flex h-5 w-5 items-center justify-center rounded-full bg-gradient-to-r from-purple-500 to-pink-500 text-xs font-medium text-white shadow-lg">
+                        {conversation?.unreadCount > 99
+                          ? '99+'
+                          : conversation?.unreadCount}
+                      </span>
+                    </div>
                   )}
                 </div>
               </div>

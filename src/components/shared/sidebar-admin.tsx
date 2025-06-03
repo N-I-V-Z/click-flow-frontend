@@ -6,8 +6,8 @@ import {
   LogoutOutlined,
   FileTextOutlined,
   OrderedListOutlined,
-  BellOutlined,
-  PullRequestOutlined
+  PullRequestOutlined,
+  MessageOutlined
 } from '@ant-design/icons';
 import { NavLink, useLocation } from 'react-router-dom';
 import { BiBuildings } from 'react-icons/bi';
@@ -125,7 +125,7 @@ const SidebarAdmin: React.FC = () => {
         </Menu.Item>
         <Menu.Item
           key="/admin/support"
-          icon={<BellOutlined />}
+          icon={<MessageOutlined />}
           className={`
             hover:!border-[#9B52BF] hover:bg-white hover:!text-[#9B52BF]
             ${selectedKey === '/admin/support' ? '!bg-[#9B52BF] !text-white' : ''}
