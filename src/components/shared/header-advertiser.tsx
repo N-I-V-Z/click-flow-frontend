@@ -4,16 +4,11 @@ import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import UpgradePackage from '@/pages/Publisher/UpgradePackage';
 import NotificationBell from '@/pages/Publisher/Notification';
-
+import { logoURL, logoURLAd } from '@/constants/data';
 export default function HeaderAd() {
   const [isLogoutOpen, setIsLogoutOpen] = useState<boolean>(false);
-  // State giả sử quản lý gói hiện tại
   const [currentPlan, setCurrentPlan] = useState<string>('basic');
-
-  // Hàm xử lý đăng xuất
   const handleLogout = (): void => {
-    // Giả sử gọi API đăng xuất hoặc xóa token...
-    // Thông báo thành công
     toast.success('Đăng xuất thành công!', {
       position: 'top-right',
       autoClose: 3000
@@ -30,7 +25,7 @@ export default function HeaderAd() {
         <div>
           <Link to="/advertiser" className="flex items-center gap-2">
             <img
-              src="src/assets/logo.jpg"
+              src={logoURLAd}
               alt="Logo"
               className="h-[80px] w-[120px] rounded-lg"
             />

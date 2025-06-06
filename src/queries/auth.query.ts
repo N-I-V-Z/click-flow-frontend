@@ -1,6 +1,5 @@
 import BaseRequest from '@/config/axios.config';
 import { useMutation } from '@tanstack/react-query';
-import helpers from '@/helpers';
 
 const SUB_URL = `api/Accounts`;
 export const useLogin = () => {
@@ -35,7 +34,7 @@ export const useForgotPassword = () => {
 export const useLogout = () => {
   return useMutation({
     mutationKey: ['logout'],
-    mutationFn: async (model: { refreshToken: string | undefined }) => {
+    mutationFn: async (model: { refreshToken: string }) => {
       return await BaseRequest.Post(`/${SUB_URL}/sign-out`, model);
     }
   });
@@ -87,13 +86,7 @@ export const useChangePassword = () => {
 export const useRenewToken = () => {
   return useMutation({
     mutationKey: ['renewToken'],
-    mutationFn: async () => {
-      const refreshToken = helpers.cookie_get('RT');
-      if (!refreshToken) throw new Error('No refresh token found');
-      return await BaseRequest.Post('/api/Accounts/renew-token', {
-        refreshToken
-      });
-    }
+    mutationFn: async () => {}
   });
 };
 

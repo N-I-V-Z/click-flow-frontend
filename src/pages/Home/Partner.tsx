@@ -13,9 +13,10 @@ const partners = [
     name: 'Atadi.vn',
     src: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRv7v6mIqjediuT1WiVw-gFIlNRsEJaHp8wmQ&s'
   },
+
   {
-    name: 'Topica Edumall',
-    src: 'https://static.ybox.vn/2018/7/1/1531711616488-Thi%E1%BA%BFt%20k%E1%BA%BF%20kh%C3%B4ng%20t%C3%AAn%20(9).png'
+    name: 'Atadi.vn',
+    src: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRv7v6mIqjediuT1WiVw-gFIlNRsEJaHp8wmQ&s'
   },
   {
     name: 'FPT Shop',
@@ -33,55 +34,147 @@ const partners = [
 
 const Partner = () => {
   return (
-    <div className="to-blue-800 relative bg-gradient-to-r from-purple-800 via-indigo-800 py-20">
-      <div className="container mx-auto px-4">
-        <motion.h2
-          className="mb-12 bg-gradient-to-r from-cyan-300 to-pink-300 bg-clip-text text-center text-6xl font-extrabold text-transparent"
-          initial={{ opacity: 0, y: -50 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.7 }}
-        >
-          Đối tác của chúng tôi
-        </motion.h2>
-        <motion.p
-          className="mb-16 text-center text-xl text-white opacity-80"
+    <div className="relative min-h-screen overflow-hidden bg-slate-950">
+      {/* Animated Background */}
+      <div className="absolute inset-0">
+        <div className="absolute inset-0 bg-gradient-to-br from-violet-900/20 via-slate-950 to-cyan-900/20"></div>
+        <motion.div
+          className="absolute left-20 top-20 h-96 w-96 rounded-full bg-purple-500/10 blur-3xl"
+          animate={{
+            x: [0, 100, 0],
+            y: [0, -50, 0],
+            scale: [1, 1.2, 1]
+          }}
+          transition={{
+            duration: 20,
+            repeat: Infinity,
+            ease: 'easeInOut'
+          }}
+        />
+        <motion.div
+          className="absolute bottom-20 right-20 h-80 w-80 rounded-full bg-cyan-500/10 blur-3xl"
+          animate={{
+            x: [0, -80, 0],
+            y: [0, 60, 0],
+            scale: [1.2, 1, 1.2]
+          }}
+          transition={{
+            duration: 15,
+            repeat: Infinity,
+            ease: 'easeInOut'
+          }}
+        />
+      </div>
+
+      <div className="container relative z-10 mx-auto px-8 py-24">
+        {/* Header Section */}
+        <div className="mb-20 text-center">
+          <motion.h1
+            className="mb-8 bg-gradient-to-r from-white via-violet-200 to-cyan-200 bg-clip-text text-7xl font-black leading-tight text-transparent md:text-8xl"
+            initial={{ opacity: 0, y: 50 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 1, delay: 0.2 }}
+          >
+            Đối tác
+            <span className=" ml-8 bg-gradient-to-r from-violet-400 to-cyan-400 bg-clip-text text-transparent">
+              tin cậy
+            </span>
+          </motion.h1>
+
+          <motion.p
+            className="mx-auto max-w-2xl text-xl leading-relaxed text-slate-300"
+            initial={{ opacity: 0, y: 30 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8, delay: 0.4 }}
+          >
+            Chúng tôi tự hào hợp tác cùng những thương hiệu hàng đầu để mang đến
+            trải nghiệm tuyệt vời nhất cho khách hàng
+          </motion.p>
+        </div>
+
+        {/* Partners Grid */}
+        <motion.div
+          className="grid grid-cols-2 gap-8 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-7"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
-          transition={{ delay: 0.3, duration: 0.7 }}
+          transition={{ duration: 1, delay: 0.6 }}
         >
-          Các thương hiệu lớn đã hợp tác với chúng tôi
-        </motion.p>
-
-        <div className="grid grid-cols-2 gap-10 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-7">
           {partners.map((partner, index) => (
             <motion.div
               key={index}
-              className="hover:shadow-neon relative flex flex-col items-center justify-center rounded-2xl bg-white bg-opacity-10 p-8 shadow-2xl backdrop-blur-lg transition-all duration-300 ease-in-out"
-              whileHover={{
-                scale: 1.15,
-                rotate: 3,
-                boxShadow: '0px 25px 50px rgba(0, 255, 255, 0.5)',
-                transition: { duration: 0.4 }
+              className="group relative"
+              initial={{ opacity: 0, y: 50 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{
+                duration: 0.6,
+                delay: 0.8 + index * 0.1,
+                ease: 'easeOut'
               }}
             >
-              {/* Logo Image */}
-              <motion.img
-                src={partner.src}
-                alt={partner.name}
-                className="h-24 w-auto object-contain transition-transform duration-300"
-                whileHover={{
-                  scale: 1.3,
-                  rotate: 6,
-                  transition: { duration: 0.3 }
-                }}
-              />
-              {/* Partner Name */}
-              <p className="text-glow mt-4 text-xl font-semibold text-white">
-                {partner.name}
-              </p>
+              <div className="relative rounded-3xl border border-white/10 bg-white/5 p-8 backdrop-blur-xl transition-all duration-500 group-hover:border-violet-500/30 group-hover:bg-white/10 group-hover:shadow-2xl group-hover:shadow-violet-500/10">
+                {/* Hover Glow Effect */}
+                <div className="absolute inset-0 rounded-3xl bg-gradient-to-r from-violet-500/0 to-cyan-500/0 transition-all duration-500 group-hover:from-violet-500/5 group-hover:to-cyan-500/5"></div>
+
+                {/* Logo Container */}
+                <motion.div
+                  className="relative z-10 mb-6 flex h-20 items-center justify-center"
+                  whileHover={{ scale: 1.1 }}
+                  transition={{ duration: 0.3 }}
+                >
+                  <img
+                    src={partner.src}
+                    alt={partner.name}
+                    className="max-h-full max-w-full object-contain brightness-90 filter transition-all duration-300 group-hover:brightness-110"
+                  />
+                </motion.div>
+
+                {/* Partner Name */}
+                <div className="relative z-10 text-center">
+                  <h3 className="text-lg font-semibold text-white transition-colors duration-300 group-hover:text-violet-200">
+                    {partner.name}
+                  </h3>
+                </div>
+
+                {/* Animated Border */}
+                <motion.div
+                  className="absolute inset-0 rounded-3xl border-2 border-transparent"
+                  style={{
+                    background:
+                      'linear-gradient(45deg, transparent, transparent) padding-box, linear-gradient(45deg, #8b5cf6, #06b6d4) border-box',
+                    opacity: 0
+                  }}
+                  whileHover={{ opacity: 0.5 }}
+                  transition={{ duration: 0.3 }}
+                />
+              </div>
             </motion.div>
           ))}
-        </div>
+        </motion.div>
+
+        {/* Bottom Stats */}
+        <motion.div
+          className="mt-24 grid grid-cols-2 gap-8 text-center md:grid-cols-4"
+          initial={{ opacity: 0, y: 50 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.8, delay: 1.2 }}
+        >
+          <div className="rounded-2xl border border-white/10 bg-white/5 p-6 backdrop-blur-sm">
+            <div className="mb-2 text-3xl font-bold text-white">7+</div>
+            <div className="text-sm text-slate-400">Đối Tác</div>
+          </div>
+          <div className="rounded-2xl border border-white/10 bg-white/5 p-6 backdrop-blur-sm">
+            <div className="mb-2 text-3xl font-bold text-white">100K+</div>
+            <div className="text-sm text-slate-400">Khách Hàng</div>
+          </div>
+          <div className="rounded-2xl border border-white/10 bg-white/5 p-6 backdrop-blur-sm">
+            <div className="mb-2 text-3xl font-bold text-white">99%</div>
+            <div className="text-sm text-slate-400">Hài Lòng</div>
+          </div>
+          <div className="rounded-2xl border border-white/10 bg-white/5 p-6 backdrop-blur-sm">
+            <div className="mb-2 text-3xl font-bold text-white">24/7</div>
+            <div className="text-sm text-slate-400">Hỗ Trợ</div>
+          </div>
+        </motion.div>
       </div>
     </div>
   );

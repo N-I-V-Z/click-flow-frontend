@@ -26,7 +26,6 @@ const LoginRoute = ({ children }: LoginRouteProps) => {
     }
   } else {
     __helpers.cookie_delete('AT');
-    __helpers.cookie_delete('RT');
     return <Navigate to={'/login'} replace />;
   }
 

@@ -5,7 +5,8 @@ import {
   SettingOutlined,
   EnvironmentOutlined,
   PhoneOutlined,
-  MailOutlined
+  MailOutlined,
+  TikTokOutlined
 } from '@ant-design/icons';
 import { Link } from 'react-router-dom';
 
@@ -34,8 +35,8 @@ export default function Footer() {
               <Link to="https://www.facebook.com/profile.php?id=61576613399333">
                 <FacebookOutlined className="text-xl text-white transition-colors hover:text-purple-400" />{' '}
               </Link>
-              <Link to="">
-                <FacebookOutlined className="text-xl text-white transition-colors hover:text-purple-400" />{' '}
+              <Link to="https://www.tiktok.com/@clickflow.affiliate?is_from_webapp=1&sender_device=pc">
+                <TikTokOutlined className="text-xl text-white transition-colors hover:text-purple-400" />{' '}
               </Link>
             </div>
           </div>
@@ -97,7 +98,7 @@ export default function Footer() {
         </div>
 
         {/* Newsletter Section */}
-        <div className="mt-12 rounded-2xl border border-purple-500/20 bg-gradient-to-r from-purple-500/10 to-purple-600/10 p-8">
+        {/* <div className="mt-12 rounded-2xl border border-purple-500/20 bg-gradient-to-r from-purple-500/10 to-purple-600/10 p-8">
           <div className="text-center">
             <h3 className="mb-2 text-xl font-semibold text-purple-400">
               Đăng ký nhận tin tức
@@ -116,7 +117,7 @@ export default function Footer() {
               </button>
             </div>
           </div>
-        </div>
+        </div> */}
       </div>
 
       {/* Footer Bottom */}

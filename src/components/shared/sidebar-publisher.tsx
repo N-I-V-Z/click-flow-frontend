@@ -19,14 +19,11 @@ import { useRouter } from '@/routes/hooks';
 import { logout } from '@/redux/auth.slice';
 
 const SidebarPublisher: React.FC = () => {
-  const { mutateAsync: logoutAccount } = useLogout();
+  const { mutateAsync: logoutAccount, isPending } = useLogout();
   const location = useLocation();
   const router = useRouter();
   const dispatch = useDispatch();
-  const refreshToken = helpers.cookie_get('RT');
   const [selectedKey, setSelectedKey] = useState(location.pathname);
-  const { isPending } = useLogout();
-
   const [isModalVisible, setIsModalVisible] = useState(false);
 
   const showLogoutModal = () => {
@@ -38,14 +35,40 @@ const SidebarPublisher: React.FC = () => {
   };
 
   const handleConfirmLogout = async () => {
-    setIsModalVisible(false);
-    await logoutAccount({
-      refreshToken: refreshToken
-    });
-    helpers.cookie_delete('RT');
-    helpers.cookie_delete('AT');
-    router.push('/login');
-    dispatch(logout());
+    try {
+      setIsModalVisible(false);
+
+      // Lấy refresh token từ cookie hoặc localStorage
+      const refreshToken =
+        helpers.cookie_get('RT') || localStorage.getItem('refreshToken');
+
+      if (refreshToken) {
+        // Call API logout với refreshToken
+        await logoutAccount({ refreshToken });
+      }
+
+      // Xóa tokens khỏi storage
+      helpers.cookie_delete('AT');
+      helpers.cookie_delete('RT');
+      localStorage.removeItem('refreshToken');
+      localStorage.removeItem('accessToken');
+
+      // Dispatch logout action
+      dispatch(logout());
+
+      // Redirect to login
+      router.push('/login');
+    } catch (error) {
+      console.error('Logout error:', error);
+
+      // Ngay cả khi API lỗi, vẫn clear local data và logout
+      helpers.cookie_delete('AT');
+      helpers.cookie_delete('RT');
+      localStorage.removeItem('refreshToken');
+      localStorage.removeItem('accessToken');
+      dispatch(logout());
+      router.push('/login');
+    }
   };
 
   return (
@@ -127,7 +150,7 @@ const SidebarPublisher: React.FC = () => {
 
       {/* Custom Logout Confirmation Modal */}
       <Modal
-        visible={isModalVisible}
+        open={isModalVisible}
         centered
         closable={false}
         onCancel={handleCancelLogout}
@@ -136,6 +159,7 @@ const SidebarPublisher: React.FC = () => {
             key="cancel"
             onClick={handleCancelLogout}
             className="border border-gray-300 hover:border-[#9B52BF]"
+            disabled={isPending}
           >
             Hủy
           </Button>,
@@ -147,7 +171,7 @@ const SidebarPublisher: React.FC = () => {
             onClick={handleConfirmLogout}
             className="border-[#9B52BF] bg-[#9B52BF] hover:border-[#7a3293] hover:bg-[#7a3293]"
           >
-            Đăng xuất
+            {isPending ? 'Đang đăng xuất...' : 'Đăng xuất'}
           </Button>
         ]}
         bodyStyle={{ textAlign: 'center', paddingTop: 30 }}

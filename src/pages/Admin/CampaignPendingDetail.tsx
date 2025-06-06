@@ -14,13 +14,13 @@ import {
   Modal
 } from 'antd';
 import 'antd/dist/reset.css';
-
 import {
   useGetCampaignById,
   useUpdateCampaignStatus
 } from '@/queries/campaign.query';
 import { ApiResponse, Campaign, CampaignApiResponse } from '@/types';
 import BasePages from '@/components/shared/base-pages';
+import Loading from '@/components/ui/loading';
 
 const { Content } = Layout;
 const { Title, Paragraph, Text } = Typography;
@@ -30,25 +30,19 @@ const CampaignPendingDetail: React.FC = () => {
   const { id } = useParams();
   const navigate = useNavigate();
 
-  // Hook lấy chi tiết campaign theo ID
   const { data, isLoading, error } = useGetCampaignById(Number(id));
-  // Hook cập nhật trạng thái
   const { mutate: updateCampaignStatus } = useUpdateCampaignStatus();
 
-  // Loading
   if (isLoading) {
     return (
       <Layout className="min-h-screen bg-gray-50">
         <Content className="p-6">
-          <Card>
-            <Title level={4}>Đang tải dữ liệu chiến dịch...</Title>
-          </Card>
+          <Loading />
         </Content>
       </Layout>
     );
   }
 
-  // Lỗi
   if (error) {
     return (
       <Layout className="min-h-screen bg-gray-50">
@@ -61,7 +55,6 @@ const CampaignPendingDetail: React.FC = () => {
     );
   }
 
-  // Lấy đối tượng campaign từ API
   const apiCampaign = (data as ApiResponse<CampaignApiResponse>)?.result;
   if (!apiCampaign) {
     return (
@@ -75,7 +68,6 @@ const CampaignPendingDetail: React.FC = () => {
     );
   }
 
-  // Map dữ liệu API -> interface Campaign (tuỳ theo trường backend)
   const campaign: Campaign = {
     id: apiCampaign.id,
     name: apiCampaign.name,
@@ -94,18 +86,15 @@ const CampaignPendingDetail: React.FC = () => {
     imageUrl: apiCampaign.image
   };
 
-  // Badge trạng thái
   let statusBadge;
   if (campaign.status === 'Hoạt động') {
     statusBadge = <Badge status="success" text="Hoạt động" />;
   } else if (campaign.status === 'Bị từ chối') {
     statusBadge = <Badge status="error" text="Bị từ chối" />;
   } else {
-    // "Chờ duyệt" hoặc trạng thái khác
     statusBadge = <Badge status="warning" text="Chờ duyệt" />;
   }
 
-  // Tag cho category và method
   const categoryTag = (
     <Tag color="blue" className="font-semibold">
       {campaign.category}
@@ -117,13 +106,11 @@ const CampaignPendingDetail: React.FC = () => {
     </Tag>
   );
 
-  // Hoa hồng
   const commissionText =
     campaign.commissionType === '%'
       ? `${campaign.commissionValue}%`
       : `${campaign.commissionValue?.toLocaleString()} VND`;
 
-  // Hỏi xác nhận và cập nhật status
   const confirmUpdateStatus = (action: 'approve' | 'reject') => {
     confirm({
       title: action === 'approve' ? 'Duyệt chiến dịch?' : 'Từ chối chiến dịch?',
@@ -144,7 +131,6 @@ const CampaignPendingDetail: React.FC = () => {
                   ? `Đã duyệt chiến dịch: ${campaign.name}`
                   : `Đã từ chối chiến dịch: ${campaign.name}`
               );
-              // Đợi 1 giây rồi chuyển hướng
               setTimeout(() => {
                 navigate('/admin/campaignrequest');
               }, 1000);
@@ -158,12 +144,9 @@ const CampaignPendingDetail: React.FC = () => {
     });
   };
 
-  // Xử lý nút Duyệt
   const handleApprove = () => {
     confirmUpdateStatus('approve');
   };
-
-  // Xử lý nút Từ chối
   const handleReject = () => {
     confirmUpdateStatus('reject');
   };
@@ -176,7 +159,6 @@ const CampaignPendingDetail: React.FC = () => {
       >
         <Content className="p-6">
           <div className="mx-auto max-w-7xl">
-            {/* Thanh tiêu đề + nút Duyệt/Từ chối ở góc phải */}
             <div className="mb-6 flex items-center justify-between">
               <Title level={2} className="mb-0">
                 Chi tiết chiến dịch (chưa chạy)
@@ -200,10 +182,8 @@ const CampaignPendingDetail: React.FC = () => {
             </div>
 
             <Row gutter={[24, 24]} style={{ alignItems: 'stretch' }}>
-              {/* Cột trái */}
               <Col xs={24} md={8} style={{ display: 'flex' }}>
                 <div className="relative flex flex-1 flex-col overflow-hidden rounded-lg bg-white shadow">
-                  {/* Gradient header */}
                   <div
                     className="absolute left-0 right-0 top-0 h-16"
                     style={{
@@ -212,7 +192,6 @@ const CampaignPendingDetail: React.FC = () => {
                     }}
                   />
                   <div className="relative flex flex-1 flex-col p-5 pt-20">
-                    {/* Ảnh */}
                     <div className="mb-4 flex justify-center">
                       <img
                         src={campaign.imageUrl ?? ''}
@@ -240,7 +219,6 @@ const CampaignPendingDetail: React.FC = () => {
                 </div>
               </Col>
 
-              {/* Cột phải */}
               <Col xs={24} md={16} style={{ display: 'flex' }}>
                 <Card className="flex-1 shadow-md">
                   <Title level={4} className="mb-4">

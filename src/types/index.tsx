@@ -1,4 +1,6 @@
 import { Icons } from '@/components/ui/icons';
+import { Wallet } from 'lucide-react';
+import { Transaction } from './index';
 
 // Interface
 export interface NavItem {
@@ -293,4 +295,33 @@ export interface Course {
   lessonLearned: string;
   content: string;
   description: string;
+}
+
+export interface Wallet {
+  id: number;
+  balance: number;
+  userId: number;
+}
+
+export interface Transaction {
+  id: number;
+  amount: number;
+  paymentDate: Date;
+  balance: number;
+  transactionType: TransactionType;
+  walletId: number;
+}
+
+export enum TransactionType {
+  Deposit = 'Deposit',
+  Withdraw = 'Withdraw',
+  Pay = 'Pay',
+  Received = 'Received'
+}
+
+export interface CreateTransactionAPI {
+  amount: number;
+  status: string;
+  transactionType: TransactionType;
+  walletId: number;
 }

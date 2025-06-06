@@ -2,7 +2,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { Modal } from 'antd';
 import { EyeOutlined, CloseCircleOutlined } from '@ant-design/icons';
 import { ColumnDef } from '@tanstack/react-table';
-// Import 2 hook dưới:
+import Loading from '@/components/ui/loading';
 import { useGetUsersByRole } from '@/queries/user.query';
 import {
   ApiResponse,
@@ -19,8 +19,6 @@ interface Advertiser {
   phone: string;
   userName: string;
   email: string;
-  /** Bỏ createdAt nếu không cần nữa */
-  // createdAt: string;
   company: string;
   business: string;
   status: string;
@@ -29,38 +27,27 @@ interface Advertiser {
 function mapApiUserToAdvertiser(apiUser: any): Advertiser {
   return {
     id: apiUser.id,
-    code: apiUser.id, // Tùy bạn format "ADSxxx" nếu muốn
+    code: apiUser.id,
     name: apiUser.fullName ?? 'No name',
     phone: apiUser.phone ?? '',
     userName: apiUser.userName ?? '',
     email: apiUser.email ?? '',
-    // company -> Lấy từ apiUser.advertiser.companyName
     company: apiUser.advertiser?.companyName ?? '',
-    // business -> Lĩnh vực kinh doanh (nếu backend có)
     business: apiUser.advertiser?.businessArea ?? '',
-    // status
     status: apiUser.isDeleted ? 'Bị khóa' : 'Hoạt động'
   };
 }
 
 const AdvertiserList: React.FC = () => {
-  // State chứa danh sách advertiser
   const [dataSource, setDataSource] = useState<Advertiser[]>([]);
-
-  // Modal "Xem chi tiết"
   const [isViewModalVisible, setIsViewModalVisible] = useState(false);
-  // Lưu ID advertiser đang xem để gọi API chi tiết
   const [selectedId, setSelectedId] = useState<number | null>(null);
-
-  // Modal "Khóa/Mở khóa"
   const [isLockModalVisible, setIsLockModalVisible] = useState(false);
   const [selectedAdvertiser, setSelectedAdvertiser] =
     useState<Advertiser | null>(null);
 
-  // 1) Gọi API lấy user role = "Advertiser", page=1, size=10
   const { data, isLoading, error } = useGetUsersByRole('Advertiser', 1, 10);
 
-  // 2) Mỗi khi data?.result thay đổi, map sang Advertiser[]
   useEffect(() => {
     if (data?.result) {
       const mapped = (
@@ -72,7 +59,6 @@ const AdvertiserList: React.FC = () => {
     }
   }, [data]);
 
-  // 3) "Xem chi tiết"
   const handleView = (record: Advertiser) => {
     setSelectedId(record.id);
     setIsViewModalVisible(true);
@@ -82,7 +68,6 @@ const AdvertiserList: React.FC = () => {
     setSelectedId(null);
   };
 
-  // 4) "Khóa/Mở khóa"
   const handleLockUnlock = (record: Advertiser) => {
     setSelectedAdvertiser(record);
     setIsLockModalVisible(true);
@@ -108,7 +93,6 @@ const AdvertiserList: React.FC = () => {
     setSelectedAdvertiser(null);
   };
 
-  // Định nghĩa cột cho DataTable
   const columns = useMemo<ColumnDef<Advertiser>[]>(
     () => [
       {
@@ -117,7 +101,6 @@ const AdvertiserList: React.FC = () => {
         cell: ({ row }) => <div className="text-center">{row.index + 1}</div>
       },
       { accessorKey: 'name', header: 'TÊN NHÀ QUẢNG CÁO' },
-      // BỎ cột { accessorKey: 'createdAt', header: 'NGÀY TẠO' },
       { accessorKey: 'company', header: 'TÊN CÔNG TY' },
       {
         accessorKey: 'status',
@@ -140,12 +123,10 @@ const AdvertiserList: React.FC = () => {
           const record = row.original;
           return (
             <div className="flex justify-center gap-3">
-              {/* Nút Xem chi tiết */}
               <EyeOutlined
                 onClick={() => handleView(record)}
                 className="cursor-pointer rounded-full p-1 text-xl text-[#1570EF] transition-colors hover:bg-[#1570EF] hover:text-white"
               />
-              {/* Nút Khóa/Mở khóa */}
               <CloseCircleOutlined
                 onClick={() => handleLockUnlock(record)}
                 className="cursor-pointer rounded-full p-1 text-xl text-[#DC0E0E] transition-colors hover:bg-[#DC0E0E] hover:text-white"
@@ -158,12 +139,21 @@ const AdvertiserList: React.FC = () => {
     []
   );
 
-  // Xử lý trạng thái loading / error
   if (isLoading) {
-    return <div>Đang tải danh sách nhà quảng cáo...</div>;
+    return (
+      <BasePages pageHead="ClickFlow - Nhà quảng cáo ">
+        <div className="p-4">
+          <Loading />
+        </div>
+      </BasePages>
+    );
   }
   if (error) {
-    return <div>Đã có lỗi xảy ra khi tải dữ liệu!</div>;
+    return (
+      <BasePages pageHead="ClickFlow - Nhà quảng cáo ">
+        <div className="p-4">Đã có lỗi xảy ra khi tải dữ liệu!</div>
+      </BasePages>
+    );
   }
 
   return (
@@ -171,7 +161,6 @@ const AdvertiserList: React.FC = () => {
       <div className="mb-10 p-4">
         <h2 className="mb-4 text-xl font-semibold">Nhà quảng cáo</h2>
 
-        {/* DataTable hiển thị advertisers */}
         <DataTable
           columns={columns}
           data={dataSource}
@@ -179,15 +168,6 @@ const AdvertiserList: React.FC = () => {
           pageSizeOptions={[10, 20, 50, 100]}
           showAdd={false}
         />
-
-        {/* Modal "Xem chi tiết" */}
-        {/* <AdvertiserDetailModal
-        open={isViewModalVisible}
-        onClose={closeViewModal}
-        advertiserId={selectedId}
-      /> */}
-
-        {/* Modal "Khóa/Mở khóa" */}
         <Modal
           title={
             selectedAdvertiser?.status === 'Hoạt động'
