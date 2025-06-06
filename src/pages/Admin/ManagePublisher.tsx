@@ -6,9 +6,9 @@ import {
   UserOutlined
 } from '@ant-design/icons';
 import DataTable from '@/components/shared/data-table';
+import Loading from '@/components/ui/loading';
 import { ColumnDef } from '@tanstack/react-table';
 import BasePages from '@/components/shared/base-pages';
-// Import hook để gọi API
 import { useGetUsersByRole } from '@/queries/user.query';
 import {
   ApiResponse,
@@ -25,43 +25,32 @@ interface Publisher {
   email: string;
   bankAccount: string;
   bankName: string;
-  status: string; // "Hoạt động" | "Bị khóa"
+  status: string;
 }
 
-// Hàm map từ API response sang Publisher interface
 function mapApiUserToPublisher(apiUser: any): Publisher {
   return {
     id: apiUser.id,
-    code: `PL${apiUser.id}`, // Format PLS001, PLS002...
+    code: `PL${apiUser.id}`,
     name: apiUser.fullName ?? 'No name',
     phone: apiUser.phone ?? '',
     userName: apiUser.userName ?? '',
     email: apiUser.email ?? '',
-    // Lấy thông tin ngân hàng từ publisher object (nếu có)
     bankAccount: apiUser.publisher?.bankAccount ?? '',
     bankName: apiUser.publisher?.bankName ?? '',
-    // Trạng thái dựa trên isDeleted
     status: apiUser.isDeleted ? 'Bị khóa' : 'Hoạt động'
   };
 }
 
 const PublisherList: React.FC = () => {
-  // State chứa danh sách publisher
   const [dataSource, setDataSource] = useState<Publisher[]>([]);
-
-  // --- Modal "Xem chi tiết" ---
   const [isViewModalVisible, setIsViewModalVisible] = useState(false);
   const [selectedPublisher, setSelectedPublisher] = useState<Publisher | null>(
     null
   );
-
-  // --- Modal "Khóa/Mở khóa" ---
   const [isLockModalVisible, setIsLockModalVisible] = useState(false);
-
-  // Gọi API lấy user role = "Publisher", page=1, size=10
   const { data, isLoading, error } = useGetUsersByRole('Publisher', 1, 10);
 
-  // Mỗi khi data?.result thay đổi, map sang Publisher[]
   useEffect(() => {
     if (data?.result) {
       const mapped = (
@@ -110,7 +99,6 @@ const PublisherList: React.FC = () => {
     setSelectedPublisher(null);
   };
 
-  // --- Định nghĩa cột cho DataTable ---
   const columns = useMemo<ColumnDef<Publisher>[]>(
     () => [
       {
@@ -157,29 +145,35 @@ const PublisherList: React.FC = () => {
     []
   );
 
-  // Xử lý trạng thái loading / error
   if (isLoading) {
-    return <div>Đang tải danh sách nhà tiếp thị...</div>;
+    return (
+      <BasePages pageHead="ClickFlow - Nhà tiếp thị ">
+        <div className="p-4">
+          <Loading />
+        </div>
+      </BasePages>
+    );
   }
   if (error) {
-    return <div>Đã có lỗi xảy ra khi tải dữ liệu!</div>;
+    return (
+      <BasePages pageHead="ClickFlow - Nhà tiếp thị ">
+        <div className="p-4">Đã có lỗi xảy ra khi tải dữ liệu!</div>
+      </BasePages>
+    );
   }
 
   return (
     <BasePages pageHead="ClickFlow - Nhà tiếp thị ">
       <div className="mb-10 p-4">
         <h2 className="mb-4 text-xl font-semibold">Nhà tiếp thị</h2>
-
-        {/* Sử dụng DataTable với dữ liệu từ API */}
         <DataTable
           columns={columns}
           data={dataSource}
-          pageCount={-1} // -1 để DataTable tự tính số trang dựa trên dữ liệu
+          pageCount={-1} //
           pageSizeOptions={[10, 20, 30, 40, 50]}
           showAdd={false}
         />
 
-        {/* Modal "Xem chi tiết" */}
         <Modal
           open={isViewModalVisible}
           onCancel={closeViewModal}
@@ -188,7 +182,6 @@ const PublisherList: React.FC = () => {
         >
           {selectedPublisher && (
             <div>
-              {/* Header tùy chỉnh */}
               <div className="flex items-center gap-3">
                 <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-gray-200 text-2xl text-gray-600">
                   <UserOutlined />
@@ -237,7 +230,6 @@ const PublisherList: React.FC = () => {
           )}
         </Modal>
 
-        {/* Modal "Khóa/Mở khóa" */}
         <Modal
           title={
             selectedPublisher?.status === 'Hoạt động'

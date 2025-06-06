@@ -67,15 +67,11 @@ export default function LoginPage() {
         'AT',
         (data as ApiResponse<LoginApiResponse>).result?.token ?? ''
       );
-      helpers.cookie_set(
-        'RT',
-        (data as ApiResponse<LoginApiResponse>).result?.refreshToken ?? ''
-      );
       dispatch(login());
       const decodedToken: TokenDecoded | null = helpers.decodeTokens(
         __helpers.cookie_get('AT')
       );
-      // Chuyển role thành chữ thường để so sánh không phân biệt chữ hoa chữ thường
+
       const role = decodedToken?.Role.toLowerCase();
       if (role === 'admin') {
         router.push('/admin');

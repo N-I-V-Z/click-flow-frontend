@@ -19,6 +19,7 @@ const AdminCampaignPendingDetail = lazy(
   () => import('@/pages/Admin/CampaignPendingDetail')
 );
 const Support = lazy(() => import('@/pages/Chat/ChatPage'));
+const ManageCourse = lazy(() => import('@/pages/Admin/ManageCourse'));
 
 const adminRoutes = [
   {
@@ -97,10 +98,8 @@ const adminRoutes = [
         path: 'campaign-request-detail/:id',
         element: <AdminCampaignPendingDetail />
       },
-      {
-        path: 'support',
-        element: <Support />
-      }
+      { path: 'support', element: <Support /> },
+      { path: 'course', element: <ManageCourse /> }
     ]
   }
 ];

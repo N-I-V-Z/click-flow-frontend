@@ -20,3 +20,17 @@ export const useGetAllCourses = (
     }
   });
 };
+
+export const useGetCourseAdmin = (
+  pageIndex: number = 1,
+  pageSize: number = 10
+) => {
+  return useQuery({
+    queryKey: ['get-courses', pageIndex, pageSize],
+    queryFn: async () => {
+      return await BaseRequest.Get<PagingResponse<Course>>(
+        `${SUB_URL}/admin?PageIndex=${pageIndex}&PageSize=${pageSize}`
+      );
+    }
+  });
+};

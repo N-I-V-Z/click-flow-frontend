@@ -6,44 +6,26 @@ import {
   EditOutlined,
   CloseCircleOutlined
 } from '@ant-design/icons';
-
 import DataTable from '@/components/shared/data-table';
+import Loading from '@/components/ui/loading';
 import { ColumnDef } from '@tanstack/react-table';
-
-// **Import hook** gọi API
 import { useGetCampaignListExcpPending } from '@/queries/campaign.query';
 import { ApiResponse, CampaignApiResponse, PagingResponse } from '@/types';
 import __helpers from '@/helpers';
-import { DataTableSkeleton } from '@/components/shared/data-table-skeleton';
 import BasePages from '@/components/shared/base-pages';
-// (tuỳ đường dẫn file bạn đặt)
 
 const CampaignList: React.FC = () => {
-  // Mảng data hiển thị trên bảng (đã filter cục bộ)
   const [dataSource, setDataSource] = useState<CampaignApiResponse[]>([]);
-
-  // Modal xác nhận dừng chiến dịch
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [selectedCampaign, setSelectedCampaign] =
     useState<CampaignApiResponse | null>(null);
-
-  // Điều hướng router
   const navigate = useNavigate();
-
-  // ---- (1) Gọi API ----
   const { pageIndex, pageSize } = __helpers.usePaginationParams();
-
-  // Giả sử ta muốn pageIndex=1, pageSize=10
   const { data, isLoading, error, isSuccess } = useGetCampaignListExcpPending(
     pageIndex,
     pageSize
   );
 
-  /**
-   * Khi data từ API trả về, ta lưu vào dataSource.
-   * Giả sử backend trả về { result: [ {id, name, ...}, ... ] }
-   * Tuỳ theo shape thật của response mà bạn chỉnh sửa.
-   */
   useEffect(() => {
     if (isSuccess) {
       setDataSource(
@@ -53,7 +35,6 @@ const CampaignList: React.FC = () => {
     }
   }, [data, isSuccess]);
 
-  // Bấm "Xem" => điều hướng sang /admin/campaign-detail/:id
   const handleView = useCallback(
     (record: CampaignApiResponse) => {
       navigate(`/admin/campaign-detail/${record.id}`);
@@ -61,17 +42,14 @@ const CampaignList: React.FC = () => {
     [navigate]
   );
 
-  // Xác nhận "Dừng chiến dịch"
   const handleDelete = () => {
     if (selectedCampaign) {
-      // Tạm thời xoá cục bộ. Nếu cần, bạn gọi API update status "Stopped"...
       setDataSource((prev) => prev.filter((c) => c.id !== selectedCampaign.id));
     }
     setIsModalVisible(false);
     setSelectedCampaign(null);
   };
 
-  // Định nghĩa cột
   const columns = useMemo<ColumnDef<CampaignApiResponse>[]>(
     () => [
       {
@@ -87,7 +65,7 @@ const CampaignList: React.FC = () => {
         header: 'NGÀY KẾT THÚC'
       },
       {
-        accessorKey: 'advertiser.companyName', // Sử dụng companyName thay cho advertiserName
+        accessorKey: 'advertiser.companyName',
         header: 'NHÀ QUẢNG CÁO'
       },
       {
@@ -145,18 +123,16 @@ const CampaignList: React.FC = () => {
         <h2 className="mb-4 text-xl font-semibold">Danh sách chiến dịch</h2>
 
         {isLoading ? (
-          <DataTableSkeleton columnCount={6} rowCount={pageSize} />
+          <Loading />
         ) : (
           <DataTable
             columns={columns}
             data={dataSource}
-            // Nếu backend có totalPage, bạn có thể truyền vào pageCount
             pageCount={1}
             showAdd={false}
           />
         )}
 
-        {/* Modal xác nhận dừng chiến dịch */}
         <Modal
           title="Dừng chiến dịch"
           open={isModalVisible}

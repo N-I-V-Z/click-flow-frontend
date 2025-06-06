@@ -8,6 +8,11 @@ import {
   SettingsIcon
 } from '@/constants/SVGIcon';
 
+export const logoURL =
+  'http://res.cloudinary.com/detykxgzs/image/upload/v1749191547/j3nf2u8kkonympnxvz1r.png';
+export const logoURLAd =
+  'http://res.cloudinary.com/detykxgzs/image/upload/v1749192990/b8lphpkhdkkkebgmdxc1.jpg';
+
 export const navItems: NavItem[] = [
   {
     title: 'Trang chủ',

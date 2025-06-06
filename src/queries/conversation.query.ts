@@ -1,11 +1,7 @@
 import BaseRequest from '@/config/axios.config';
 import { useMutation, useQuery } from '@tanstack/react-query';
-import helpers from '@/helpers';
-import {
-  ConversationApiResponse,
-  ConversationListApiResponse,
-  PagingResponse
-} from '@/types';
+
+import { ConversationApiResponse, ConversationListApiResponse } from '@/types';
 
 const SUB_URL = `api/Conversations`;
 

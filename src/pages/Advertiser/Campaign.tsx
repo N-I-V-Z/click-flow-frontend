@@ -9,10 +9,10 @@ import { usePageTitle } from '@/hooks/use-pagetitle';
 import { TokenDecoded } from '@/types';
 import helpers from '@/helpers';
 import __helpers from '@/helpers';
-
 import { useGetCampaignAdvertiser } from '@/queries/campaign.query';
 import { ApiResponse, CampaignApiResponse, PagingResponse } from '@/types';
 import BasePages from '@/components/shared/base-pages';
+import Loading from '@/components/ui/loading';
 
 const decodedToken: TokenDecoded | null = helpers.decodeTokens(
   __helpers.cookie_get('AT')
@@ -71,11 +71,9 @@ const AdvertiserCampaigns = () => {
   usePageTitle('Chiến dịch | Click Flow');
   const [campaignStatus, setCampaignStatus] =
     useState<AdvertiserCampaignStatus>('All');
-
   const { pageIndex, pageSize } = __helpers.usePaginationParams();
   const advertiserId =
     decodedToken?.Id !== undefined ? parseInt(decodedToken?.Id) : 0;
-
   const { data, isLoading, isError } = useGetCampaignAdvertiser(
     advertiserId,
     campaignStatus === 'All' ? undefined : campaignStatus,
@@ -86,7 +84,6 @@ const AdvertiserCampaigns = () => {
   const [rowSelection, setRowSelection] = useState<Record<string, boolean>>({});
   const [selectedRows, setSelectedRows] = useState<CampaignApiResponse[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
-
   const [selectedProject, setSelectedProject] =
     useState<CampaignApiResponse | null>(null);
   const [isViewOpen, setIsViewOpen] = useState(false);
@@ -231,11 +228,21 @@ const AdvertiserCampaigns = () => {
   };
 
   if (isLoading) {
-    return <div className="p-6">Đang tải dữ liệu...</div>;
+    return (
+      <BasePages pageHead="ClickFlow - Danh sách yêu cầu ">
+        <div className="flex justify-center p-6">
+          <Loading />
+        </div>
+      </BasePages>
+    );
   }
 
   if (isError) {
-    return <div className="p-6">Lỗi khi tải dữ liệu.</div>;
+    return (
+      <BasePages pageHead="ClickFlow - Danh sách yêu cầu ">
+        <div className="p-6">Lỗi khi tải dữ liệu.</div>
+      </BasePages>
+    );
   }
 
   return (
