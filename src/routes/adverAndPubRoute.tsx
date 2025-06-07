@@ -11,6 +11,7 @@ const AllCommonLayout = lazy(
 
 // Các trang con dùng chung (Forum, Course, v.v.)
 const Forum = lazy(() => import('@/pages/Advertiser/Forum'));
+const News = lazy(() => import('@/pages/Advertiser/NewsSection'));
 
 // Nếu có thêm các route con chi tiết, import tương tự
 // const ForumDetail = lazy(() => import('@/pages/Forum/ForumDetail'));
@@ -36,6 +37,14 @@ const adverAndPubRoutes = [
         element: (
           <RoleRoute allowedRoles={['Advertiser', 'Publisher']}>
             <Forum />
+          </RoleRoute>
+        )
+      },
+      {
+        path: 'news',
+        element: (
+          <RoleRoute allowedRoles={['Advertiser', 'Publisher']}>
+            <News />
           </RoleRoute>
         )
       }

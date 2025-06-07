@@ -8,7 +8,7 @@ import { HelmetProvider } from 'react-helmet-async';
 import { BrowserRouter } from 'react-router-dom';
 import ThemeProvider from './theme-provider';
 import { SidebarProvider } from '@/hooks/use-sidebar';
-import { MouseEffectProvider } from './MouseEffectProvider';
+// import { MouseEffectProvider } from './MouseEffectProvider';
 
 export const queryClient = new QueryClient({
   defaultOptions: {
@@ -69,9 +69,9 @@ export default function AppProvider({
               <ReactQueryDevtools />
               <ThemeProvider defaultTheme="light" storageKey="vite-ui-theme">
                 <SidebarProvider>
-                  <MouseEffectProvider enabled={true}>
-                    {children}
-                  </MouseEffectProvider>
+                  {/* <MouseEffectProvider enabled={true}> */}
+                  {children}
+                  {/* </MouseEffectProvider> */}
                 </SidebarProvider>
               </ThemeProvider>
             </QueryClientProvider>
