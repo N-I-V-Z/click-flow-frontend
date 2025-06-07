@@ -17,10 +17,7 @@ export const AdvertiserDetailModal: React.FC<AdvertiserDetailModalProps> = ({
   // Gọi API chi tiết, chỉ fetch khi advertiserId != null
   const { data, isLoading } = useGetAdvertiserDetail(advertiserId ?? undefined);
 
-  // Tuỳ backend mà data trả về shape gì
-  // Ví dụ data = { id, fullName, phone, userName, email, advertiser:{...} }
-  // Ta map sang 1 biến cục bộ, hoặc dùng thẳng data
-  const advertiserDetail = data?.result; // tuỳ backend
+  const advertiserDetail = data?.result;
 
   return (
     <Modal

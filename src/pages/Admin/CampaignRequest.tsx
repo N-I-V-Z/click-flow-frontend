@@ -6,8 +6,8 @@ import {
   EllipsisOutlined
 } from '@ant-design/icons';
 import { useNavigate } from 'react-router-dom';
-
 import DataTable from '@/components/shared/data-table';
+import Loading from '@/components/ui/loading';
 import { ColumnDef } from '@tanstack/react-table';
 import {
   useGetCampaign,
@@ -16,7 +16,6 @@ import {
 import { ApiResponse, CampaignApiResponse, PagingResponse } from '@/types';
 import BasePages from '@/components/shared/base-pages';
 
-// Hàm format ngày "YYYY-MM-DD" => "DD/MM/YYYY"
 function formatDate(dateStr: string): string {
   if (!dateStr) return '';
   const date = new Date(dateStr);
@@ -27,27 +26,21 @@ function formatDate(dateStr: string): string {
   return `${day}/${month}/${year}`;
 }
 
-// Interface cho campaign sau khi map dữ liệu từ API
 interface RequestCampaign {
   id: number;
   name: string;
-  createdAt: string; // Hiển thị startDate (DD/MM/YYYY)
-  endAt: string; // Hiển thị endDate (DD/MM/YYYY)
-  advertiser: string; // advertiserName
-  status: string; // Ví dụ: "Pending" => hiển thị "Chờ duyệt"
+  createdAt: string;
+  endAt: string;
+  advertiser: string;
+  status: string;
 }
 
 const CampaignRequest: React.FC = () => {
   const navigate = useNavigate();
-
-  // Lấy danh sách campaign trạng thái "Pending"
   const { data, isLoading, error, refetch } = useGetCampaign('Pending', 1, 10);
-  // Giả sử API trả về dữ liệu trong trường result
   const rawCampaigns =
     (data as ApiResponse<PagingResponse<CampaignApiResponse>>)?.result?.datas ??
     [];
-
-  // Map dữ liệu API thành interface RequestCampaign
   const campaigns: RequestCampaign[] = rawCampaigns.map((item: any) => ({
     id: item.id,
     name: item.name,
@@ -56,23 +49,16 @@ const CampaignRequest: React.FC = () => {
     advertiser: item.advertiser?.companyName ?? '',
     status: item.status
   }));
-
-  // Hook cập nhật trạng thái campaign
   const { mutate: updateCampaignStatus } = useUpdateCampaignStatus();
-
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [modalAction, setModalAction] = useState<'accept' | 'reject' | null>(
     null
   );
   const [selectedCampaign, setSelectedCampaign] =
     useState<RequestCampaign | null>(null);
-
-  // Xử lý khi bấm "Xác nhận" trên Modal
   const handleOk = () => {
     if (selectedCampaign && modalAction) {
-      // Xác định trạng thái mới dựa theo hành động
       const newStatus = modalAction === 'accept' ? 'Approved' : 'Canceled';
-      // Gọi mutation cập nhật status
       updateCampaignStatus(
         { id: selectedCampaign.id, status: newStatus },
         {
@@ -81,7 +67,7 @@ const CampaignRequest: React.FC = () => {
               message: 'Cập nhật thành công',
               description: `Chiến dịch "${selectedCampaign.name}" đã được cập nhật thành "${newStatus}".`
             });
-            refetch(); // Refetch lại danh sách campaign
+            refetch();
           },
           onError: (err: any) => {
             console.error(err);
@@ -98,14 +84,12 @@ const CampaignRequest: React.FC = () => {
     setSelectedCampaign(null);
   };
 
-  // Khi người dùng bấm "Hủy" trên modal, chúng ta chỉ đóng modal (không cập nhật)
   const handleCancel = () => {
     setIsModalVisible(false);
     setModalAction(null);
     setSelectedCampaign(null);
   };
 
-  // Định nghĩa cột cho DataTable
   const columns = useMemo<ColumnDef<RequestCampaign>[]>(
     () => [
       {
@@ -142,7 +126,6 @@ const CampaignRequest: React.FC = () => {
           const record = row.original;
           return (
             <div className="flex gap-3">
-              {/* Nút Duyệt */}
               <CheckCircleOutlined
                 onClick={() => {
                   setSelectedCampaign(record);
@@ -151,7 +134,7 @@ const CampaignRequest: React.FC = () => {
                 }}
                 className="cursor-pointer rounded-full p-1 text-xl text-green-500 transition-colors hover:bg-green-500 hover:text-white"
               />
-              {/* Nút Từ chối */}
+
               <CloseCircleOutlined
                 onClick={() => {
                   setSelectedCampaign(record);
@@ -160,7 +143,7 @@ const CampaignRequest: React.FC = () => {
                 }}
                 className="cursor-pointer rounded-full p-1 text-xl text-[#DC0E0E] transition-colors hover:bg-[#DC0E0E] hover:text-white"
               />
-              {/* Nút Chi tiết */}
+
               <EllipsisOutlined
                 onClick={() =>
                   navigate(`/admin/campaign-request-detail/${record.id}`)
@@ -176,11 +159,21 @@ const CampaignRequest: React.FC = () => {
   );
 
   if (isLoading) {
-    return <div>Đang tải dữ liệu...</div>;
+    return (
+      <BasePages pageHead="ClickFlow - Yêu cầu chiến dịch">
+        <div className="p-4">
+          <Loading />
+        </div>
+      </BasePages>
+    );
   }
 
   if (error) {
-    return <div>Đã có lỗi xảy ra khi tải dữ liệu!</div>;
+    return (
+      <BasePages pageHead="ClickFlow - Yêu cầu chiến dịch">
+        <div className="p-4">Đã có lỗi xảy ra khi tải dữ liệu!</div>
+      </BasePages>
+    );
   }
 
   return (
@@ -196,7 +189,6 @@ const CampaignRequest: React.FC = () => {
           showAdd={false}
         />
 
-        {/* Modal xác nhận hành động */}
         <Modal
           title={
             modalAction === 'accept'

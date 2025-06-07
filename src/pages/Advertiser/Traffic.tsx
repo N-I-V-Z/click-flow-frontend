@@ -6,6 +6,7 @@ import DataTable from '@/components/shared/data-table';
 import { useGetTrafficForAdvertiser } from '@/queries/traffic.query';
 import helpers from '@/helpers';
 import BasePages from '@/components/shared/base-pages';
+import Loading from '@/components/ui/loading';
 
 type TrafficType = {
   id: number;
@@ -19,7 +20,6 @@ type TrafficType = {
 export default function Traffic() {
   const { pageIndex, pageSize } = helpers.usePaginationParams();
   const [searchTerm, setSearchTerm] = useState('');
-
   const { data, isLoading, isError } = useGetTrafficForAdvertiser(
     pageIndex,
     pageSize,
@@ -87,9 +87,7 @@ export default function Traffic() {
   if (isLoading) {
     return (
       <div className="flex h-screen items-center justify-center">
-        <div className="text-xl font-semibold text-gray-600">
-          Đang tải dữ liệu...
-        </div>
+        <Loading />
       </div>
     );
   }
@@ -113,6 +111,15 @@ export default function Traffic() {
               <h2 className="mb-4 text-3xl font-bold text-gray-800 sm:mb-0">
                 Danh sách Traffic
               </h2>
+              <div className="mt-4 sm:mt-0">
+                <input
+                  type="text"
+                  placeholder="Tìm kiếm..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="rounded border p-2"
+                />
+              </div>
             </div>
             <DataTable columns={columns} data={filteredData} pageCount={1} />
           </div>

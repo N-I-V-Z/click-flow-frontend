@@ -1,13 +1,10 @@
 import { useState, useEffect, useMemo } from 'react';
-import { Button, Tag, Input, message } from 'antd';
+import { Button, Tag, Input } from 'antd';
 import { EyeOutlined, EditOutlined } from '@ant-design/icons';
 import { ColumnDef } from '@tanstack/react-table';
 import DataTable from '@/components/shared/data-table';
-
-// Gọi API
+import Loading from '@/components/ui/loading';
 import { useGetReports } from '@/queries/report.query';
-
-// 2 modal tách file
 import ReportDetailModal from './ReportDetailModal';
 import ReportResponseModal from './ReportResponseModal';
 import { ApiResponse, PagingResponse, ReportApiResponse } from '@/types';
@@ -31,7 +28,6 @@ const statusTagColor: Record<string, string> = {
   'Từ chối': 'red'
 };
 
-// Map API -> local
 function mapApiReportToLocal(apiItem: any): Report {
   return {
     id: String(apiItem.id),
@@ -56,16 +52,10 @@ function mapApiReportToLocal(apiItem: any): Report {
 export default function ReportTable() {
   const [search, setSearch] = useState('');
   const [reports, setReports] = useState<Report[]>([]);
-
-  // State cho modal Detail
   const [detailOpen, setDetailOpen] = useState(false);
   const [detailReport, setDetailReport] = useState<Report | null>(null);
-
-  // State cho modal Response
   const [responseOpen, setResponseOpen] = useState(false);
   const [responseReport, setResponseReport] = useState<Report | null>(null);
-
-  // Gọi API
   const { data, isLoading, error } = useGetReports(1, 10);
 
   useEffect(() => {
@@ -79,7 +69,6 @@ export default function ReportTable() {
     }
   }, [data]);
 
-  // Tìm kiếm client side
   const filteredReports = useMemo(() => {
     const lower = search.toLowerCase();
     return reports.filter(
@@ -89,7 +78,6 @@ export default function ReportTable() {
     );
   }, [reports, search]);
 
-  // Cột
   const columns = useMemo<ColumnDef<Report>[]>(
     () => [
       { accessorKey: 'id', header: 'Mã báo cáo' },
@@ -111,7 +99,6 @@ export default function ReportTable() {
           const record = row.original;
           return (
             <div className="flex gap-2">
-              {/* Nút Xem chi tiết */}
               <Button
                 icon={<EyeOutlined />}
                 onClick={() => {
@@ -135,19 +122,25 @@ export default function ReportTable() {
     []
   );
 
-  // Loading / Error
   if (isLoading) {
-    return <div>Đang tải danh sách báo cáo...</div>;
+    return (
+      <BasePages pageHead="ClickFlow - Quản lý báo cáo">
+        <div className="p-4">
+          <Loading />
+        </div>
+      </BasePages>
+    );
   }
   if (error) {
-    return <div>Đã có lỗi xảy ra khi tải dữ liệu báo cáo!</div>;
+    return (
+      <BasePages pageHead="ClickFlow - Quản lý báo cáo">
+        <div className="p-4">Đã có lỗi xảy ra khi tải dữ liệu báo cáo!</div>
+      </BasePages>
+    );
   }
 
-  // Hàm xử lý submit phản hồi
   const handleSubmitResponse = (newStatus: string, response: string) => {
     if (!responseReport) return;
-    // Ví dụ: Gọi API update (chưa code), hoặc update cục bộ
-    // Tạm thời update cục bộ:
     setReports((prev) =>
       prev.map((r) =>
         r.id === responseReport.id
@@ -160,11 +153,9 @@ export default function ReportTable() {
   };
 
   return (
-    <BasePages pageHead="ClickFlow - Quảng lý báo cáo">
+    <BasePages pageHead="ClickFlow - Quản lý báo cáo">
       <div className="mb-10 p-4">
         <h2 className="mb-4 text-xl font-semibold">Quản lý báo cáo</h2>
-
-        {/* Tìm kiếm */}
         <div className="mb-4 flex items-center gap-2">
           <Input
             placeholder="Tìm kiếm theo mã báo cáo hoặc tên người báo cáo"
@@ -174,7 +165,6 @@ export default function ReportTable() {
           />
         </div>
 
-        {/* Bảng */}
         <DataTable
           columns={columns}
           data={filteredReports}
@@ -183,14 +173,12 @@ export default function ReportTable() {
           showAdd={false}
         />
 
-        {/* Modal Xem chi tiết */}
         <ReportDetailModal
           open={detailOpen}
           onClose={() => setDetailOpen(false)}
           report={detailReport}
         />
 
-        {/* Modal Phản hồi */}
         <ReportResponseModal
           open={responseOpen}
           onClose={() => setResponseOpen(false)}

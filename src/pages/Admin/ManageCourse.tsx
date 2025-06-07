@@ -1,0 +1,529 @@
+// src/components/admin/ManageCourse.tsx
+import React, { useState, useEffect, useMemo } from 'react';
+import { Modal, Badge, Rate } from 'antd';
+import {
+  EyeOutlined,
+  EditOutlined,
+  DeleteOutlined,
+  PlusOutlined
+} from '@ant-design/icons';
+import { ColumnDef } from '@tanstack/react-table';
+import BasePages from '@/components/shared/base-pages';
+import DataTable from '@/components/shared/data-table';
+import Loading from '@/components/ui/loading';
+import { useGetCourseAdmin } from '@/queries/course.query';
+import { ApiResponse, PagingResponse } from '@/types';
+
+interface CourseRow {
+  id: number;
+  title: string;
+  createAt: string;
+  updateAt: string;
+  createById: number;
+  avgRate: number;
+  price: number;
+}
+
+const formatDate = (dateString: string) => {
+  const date = new Date(dateString);
+  return date.toLocaleDateString('vi-VN', {
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit'
+  });
+};
+
+const formatPrice = (price: number) => {
+  return new Intl.NumberFormat('vi-VN', {
+    style: 'currency',
+    currency: 'VND'
+  }).format(price);
+};
+
+const ManageCourse: React.FC = () => {
+  const [dataSource, setDataSource] = useState<CourseRow[]>([]);
+  const [isViewModalVisible, setIsViewModalVisible] = useState(false);
+  const [selectedCourse, setSelectedCourse] = useState<CourseRow | null>(null);
+  const [isDeleteModalVisible, setIsDeleteModalVisible] = useState(false);
+
+  // for pagination parameters
+  const [currentPage, setCurrentPage] = useState<number>(1);
+  const pageSize = 10;
+
+  const { data, isLoading, error } = useGetCourseAdmin(currentPage, pageSize);
+
+  useEffect(() => {
+    if (data?.result) {
+      const mapped = (
+        data as ApiResponse<PagingResponse<CourseRow>>
+      ).result.datas.map((course) => ({
+        id: course.id,
+        title: course.title,
+        createAt: course.createAt,
+        updateAt: course.updateAt,
+        createById: course.createById,
+        avgRate: course.avgRate,
+        price: course.price
+      }));
+      setDataSource(mapped);
+    }
+  }, [data]);
+
+  const handleView = (record: CourseRow) => {
+    setSelectedCourse(record);
+    setIsViewModalVisible(true);
+  };
+
+  const closeViewModal = () => {
+    setIsViewModalVisible(false);
+    setSelectedCourse(null);
+  };
+
+  const handleDelete = (record: CourseRow) => {
+    setSelectedCourse(record);
+    setIsDeleteModalVisible(true);
+  };
+
+  const confirmDelete = () => {
+    if (selectedCourse) {
+      // TODO: call delete API, then refetch or remove from dataSource
+      setDataSource((prev) =>
+        prev.filter((item) => item.id !== selectedCourse.id)
+      );
+    }
+    setIsDeleteModalVisible(false);
+    setSelectedCourse(null);
+  };
+
+  const cancelDelete = () => {
+    setIsDeleteModalVisible(false);
+    setSelectedCourse(null);
+  };
+
+  const columns = useMemo<ColumnDef<CourseRow>[]>(
+    () => [
+      {
+        id: 'stt',
+        header: () => (
+          <div className="text-center font-semibold text-gray-700">STT</div>
+        ),
+        cell: ({ row }) => (
+          <div className="text-center">
+            <Badge
+              count={row.index + 1}
+              style={{
+                backgroundColor: '#f0f9ff',
+                color: '#0284c7',
+                border: '1px solid #e0f2fe'
+              }}
+            />
+          </div>
+        ),
+        size: 60
+      },
+      {
+        accessorKey: 'title',
+        header: () => (
+          <div className="font-semibold text-gray-700">TIÊU ĐỀ KHÓA HỌC</div>
+        ),
+        cell: ({ row }) => (
+          <div className="max-w-xs">
+            <p
+              className="truncate font-medium text-gray-900"
+              title={row.original.title}
+            >
+              {row.original.title}
+            </p>
+          </div>
+        )
+      },
+      {
+        accessorKey: 'createAt',
+        header: () => (
+          <div className="font-semibold text-gray-700">NGÀY TẠO</div>
+        ),
+        cell: ({ row }) => (
+          <div className="text-sm">
+            <div className="text-gray-900">
+              {formatDate(row.original.createAt)}
+            </div>
+          </div>
+        )
+      },
+      {
+        accessorKey: 'createById',
+        header: () => (
+          <div className="text-center font-semibold text-gray-700">
+            NGƯỜI TẠO
+          </div>
+        ),
+        cell: ({ row }) => (
+          <div className="text-center">
+            <Badge
+              count={`#${row.original.createById}`}
+              style={{
+                backgroundColor: '#fef3c7',
+                color: '#92400e',
+                border: '1px solid #fde68a'
+              }}
+            />
+          </div>
+        ),
+        size: 100
+      },
+      {
+        accessorKey: 'avgRate',
+        header: () => (
+          <div className="text-center font-semibold text-gray-700">
+            ĐÁNH GIÁ
+          </div>
+        ),
+        cell: ({ row }) => (
+          <div className="text-center">
+            <div className="flex flex-col items-center gap-1">
+              <Rate
+                disabled
+                defaultValue={row.original.avgRate}
+                allowHalf
+                className="text-xs"
+              />
+              <span className="text-xs text-gray-600">
+                {row.original.avgRate.toFixed(1)}/5
+              </span>
+            </div>
+          </div>
+        ),
+        size: 120
+      },
+      {
+        accessorKey: 'price',
+        header: () => (
+          <div className="text-right font-semibold text-gray-700">
+            GIÁ KHÓA HỌC
+          </div>
+        ),
+        cell: ({ row }) => (
+          <div className="text-right">
+            <span className="font-semibold text-green-600">
+              {formatPrice(row.original.price)}
+            </span>
+          </div>
+        ),
+        size: 140
+      },
+      {
+        id: 'action',
+        header: () => (
+          <div className="text-center font-semibold text-gray-700">
+            THAO TÁC
+          </div>
+        ),
+        cell: ({ row }) => {
+          const record = row.original;
+          return (
+            <div className="flex justify-center gap-2">
+              <button
+                onClick={() => handleView(record)}
+                className="bg-blue-50 hover:bg-blue-100 rounded-full p-2 text-blue transition-colors duration-200"
+                title="Xem chi tiết"
+              >
+                <EyeOutlined className="text-sm" />
+              </button>
+              <button
+                onClick={() => alert(`Chỉnh sửa khóa học #${record.id}`)}
+                className="rounded-full p-2 text-amber-600 transition-colors duration-200 hover:bg-amber-100"
+                title="Chỉnh sửa"
+              >
+                <EditOutlined className="text-sm" />
+              </button>
+              <button
+                onClick={() => handleDelete(record)}
+                className="bg-red-50 hover:bg-red-100 rounded-full p-2 text-red transition-colors duration-200"
+                title="Xóa khóa học"
+              >
+                <DeleteOutlined className="text-sm" />
+              </button>
+            </div>
+          );
+        },
+        size: 140
+      }
+    ],
+    []
+  );
+
+  if (isLoading) {
+    return (
+      <BasePages pageHead="ClickFlow - Quản lý khóa học">
+        <div className="flex min-h-screen items-center justify-center bg-gray-50">
+          <div className="rounded-lg bg-white p-8 shadow-sm">
+            <Loading />
+            <p className="mt-4 text-center text-gray-600">
+              Đang tải dữ liệu...
+            </p>
+          </div>
+        </div>
+      </BasePages>
+    );
+  }
+
+  if (error) {
+    return (
+      <BasePages pageHead="ClickFlow - Quản lý khóa học">
+        <div className="flex min-h-screen items-center justify-center bg-gray-50">
+          <div className="rounded-lg bg-white p-8 text-center shadow-sm">
+            <div className="bg-red-100 mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full">
+              <svg
+                className="text-red-600 h-8 w-8"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                />
+              </svg>
+            </div>
+            <h3 className="mb-2 text-lg font-semibold text-gray-900">
+              Oops! Có lỗi xảy ra
+            </h3>
+            <p className="text-gray-600">
+              Không thể tải dữ liệu khóa học. Vui lòng thử lại sau.
+            </p>
+          </div>
+        </div>
+      </BasePages>
+    );
+  }
+
+  return (
+    <BasePages pageHead="ClickFlow - Quản lý khóa học">
+      <div className="min-h-screen bg-gray-50">
+        <div className="border-b border-gray-200 bg-white">
+          <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+            <div className="py-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h1 className="text-3xl font-bold text-gray-900">
+                    Quản lý khóa học
+                  </h1>
+                  <p className="mt-2 text-sm text-gray-600">
+                    Quản lý và theo dõi tất cả các khóa học trong hệ thống
+                  </p>
+                </div>
+                <button className="bg-blue-600 hover:bg-blue-700 focus:ring-blue-500 inline-flex items-center rounded-md border border-transparent px-4 py-2 text-sm font-medium text-white shadow-sm transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2">
+                  <PlusOutlined className="mr-2" />
+                  Thêm khóa học mới
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
+          <div className="rounded-lg border border-gray-200 bg-white shadow-sm">
+            <div className="border-b border-gray-200 px-6 py-4">
+              <div className="flex items-center justify-between">
+                <h2 className="text-lg font-semibold text-gray-900">
+                  Danh sách khóa học
+                  <span className="ml-2 text-sm font-normal text-gray-500">
+                    ({dataSource.length} khóa học)
+                  </span>
+                </h2>
+              </div>
+            </div>
+
+            <div className="p-6">
+              <DataTable
+                columns={columns}
+                data={dataSource}
+                pageCount={-1}
+                pageSizeOptions={[10, 20, 50]}
+                showAdd={false}
+              />
+            </div>
+          </div>
+        </div>
+
+        {/* View Modal */}
+        <Modal
+          title={
+            <div className="flex items-center gap-3 border-b border-gray-200 pb-4">
+              <div className="flex h-10 w-10 items-center justify-center rounded-full bg-blue">
+                <EyeOutlined className="text-blue" />
+              </div>
+              <div>
+                <h3 className="text-lg font-semibold text-gray-900">
+                  Chi tiết khóa học
+                </h3>
+                <p className="text-sm text-gray-500">
+                  Thông tin chi tiết về khóa học
+                </p>
+              </div>
+            </div>
+          }
+          open={isViewModalVisible}
+          onCancel={closeViewModal}
+          footer={null}
+          width={800}
+          className="course-detail-modal"
+        >
+          {selectedCourse && (
+            <div className="pt-6">
+              <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+                <div className="space-y-4">
+                  <div className="rounded-lg bg-gray-50 p-4">
+                    <label className="text-sm font-medium uppercase tracking-wide text-gray-500">
+                      Mã khóa học
+                    </label>
+                    <p className="mt-1 text-lg font-semibold text-gray-900">
+                      #{selectedCourse.id}
+                    </p>
+                  </div>
+
+                  <div className="rounded-lg bg-gray-50 p-4">
+                    <label className="text-sm font-medium uppercase tracking-wide text-gray-500">
+                      Tiêu đề khóa học
+                    </label>
+                    <p className="mt-1 text-lg font-semibold text-gray-900">
+                      {selectedCourse.title}
+                    </p>
+                  </div>
+
+                  <div className="rounded-lg bg-gray-50 p-4">
+                    <label className="text-sm font-medium uppercase tracking-wide text-gray-500">
+                      Người tạo
+                    </label>
+                    <p className="mt-1 text-lg font-semibold text-gray-900">
+                      #{selectedCourse.createById}
+                    </p>
+                  </div>
+                </div>
+
+                <div className="space-y-4">
+                  <div className="rounded-lg bg-gray-50 p-4">
+                    <label className="text-sm font-medium uppercase tracking-wide text-gray-500">
+                      Ngày tạo
+                    </label>
+                    <p className="mt-1 text-lg font-semibold text-gray-900">
+                      {formatDate(selectedCourse.createAt)}
+                    </p>
+                  </div>
+
+                  <div className="rounded-lg bg-gray-50 p-4">
+                    <label className="text-sm font-medium uppercase tracking-wide text-gray-500">
+                      Ngày cập nhật
+                    </label>
+                    <p className="mt-1 text-lg font-semibold text-gray-900">
+                      {formatDate(selectedCourse.updateAt)}
+                    </p>
+                  </div>
+
+                  <div className="rounded-lg bg-gray-50 p-4">
+                    <label className="text-sm font-medium uppercase tracking-wide text-gray-500">
+                      Đánh giá
+                    </label>
+                    <div className="mt-2 flex items-center gap-2">
+                      <Rate
+                        disabled
+                        defaultValue={selectedCourse.avgRate}
+                        allowHalf
+                      />
+                      <span className="text-lg font-semibold text-gray-900">
+                        {selectedCourse.avgRate.toFixed(1)}/5
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="mt-6 rounded-lg border border-green-200 bg-gradient-to-r from-green-50 to-emerald-50 p-6">
+                <label className="text-sm font-medium uppercase tracking-wide text-green-700">
+                  Giá khóa học
+                </label>
+                <p className="text-3xl font-bold text-green-600">
+                  {formatPrice(selectedCourse.price)}
+                </p>
+              </div>
+            </div>
+          )}
+        </Modal>
+
+        {/* Delete Modal */}
+        <Modal
+          title={
+            <div className="flex items-center gap-3">
+              <div className="bg-red-100 flex h-10 w-10 items-center justify-center rounded-full">
+                <DeleteOutlined className="text-red" />
+              </div>
+              <div>
+                <h3 className="text-lg font-semibold text-gray-900">
+                  Xác nhận xóa khóa học
+                </h3>
+                <p className="text-sm text-gray-500">
+                  Hành động này không thể hoàn tác
+                </p>
+              </div>
+            </div>
+          }
+          open={isDeleteModalVisible}
+          onOk={confirmDelete}
+          onCancel={cancelDelete}
+          okText="Xóa khóa học"
+          cancelText="Hủy bỏ"
+          okButtonProps={{
+            className:
+              'bg-red hover:bg-red-700 border-red hover:border-red-700',
+            size: 'large'
+          }}
+          cancelButtonProps={{
+            size: 'large'
+          }}
+          width={500}
+        >
+          <div className="py-4">
+            <div className="bg-red-50 mb-4 rounded-lg border border-red p-4">
+              <div className="flex">
+                <div className="flex-shrink-0">
+                  <svg
+                    className="text-red-400 h-5 w-5"
+                    viewBox="0 0 20 20"
+                    fill="currentColor"
+                  >
+                    <path
+                      fillRule="evenodd"
+                      d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z"
+                      clipRule="evenodd"
+                    />
+                  </svg>
+                </div>
+                <div className="ml-3">
+                  <h3 className="text-sm font-medium text-red">Cảnh báo</h3>
+                  <div className="mt-2 text-sm text-red">
+                    <p>
+                      Việc xóa khóa học sẽ không thể hoàn tác và có thể ảnh
+                      hưởng đến học viên đã đăng ký.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <p className="text-gray-700">
+              Bạn có chắc chắn muốn xóa khóa học{' '}
+              <span className="font-semibold text-gray-900">
+                "{selectedCourse?.title}" (#{selectedCourse?.id})
+              </span>{' '}
+              không?
+            </p>
+          </div>
+        </Modal>
+      </div>
+    </BasePages>
+  );
+};
+
+export default ManageCourse;

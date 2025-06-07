@@ -6,7 +6,6 @@ import {
   LogoutOutlined,
   LinkOutlined,
   UnorderedListOutlined,
-  PaperClipOutlined,
   WechatOutlined
 } from '@ant-design/icons';
 import { NavLink } from 'react-router-dom';
@@ -22,7 +21,6 @@ const SidebarAdvertiser: React.FC = () => {
   const { mutateAsync: logoutAccount } = useLogout();
   const router = useRouter();
   const dispatch = useDispatch();
-  const refreshToken = helpers.cookie_get('RT');
   const { isPending } = useLogout();
   const [isModalVisible, setIsModalVisible] = useState(false);
   const handleCancelLogout = () => {
@@ -32,14 +30,40 @@ const SidebarAdvertiser: React.FC = () => {
     setIsModalVisible(true);
   };
   const handleConfirmLogout = async () => {
-    setIsModalVisible(false);
-    await logoutAccount({
-      refreshToken: refreshToken
-    });
-    helpers.cookie_delete('RT');
-    helpers.cookie_delete('AT');
-    router.push('/login');
-    dispatch(logout());
+    try {
+      setIsModalVisible(false);
+
+      // Lấy refresh token từ cookie hoặc localStorage
+      const refreshToken =
+        helpers.cookie_get('RT') || localStorage.getItem('refreshToken');
+
+      if (refreshToken) {
+        // Call API logout với refreshToken
+        await logoutAccount({ refreshToken });
+      }
+
+      // Xóa tokens khỏi storage
+      helpers.cookie_delete('AT');
+      helpers.cookie_delete('RT');
+      localStorage.removeItem('refreshToken');
+      localStorage.removeItem('accessToken');
+
+      // Dispatch logout action
+      dispatch(logout());
+
+      // Redirect to login
+      router.push('/login');
+    } catch (error) {
+      console.error('Logout error:', error);
+
+      // Ngay cả khi API lỗi, vẫn clear local data và logout
+      helpers.cookie_delete('AT');
+      helpers.cookie_delete('RT');
+      localStorage.removeItem('refreshToken');
+      localStorage.removeItem('accessToken');
+      dispatch(logout());
+      router.push('/login');
+    }
   };
   return (
     <div

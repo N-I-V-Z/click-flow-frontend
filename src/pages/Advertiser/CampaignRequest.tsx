@@ -9,6 +9,7 @@ import {
   useGetPublisherParticipationByStatusForAdvertiser,
   useUpdateParticipationStatus
 } from '@/queries/campaign.query';
+import Loading from '@/components/ui/loading';
 
 function formatDate(dateString?: string): string {
   if (!dateString) return '';
@@ -23,7 +24,7 @@ function formatDate(dateString?: string): string {
 interface IPublisherParticipation {
   id: number;
   publisherId: number;
-  status: string; // 'Pending' | 'Participated' | 'Rejected'
+  status: string;
   createAt: string;
   publisher: {
     id: number;
@@ -70,7 +71,6 @@ const AttractivePublisherParticipationRequest: React.FC = () => {
   const { data, isLoading, error, refetch } =
     useGetPublisherParticipationByStatusForAdvertiser(1, 10, 'Pending');
   const { mutate: updateParticipationStatus } = useUpdateParticipationStatus();
-
   const [localParticipations, setLocalParticipations] = useState<
     IPublisherParticipation[]
   >([]);
@@ -197,8 +197,18 @@ const AttractivePublisherParticipationRequest: React.FC = () => {
     [handleAccept, handleReject, openModal]
   );
 
-  if (isLoading) return <div>Đang tải dữ liệu...</div>;
-  if (error) return <div>Đã có lỗi xảy ra khi tải dữ liệu!</div>;
+  if (isLoading)
+    return (
+      <div className="flex h-screen items-center justify-center">
+        <Loading />
+      </div>
+    );
+  if (error)
+    return (
+      <div className="text-red-600 flex h-screen items-center justify-center">
+        Đã có lỗi xảy ra khi tải dữ liệu!
+      </div>
+    );
 
   return (
     <div className="mb-10 min-h-screen bg-gray-50 p-6">

@@ -1,5 +1,5 @@
 import BasePages from '@/components/shared/base-pages';
-import React from 'react';
+import React, { useMemo } from 'react';
 import {
   LineChart,
   Line,
@@ -10,17 +10,157 @@ import {
   ResponsiveContainer,
   Legend
 } from 'recharts';
-
-const data = [
-  { month: 'Tháng 1', income: 30 },
-  { month: 'Tháng 2', income: 50 },
-  { month: 'Tháng 3', income: 40 },
-  { month: 'Tháng 4', income: 60 },
-  { month: 'Tháng 5', income: 75 },
-  { month: 'Tháng 6', income: 55 }
-];
+import { useGetOwnWallet } from '@/queries/wallet.query';
+import { useGetOwnTransaction } from '@/queries/transaction.query';
+import { TransactionType } from '@/types';
 
 const Wallet: React.FC = () => {
+  // Fetch wallet data
+  const {
+    data: walletData,
+    isLoading: walletLoading,
+    error: walletError
+  } = useGetOwnWallet();
+
+  // Fetch transaction data (increased page size to get more data for chart)
+  const {
+    data: transactionData,
+    isLoading: transactionLoading,
+    error: transactionError
+  } = useGetOwnTransaction(1, 50);
+
+  // Process transaction data for chart
+  const chartData = useMemo(() => {
+    if (!transactionData?.result?.datas) return [];
+
+    const monthlyData: { [key: string]: { income: number; outcome: number } } =
+      {};
+
+    transactionData.result.datas.forEach((transaction) => {
+      const date = new Date(transaction.paymentDate);
+      const monthKey = `Tháng ${date.getMonth() + 1}`;
+
+      if (!monthlyData[monthKey]) {
+        monthlyData[monthKey] = { income: 0, outcome: 0 };
+      }
+
+      // Sử dụng balance thay vì amount nếu amount = 0
+      const transactionValue =
+        transaction.amount !== 0 ? transaction.amount : transaction.balance;
+
+      // Phân loại theo type
+      if (
+        transaction.transactionType === 'Received' ||
+        transaction.transactionType === 'Deposit'
+      ) {
+        monthlyData[monthKey].income += transactionValue;
+      } else if (
+        transaction.transactionType === 'Pay' ||
+        transaction.transactionType === 'Withdraw'
+      ) {
+        monthlyData[monthKey].outcome += transactionValue;
+      }
+    });
+
+    return Object.entries(monthlyData).map(([month, data]) => ({
+      month,
+      income: data.income / 1000000,
+      outcome: data.outcome / 1000000
+    }));
+  }, [transactionData]);
+
+  // Calculate previous month income
+  const previousMonthIncome = useMemo(() => {
+    if (!transactionData?.result?.datas) return 0;
+
+    const currentMonth = new Date().getMonth();
+    const previousMonth = currentMonth === 0 ? 11 : currentMonth - 1;
+
+    return transactionData.result?.datas
+      .filter((transaction) => {
+        const transactionMonth = new Date(transaction.paymentDate).getMonth();
+        return (
+          transactionMonth === previousMonth &&
+          transaction.transactionType === TransactionType.Received
+        );
+      })
+      .reduce((total, transaction) => {
+        const transactionValue =
+          transaction.amount !== 0 ? transaction.amount : transaction.balance;
+        return total + transactionValue;
+      }, 0);
+  }, [transactionData]);
+
+  // Format currency
+  const formatCurrency = (amount: number) => {
+    return new Intl.NumberFormat('vi-VN', {
+      style: 'currency',
+      currency: 'VND'
+    }).format(amount);
+  };
+
+  // Get transaction type display info
+  const getTransactionDisplay = (transaction: any) => {
+    const isPositive =
+      transaction.transactionType === TransactionType.Received ||
+      transaction.transactionType === TransactionType.Deposit;
+
+    return {
+      color: isPositive ? 'text-green-600' : 'text-red-600',
+      sign: isPositive ? '+' : '-',
+      label: getTransactionLabel(transaction.transactionType)
+    };
+  };
+
+  // Get Vietnamese label for transaction type
+  const getTransactionLabel = (type: string) => {
+    switch (type) {
+      case 'Pay':
+        return 'Thanh toán';
+      case 'Received':
+        return 'Nhận tiền';
+      case 'Deposit':
+        return 'Nạp tiền';
+      case 'Withdraw':
+        return 'Rút tiền';
+      default:
+        return type;
+    }
+  };
+
+  // Get display amount (use balance if amount is 0)
+  const getDisplayAmount = (transaction: any) => {
+    return transaction.amount !== 0
+      ? Math.abs(transaction.amount)
+      : transaction.balance;
+  };
+
+  if (walletLoading || transactionLoading) {
+    return (
+      <BasePages pageHead="ClickFlow - Ví">
+        <div className="from-yellow-100 to-yellow-50 min-h-screen bg-gradient-to-r p-6">
+          <div className="flex min-h-96 items-center justify-center">
+            <div className="text-xl text-gray-600">Đang tải dữ liệu...</div>
+          </div>
+        </div>
+      </BasePages>
+    );
+  }
+
+  if (walletError || transactionError) {
+    return (
+      <BasePages pageHead="ClickFlow - Ví">
+        <div className="from-yellow-100 to-yellow-50 min-h-screen bg-gradient-to-r p-6">
+          <div className="flex min-h-96 items-center justify-center">
+            <div className="text-red-600 text-xl">
+              Có lỗi xảy ra khi tải dữ liệu
+            </div>
+          </div>
+        </div>
+      </BasePages>
+    );
+  }
+
   return (
     <BasePages pageHead="ClickFlow - Ví">
       <div className="from-yellow-100 to-yellow-50 min-h-screen bg-gradient-to-r p-6">
@@ -52,86 +192,60 @@ const Wallet: React.FC = () => {
                 <div>
                   <p className="text-sm text-gray-500">Tài sản của bạn</p>
                   <p className="text-2xl font-bold text-green-600">
-                    1.000.000 VND
-                  </p>
-                </div>
-              </div>
-              {/* Card Thu nhập tháng trước */}
-              <div className="flex transform items-center rounded-xl bg-white p-5 shadow-lg transition hover:scale-105">
-                <div className="mr-4">
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    className="text-blue-500 h-8 w-8"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M12 8c-3.866 0-7 3.134-7 7s3.134 7 7 7 7-3.134 7-7-3.134-7-7-7zm0 0v7m0 0h7"
-                    />
-                  </svg>
-                </div>
-                <div>
-                  <p className="text-sm text-gray-500">Thu nhập tháng trước</p>
-                  <p className="text-blue-600 text-2xl font-bold">
-                    1.000.000 VND
+                    {formatCurrency(walletData?.result?.balance || 0)}
                   </p>
                 </div>
               </div>
             </div>
           </div>
 
+          {/* Debug info - có thể xóa sau khi test */}
+
           {/* Khu vực chính: Biểu đồ và Lịch sử giao dịch */}
           <div className="grid grid-cols-1 gap-8 lg:grid-cols-3">
             {/* Biểu đồ (chiếm 2 cột) */}
             <div className="rounded-xl bg-white p-6 shadow-lg lg:col-span-2">
               <h2 className="mb-4 text-2xl font-semibold text-gray-700">
-                Sơ đồ thu nhập
+                Sơ đồ giao dịch (triệu VND)
               </h2>
               <div className="h-80">
-                <ResponsiveContainer width="100%" height="100%">
-                  <LineChart
-                    data={data}
-                    margin={{ top: 20, right: 30, left: 20, bottom: 20 }}
-                  >
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="month" />
-                    <YAxis />
-                    <Tooltip />
-                    <Legend verticalAlign="top" height={36} />
-                    <defs>
-                      <linearGradient
-                        id="colorIncome"
-                        x1="0"
-                        y1="0"
-                        x2="0"
-                        y2="1"
-                      >
-                        <stop
-                          offset="5%"
-                          stopColor="#8884d8"
-                          stopOpacity={0.5}
-                        />
-                        <stop
-                          offset="95%"
-                          stopColor="#8884d8"
-                          stopOpacity={0}
-                        />
-                      </linearGradient>
-                    </defs>
-                    <Line
-                      type="monotone"
-                      dataKey="income"
-                      stroke="#8884d8"
-                      strokeWidth={3}
-                      fillOpacity={1}
-                      fill="url(#colorIncome)"
-                    />
-                  </LineChart>
-                </ResponsiveContainer>
+                {chartData.length > 0 ? (
+                  <ResponsiveContainer width="100%" height="100%">
+                    <LineChart
+                      data={chartData}
+                      margin={{ top: 20, right: 30, left: 20, bottom: 20 }}
+                    >
+                      <CartesianGrid strokeDasharray="3 3" />
+                      <XAxis dataKey="month" />
+                      <YAxis />
+                      <Tooltip
+                        formatter={(value: number, name: string) => [
+                          `${value.toFixed(2)} triệu`,
+                          name === 'income' ? 'Thu nhập' : 'Chi tiêu'
+                        ]}
+                      />
+                      <Legend verticalAlign="top" height={36} />
+                      <Line
+                        type="monotone"
+                        dataKey="income"
+                        stroke="#10B981"
+                        strokeWidth={3}
+                        name="Thu nhập"
+                      />
+                      <Line
+                        type="monotone"
+                        dataKey="outcome"
+                        stroke="#EF4444"
+                        strokeWidth={3}
+                        name="Chi tiêu"
+                      />
+                    </LineChart>
+                  </ResponsiveContainer>
+                ) : (
+                  <div className="flex h-full items-center justify-center">
+                    <p className="text-gray-500">Chưa có dữ liệu giao dịch</p>
+                  </div>
+                )}
               </div>
             </div>
 
@@ -141,18 +255,42 @@ const Wallet: React.FC = () => {
                 <h2 className="mb-4 text-2xl font-semibold text-gray-700">
                   Lịch sử giao dịch
                 </h2>
-                <div className="space-y-3">
-                  {Array.from({ length: 5 }).map((_, i) => (
-                    <div
-                      key={i}
-                      className="flex transform items-center justify-between rounded-lg bg-gray-50 px-4 py-3 transition hover:scale-105"
-                    >
-                      <span className="text-gray-600">Chiến dịch ABCD/A</span>
-                      <span className="font-semibold text-green-600">
-                        +5.000.000
-                      </span>
+                <div className="max-h-80 space-y-3 overflow-y-auto">
+                  {transactionData?.result?.datas &&
+                  transactionData.result?.datas.length > 0 ? (
+                    transactionData.result?.datas
+                      .slice(0, 10)
+                      .map((transaction) => {
+                        const display = getTransactionDisplay(transaction);
+                        const displayAmount = getDisplayAmount(transaction);
+
+                        return (
+                          <div
+                            key={transaction.id}
+                            className="flex transform items-center justify-between rounded-lg bg-gray-50 px-4 py-3 transition hover:scale-105"
+                          >
+                            <div className="flex flex-col">
+                              <span className="text-sm font-medium text-gray-600">
+                                {display.label}
+                              </span>
+                              <span className="text-xs text-gray-400">
+                                {new Date(
+                                  transaction.paymentDate
+                                ).toLocaleDateString('vi-VN')}
+                              </span>
+                            </div>
+                            <span className={`font-semibold ${display.color}`}>
+                              {display.sign}
+                              {formatCurrency(displayAmount)}
+                            </span>
+                          </div>
+                        );
+                      })
+                  ) : (
+                    <div className="text-center text-gray-500">
+                      Chưa có giao dịch nào
                     </div>
-                  ))}
+                  )}
                 </div>
               </div>
               {/* Nút Rút tiền */}

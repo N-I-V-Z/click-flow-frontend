@@ -4,7 +4,24 @@ import { ApiResponse } from '@/types';
 
 const baseURL = import.meta.env.VITE_API_URL;
 
-const token = helpers.cookie_get('AT');
+// Biến để theo dõi trạng thái refresh token để tránh multiple refresh calls
+let isRefreshing = false;
+let failedQueue: Array<{
+  resolve: (value?: any) => void;
+  reject: (reason?: any) => void;
+}> = [];
+
+const processQueue = (error: any, token: string | null = null) => {
+  failedQueue.forEach(({ resolve, reject }) => {
+    if (error) {
+      reject(error);
+    } else {
+      resolve(token);
+    }
+  });
+
+  failedQueue = [];
+};
 
 /**
  * Hàm xử lý thành công yêu cầu trước khi gửi đi
@@ -47,62 +64,98 @@ const onResponseSuccess = <T>(
 };
 
 /**
+ * Hàm logout - xóa tokens và redirect về trang login
+ */
+const logout = () => {
+  // helpers.cookie_delete('AT');
+  // window.location.href = '/login';
+};
+
+/**
  * Xử lý lỗi khi nhận phản hồi từ server.
  *
- * Nếu phản hồi có lỗi và mã trạng thái là 401, thực hiện các hành động cần thiết.
- * Trả về một Promise bị từ chối với dữ liệu lỗi từ phản hồi.
- * Nếu không có phản hồi, trả về một Promise bị từ chối với lỗi gốc.
+ * Nếu phản hồi có lỗi và mã trạng thái là 401, thực hiện refresh token.
+ * Sử dụng queue để xử lý multiple requests đồng thời khi token expired.
  */
 const onResponseError = async (error: any) => {
-  if (error.response) {
-    if (error.response.status === 401) {
-      try {
-        // Lấy refresh token từ cookie
-        const refreshToken = helpers.cookie_get('RT');
-        if (!refreshToken) {
-          console.error('No refresh token found');
-          // Thực hiện logout nếu không có refresh token
-          helpers.cookie_delete('RT');
-          helpers.cookie_delete('AT');
-          window.location.href = '/login';
-          return Promise.reject(error);
-        }
+  const originalRequest = error.config;
 
-        // Gọi API renew token
-        const response = await axios.post('/api/Accounts/renew-token', {
-          refreshToken // Hoặc truyền thêm token nếu cần theo API của bạn
+  if (
+    error.response &&
+    error.response.status === 401 &&
+    !originalRequest._retry
+  ) {
+    if (isRefreshing) {
+      // Nếu đang refresh token, đưa request vào queue
+      return new Promise((resolve, reject) => {
+        failedQueue.push({ resolve, reject });
+      })
+        .then((token) => {
+          originalRequest.headers['Authorization'] = `Bearer ${token}`;
+          return axios(originalRequest);
+        })
+        .catch((err) => {
+          return Promise.reject(err);
         });
-
-        // Kiểm tra nếu response hợp lệ và có token mới
-        if (!response || !response.data || !response.data.accessToken) {
-          console.error('Failed to renew token, response invalid');
-          // Thực hiện logout nếu không thể renew token
-          helpers.cookie_delete('RT');
-          helpers.cookie_delete('AT');
-          window.location.href = '/login';
-          return Promise.reject(error);
-        }
-
-        // Lấy token mới (đảm bảo trường trả về đồng nhất, ví dụ: accessToken)
-        const newAccessToken = response.data.accessToken;
-        // Lưu token mới vào cookie
-        helpers.cookie_set('AT', newAccessToken);
-        // Nếu API trả về refresh token mới, cập nhật lại
-        if (response.data.refreshToken) {
-          helpers.cookie_set('RT', response.data.refreshToken);
-        }
-        // Cập nhật header của request gốc và retry request
-        error.config.headers['Authorization'] = `Bearer ${newAccessToken}`;
-        return axios(error.config);
-      } catch (renewError) {
-        console.error('Error renewing token:', renewError);
-        // Nếu có lỗi trong quá trình renew token, logout luôn
-        helpers.cookie_delete('RT');
-        helpers.cookie_delete('AT');
-        window.location.href = '/login';
-        return Promise.reject(renewError);
-      }
     }
+
+    originalRequest._retry = true;
+    isRefreshing = true;
+
+    try {
+      // Lấy access token hiện tại từ cookie
+      const currentAccessToken = helpers.cookie_get('AT');
+
+      if (!currentAccessToken) {
+        console.error('No access token found');
+        processQueue(error, null);
+        logout();
+        return Promise.reject(error);
+      }
+
+      // Gọi API renew token với access token hiện tại
+      const response = await axios.post(
+        '/api/Accounts/renew-token',
+        {},
+        {
+          headers: {
+            Authorization: `Bearer ${currentAccessToken}`,
+            'Content-Type': 'application/json'
+          }
+        }
+      );
+      console.log(response);
+
+      // Kiểm tra nếu response hợp lệ và có token mới
+      if (!response || !response.data || !response.data.accessToken) {
+        console.error('Failed to renew token, response invalid');
+        processQueue(error, null);
+        logout();
+        return Promise.reject(error);
+      }
+
+      // Lấy token mới và lưu vào cookie
+      const newAccessToken = response.data.accessToken;
+      helpers.cookie_set('AT', newAccessToken);
+
+      // Xử lý queue với token mới
+      processQueue(null, newAccessToken);
+
+      // Cập nhật header của request gốc và retry request
+      originalRequest.headers['Authorization'] = `Bearer ${newAccessToken}`;
+      return axios(originalRequest);
+    } catch (renewError) {
+      console.error('Error renewing token:', renewError);
+      processQueue(renewError, null);
+      logout();
+      return Promise.reject(renewError);
+    } finally {
+      isRefreshing = false;
+    }
+  }
+
+  // Nếu không phải lỗi 401 hoặc đã retry rồi
+  if (error.response) {
     return Promise.reject(error.response.data);
   }
   return Promise.reject(error);
@@ -143,6 +196,7 @@ const BaseRequest = {
   },
   UploadStockPhoto: async (file: File) => {
     try {
+      const token = helpers.cookie_get('AT');
       const formData = new FormData();
       formData.append('file', file);
       const response = await axios.post(
