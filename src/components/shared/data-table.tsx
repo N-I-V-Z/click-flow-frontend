@@ -1,6 +1,6 @@
 import { Button } from '@/components/ui/button';
 import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
-import { useEffect, useState, useMemo } from 'react';
+import { useEffect, useState } from 'react';
 import {
   Select,
   SelectContent,
@@ -24,7 +24,6 @@ import {
   ColumnDef,
   flexRender,
   getCoreRowModel,
-  getFilteredRowModel,
   getPaginationRowModel,
   useReactTable,
   getSortedRowModel,
@@ -33,39 +32,42 @@ import {
 import { ChevronLeftIcon, ChevronRightIcon } from 'lucide-react';
 import { useSearchParams } from 'react-router-dom';
 import { Input } from '../ui/input';
+import { DataTableSkeleton } from './data-table-skeleton';
 
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[];
   data: TData[];
   pageSizeOptions?: number[];
   pageCount: number;
-  showAdd?: boolean;
   heightTable?: string;
-  // Nếu cha muốn quản lý row selection thì truyền vào các props dưới đây
+  // Row selection props
   rowSelection?: Record<string, boolean>;
   onRowSelectionChange?: (
     updater:
       | Record<string, boolean>
       | ((prev: Record<string, boolean>) => Record<string, boolean>)
   ) => void;
-  // Callback trả về danh sách các dòng được chọn (dữ liệu gốc)
   onSelectedRowsChange?: (selectedRows: TData[]) => void;
+  // Search callback for parent component
+  onSearchChange?: (searchTerm: string) => void;
+  // Loading state
+  isLoading?: boolean;
 }
 
 /**
- * DataTable hiển thị bảng với tìm kiếm, phân trang, sắp xếp và hỗ trợ chọn nhiều dòng.
- * Lưu ý: Không chứa nút “Xóa đã chọn” (bulk delete) để việc này được xử lý từ component cha.
+ * DataTable với server-side pagination và search
  */
 export default function DataTable<TData, TValue>({
   columns,
   data,
   pageCount,
   pageSizeOptions = [10, 20, 30, 40, 50],
-  showAdd = true,
   heightTable = '80dvh',
   rowSelection,
   onRowSelectionChange,
-  onSelectedRowsChange
+  onSelectedRowsChange,
+  onSearchChange,
+  isLoading = false
 }: DataTableProps<TData, TValue>) {
   const [searchParams, setSearchParams] = useSearchParams();
   const [searchTerm, setSearchTerm] = useState('');
@@ -87,7 +89,7 @@ export default function DataTable<TData, TValue>({
 
   const [sorting, setSorting] = useState<SortingState>([]);
 
-  // Nếu không được truyền từ component cha, DataTable sẽ tự quản lý rowSelection
+  // Row selection state management
   const [internalRowSelection, setInternalRowSelection] = useState({});
   const effectiveRowSelection =
     rowSelection !== undefined ? rowSelection : internalRowSelection;
@@ -96,8 +98,8 @@ export default function DataTable<TData, TValue>({
       ? onRowSelectionChange
       : setInternalRowSelection;
 
+  // Cập nhật URL khi phân trang thay đổi
   useEffect(() => {
-    // Cập nhật URL khi phân trang thay đổi
     setSearchParams({
       ...Object.fromEntries(searchParams),
       page: (pageIndex + 1).toString(),
@@ -105,22 +107,22 @@ export default function DataTable<TData, TValue>({
     });
   }, [pageIndex, pageSize, searchParams, setSearchParams]);
 
-  const filteredData = useMemo(() => {
-    const dataArray = Array.isArray(data) ? data : [];
-    return dataArray.filter((item: any) => {
-      return Object.values(item)
-        .join(' ')
-        .toLowerCase()
-        .includes(searchTerm.toLowerCase());
-    });
-  }, [data, searchTerm]);
+  // Debounced search effect
+  useEffect(() => {
+    const timeoutId = setTimeout(() => {
+      if (onSearchChange) {
+        onSearchChange(searchTerm);
+      }
+    }, 300); // 300ms debounce
+
+    return () => clearTimeout(timeoutId);
+  }, [searchTerm, onSearchChange]);
 
   const table = useReactTable({
-    data: filteredData,
+    data: data || [], // Sử dụng data trực tiếp từ props (đã được filter ở backend)
     columns,
     pageCount: pageCount ?? -1,
     getCoreRowModel: getCoreRowModel(),
-    getFilteredRowModel: getFilteredRowModel(),
     state: {
       pagination: { pageIndex, pageSize },
       sorting,
@@ -128,13 +130,15 @@ export default function DataTable<TData, TValue>({
     },
     onPaginationChange: setPagination,
     getPaginationRowModel: getPaginationRowModel(),
-    manualFiltering: true,
+    manualPagination: true, // Quan trọng: sử dụng server-side pagination
+    manualFiltering: true, // Quan trọng: sử dụng server-side filtering
     getSortedRowModel: getSortedRowModel(),
     onSortingChange: setSorting,
-    onRowSelectionChange: effectiveOnRowSelectionChange
+    onRowSelectionChange: effectiveOnRowSelectionChange,
+    enableRowSelection: true
   });
 
-  // Khi rowSelection thay đổi, nếu có callback onSelectedRowsChange thì gọi callback này
+  // Callback khi row selection thay đổi
   useEffect(() => {
     if (onSelectedRowsChange) {
       const selectedRows = table
@@ -142,8 +146,9 @@ export default function DataTable<TData, TValue>({
         .rows.map((row) => row.original);
       onSelectedRowsChange(selectedRows);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [effectiveRowSelection]);
+  }, [effectiveRowSelection, onSelectedRowsChange, table]);
+
+  if (isLoading) return <DataTableSkeleton columnCount={5} rowCount={10} />;
 
   return (
     <>
@@ -156,9 +161,9 @@ export default function DataTable<TData, TValue>({
             onChange={(e) => setSearchTerm(e.target.value)}
             className="w-1/3 rounded-md border px-4 py-2"
           />
-          {/* Các nút thêm mới ... nếu cần */}
         </div>
       </div>
+
       <ScrollArea
         className={`h-[calc(${heightTable}-220px)] rounded-md border md:h-[calc(${heightTable}-80px)]`}
       >
@@ -236,7 +241,7 @@ export default function DataTable<TData, TValue>({
         <div className="flex w-full items-center justify-between">
           <div className="flex-1 text-sm text-muted-foreground">
             {table.getFilteredSelectedRowModel().rows.length} trên{' '}
-            {table.getFilteredRowModel().rows.length} hàng được chọn.
+            {table.getRowModel().rows.length} hàng được chọn.
           </div>
           <div className="flex flex-col items-center gap-4 sm:flex-row sm:gap-6 lg:gap-8">
             <div className="flex items-center space-x-2">
