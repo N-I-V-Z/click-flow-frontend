@@ -9,14 +9,20 @@ import { useQuery } from '@tanstack/react-query';
 const SUB_USER_DETAIL_URL = '/api/UserDetails';
 const SUB_USER_URL = '/api/Users';
 
-export const useGetUserDetail = (userId: number) => {
+export const useGetUserDetail = (userId: number | undefined) => {
   return useQuery({
     queryKey: ['get-user-detail', userId],
     queryFn: async () => {
+      if (!userId || isNaN(userId)) {
+        throw new Error('Valid User ID is required');
+      }
       return await BaseRequest.Get<UserDetailApiResponse>(
         `${SUB_USER_DETAIL_URL}/get-user-detail?userId=${userId}`
       );
-    }
+    },
+    enabled: !!userId && !isNaN(userId), // Chỉ chạy khi có userId hợp lệ
+    retry: 1,
+    refetchOnWindowFocus: false
   });
 };
 

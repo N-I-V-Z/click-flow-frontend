@@ -146,14 +146,42 @@ export type AdvertiserApiResponse = {
   applicationUser: ApplicationUserApiResponse;
 };
 
+// export type ApplicationUserApiResponse = {
+//   id: number;
+//   fullName: string;
+//   email: string;
+//   role: string;
+//   isDeleted: boolean;
+//   advertiser: AdvertiserApiResponse;
+//   userDetail: UserDetail;
+
+// };
 export type ApplicationUserApiResponse = {
+  // Basic info
   id: number;
-  fullName: string;
+  userName: string;
+  normalizedUserName: string;
   email: string;
+  normalizedEmail: string;
+  fullName: string;
+  phoneNumber: string;
   role: string;
   isDeleted: boolean;
-  advertiser: AdvertiserApiResponse;
+
+  // Security fields
+  emailConfirmed: boolean;
+  passwordHash: string;
+  securityStamp: string;
+  concurrencyStamp: string;
+  phoneNumberConfirmed: boolean;
+  twoFactorEnabled: boolean;
+  lockoutEnabled: boolean;
+  accessFailedCount: number;
+
+  // Relations
   userDetail: UserDetail;
+  advertiser?: AdvertiserApiResponse;
+  conversations: ConversationApiResponse[];
 };
 
 export type UserDetail = {
@@ -229,6 +257,7 @@ export type UserDetailApiResponse = {
   avatarURL: string;
   address: string;
   applicationUserId: number;
+  user: ApplicationUserApiResponse;
 };
 
 export type LoginApiResponse = {
@@ -267,14 +296,27 @@ export interface IFeedback {
   feedbackerId: number;
   feedbacker?: IFeedbacker;
 }
+export type CreateCampaignPayload = {
+  name: string;
+  description: string;
+  originURL: string;
+  budget: number;
+  startDate: string;
+  endDate: string; // Date object or string in ISO format
+  typePay: string;
+  typeCampaign: string;
+  commission: number;
+  percents: number;
+  image: string;
+};
 
-export interface IFeedbackAPIResponse {
+export type IFeedbackAPIResponse = {
   statusCode: string; // "OK"
   isSuccess: boolean; // true / false
   message: string; // "Get data success"
   result: IFeedback[]; // Mảng feedback
-}
-export interface TrafficItem {
+};
+export type TrafficItem = {
   id: number;
   ipAddress: string;
   isValid: boolean;
@@ -284,7 +326,7 @@ export interface TrafficItem {
   browser: string;
   referrerURL: string;
   timestamp: string;
-}
+};
 
 export enum ChatTab {
   All = 'all',

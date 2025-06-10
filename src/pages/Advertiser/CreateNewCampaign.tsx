@@ -14,26 +14,34 @@ import {
   Col
 } from 'antd';
 import { PlusOutlined } from '@ant-design/icons';
-import type { UploadProps } from 'antd';
+import type { UploadProps, UploadFile } from 'antd';
+import type { Moment } from 'moment';
 import { useCreateCampaign, useUploadImage } from '@/queries/campaign.query';
 import { toast } from 'react-toastify';
+import {
+  CreateCampaignPayload,
+  ApiResponse,
+  UploadImageResponse
+} from '@/types';
 
 const { Option } = Select;
 const { TabPane } = Tabs;
 
-export interface CreateCampaignPayload {
+interface FormValues {
   name: string;
   description: string;
   originURL: string;
   budget: number;
-  startDate: string;
-  endDate: string;
+  startDate: Moment; // moment object from DatePicker
+  endDate: Moment; // moment object from DatePicker
   typePay: string;
   typeCampaign: string;
-  commission: number;
-  percents: number;
-  image: string;
+  commission?: number;
+  percents?: number;
+  image?: UploadFile[]; // file list from Upload
 }
+
+// Remove UploadResponse interface as we'll use the proper API response type
 
 interface CreateCampaignModalProps {
   visible: boolean;
@@ -56,7 +64,7 @@ const CreateCampaignModal: React.FC<CreateCampaignModalProps> = ({
     beforeUpload: () => false
   };
 
-  const onFinish = (values: any) => {
+  const onFinish = (values: FormValues) => {
     console.log('Form values: ', values);
 
     const fileList = values.image || [];
@@ -75,8 +83,8 @@ const CreateCampaignModal: React.FC<CreateCampaignModalProps> = ({
         description: values.description,
         originURL: values.originURL,
         budget: values.budget,
-        startDate,
-        endDate,
+        startDate: startDate || '',
+        endDate: endDate || '',
         typePay: values.typePay,
         typeCampaign: values.typeCampaign,
         commission,
@@ -89,7 +97,6 @@ const CreateCampaignModal: React.FC<CreateCampaignModalProps> = ({
           console.log('Tạo campaign thành công:', res);
           toast.success('Tạo campaign thành công!');
           onCancel();
-          window.location.reload();
         },
         onError: (err) => {
           console.error('Lỗi khi tạo campaign:', err);
@@ -99,10 +106,10 @@ const CreateCampaignModal: React.FC<CreateCampaignModalProps> = ({
     };
 
     if (fileList.length > 0) {
-      const file = fileList[0].originFileObj;
+      const file = fileList[0].originFileObj as File;
       uploadImageMutation(file, {
-        onSuccess: (uploadRes: any) => {
-          const imageUrl = uploadRes?.url || '';
+        onSuccess: (uploadRes: ApiResponse<UploadImageResponse>) => {
+          const imageUrl = uploadRes?.result?.url || '';
           callCreateCampaign(imageUrl);
         },
         onError: (err) => {

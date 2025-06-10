@@ -1,6 +1,6 @@
 // File: src/pages/Advertiser/ForumDetail.tsx
 
-import React, { useState, useRef, FC } from 'react';
+import { useState, FC } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { FaComment, FaChevronDown, FaEllipsisH } from 'react-icons/fa';
 import LikeButton from '@/components/ui/LikeButton';
@@ -60,7 +60,6 @@ const ForumDetail: FC<ForumDetailProps> = ({
   // --------------------------------------------
   const [commentText, setCommentText] = useState('');
   const [replyToId, setReplyToId] = useState<string | null>(null);
-  const [replyToAuthor, setReplyToAuthor] = useState<string>('');
 
   const [filterOpen, setFilterOpen] = useState(false);
   const [sortBy, setSortBy] = useState<'newest' | 'oldest' | 'likes'>('newest');
@@ -177,7 +176,6 @@ const ForumDetail: FC<ForumDetailProps> = ({
 
     setCommentText('');
     setReplyToId(null);
-    setReplyToAuthor('');
   };
 
   // --------------------------------------------
@@ -252,14 +250,12 @@ const ForumDetail: FC<ForumDetailProps> = ({
   // --------------------------------------------
   // Handle Reply - Set reply target
   // --------------------------------------------
-  const handleReply = (commentId: string, authorName: string) => {
+  const handleReply = (commentId: string) => {
     setReplyToId(commentId);
-    setReplyToAuthor(authorName);
   };
 
   const handleCancelReply = () => {
     setReplyToId(null);
-    setReplyToAuthor('');
     setCommentText('');
   };
 
@@ -407,7 +403,7 @@ const ForumDetail: FC<ForumDetailProps> = ({
               />
 
               <motion.button
-                onClick={() => handleReply(reply.id, reply.author)}
+                onClick={() => handleReply(reply.id)}
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
                 className="flex items-center space-x-1 text-sm text-gray-500 transition-colors hover:text-purple-500"
@@ -584,7 +580,7 @@ const ForumDetail: FC<ForumDetailProps> = ({
               />
 
               <motion.button
-                onClick={() => handleReply(c.id, c.author)}
+                onClick={() => handleReply(c.id)}
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
                 className="flex items-center space-x-2 text-gray-500 transition-colors hover:text-purple-500"

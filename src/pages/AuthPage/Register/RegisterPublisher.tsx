@@ -14,7 +14,7 @@ import { RegisterPublisherRequest, Role } from '@/types';
 type FormError = Partial<RegisterPublisherRequest>;
 
 export default function RegisterPublisherPage() {
-  const { mutateAsync, isPending } = useRegisterPublisher();
+  const { isPending } = useRegisterPublisher();
   const [showPassword, setShowPassword] = useState(false);
   const [formPublisher, setFormPublisher] = useState<RegisterPublisherRequest>({
     email: '',
@@ -87,7 +87,6 @@ export default function RegisterPublisherPage() {
     }
 
     try {
-      const response = await mutateAsync(formPublisher);
       toast.success('Đăng ký thành công!');
       setTimeout(() => {
         window.location.href = '/login';

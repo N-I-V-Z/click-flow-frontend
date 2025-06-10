@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from 'react';
-import { Button, Tag, Input } from 'antd';
+import { Button, Tag, Input, message } from 'antd';
 import { EyeOutlined, EditOutlined } from '@ant-design/icons';
 import { ColumnDef } from '@tanstack/react-table';
 import DataTable from '@/components/shared/data-table';
@@ -28,16 +28,17 @@ const statusTagColor: Record<string, string> = {
   'Từ chối': 'red'
 };
 
-function mapApiReportToLocal(apiItem: any): Report {
+function mapApiReportToLocal(apiItem: ReportApiResponse): Report {
   return {
     id: String(apiItem.id),
-    reporter: apiItem.publisher.applicationUser.fullName,
-    reporterId: String(apiItem.publisherId),
+    reporter:
+      apiItem.publisher?.applicationUser?.fullName ?? 'Unknown Publisher',
+    reporterId: String(apiItem.publisherId ?? ''),
     accused:
       apiItem.advertiser?.applicationUser?.fullName ??
       `Advertiser ${apiItem.advertiserId}`,
-    accusedId: String(apiItem.advertiserId),
-    date: new Date(apiItem.createAt).toLocaleDateString('vi-VN'),
+    accusedId: String(apiItem.advertiserId ?? ''),
+    date: new Date(apiItem.createdAt).toLocaleDateString('vi-VN'),
     status:
       apiItem.status === 'Pending'
         ? 'Đang chờ'
@@ -64,7 +65,9 @@ export default function ReportTable() {
     ) {
       const mapped = (
         data as ApiResponse<PagingResponse<ReportApiResponse>>
-      ).result?.datas.map((item: any) => mapApiReportToLocal(item));
+      ).result?.datas.map((item: ReportApiResponse) =>
+        mapApiReportToLocal(item)
+      );
       setReports(mapped ?? []);
     }
   }, [data]);

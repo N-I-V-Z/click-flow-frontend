@@ -33,17 +33,19 @@ const Feedback: React.FC<{ campaignId: number }> = ({ campaignId }) => {
   const {
     data: feedbackData,
     isLoading,
-    isError,
     error,
     refetch
   } = useGetFeedbacksByCampaign(campaignId, 1, 50);
 
+  const isError = !!error;
+
   // Tạo mới feedback
-  const { mutateAsync: createFeedback, isLoading: isCreating } =
+
+  const { mutateAsync: createFeedback, isPending: isCreating } =
     useCreateFeedback();
 
   // Cập nhật feedback
-  const { mutateAsync: updateFeedback, isLoading: isUpdating } =
+  const { mutateAsync: updateFeedback, isPending: isUpdating } =
     useUpdateFeedback();
 
   // State Modal tạo mới feedback
@@ -177,8 +179,8 @@ const Feedback: React.FC<{ campaignId: number }> = ({ campaignId }) => {
       });
       await refetch();
       closeModal();
-    } catch (err: any) {
-      alert(`Tạo feedback thất bại: ${err.message}`);
+    } catch (err) {
+      alert(`Tạo feedback thất bại: ${(err as Error).message}`);
     }
   };
 
@@ -212,8 +214,8 @@ const Feedback: React.FC<{ campaignId: number }> = ({ campaignId }) => {
       });
       await refetch();
       closeEditModal();
-    } catch (err: any) {
-      alert(`Cập nhật feedback thất bại: ${err.message}`);
+    } catch (err) {
+      alert(`Cập nhật feedback thất bại: ${(err as Error).message}`);
     }
   };
 

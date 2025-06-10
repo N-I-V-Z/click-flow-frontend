@@ -32,7 +32,7 @@ const industryOptions = [
 ];
 
 const RegisterAdvertiserPage: React.FC = () => {
-  const { mutateAsync, isPending } = useRegisterAdvertiser();
+  const { isPending } = useRegisterAdvertiser();
 
   const [formAdvertiser, setFormAdvertiser] =
     useState<RegisterAdvertiserRequest>({
@@ -117,7 +117,6 @@ const RegisterAdvertiserPage: React.FC = () => {
     }
 
     try {
-      const response = await mutateAsync(formAdvertiser);
       toast.success('Đăng ký thành công!');
       setTimeout(() => {
         window.location.href = '/login';

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { motion } from 'framer-motion';
 import TableSearchInput from '@/components/shared/table-search-input';
 import {
@@ -94,7 +94,7 @@ const PublisherDashboard: React.FC = () => {
 
   return (
     <BasePages pageHead="ClickFlow - Dashboard">
-      <div className="min-h-screen bg-gradient-to-br from-indigo-100 via-purple-50 to-blue p-6">
+      <div className="to-blue-100 min-h-screen bg-gradient-to-br from-indigo-100 via-purple-50 p-6">
         <motion.div initial="initial" animate="animate" variants={fadeInUp}>
           <div className="mb-6">
             <h1 className="bg-gradient-to-r from-indigo-600 to-pink-600 bg-clip-text text-4xl font-extrabold text-transparent drop-shadow-lg">
@@ -335,7 +335,6 @@ const PublisherDashboard: React.FC = () => {
           </div>
 
           {/* TÍCH HỢP PHẦN FEEDBACK  */}
-          <ReviewSection />
         </motion.div>
       </div>
     </BasePages>
@@ -343,59 +342,5 @@ const PublisherDashboard: React.FC = () => {
 };
 
 /* ----------------- PHẦN FEEDBACK: REVIEW SECTION ----------------- */
-const ReviewSection: React.FC = () => {
-  const [rating, setRating] = useState<number>(0);
-  const [email, setEmail] = useState<string>('');
-  const [review, setReview] = useState<string>('');
-
-  interface Feedback {
-    id: number;
-    name: string;
-    date: string;
-    content: string;
-  }
-
-  const [feedbackList, setFeedbackList] = useState<Feedback[]>([
-    {
-      id: 1,
-      name: 'Robert Karamazov',
-      date: '20 days ago',
-      content:
-        'I recently had the opportunity to explore Pagondes’s UI design system, and it left a lasting impression on my workflow...'
-    },
-    {
-      id: 2,
-      name: 'Nilesh Shah',
-      date: '1 month ago',
-      content:
-        'I recently had the opportunity to explore Pagondes’s UI design system, and it left a lasting impression on my workflow...'
-    },
-    {
-      id: 3,
-      name: 'Edna Watson',
-      date: '2 months ago',
-      content:
-        'I recently had the opportunity to explore Pagondes’s UI design system, and it left a lasting impression on my workflow...'
-    }
-  ]);
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!email || !review || rating === 0) {
-      alert('Vui lòng nhập đủ thông tin!');
-      return;
-    }
-    const newFeedback: Feedback = {
-      id: Date.now(),
-      name: 'Guest User',
-      date: 'Just now',
-      content: review
-    };
-    setFeedbackList([newFeedback, ...feedbackList]);
-    setRating(0);
-    setEmail('');
-    setReview('');
-  };
-};
 
 export default PublisherDashboard;

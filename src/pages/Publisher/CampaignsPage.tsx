@@ -18,7 +18,7 @@ const decodedToken: TokenDecoded | null = helpers.decodeTokens(
 const PUBLISHER_ID = decodedToken?.Id;
 
 // Số item mỗi trang (client side)
-const PAGE_SIZE = 10;
+const PAGE_SIZE = 12;
 
 const CampaignsPage: React.FC = () => {
   const [form] = Form.useForm();
@@ -267,7 +267,7 @@ const CampaignsPage: React.FC = () => {
                   />
                   <span className="block w-full text-center">
                     {'('}
-                    {campaign.averageStarRate.toFixed(2).replace('.', ',')}
+                    {campaign.averageStarRate?.toFixed(2).replace('.', ',')}
                     {')'}
                   </span>
                 </div>
