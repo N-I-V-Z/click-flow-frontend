@@ -85,29 +85,29 @@ const NewsSection: React.FC = () => {
           style={{ animationDelay: '2s' }}
         ></div>
         <div
-          className="bg-blue-500/20 absolute left-1/2 top-1/2 h-32 w-32 -translate-x-1/2 -translate-y-1/2 transform animate-pulse rounded-full blur-2xl filter"
+          className="absolute left-1/2 top-1/2 h-32 w-32 -translate-x-1/2 -translate-y-1/2 transform animate-pulse rounded-full bg-blue blur-2xl filter"
           style={{ animationDelay: '4s' }}
         ></div>
       </div>
 
       <div className="relative z-10 p-4">
         {/* Compact Header */}
-        <div className="relative mb-8 text-center">
-          <div className="relative">
+        <div className="relative mt-12">
+          <div className="text-center">
             <div className="mb-3 flex items-center justify-center">
-              <div className="mr-3 h-3 w-3 animate-pulse rounded-full bg-gradient-to-r from-purple-400 to-pink-400"></div>
-              <h1 className="relative bg-gradient-to-r from-white via-purple-200 to-pink-200 bg-clip-text text-3xl font-black text-transparent drop-shadow-lg">
-                Tin Tức Affiliate Network
-                <div className="absolute -bottom-1 left-1/2 h-0.5 w-24 -translate-x-1/2 transform rounded-full bg-gradient-to-r from-purple-400 to-pink-400"></div>
-              </h1>
-              <div
-                className="to-blue-400 ml-3 h-3 w-3 animate-pulse rounded-full bg-gradient-to-r from-pink-400"
-                style={{ animationDelay: '1s' }}
-              ></div>
+              <SparklesIcon className="animate-spin-slow mr-2 h-12 w-12 text-yellow" />
+              <div className="relative mb-8 text-center">
+                <div className="relative">
+                  <div className="mb-3 flex items-center justify-center">
+                    <h1 className="relative bg-gradient-to-r from-white via-purple-200 to-pink-200 bg-clip-text text-3xl font-black text-transparent drop-shadow-lg">
+                      Tin Tức Affiliate Network
+                      <div className="absolute -bottom-1 left-1/2 h-0.5 w-24 -translate-x-1/2 transform rounded-full bg-gradient-to-r from-purple-400 to-pink-400"></div>
+                    </h1>
+                  </div>
+                </div>
+              </div>
+              <SparklesIcon className="animate-spin-slow ml-2 h-12 w-12 text-yellow" />
             </div>
-            <p className="text-sm font-medium tracking-wide text-purple-200">
-              Cập nhật tin tức mới nhất về affiliate marketing
-            </p>
           </div>
         </div>
 
@@ -123,7 +123,7 @@ const NewsSection: React.FC = () => {
               }`}
             >
               {/* Subtle Glowing Border */}
-              <div className="to-blue-500 absolute -inset-0.5 rounded-2xl bg-gradient-to-r from-purple-500 via-pink-500 opacity-60 blur-sm transition duration-300 group-hover:opacity-100"></div>
+              <div className="absolute -inset-0.5 rounded-2xl bg-gradient-to-r from-purple-500 via-pink-500 to-blue opacity-60 blur-sm transition duration-300 group-hover:opacity-100"></div>
 
               <div className="relative overflow-hidden rounded-2xl bg-white/95 shadow-xl backdrop-blur-sm">
                 <div className="relative overflow-hidden">
@@ -148,15 +148,15 @@ const NewsSection: React.FC = () => {
 
                   {/* Simple Hot Badge */}
                   <div className="absolute right-4 top-4">
-                    <div className="from-orange-500 to-red-500 rounded-lg bg-gradient-to-r px-2 py-1 text-xs font-bold text-white shadow-lg">
+                    <div className="rounded-lg bg-gradient-to-r from-orange to-red px-2 py-1 text-xs font-bold text-white shadow-lg">
                       🔥 HOT
                     </div>
                   </div>
                 </div>
 
                 <div className="p-6">
-                  <div className="mb-3 flex items-center text-xs text-gray-500">
-                    <CalendarDaysIcon className="mr-1 h-4 w-4 text-purple-500" />
+                  <div className="text-gray mb-3 flex items-center text-xs">
+                    <CalendarDaysIcon className="text-purple mr-1 h-4 w-4" />
                     <span className="font-medium">
                       {formatDate(featuredNews.publishedAt)}
                     </span>
@@ -362,38 +362,6 @@ const NewsSection: React.FC = () => {
             )}
           </div>
         </div>
-
-        {/* Compact Bottom Section */}
-        <div className="relative mt-12">
-          <div className="to-blue-600 absolute inset-0 rounded-xl bg-gradient-to-r from-purple-600 via-pink-600 opacity-80"></div>
-          <div className="to-blue-600/90 relative rounded-xl border border-white/20 bg-gradient-to-r from-purple-600/90 via-pink-600/90 p-6 text-white shadow-lg backdrop-blur-sm">
-            <div className="text-center">
-              <div className="mb-3 flex items-center justify-center">
-                <SparklesIcon className="text-yellow-300 animate-spin-slow mr-2 h-5 w-5" />
-                <h3 className="text-lg font-bold">
-                  Đăng ký nhận tin tức độc quyền
-                </h3>
-                <SparklesIcon className="text-yellow-300 animate-spin-slow ml-2 h-5 w-5" />
-              </div>
-              <p className="mb-4 text-sm font-medium text-purple-100">
-                Cập nhật xu hướng affiliate marketing mới nhất
-              </p>
-              <div className="mx-auto flex max-w-sm gap-2">
-                <input
-                  type="email"
-                  placeholder="Email của bạn..."
-                  className="flex-1 rounded-lg bg-white/95 px-3 py-2 text-sm font-medium text-gray-900 placeholder-gray-500 shadow-md backdrop-blur-sm focus:outline-none focus:ring-2 focus:ring-white/50"
-                />
-                <button className="transform rounded-lg bg-white px-4 py-2 text-sm font-bold text-purple-600 shadow-md transition-all duration-300 hover:scale-105 hover:bg-gray-100 hover:shadow-lg">
-                  🚀 Đăng ký
-                </button>
-              </div>
-              <p className="mt-2 text-xs text-purple-200">
-                ✨ Miễn phí • 📧 Không spam
-              </p>
-            </div>
-          </div>
-        </div>
       </div>
 
       {/* Optimized CSS for animations */}
@@ -460,6 +428,7 @@ const NewsSection: React.FC = () => {
           background: rgba(139, 92, 246, 0.7);
         }
       `}</style>
+      <br></br>
     </div>
   );
 };
