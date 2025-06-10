@@ -5,7 +5,7 @@ const Model: React.FC = () => {
     <div className="relative flex flex-col items-center overflow-hidden bg-gradient-to-br from-purple-800 to-indigo-900 px-6 py-20 text-white">
       {/* Tiêu đề với hiệu ứng gradient chữ */}
       <motion.h2
-        className="from-yellow-300 mb-12 bg-gradient-to-r via-pink-400 to-purple-500 bg-clip-text text-center text-4xl font-extrabold text-transparent"
+        className="mb-12 bg-gradient-to-r from-yellow via-pink-400 to-purple-500 bg-clip-text text-center text-4xl font-extrabold text-transparent"
         initial={{ opacity: 0, y: -30 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 1 }}
@@ -26,7 +26,7 @@ const Model: React.FC = () => {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 1, delay: 0.2 }}
           >
-            <div className="to-yellow-400 flex h-24 w-24 items-center justify-center rounded-full bg-gradient-to-br from-pink-500 shadow-lg">
+            <div className="flex h-24 w-24 items-center justify-center rounded-full bg-gradient-to-br from-pink-500 to-yellow shadow-lg">
               <img
                 src="/src/assets/Advertisers.png"
                 alt="Nhà Cung Cấp"
@@ -60,7 +60,7 @@ const Model: React.FC = () => {
                 className="h-20 w-20 rounded-full"
               />
             </div>
-            <h3 className="text-orange-300 mt-4 text-2xl font-semibold tracking-wide">
+            <h3 className="mt-4 text-2xl font-semibold tracking-wide text-orange">
               CLICK FLOW
             </h3>
             <p className="mt-2 max-w-xs text-sm leading-relaxed">
@@ -80,7 +80,7 @@ const Model: React.FC = () => {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 1, delay: 0.6 }}
           >
-            <div className="from-blue-500 flex h-24 w-24 items-center justify-center rounded-full bg-gradient-to-br to-indigo-600 shadow-lg">
+            <div className="flex h-24 w-24 items-center justify-center rounded-full bg-gradient-to-br from-blue to-indigo-600 shadow-lg">
               <img
                 src="src/assets/Publishers.png"
                 alt="Nhà Phân Phối"

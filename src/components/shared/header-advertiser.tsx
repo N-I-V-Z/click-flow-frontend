@@ -4,7 +4,7 @@ import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import UpgradePackage from '@/pages/Publisher/UpgradePackage';
 import NotificationBell from '@/pages/Publisher/Notification';
-import { logoURL, logoURLAd } from '@/constants/data';
+import { logoURLAd } from '@/constants/data';
 export default function HeaderAd() {
   const [isLogoutOpen, setIsLogoutOpen] = useState<boolean>(false);
   const [currentPlan, setCurrentPlan] = useState<string>('basic');

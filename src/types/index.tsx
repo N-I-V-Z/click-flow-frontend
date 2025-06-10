@@ -1,6 +1,5 @@
 import { Icons } from '@/components/ui/icons';
 import { Wallet } from 'lucide-react';
-import { Transaction } from './index';
 
 // Interface
 export interface NavItem {
@@ -190,16 +189,25 @@ export type ReportApiResponse = {
 
 export type TrafficApiResponse = {
   id: number;
+  clickId: string;
+  isClosed: boolean;
   ipAddress: string;
   isValid: boolean;
-  revenue: number | null;
   deviceType: string;
-  orderId: string | null;
+  conversions: Conversion[];
   browser: string;
   referrerURL: string;
   timestamp: Date;
   campaignParticipationId: number | null;
   campaignParticipation: CampaignParticipationApiResponse | null;
+};
+
+export type Conversion = {
+  id: number;
+  clickId: string;
+  revenue: number;
+  orderId: string;
+  timestamp: Date;
 };
 
 export type CampaignParticipationApiResponse = {
@@ -325,3 +333,107 @@ export interface CreateTransactionAPI {
   transactionType: TransactionType;
   walletId: number;
 }
+
+export interface CreateCourseFormData {
+  title: string;
+  price: number;
+  lessonLearned: string;
+  description: string;
+  content: string;
+}
+
+export interface BaseResponse {
+  isSuccess: boolean;
+  message: string;
+}
+
+export interface UploadImageResponse {
+  publicId: string;
+  url: string;
+}
+
+export interface ICreateTrafficPayload {
+  deviceType: string;
+  orderId: string;
+  browser: string;
+  referrerURL: string;
+  timestamp: Date;
+  campaignId: number;
+  publisherId: number;
+}
+
+export interface ClickResponse {
+  clickId: string;
+  url: string;
+}
+
+export type LoginRequest = {
+  userNameOrEmail: string;
+  password: string;
+};
+
+export type RegisterRequest = {
+  email: string;
+  userName: string;
+  password: string;
+  confirmPassword: string;
+  fullName: string;
+  phoneNumber: string;
+  role: Role;
+  companyName: string;
+  introductionWebsite: string;
+  staffSize?: number;
+  industry: Industry;
+};
+
+export type RegisterPublisherRequest = {
+  email: string;
+  userName: string;
+  password: string;
+  confirmPassword: string;
+  fullName: string;
+  phoneNumber: string;
+  role: Role;
+};
+
+export type RegisterAdvertiserRequest = {
+  email: string;
+  userName: string;
+  password: string;
+  confirmPassword: string;
+  fullName: string;
+  phoneNumber: string;
+  role: Role;
+  companyName: string;
+  introductionWebsite: string;
+  staffSize: string;
+  industry: Industry | string;
+};
+
+export enum Industry {
+  FoodAndBeverage = 'FoodAndBeverage',
+  Tourism = 'Tourism',
+  Education = 'Education',
+  Other = 'Other'
+}
+
+export type ForgotPasswordRequest = {
+  email: string;
+};
+
+export type LogoutRequest = {
+  refreshToken: string;
+};
+
+export type ResetpasswordRequest = {
+  email: string;
+  newPassword: string;
+  confirmedNewPassword: string;
+  token: string;
+};
+
+export type ChangePasswordRequest = {
+  oldPassword: string;
+  newPassword: string;
+  confirmedNewPassword: string;
+};

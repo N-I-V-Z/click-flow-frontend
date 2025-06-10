@@ -41,7 +41,7 @@ const StarRating = ({ rating }: { rating: number }) => (
       />
     ))}
     <span className="ml-2 text-sm font-semibold text-amber-500">
-      {rating.toFixed(1)}
+      {(rating || 0).toFixed(1)}
     </span>
   </div>
 );
@@ -213,7 +213,7 @@ const UdemyBody = () => {
   return (
     <BasePages pageHead="ClickFlow - Khóa học">
       <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-100">
-        {isLoading && <Loading />} {/* <-- thay thế bằng Loading component */}
+        {isLoading && <Loading />}
         {isError && (
           <div className="flex h-screen items-center justify-center">
             <div className="text-center">

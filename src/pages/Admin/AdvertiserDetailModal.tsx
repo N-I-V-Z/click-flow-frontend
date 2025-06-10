@@ -1,7 +1,7 @@
-// AdvertiserDetailModal.tsx
 import React from 'react';
 import { Modal, Input } from 'antd';
 import { BiBuildings } from 'react-icons/bi';
+import { useGetUserDetail } from '@/queries/user.query';
 
 interface AdvertiserDetailModalProps {
   open: boolean;
@@ -14,9 +14,7 @@ export const AdvertiserDetailModal: React.FC<AdvertiserDetailModalProps> = ({
   onClose,
   advertiserId
 }) => {
-  // Gọi API chi tiết, chỉ fetch khi advertiserId != null
-  const { data, isLoading } = useGetAdvertiserDetail(advertiserId ?? undefined);
-
+  const { data, isLoading } = useGetUserDetail(advertiserId ?? undefined);
   const advertiserDetail = data?.result;
 
   return (

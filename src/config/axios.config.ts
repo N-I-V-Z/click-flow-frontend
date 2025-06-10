@@ -178,21 +178,13 @@ const BaseRequest = {
     const response = await axios.post<ApiResponse<T>>(url, data, config);
     return response.data;
   },
-  Put: async (url: string, data: any) => {
-    try {
-      const response = await axios.put<any>(url, data);
-      return response;
-    } catch (err) {
-      console.log('err', err);
-    }
+  Put: async <T>(url: string, data: any): Promise<ApiResponse<T>> => {
+    const response = await axios.put<ApiResponse<T>>(url, data);
+    return response.data;
   },
-  Delete: async (url: string) => {
-    try {
-      const response = await axios.delete(url);
-      return response;
-    } catch (err) {
-      console.log('err', err);
-    }
+  Delete: async <T>(url: string): Promise<ApiResponse<T>> => {
+    const response = await axios.delete(url);
+    return response.data;
   },
   UploadStockPhoto: async (file: File) => {
     try {
