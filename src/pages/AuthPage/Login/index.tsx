@@ -65,10 +65,15 @@ export default function LoginPage() {
 
     try {
       const data = await Login(formLogin);
-      helpers.cookie_set(
-        'AT',
-        (data as ApiResponse<LoginApiResponse>).result?.token ?? ''
-      );
+      const loginResponse = data as ApiResponse<LoginApiResponse>;
+
+      // Lưu cả access token và refresh token
+      const accessToken = loginResponse.result?.token ?? '';
+      const refreshToken = loginResponse.result?.refreshToken ?? '';
+
+      helpers.cookie_set('AT', accessToken);
+      helpers.cookie_set('RT', refreshToken); // ← Thêm dòng này để lưu refresh token
+
       dispatch(login());
       const decoded: TokenDecoded | null = helpers.decodeTokens(
         __helpers.cookie_get('AT')
@@ -102,7 +107,14 @@ export default function LoginPage() {
         body: JSON.stringify({ token: credentialResponse.credential })
       });
       const data: ApiResponse<LoginApiResponse> = await res.json();
-      helpers.cookie_set('AT', data?.result?.token || '');
+
+      // Lưu cả access token và refresh token cho Google login
+      const accessToken = data?.result?.token || '';
+      const refreshToken = data?.result?.refreshToken || '';
+
+      helpers.cookie_set('AT', accessToken);
+      helpers.cookie_set('RT', refreshToken); // ← Thêm dòng này để lưu refresh token
+
       dispatch(login());
       const decoded: TokenDecoded | null = helpers.decodeTokens(
         data?.result?.token
