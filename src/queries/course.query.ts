@@ -23,13 +23,14 @@ export const useGetAllCourses = (
 
 export const useGetCourseAdmin = (
   pageIndex: number = 1,
-  pageSize: number = 10
+  pageSize: number = 10,
+  keyWord?: string
 ) => {
   return useQuery({
     queryKey: ['get-courses', pageIndex, pageSize],
     queryFn: async () => {
       return await BaseRequest.Get<PagingResponse<Course>>(
-        `${SUB_URL}/admin?PageIndex=${pageIndex}&PageSize=${pageSize}`
+        `${SUB_URL}/admin?PageIndex=${pageIndex}&PageSize=${pageSize}&Keyword=${keyWord}`
       );
     }
   });

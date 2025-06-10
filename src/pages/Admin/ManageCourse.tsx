@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { Modal, Badge, Rate, Form, Input, InputNumber, message } from 'antd';
 import {
   EyeOutlined,
@@ -9,21 +9,11 @@ import {
 import { ColumnDef } from '@tanstack/react-table';
 import BasePages from '@/components/shared/base-pages';
 import DataTable from '@/components/shared/data-table';
-import Loading from '@/components/ui/loading';
 import { useGetCourseAdmin, useCreateCourse } from '@/queries/course.query';
-import { ApiResponse, PagingResponse } from '@/types';
+import { Course } from '@/types';
+import __helpers from '@/helpers';
 
 const { TextArea } = Input;
-
-interface CourseRow {
-  id: number;
-  title: string;
-  createAt: string;
-  updateAt: string;
-  createById: number;
-  avgRate: number;
-  price: number;
-}
 
 export interface CreateCourseFormData {
   title: string;
@@ -50,41 +40,28 @@ const formatPrice = (price: number) => {
 };
 
 const ManageCourse: React.FC = () => {
-  const [dataSource, setDataSource] = useState<CourseRow[]>([]);
   const [isViewModalVisible, setIsViewModalVisible] = useState(false);
   const [isCreateModalVisible, setIsCreateModalVisible] = useState(false);
-  const [selectedCourse, setSelectedCourse] = useState<CourseRow | null>(null);
+  const [selectedCourse, setSelectedCourse] = useState<Course | null>(null);
   const [isDeleteModalVisible, setIsDeleteModalVisible] = useState(false);
   const [createForm] = Form.useForm();
+  const [keyWord, setKeyWord] = useState<string>('');
+  const { pageIndex, pageSize } = __helpers.usePaginationParams();
 
-  // for pagination parameters
-  const [currentPage, setCurrentPage] = useState<number>(1);
-  const pageSize = 10;
-
-  const { data, isLoading, error, refetch } = useGetCourseAdmin(
-    currentPage,
-    pageSize
-  );
-  const createCourseMutation = useCreateCourse();
+  const {
+    data: courses,
+    isLoading,
+    error,
+    refetch
+  } = useGetCourseAdmin(pageIndex, pageSize, keyWord);
 
   useEffect(() => {
-    if (data?.result) {
-      const mapped = (
-        data as ApiResponse<PagingResponse<CourseRow>>
-      ).result.datas.map((course) => ({
-        id: course.id,
-        title: course.title,
-        createAt: course.createAt,
-        updateAt: course.updateAt,
-        createById: course.createById,
-        avgRate: course.avgRate,
-        price: course.price
-      }));
-      setDataSource(mapped);
-    }
-  }, [data]);
+    refetch();
+  }, [keyWord, refetch]);
 
-  const handleView = (record: CourseRow) => {
+  const createCourseMutation = useCreateCourse();
+
+  const handleView = (record: Course) => {
     setSelectedCourse(record);
     setIsViewModalVisible(true);
   };
@@ -94,20 +71,20 @@ const ManageCourse: React.FC = () => {
     setSelectedCourse(null);
   };
 
-  const handleDelete = (record: CourseRow) => {
+  const handleDelete = (record: Course) => {
     setSelectedCourse(record);
     setIsDeleteModalVisible(true);
   };
 
   const confirmDelete = () => {
-    if (selectedCourse) {
-      // TODO: call delete API, then refetch or remove from dataSource
-      setDataSource((prev) =>
-        prev.filter((item) => item.id !== selectedCourse.id)
-      );
-    }
-    setIsDeleteModalVisible(false);
-    setSelectedCourse(null);
+    // if (selectedCourse) {
+    //   // TODO: call delete API, then refetch or remove from dataSource
+    //   setDataSource((prev) =>
+    //     prev.filter((item) => item.id !== selectedCourse.id)
+    //   );
+    // }
+    // setIsDeleteModalVisible(false);
+    // setSelectedCourse(null);
   };
 
   const cancelDelete = () => {
@@ -139,7 +116,7 @@ const ManageCourse: React.FC = () => {
     }
   };
 
-  const columns = useMemo<ColumnDef<CourseRow>[]>(
+  const columns = useMemo<ColumnDef<Course>[]>(
     () => [
       {
         id: 'stt',
@@ -291,21 +268,6 @@ const ManageCourse: React.FC = () => {
     []
   );
 
-  if (isLoading) {
-    return (
-      <BasePages pageHead="ClickFlow - Quản lý khóa học">
-        <div className="flex min-h-screen items-center justify-center bg-gray-50">
-          <div className="rounded-lg bg-white p-8 shadow-sm">
-            <Loading />
-            <p className="mt-4 text-center text-gray-600">
-              Đang tải dữ liệu...
-            </p>
-          </div>
-        </div>
-      </BasePages>
-    );
-  }
-
   if (error) {
     return (
       <BasePages pageHead="ClickFlow - Quản lý khóa học">
@@ -348,7 +310,7 @@ const ManageCourse: React.FC = () => {
                 <h2 className="text-lg font-semibold text-gray-900">
                   Danh sách khóa học
                   <span className="ml-2 text-sm font-normal text-gray-500">
-                    ({dataSource.length} khóa học)
+                    ({courses?.result?.totalItems} khóa học)
                   </span>
                 </h2>
                 <button
@@ -364,10 +326,10 @@ const ManageCourse: React.FC = () => {
             <div className="p-6">
               <DataTable
                 columns={columns}
-                data={dataSource}
-                pageCount={-1}
-                pageSizeOptions={[10, 20, 50]}
-                showAdd={false}
+                data={courses?.result?.datas ?? []}
+                pageCount={courses?.result?.totalPages ?? 0}
+                isLoading={isLoading}
+                onSearchChange={setKeyWord}
               />
             </div>
           </div>
