@@ -25,7 +25,7 @@ export const useCreateTransaction = () => {
   return useMutation({
     mutationKey: ['crete-transaction'],
     mutationFn: async () => {
-      return await BaseRequest.Post<CreateTransactionAPI>(`/${SUB_URL}`);
+      return await BaseRequest.Post<Transaction>(`/${SUB_URL}`);
     }
   });
 };

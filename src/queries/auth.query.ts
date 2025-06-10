@@ -1,15 +1,28 @@
 import BaseRequest from '@/config/axios.config';
+import {
+  BaseResponse,
+  ChangePasswordRequest,
+  ForgotPasswordRequest,
+  LoginApiResponse,
+  LogoutRequest,
+  RegisterRequest,
+  ResetpasswordRequest,
+  RegisterPublisherRequest,
+  ApplicationUserApiResponse,
+  RegisterAdvertiserRequest,
+  LoginRequest
+} from '@/types';
 import { useMutation } from '@tanstack/react-query';
 
-const SUB_URL = `api/Accounts`;
+const SUB_URL = `/api/Accounts`;
 export const useLogin = () => {
   return useMutation({
     mutationKey: ['login'],
-    mutationFn: async (model: {
-      userNameOrEmail: string;
-      password: string;
-    }) => {
-      return await BaseRequest.Post(`/${SUB_URL}/authen`, model);
+    mutationFn: async (model: LoginRequest) => {
+      return await BaseRequest.Post<LoginApiResponse>(
+        `${SUB_URL}/authen`,
+        model
+      );
     }
   });
 };
@@ -17,8 +30,11 @@ export const useLogin = () => {
 export const useRegister = () => {
   return useMutation({
     mutationKey: ['register'],
-    mutationFn: async (model: unknown) => {
-      return await BaseRequest.Post(`/${SUB_URL}/`, model);
+    mutationFn: async (model: RegisterRequest) => {
+      return await BaseRequest.Post<ApplicationUserApiResponse>(
+        `${SUB_URL}/`,
+        model
+      );
     }
   });
 };
@@ -26,16 +42,19 @@ export const useRegister = () => {
 export const useForgotPassword = () => {
   return useMutation({
     mutationKey: ['forgotPassword'],
-    mutationFn: async (model: { email: string }) => {
-      return await BaseRequest.Post(`/${SUB_URL}/forgot-password`, model);
+    mutationFn: async (model: ForgotPasswordRequest) => {
+      return await BaseRequest.Post<BaseResponse>(
+        `${SUB_URL}/forgot-password`,
+        model
+      );
     }
   });
 };
 export const useLogout = () => {
   return useMutation({
     mutationKey: ['logout'],
-    mutationFn: async (model: { refreshToken: string }) => {
-      return await BaseRequest.Post(`/${SUB_URL}/sign-out`, model);
+    mutationFn: async (model: LogoutRequest) => {
+      return await BaseRequest.Post<BaseResponse>(`${SUB_URL}/sign-out`, model);
     }
   });
 };
@@ -43,29 +62,8 @@ export const useLogout = () => {
 export const useResetPassword = () => {
   return useMutation({
     mutationKey: ['reset-password'],
-    mutationFn: async (model: {
-      email: string;
-      newPassword: string;
-      confirmedNewPassword: string;
-    }) => {
-      return await BaseRequest.Post(`/${SUB_URL}/reset-password`, model);
-    }
-  });
-};
-
-{
-  /* */
-}
-export const useRegisterUser = () => {
-  return useMutation({
-    mutationKey: ['register-user'],
-    mutationFn: async (model: {
-      firstName: string;
-      lastName: string;
-      contactEmail: string;
-      contactPhone: string;
-    }) => {
-      return await BaseRequest.Post(`/${SUB_URL}/register`, model);
+    mutationFn: async (model: ResetpasswordRequest) => {
+      return await BaseRequest.Post(`${SUB_URL}/reset-password`, model);
     }
   });
 };
@@ -73,45 +71,23 @@ export const useRegisterUser = () => {
 export const useChangePassword = () => {
   return useMutation({
     mutationKey: ['change-password'],
-    mutationFn: async (model: {
-      oldPassword: string;
-      newPassword: string;
-      confirmedNewPassword: string;
-    }) => {
-      return await BaseRequest.Post(`/${SUB_URL}/change-password`, model);
+    mutationFn: async (model: ChangePasswordRequest) => {
+      return await BaseRequest.Post<BaseResponse>(
+        `${SUB_URL}/change-password`,
+        model
+      );
     }
-  });
-};
-
-export const useRenewToken = () => {
-  return useMutation({
-    mutationKey: ['renewToken'],
-    mutationFn: async () => {}
   });
 };
 
 export const useRegisterPublisher = () => {
   return useMutation({
     mutationKey: ['register-publisher'],
-    mutationFn: async (model: {
-      userName: string;
-      email: string;
-      phoneNumber: string;
-      password: string;
-    }) => {
-      return await BaseRequest.Post(`/${SUB_URL}/sign-up`, {
-        userName: model.userName,
-        email: model.email,
-        phoneNumber: model.phoneNumber,
-        password: model.password,
-        confirmPassword: model.password,
-        fullName: model.userName,
-        role: 'Publisher',
-        companyName: null,
-        introductionWebsite: null,
-        staffSize: null,
-        industry: null
-      });
+    mutationFn: async (model: RegisterPublisherRequest) => {
+      return await BaseRequest.Post<ApplicationUserApiResponse>(
+        `${SUB_URL}/sign-up`,
+        model
+      );
     }
   });
 };
@@ -119,30 +95,11 @@ export const useRegisterPublisher = () => {
 export const useRegisterAdvertiser = () => {
   return useMutation({
     mutationKey: ['register-advertiser'],
-    mutationFn: async (model: {
-      userName: string;
-      email: string;
-      phoneNumber: string;
-      password: string;
-      companyName: string;
-      introductionWebsite: string;
-      staffSize: string;
-      industry: string;
-    }) => {
-      return await BaseRequest.Post(`/${SUB_URL}/sign-up`, {
-        userName: model.userName,
-        email: model.email,
-        phoneNumber: model.phoneNumber,
-        password: model.password,
-        confirmPassword: model.password,
-        // Sử dụng userName làm fullName thay vì null
-        fullName: model.userName,
-        role: 'Advertiser',
-        companyName: model.companyName,
-        introductionWebsite: model.introductionWebsite,
-        staffSize: model.staffSize,
-        industry: model.industry
-      });
+    mutationFn: async (model: RegisterAdvertiserRequest) => {
+      return await BaseRequest.Post<ApplicationUserApiResponse>(
+        `${SUB_URL}/sign-up`,
+        model
+      );
     }
   });
 };

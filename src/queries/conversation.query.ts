@@ -3,14 +3,14 @@ import { useMutation, useQuery } from '@tanstack/react-query';
 
 import { ConversationApiResponse, ConversationListApiResponse } from '@/types';
 
-const SUB_URL = `api/Conversations`;
+const SUB_URL = `/api/Conversations`;
 
 export const useCreateConversation = () => {
   return useMutation({
     mutationKey: ['crete-conversation'],
     mutationFn: async (model: { targetUserId: number }) => {
       return await BaseRequest.Post<ConversationApiResponse>(
-        `/${SUB_URL}`,
+        `${SUB_URL}`,
         model
       );
     }
@@ -22,7 +22,7 @@ export const useGetOwnConversations = () => {
     queryKey: ['get-own-conversation'],
     queryFn: async () => {
       return await BaseRequest.Get<ConversationListApiResponse[]>(
-        `/${SUB_URL}/own`
+        `${SUB_URL}/own`
       );
     }
   });

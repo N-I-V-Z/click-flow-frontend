@@ -1,6 +1,6 @@
 import BaseRequest from '@/config/axios.config';
-import { Course, PagingResponse } from '@/types';
-import { useQuery } from '@tanstack/react-query';
+import { Course, CreateCourseFormData, PagingResponse } from '@/types';
+import { useQuery, useMutation } from '@tanstack/react-query';
 
 const SUB_URL = `api/Courses`;
 
@@ -30,6 +30,18 @@ export const useGetCourseAdmin = (
     queryFn: async () => {
       return await BaseRequest.Get<PagingResponse<Course>>(
         `${SUB_URL}/admin?PageIndex=${pageIndex}&PageSize=${pageSize}`
+      );
+    }
+  });
+};
+
+export const useCreateCourse = () => {
+  return useMutation({
+    mutationKey: ['create-course'],
+    mutationFn: async (payload: CreateCourseFormData) => {
+      return await BaseRequest.Post<CreateCourseFormData>(
+        `/${SUB_URL}`,
+        payload
       );
     }
   });

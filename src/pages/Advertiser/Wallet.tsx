@@ -12,7 +12,7 @@ import {
 } from 'recharts';
 import { useGetOwnWallet } from '@/queries/wallet.query';
 import { useGetOwnTransaction } from '@/queries/transaction.query';
-import { TransactionType } from '@/types';
+import { Transaction, TransactionType } from '@/types';
 
 const Wallet: React.FC = () => {
   // Fetch wallet data
@@ -69,28 +69,6 @@ const Wallet: React.FC = () => {
     }));
   }, [transactionData]);
 
-  // Calculate previous month income
-  const previousMonthIncome = useMemo(() => {
-    if (!transactionData?.result?.datas) return 0;
-
-    const currentMonth = new Date().getMonth();
-    const previousMonth = currentMonth === 0 ? 11 : currentMonth - 1;
-
-    return transactionData.result?.datas
-      .filter((transaction) => {
-        const transactionMonth = new Date(transaction.paymentDate).getMonth();
-        return (
-          transactionMonth === previousMonth &&
-          transaction.transactionType === TransactionType.Received
-        );
-      })
-      .reduce((total, transaction) => {
-        const transactionValue =
-          transaction.amount !== 0 ? transaction.amount : transaction.balance;
-        return total + transactionValue;
-      }, 0);
-  }, [transactionData]);
-
   // Format currency
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('vi-VN', {
@@ -100,7 +78,7 @@ const Wallet: React.FC = () => {
   };
 
   // Get transaction type display info
-  const getTransactionDisplay = (transaction: any) => {
+  const getTransactionDisplay = (transaction: Transaction) => {
     const isPositive =
       transaction.transactionType === TransactionType.Received ||
       transaction.transactionType === TransactionType.Deposit;
@@ -129,7 +107,7 @@ const Wallet: React.FC = () => {
   };
 
   // Get display amount (use balance if amount is 0)
-  const getDisplayAmount = (transaction: any) => {
+  const getDisplayAmount = (transaction: Transaction) => {
     return transaction.amount !== 0
       ? Math.abs(transaction.amount)
       : transaction.balance;

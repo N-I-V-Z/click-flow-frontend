@@ -273,15 +273,6 @@ const AdvertiserCampaigns = () => {
               ))}
             </select>
           </div>
-          <div>
-            <input
-              type="text"
-              placeholder="Tìm theo tên chiến dịch..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full rounded border p-2"
-            />
-          </div>
         </div>
 
         <DataTable

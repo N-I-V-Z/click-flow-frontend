@@ -5,7 +5,6 @@ import ScrollToTop from '@/hooks/scroll-to-top';
 const SystemLayout = lazy(() => import('@/components/layout/index'));
 const HomePage = lazy(() => import('@/pages/Home/index'));
 const LoginPage = lazy(() => import('@/pages/AuthPage/Login/index'));
-const RegisterPage = lazy(() => import('@/pages/AuthPage/Register/index'));
 const ForgotPasswordPage = lazy(() => import('@/pages/AuthPage/ResetPassword'));
 const RegisterAdvertiserPage = lazy(
   () => import('@/pages/AuthPage/Register/RegisterAdvertiser')
@@ -29,7 +28,6 @@ const homeRoutes = [
     children: [
       { index: true, element: <HomePage /> },
       { path: 'login', element: <LoginPage /> },
-      { path: 'register', element: <RegisterPage /> },
       { path: 'register-advertiser', element: <RegisterAdvertiserPage /> },
       { path: 'forgot-password', element: <ForgotPasswordPage /> },
       { path: 'register-publisher', element: <RegisterPublisherPage /> },

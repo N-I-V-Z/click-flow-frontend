@@ -1,6 +1,5 @@
-// src/components/admin/ManageCourse.tsx
 import React, { useState, useEffect, useMemo } from 'react';
-import { Modal, Badge, Rate } from 'antd';
+import { Modal, Badge, Rate, Form, Input, InputNumber, message } from 'antd';
 import {
   EyeOutlined,
   EditOutlined,
@@ -11,8 +10,10 @@ import { ColumnDef } from '@tanstack/react-table';
 import BasePages from '@/components/shared/base-pages';
 import DataTable from '@/components/shared/data-table';
 import Loading from '@/components/ui/loading';
-import { useGetCourseAdmin } from '@/queries/course.query';
+import { useGetCourseAdmin, useCreateCourse } from '@/queries/course.query';
 import { ApiResponse, PagingResponse } from '@/types';
+
+const { TextArea } = Input;
 
 interface CourseRow {
   id: number;
@@ -22,6 +23,14 @@ interface CourseRow {
   createById: number;
   avgRate: number;
   price: number;
+}
+
+export interface CreateCourseFormData {
+  title: string;
+  price: number;
+  lessonLearned: string;
+  description: string;
+  content: string;
 }
 
 const formatDate = (dateString: string) => {
@@ -43,14 +52,20 @@ const formatPrice = (price: number) => {
 const ManageCourse: React.FC = () => {
   const [dataSource, setDataSource] = useState<CourseRow[]>([]);
   const [isViewModalVisible, setIsViewModalVisible] = useState(false);
+  const [isCreateModalVisible, setIsCreateModalVisible] = useState(false);
   const [selectedCourse, setSelectedCourse] = useState<CourseRow | null>(null);
   const [isDeleteModalVisible, setIsDeleteModalVisible] = useState(false);
+  const [createForm] = Form.useForm();
 
   // for pagination parameters
   const [currentPage, setCurrentPage] = useState<number>(1);
   const pageSize = 10;
 
-  const { data, isLoading, error } = useGetCourseAdmin(currentPage, pageSize);
+  const { data, isLoading, error, refetch } = useGetCourseAdmin(
+    currentPage,
+    pageSize
+  );
+  const createCourseMutation = useCreateCourse();
 
   useEffect(() => {
     if (data?.result) {
@@ -98,6 +113,30 @@ const ManageCourse: React.FC = () => {
   const cancelDelete = () => {
     setIsDeleteModalVisible(false);
     setSelectedCourse(null);
+  };
+
+  // Create Course Modal handlers
+  const handleCreateCourse = () => {
+    setIsCreateModalVisible(true);
+  };
+
+  const handleCreateModalCancel = () => {
+    setIsCreateModalVisible(false);
+    createForm.resetFields();
+  };
+
+  const handleCreateCourseSubmit = async (values: CreateCourseFormData) => {
+    try {
+      await createCourseMutation.mutateAsync(values);
+      message.success('Tạo khóa học thành công!');
+      setIsCreateModalVisible(false);
+      createForm.resetFields();
+      // Refetch data to update the list
+      refetch();
+    } catch (error) {
+      message.error('Có lỗi xảy ra khi tạo khóa học. Vui lòng thử lại!');
+      console.error('Create course error:', error);
+    }
   };
 
   const columns = useMemo<ColumnDef<CourseRow>[]>(
@@ -188,7 +227,7 @@ const ManageCourse: React.FC = () => {
                 className="text-xs"
               />
               <span className="text-xs text-gray-600">
-                {row.original.avgRate.toFixed(1)}/5
+                {row.original.avgRate?.toFixed(1)}/5
               </span>
             </div>
           </div>
@@ -272,7 +311,7 @@ const ManageCourse: React.FC = () => {
       <BasePages pageHead="ClickFlow - Quản lý khóa học">
         <div className="flex min-h-screen items-center justify-center bg-gray-50">
           <div className="rounded-lg bg-white p-8 text-center shadow-sm">
-            <div className="bg-red-100 mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full">
+            <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-red">
               <svg
                 className="text-red-600 h-8 w-8"
                 fill="none"
@@ -302,27 +341,6 @@ const ManageCourse: React.FC = () => {
   return (
     <BasePages pageHead="ClickFlow - Quản lý khóa học">
       <div className="min-h-screen bg-gray-50">
-        <div className="border-b border-gray-200 bg-white">
-          <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-            <div className="py-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <h1 className="text-3xl font-bold text-gray-900">
-                    Quản lý khóa học
-                  </h1>
-                  <p className="mt-2 text-sm text-gray-600">
-                    Quản lý và theo dõi tất cả các khóa học trong hệ thống
-                  </p>
-                </div>
-                <button className="bg-blue-600 hover:bg-blue-700 focus:ring-blue-500 inline-flex items-center rounded-md border border-transparent px-4 py-2 text-sm font-medium text-white shadow-sm transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2">
-                  <PlusOutlined className="mr-2" />
-                  Thêm khóa học mới
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-
         <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
           <div className="rounded-lg border border-gray-200 bg-white shadow-sm">
             <div className="border-b border-gray-200 px-6 py-4">
@@ -333,6 +351,13 @@ const ManageCourse: React.FC = () => {
                     ({dataSource.length} khóa học)
                   </span>
                 </h2>
+                <button
+                  onClick={handleCreateCourse}
+                  className="hover:bg-blue-700 focus:ring-blue-500 inline-flex items-center rounded-md border border-transparent bg-blue px-4 py-2 text-sm font-medium text-white shadow-sm transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2"
+                >
+                  <PlusOutlined className="mr-2" />
+                  Thêm khóa học mới
+                </button>
               </div>
             </div>
 
@@ -347,6 +372,199 @@ const ManageCourse: React.FC = () => {
             </div>
           </div>
         </div>
+
+        {/* Create Course Modal */}
+        <Modal
+          title={
+            <div className="flex items-center gap-3 border-b border-gray-200 pb-4">
+              <div className="flex h-10 w-10 items-center justify-center rounded-full bg-green-100">
+                <PlusOutlined className="text-green-600" />
+              </div>
+              <div>
+                <h3 className="text-lg font-semibold text-gray-900">
+                  Tạo khóa học mới
+                </h3>
+                <p className="text-sm text-gray-500">
+                  Nhập thông tin để tạo khóa học mới
+                </p>
+              </div>
+            </div>
+          }
+          open={isCreateModalVisible}
+          onCancel={handleCreateModalCancel}
+          footer={null}
+          width={800}
+          getContainer={false}
+          className="create-course-modal"
+          bodyStyle={{
+            maxHeight: '70vh',
+            overflowY: 'auto',
+            padding: 0
+          }}
+          style={{
+            top: 20
+          }}
+        >
+          <div className="px-6 pb-6 pt-6">
+            <Form
+              form={createForm}
+              layout="vertical"
+              onFinish={handleCreateCourseSubmit}
+              className="space-y-4"
+            >
+              <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+                <Form.Item
+                  name="title"
+                  label={
+                    <span className="text-sm font-medium text-gray-700">
+                      Tiêu đề khóa học
+                    </span>
+                  }
+                  rules={[
+                    {
+                      required: true,
+                      message: 'Vui lòng nhập tiêu đề khóa học!'
+                    }
+                  ]}
+                >
+                  <Input placeholder="Nhập tiêu đề khóa học" className="h-10" />
+                </Form.Item>
+
+                <Form.Item
+                  name="price"
+                  label={
+                    <span className="text-sm font-medium text-gray-700">
+                      Giá khóa học (VND)
+                    </span>
+                  }
+                  rules={[
+                    {
+                      required: true,
+                      message: 'Vui lòng nhập giá khóa học!'
+                    },
+                    {
+                      type: 'number',
+                      min: 0,
+                      message: 'Giá phải lớn hơn hoặc bằng 0!'
+                    }
+                  ]}
+                >
+                  <InputNumber
+                    placeholder="Nhập giá khóa học"
+                    className="h-10 w-full"
+                    formatter={(value) =>
+                      `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')
+                    }
+                    parser={(value) => value!.replace(/\$\s?|(,*)/g, '')}
+                  />
+                </Form.Item>
+              </div>
+
+              <Form.Item
+                name="lessonLearned"
+                label={
+                  <span className="text-sm font-medium text-gray-700">
+                    Bài học thu được
+                  </span>
+                }
+                rules={[
+                  {
+                    required: true,
+                    message: 'Vui lòng nhập bài học thu được!'
+                  }
+                ]}
+              >
+                <TextArea
+                  placeholder="Mô tả những gì học viên sẽ học được từ khóa học này"
+                  rows={3}
+                />
+              </Form.Item>
+
+              <Form.Item
+                name="description"
+                label={
+                  <span className="text-sm font-medium text-gray-700">
+                    Mô tả khóa học
+                  </span>
+                }
+                rules={[
+                  {
+                    required: true,
+                    message: 'Vui lòng nhập mô tả khóa học!'
+                  }
+                ]}
+              >
+                <TextArea placeholder="Mô tả tổng quan về khóa học" rows={4} />
+              </Form.Item>
+
+              <Form.Item
+                name="content"
+                label={
+                  <span className="text-sm font-medium text-gray-700">
+                    Nội dung khóa học
+                  </span>
+                }
+                rules={[
+                  {
+                    required: true,
+                    message: 'Vui lòng nhập nội dung khóa học!'
+                  }
+                ]}
+              >
+                <TextArea
+                  placeholder="Nội dung chi tiết của khóa học"
+                  rows={6}
+                />
+              </Form.Item>
+
+              <div className="sticky bottom-0 flex justify-end gap-3 bg-white pb-2 pt-4">
+                <button
+                  type="button"
+                  onClick={handleCreateModalCancel}
+                  className="rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
+                >
+                  Hủy bỏ
+                </button>
+                <button
+                  type="submit"
+                  disabled={createCourseMutation.isPending}
+                  className="inline-flex items-center rounded-md border border-transparent bg-blue px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-blue focus:outline-none focus:ring-2 focus:ring-blue focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                >
+                  {createCourseMutation.isPending ? (
+                    <>
+                      <svg
+                        className="mr-2 h-4 w-4 animate-spin"
+                        xmlns="http://www.w3.org/2000/svg"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                      >
+                        <circle
+                          className="opacity-25"
+                          cx="12"
+                          cy="12"
+                          r="10"
+                          stroke="currentColor"
+                          strokeWidth="4"
+                        ></circle>
+                        <path
+                          className="opacity-75"
+                          fill="currentColor"
+                          d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                        ></path>
+                      </svg>
+                      Đang tạo...
+                    </>
+                  ) : (
+                    <>
+                      <PlusOutlined className="mr-2" />
+                      Tạo khóa học
+                    </>
+                  )}
+                </button>
+              </div>
+            </Form>
+          </div>
+        </Modal>
 
         {/* View Modal */}
         <Modal
@@ -433,7 +651,7 @@ const ManageCourse: React.FC = () => {
                         allowHalf
                       />
                       <span className="text-lg font-semibold text-gray-900">
-                        {selectedCourse.avgRate.toFixed(1)}/5
+                        {selectedCourse.avgRate?.toFixed(1)}/5
                       </span>
                     </div>
                   </div>

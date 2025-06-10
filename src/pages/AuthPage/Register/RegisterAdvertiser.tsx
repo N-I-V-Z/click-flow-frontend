@@ -8,51 +8,54 @@ import { useRegisterAdvertiser } from '@/queries/auth.query';
 import ImageLeft from '../Image';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
-import { AiOutlineEye, AiOutlineEyeInvisible } from 'react-icons/ai';
+import {
+  Eye,
+  EyeOff,
+  User,
+  Mail,
+  Phone,
+  Lock,
+  Building,
+  Globe,
+  Users,
+  Briefcase
+} from 'lucide-react';
+import { Industry, RegisterAdvertiserRequest, Role } from '@/types';
 
-type FormAdvertiser = {
-  userName: string;
-  email: string;
-  phoneNumber: string;
-  password: string;
-  companyName: string;
-  introductionWebsite: string;
-  staffSize: string;
-  industry: string;
-};
-
-type FormError = Partial<FormAdvertiser>;
+type FormError = Partial<RegisterAdvertiserRequest>;
 
 const industryOptions = [
-  { value: 0, name: 'FoodAndBeverage', displayName: 'Thực phẩm và đồ uống' },
-  { value: 1, name: 'Tourism', displayName: 'Du lịch' },
-  { value: 2, name: 'Education', displayName: 'Giáo dục' },
-  { value: 3, name: 'Other', displayName: 'Khác' }
+  { value: Industry.FoodAndBeverage, displayName: 'Thực phẩm và đồ uống' },
+  { value: Industry.Tourism, displayName: 'Du lịch' },
+  { value: Industry.Education, displayName: 'Giáo dục' },
+  { value: Industry.Other, displayName: 'Khác' }
 ];
 
 const RegisterAdvertiserPage: React.FC = () => {
   const { mutateAsync, isPending } = useRegisterAdvertiser();
 
-  const [formAdvertiser, setFormAdvertiser] = useState<FormAdvertiser>({
-    userName: '',
-    email: '',
-    phoneNumber: '',
-    password: '',
-    companyName: '',
-    introductionWebsite: '',
-    staffSize: '',
-    industry: ''
-  });
-
+  const [formAdvertiser, setFormAdvertiser] =
+    useState<RegisterAdvertiserRequest>({
+      userName: '',
+      email: '',
+      phoneNumber: '',
+      password: '',
+      confirmPassword: '',
+      fullName: '',
+      role: Role.Advertiser,
+      companyName: '',
+      introductionWebsite: '',
+      staffSize: '',
+      industry: ''
+    });
   const [error, setError] = useState<FormError>({});
-  // State để điều khiển ẩn/hiện mật khẩu
   const [showPassword, setShowPassword] = useState(false);
 
   const validateInputs = (): FormError => {
     const errors: FormError = {};
 
     if (!formAdvertiser.userName.trim()) {
-      errors.userName = 'Họ và tên đăng nhập không được để trống.';
+      errors.userName = 'Tên đăng nhập không được để trống.';
     }
     if (!formAdvertiser.email.trim()) {
       errors.email = 'Email không được để trống.';
@@ -81,6 +84,14 @@ const RegisterAdvertiserPage: React.FC = () => {
           'Mật khẩu phải chứa ít nhất 1 chữ hoa, 1 chữ thường, 1 số và 1 ký tự đặc biệt.';
       }
     }
+    if (!formAdvertiser.confirmPassword.trim()) {
+      errors.confirmPassword = 'Xác nhận mật khẩu không được để trống.';
+    } else if (formAdvertiser.password !== formAdvertiser.confirmPassword) {
+      errors.confirmPassword = 'Mật khẩu xác nhận không khớp.';
+    }
+    if (!formAdvertiser.fullName.trim()) {
+      errors.fullName = 'Họ và tên không được để trống.';
+    }
     if (!formAdvertiser.companyName.trim()) {
       errors.companyName = 'Tên công ty không được để trống.';
     }
@@ -90,7 +101,7 @@ const RegisterAdvertiserPage: React.FC = () => {
     if (!formAdvertiser.staffSize.trim()) {
       errors.staffSize = 'Quy mô hoạt động không được để trống.';
     }
-    if (!formAdvertiser.industry.trim()) {
+    if (!formAdvertiser.industry || !formAdvertiser.industry.trim()) {
       errors.industry = 'Lĩnh vực hoạt động không được để trống.';
     }
 
@@ -100,262 +111,469 @@ const RegisterAdvertiserPage: React.FC = () => {
   const handleRegister = async () => {
     const errors = validateInputs();
     setError(errors);
-    if (Object.keys(errors).length > 0) return;
+
+    if (Object.keys(errors).length > 0) {
+      return;
+    }
 
     try {
-      await mutateAsync(formAdvertiser);
+      const response = await mutateAsync(formAdvertiser);
       toast.success('Đăng ký thành công!');
       setTimeout(() => {
         window.location.href = '/login';
       }, 1500);
     } catch (err) {
-      setError({ email: 'Không thể đăng ký. Vui lòng thử lại.' });
+      if (err instanceof Error) {
+        toast.error(`Lỗi: ${err.message}`);
+        setError({ email: err.message });
+      } else {
+        toast.error('Không thể đăng ký. Vui lòng thử lại.');
+        setError({ email: 'Không thể đăng ký. Vui lòng thử lại.' });
+      }
     }
   };
 
   return (
     <>
-      <BasePages
-        className="relative mx-auto mb-20 w-[70%] flex-1 p-3"
-        pageHead="ClickFlow - Đăng ký Advertiser"
-        breadcrumbs={[
-          { title: 'Trang chủ', link: '/' },
-          { title: 'Đăng ký', link: '/register-advertiser' }
-        ]}
-      >
-        <div className="mx-auto mt-4 flex min-h-[400px] w-full rounded-xl bg-white p-4 shadow-xl">
-          {/* Bên trái - Hình ảnh */}
-          <div className="hidden lg:block lg:w-1/2">
-            <ImageLeft />
-          </div>
-          {/* Bên phải - Form */}
-          <div className="w-full px-6 lg:w-1/2">
-            <Link to="/">
-              <img
-                src="src/assets/logo.jpg"
-                alt="Logo"
-                className="w-30 mx-auto h-20 rounded-lg"
-              />
+      {/* Custom Breadcrumb */}
+      <div className="mt-2 px-8 py-2">
+        <div className="mx-auto max-w-6xl">
+          <nav className="flex items-center space-x-2 text-sm">
+            <Link
+              to="/"
+              className="text-purple-600 transition-colors hover:text-purple-700"
+            >
+              Trang chủ
             </Link>
-            <h1 className="mt-4 text-center text-2xl font-semibold text-gray-800">
-              Đăng ký tài khoản
-            </h1>
-            <p className="mb-6 text-center text-lg font-medium text-[#FFD000]">
-              Dành cho Advertiser
-            </p>
-            <div className="mt-2 rounded-lg bg-purple-100 p-4 text-center">
-              <p className="text-sm text-gray-700">
-                Nếu bạn đã{' '}
-                <span className="font-semibold text-purple-500">
-                  có tài khoản Advertiser
-                </span>{' '}
-                trên các sản phẩm của CLICK FLOW, bạn có thể sử dụng để đăng
-                nhập ngay và không cần đăng ký lại.
-              </p>
-              <p className="mt-2 text-sm">
-                Bạn đã có tài khoản?{' '}
-                <Link to="/login" className="font-semibold text-purple-500">
-                  Đăng nhập ngay
-                </Link>
-              </p>
-            </div>
+            <span className="text-gray-400">/</span>
+            <span className="font-medium text-gray-900">
+              Đăng ký Advertiser
+            </span>
+          </nav>
+        </div>
+      </div>
 
-            <div className="mt-6 space-y-6">
-              {/* Phần 1: Thông tin cá nhân */}
-              <div>
-                <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-                  <div>
-                    <label className="text-sm font-medium text-gray-700">
-                      Tên đăng nhập
-                    </label>
-                    <Input
-                      value={formAdvertiser.userName}
-                      onChange={(e) =>
-                        setFormAdvertiser({
-                          ...formAdvertiser,
-                          userName: e.target.value
-                        })
-                      }
-                    />
-                    {error.userName && (
-                      <p className="text-xs text-red">{error.userName}</p>
-                    )}
+      <BasePages className="" pageHead="ClickFlow - Đăng ký Advertiser">
+        {/* Main Content */}
+        <div className="-mt-8 flex items-center justify-center px-6 py-8">
+          <div className="w-full max-w-5xl">
+            {/* Register Card */}
+            <div className="overflow-hidden rounded-2xl bg-white shadow-xl">
+              <div className="flex min-h-[600px]">
+                {/* Left Side - Image */}
+                <div className="relative -mt-10 ml-4 hidden w-3/5 lg:block">
+                  <div className="h-full w-full">
+                    <ImageLeft />
                   </div>
-                  <div>
-                    <label className="text-sm font-medium text-gray-700">
-                      Email
-                    </label>
-                    <Input
-                      value={formAdvertiser.email}
-                      onChange={(e) =>
-                        setFormAdvertiser({
-                          ...formAdvertiser,
-                          email: e.target.value
-                        })
-                      }
-                    />
-                    {error.email && (
-                      <p className="text-xs text-red">{error.email}</p>
-                    )}
+
+                  {/* Overlay with branding */}
+                  <div className="absolute inset-0 mb-16 rounded bg-gradient-to-t from-black/50 via-transparent to-transparent">
+                    <div className="absolute bottom-8 left-8 text-white">
+                      <h3 className="mb-2 text-2xl font-bold">
+                        Tham gia ClickFlow
+                      </h3>
+                      <p className="text-white/90">
+                        Mở rộng doanh nghiệp với affiliate marketing
+                      </p>
+                    </div>
                   </div>
-                  <div>
-                    <label className="text-sm font-medium text-gray-700">
-                      Số điện thoại
-                    </label>
-                    <Input
-                      value={formAdvertiser.phoneNumber}
-                      onChange={(e) =>
-                        setFormAdvertiser({
-                          ...formAdvertiser,
-                          phoneNumber: e.target.value
-                        })
-                      }
-                    />
-                    {error.phoneNumber && (
-                      <p className="text-xs text-red">{error.phoneNumber}</p>
-                    )}
-                  </div>
-                  <div>
-                    <label className="text-sm font-medium text-gray-700">
-                      Mật khẩu
-                    </label>
-                    {/* Bao bọc input mật khẩu với container relative để đặt icon */}
-                    <div className="relative">
-                      <Input
-                        type={showPassword ? 'text' : 'password'}
-                        value={formAdvertiser.password}
-                        onChange={(e) =>
-                          setFormAdvertiser({
-                            ...formAdvertiser,
-                            password: e.target.value
-                          })
-                        }
+                </div>
+
+                {/* Right Side - Register Form */}
+                <div className="flex w-full flex-col justify-center p-8 lg:w-3/5">
+                  {/* Logo */}
+                  <div className="text-center">
+                    <Link to="/" className="inline-block">
+                      <img
+                        src="src/assets/logo.jpg"
+                        alt="ClickFlow Logo"
+                        className="mx-auto h-16 w-auto rounded-xl shadow-md"
                       />
-                      <div
-                        className="absolute inset-y-0 right-0 flex cursor-pointer items-center pr-3"
-                        onClick={() => setShowPassword(!showPassword)}
+                    </Link>
+                  </div>
+
+                  {/* Form Header */}
+                  <div className="mb-6 text-center">
+                    <h1 className="mb-2 text-2xl font-bold text-gray-900">
+                      Đăng ký Advertiser
+                    </h1>
+                    <p className="text-sm text-gray-600">
+                      Tạo tài khoản để bắt đầu quảng cáo trên{' '}
+                      <Link
+                        to="/"
+                        className="font-medium text-purple-600 transition-colors hover:text-purple-700"
                       >
-                        {showPassword ? (
-                          <AiOutlineEyeInvisible size={20} />
-                        ) : (
-                          <AiOutlineEye size={20} />
+                        ClickFlow.vn
+                      </Link>
+                    </p>
+                  </div>
+
+                  {/* Notice Box */}
+                  <div className="mb-6 rounded-lg border border-purple-200 bg-purple-50 p-4">
+                    <p className="text-sm text-purple-700">
+                      Đã có tài khoản?{' '}
+                      <Link
+                        to="/login"
+                        className="font-semibold text-purple-600 hover:text-purple-700"
+                      >
+                        Đăng nhập ngay
+                      </Link>
+                    </p>
+                  </div>
+
+                  {/* Register Form */}
+                  <div className="mb-2 max-h-96 space-y-4 pr-2">
+                    {/* Personal Information */}
+                    <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                      {/* Username */}
+                      <div>
+                        <label className="mb-2 block text-sm font-medium text-gray-700">
+                          Tên đăng nhập
+                        </label>
+                        <div className="relative">
+                          <div className="absolute inset-y-0 left-0 flex items-center pl-3">
+                            <User className="h-4 w-4 text-gray-400" />
+                          </div>
+                          <Input
+                            className="h-10 rounded-lg border-gray-300 pl-10 text-gray-900 placeholder:text-gray-500 focus:border-purple-500 focus:ring-purple-500"
+                            placeholder="Nhập tên đăng nhập"
+                            value={formAdvertiser.userName}
+                            onChange={(e) =>
+                              setFormAdvertiser({
+                                ...formAdvertiser,
+                                userName: e.target.value
+                              })
+                            }
+                          />
+                        </div>
+                        {error.userName && (
+                          <p className="text-red-600 mt-1 text-xs">
+                            {error.userName}
+                          </p>
+                        )}
+                      </div>
+
+                      {/* Full Name */}
+                      <div>
+                        <label className="mb-2 block text-sm font-medium text-gray-700">
+                          Họ và tên
+                        </label>
+                        <div className="relative">
+                          <div className="absolute inset-y-0 left-0 flex items-center pl-3">
+                            <User className="h-4 w-4 text-gray-400" />
+                          </div>
+                          <Input
+                            className="h-10 rounded-lg border-gray-300 pl-10 text-gray-900 placeholder:text-gray-500 focus:border-purple-500 focus:ring-purple-500"
+                            placeholder="Nhập họ và tên"
+                            value={formAdvertiser.fullName}
+                            onChange={(e) =>
+                              setFormAdvertiser({
+                                ...formAdvertiser,
+                                fullName: e.target.value
+                              })
+                            }
+                          />
+                        </div>
+                        {error.fullName && (
+                          <p className="text-red-600 mt-1 text-xs">
+                            {error.fullName}
+                          </p>
+                        )}
+                      </div>
+
+                      {/* Email */}
+                      <div>
+                        <label className="mb-2 block text-sm font-medium text-gray-700">
+                          Email
+                        </label>
+                        <div className="relative">
+                          <div className="absolute inset-y-0 left-0 flex items-center pl-3">
+                            <Mail className="h-4 w-4 text-gray-400" />
+                          </div>
+                          <Input
+                            className="h-10 rounded-lg border-gray-300 pl-10 text-gray-900 placeholder:text-gray-500 focus:border-purple-500 focus:ring-purple-500"
+                            type="email"
+                            placeholder="Nhập email"
+                            value={formAdvertiser.email}
+                            onChange={(e) =>
+                              setFormAdvertiser({
+                                ...formAdvertiser,
+                                email: e.target.value
+                              })
+                            }
+                          />
+                        </div>
+                        {error.email && (
+                          <p className="text-red-600 mt-1 text-xs">
+                            {error.email}
+                          </p>
+                        )}
+                      </div>
+
+                      {/* Phone */}
+                      <div>
+                        <label className="mb-2 block text-sm font-medium text-gray-700">
+                          Số điện thoại
+                        </label>
+                        <div className="relative">
+                          <div className="absolute inset-y-0 left-0 flex items-center pl-3">
+                            <Phone className="h-4 w-4 text-gray-400" />
+                          </div>
+                          <Input
+                            className="h-10 rounded-lg border-gray-300 pl-10 text-gray-900 placeholder:text-gray-500 focus:border-purple-500 focus:ring-purple-500"
+                            placeholder="Nhập số điện thoại"
+                            value={formAdvertiser.phoneNumber}
+                            onChange={(e) =>
+                              setFormAdvertiser({
+                                ...formAdvertiser,
+                                phoneNumber: e.target.value
+                              })
+                            }
+                          />
+                        </div>
+                        {error.phoneNumber && (
+                          <p className="text-red-600 mt-1 text-xs">
+                            {error.phoneNumber}
+                          </p>
+                        )}
+                      </div>
+
+                      {/* Password */}
+                      <div>
+                        <label className="mb-2 block text-sm font-medium text-gray-700">
+                          Mật khẩu
+                        </label>
+                        <div className="relative">
+                          <div className="absolute inset-y-0 left-0 flex items-center pl-3">
+                            <Lock className="h-4 w-4 text-gray-400" />
+                          </div>
+                          <Input
+                            className="h-10 rounded-lg border-gray-300 pl-10 pr-10 text-gray-900 placeholder:text-gray-500 focus:border-purple-500 focus:ring-purple-500"
+                            type={showPassword ? 'text' : 'password'}
+                            placeholder="Nhập mật khẩu"
+                            value={formAdvertiser.password}
+                            onChange={(e) =>
+                              setFormAdvertiser({
+                                ...formAdvertiser,
+                                password: e.target.value
+                              })
+                            }
+                          />
+                          <button
+                            type="button"
+                            className="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-400 transition-colors hover:text-gray-600"
+                            onClick={() => setShowPassword(!showPassword)}
+                          >
+                            {showPassword ? (
+                              <EyeOff className="h-4 w-4" />
+                            ) : (
+                              <Eye className="h-4 w-4" />
+                            )}
+                          </button>
+                        </div>
+                        {error.password && (
+                          <p className="text-red-600 mt-1 text-xs">
+                            {error.password}
+                          </p>
+                        )}
+                      </div>
+
+                      {/* Confirm Password */}
+                      <div>
+                        <label className="mb-2 block text-sm font-medium text-gray-700">
+                          Xác nhận mật khẩu
+                        </label>
+                        <div className="relative">
+                          <div className="absolute inset-y-0 left-0 flex items-center pl-3">
+                            <Lock className="h-4 w-4 text-gray-400" />
+                          </div>
+                          <Input
+                            className="h-10 rounded-lg border-gray-300 pl-10 pr-10 text-gray-900 placeholder:text-gray-500 focus:border-purple-500 focus:ring-purple-500"
+                            type={showPassword ? 'text' : 'password'}
+                            placeholder="Xác nhận mật khẩu"
+                            value={formAdvertiser.confirmPassword}
+                            onChange={(e) =>
+                              setFormAdvertiser({
+                                ...formAdvertiser,
+                                confirmPassword: e.target.value
+                              })
+                            }
+                          />
+                        </div>
+                        {error.confirmPassword && (
+                          <p className="text-red-600 mt-1 text-xs">
+                            {error.confirmPassword}
+                          </p>
+                        )}
+                      </div>
+
+                      {/* Company Name */}
+                      <div>
+                        <label className="mb-2 block text-sm font-medium text-gray-700">
+                          Tên công ty
+                        </label>
+                        <div className="relative">
+                          <div className="absolute inset-y-0 left-0 flex items-center pl-3">
+                            <Building className="h-4 w-4 text-gray-400" />
+                          </div>
+                          <Input
+                            className="h-10 rounded-lg border-gray-300 pl-10 text-gray-900 placeholder:text-gray-500 focus:border-purple-500 focus:ring-purple-500"
+                            placeholder="Nhập tên công ty"
+                            value={formAdvertiser.companyName}
+                            onChange={(e) =>
+                              setFormAdvertiser({
+                                ...formAdvertiser,
+                                companyName: e.target.value
+                              })
+                            }
+                          />
+                        </div>
+                        {error.companyName && (
+                          <p className="text-red-600 mt-1 text-xs">
+                            {error.companyName}
+                          </p>
+                        )}
+                      </div>
+
+                      {/* Website */}
+                      <div>
+                        <label className="mb-2 block text-sm font-medium text-gray-700">
+                          Website
+                        </label>
+                        <div className="relative">
+                          <div className="absolute inset-y-0 left-0 flex items-center pl-3">
+                            <Globe className="h-4 w-4 text-gray-400" />
+                          </div>
+                          <Input
+                            className="h-10 rounded-lg border-gray-300 pl-10 text-gray-900 placeholder:text-gray-500 focus:border-purple-500 focus:ring-purple-500"
+                            type="url"
+                            placeholder="https://example.com"
+                            value={formAdvertiser.introductionWebsite}
+                            onChange={(e) =>
+                              setFormAdvertiser({
+                                ...formAdvertiser,
+                                introductionWebsite: e.target.value
+                              })
+                            }
+                          />
+                        </div>
+                        {error.introductionWebsite && (
+                          <p className="text-red-600 mt-1 text-xs">
+                            {error.introductionWebsite}
+                          </p>
+                        )}
+                      </div>
+
+                      {/* Staff Size */}
+                      <div>
+                        <label className="mb-2 block text-sm font-medium text-gray-700">
+                          Quy mô nhân sự
+                        </label>
+                        <div className="relative">
+                          <div className="absolute inset-y-0 left-0 flex items-center pl-3">
+                            <Users className="h-4 w-4 text-gray-400" />
+                          </div>
+                          <Input
+                            className="h-10 rounded-lg border-gray-300 pl-10 text-gray-900 placeholder:text-gray-500 focus:border-purple-500 focus:ring-purple-500"
+                            placeholder="Ví dụ: 1-10 nhân viên"
+                            value={formAdvertiser.staffSize}
+                            onChange={(e) =>
+                              setFormAdvertiser({
+                                ...formAdvertiser,
+                                staffSize: e.target.value
+                              })
+                            }
+                          />
+                        </div>
+                        {error.staffSize && (
+                          <p className="text-red-600 mt-1 text-xs">
+                            {error.staffSize}
+                          </p>
+                        )}
+                      </div>
+
+                      {/* Industry */}
+                      <div>
+                        <label className="mb-2 block text-sm font-medium text-gray-700">
+                          Lĩnh vực hoạt động
+                        </label>
+                        <div className="relative">
+                          <div className="absolute inset-y-0 left-0 z-10 flex items-center pl-3">
+                            <Briefcase className="h-4 w-4 text-gray-400" />
+                          </div>
+                          <select
+                            className="h-10 w-full appearance-none rounded-lg border border-gray-300 bg-white pl-10 pr-3 text-sm text-gray-900 focus:border-purple-500 focus:ring-purple-500"
+                            value={formAdvertiser.industry}
+                            onChange={(e) =>
+                              setFormAdvertiser({
+                                ...formAdvertiser,
+                                industry: e.target.value
+                              })
+                            }
+                          >
+                            <option value="">Chọn lĩnh vực</option>
+                            {industryOptions.map((option) => (
+                              <option key={option.value} value={option.value}>
+                                {option.displayName}
+                              </option>
+                            ))}
+                          </select>
+                        </div>
+                        {error.industry && (
+                          <p className="text-red-600 mt-1 text-xs">
+                            {error.industry}
+                          </p>
                         )}
                       </div>
                     </div>
-                    {error.password && (
-                      <p className="text-xs text-red">{error.password}</p>
-                    )}
                   </div>
-                </div>
-              </div>
 
-              {/* Phần 2: Thông tin công ty */}
-              <div>
-                <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-                  <div>
-                    <label className="text-sm font-medium text-gray-700">
-                      Tên công ty
-                    </label>
-                    <Input
-                      value={formAdvertiser.companyName}
-                      onChange={(e) =>
-                        setFormAdvertiser({
-                          ...formAdvertiser,
-                          companyName: e.target.value
-                        })
-                      }
-                    />
-                    {error.companyName && (
-                      <p className="text-xs text-red">{error.companyName}</p>
-                    )}
-                  </div>
-                  <div>
-                    <label className="text-sm font-medium text-gray-700">
-                      Website giới thiệu
-                    </label>
-                    <Input
-                      value={formAdvertiser.introductionWebsite}
-                      onChange={(e) =>
-                        setFormAdvertiser({
-                          ...formAdvertiser,
-                          introductionWebsite: e.target.value
-                        })
-                      }
-                    />
-                    {error.introductionWebsite && (
-                      <p className="text-xs text-red">
-                        {error.introductionWebsite}
-                      </p>
-                    )}
-                  </div>
-                </div>
-              </div>
-
-              {/* Phần 3: Thông tin hoạt động */}
-              <div>
-                <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-                  <div>
-                    <label className="text-sm font-medium text-gray-700">
-                      Quy mô hoạt động
-                    </label>
-                    <Input
-                      value={formAdvertiser.staffSize}
-                      onChange={(e) =>
-                        setFormAdvertiser({
-                          ...formAdvertiser,
-                          staffSize: e.target.value
-                        })
-                      }
-                    />
-                    {error.staffSize && (
-                      <p className="text-xs text-red">{error.staffSize}</p>
-                    )}
-                  </div>
-                  <div>
-                    <label className="text-sm font-medium text-gray-700">
-                      Lĩnh vực hoạt động
-                    </label>
-                    <select
-                      value={formAdvertiser.industry}
-                      onChange={(e) =>
-                        setFormAdvertiser({
-                          ...formAdvertiser,
-                          industry: e.target.value
-                        })
-                      }
-                      className="w-full rounded-md border p-2 text-sm font-medium"
+                  {/* Register Button */}
+                  <div className="mt-6">
+                    <Button
+                      className="group h-11 w-full rounded-lg bg-gradient-to-r from-purple-600 to-indigo-600 font-semibold text-white shadow-lg transition-all duration-300 hover:scale-[1.02] hover:from-purple-700 hover:to-indigo-700 hover:shadow-xl disabled:opacity-50 disabled:hover:scale-100"
+                      onClick={handleRegister}
+                      disabled={isPending}
                     >
-                      <option value="">Chọn ngành nghề</option>
-                      {industryOptions.map((option) => (
-                        <option
-                          key={option.value}
-                          value={option.name}
-                          className="text-sm font-medium"
-                        >
-                          {option.displayName}
-                        </option>
-                      ))}
-                    </select>
-                    {error.industry && (
-                      <p className="text-xs text-red">{error.industry}</p>
-                    )}
+                      <span className="flex items-center justify-center gap-2">
+                        {isPending ? (
+                          <>
+                            <div className="h-5 w-5 animate-spin rounded-full border-2 border-white border-t-transparent" />
+                            Đang xử lý...
+                          </>
+                        ) : (
+                          'Hoàn tất đăng ký'
+                        )}
+                      </span>
+                    </Button>
+                  </div>
+
+                  {/* Terms */}
+                  <div className="mt-4 rounded-lg bg-gray-50 p-3 text-center">
+                    <p className="text-xs text-gray-600">
+                      Bằng việc đăng ký, bạn đồng ý với{' '}
+                      <Link
+                        to="/terms"
+                        className="text-purple-600 hover:text-purple-700"
+                      >
+                        Điều khoản sử dụng
+                      </Link>{' '}
+                      và{' '}
+                      <Link
+                        to="/privacy"
+                        className="text-purple-600 hover:text-purple-700"
+                      >
+                        Chính sách bảo mật
+                      </Link>
+                    </p>
                   </div>
                 </div>
               </div>
-            </div>
-
-            <div className="flex justify-center pt-10">
-              <Button
-                className="hover:bg-yellow-500 w-full rounded-lg bg-purple-600 text-white"
-                onClick={handleRegister}
-                disabled={isPending}
-              >
-                {isPending ? 'Đang xử lý...' : 'Hoàn tất'}
-              </Button>
             </div>
           </div>
         </div>
       </BasePages>
+
       <Footer />
       <ToastContainer />
     </>

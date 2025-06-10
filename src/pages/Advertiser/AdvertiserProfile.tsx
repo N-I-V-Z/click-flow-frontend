@@ -15,7 +15,6 @@ import {
 } from 'lucide-react';
 import ChangePassword from '@/components/shared/change-password';
 import { useGetUserDetail } from '@/queries/user.query';
-import { ApiResponse, UserDetailApiResponse } from '@/types';
 import BasePages from '@/components/shared/base-pages';
 import Loading from '@/components/ui/loading';
 
@@ -25,7 +24,7 @@ const AdvertiserProfile = () => {
     'personal' | 'changePassword'
   >('personal');
   const { data, isLoading, error } = useGetUserDetail(2);
-  const user = (data as ApiResponse<UserDetailApiResponse>)?.result;
+  const user = data?.result;
 
   if (isLoading) {
     return (
