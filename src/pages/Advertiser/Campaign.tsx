@@ -83,7 +83,7 @@ const AdvertiserCampaigns = () => {
 
   const [rowSelection, setRowSelection] = useState<Record<string, boolean>>({});
   const [selectedRows, setSelectedRows] = useState<CampaignApiResponse[]>([]);
-  const [searchTerm, setSearchTerm] = useState('');
+  const [searchTerm] = useState('');
   const [selectedProject, setSelectedProject] =
     useState<CampaignApiResponse | null>(null);
   const [isViewOpen, setIsViewOpen] = useState(false);

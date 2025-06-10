@@ -39,7 +39,7 @@ const LinkPage: React.FC = () => {
         orderId: '',
         browser: browser,
         referrerURL: referrerURL,
-        timestamp: new Date().toISOString(),
+        timestamp: new Date(),
         campaignId: Number(campaignId),
         publisherId: Number(publisherId)
       };
@@ -47,7 +47,9 @@ const LinkPage: React.FC = () => {
       try {
         const response = await createTraffic(payload);
         if (isSuccess) {
-          window.location.replace(response.result as string);
+          window.location.replace(
+            `${response.result?.url}?clickId=${response.result?.clickId}` as string
+          );
         } else {
           console.error('Traffic created but no redirect URL found:', response);
         }

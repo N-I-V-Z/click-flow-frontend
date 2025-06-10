@@ -11,6 +11,7 @@ import {
 } from '@/types';
 import DataTable from '@/components/shared/data-table';
 import BasePages from '@/components/shared/base-pages';
+import { AdvertiserDetailModal } from './AdvertiserDetailModal';
 
 interface Advertiser {
   id: number;
@@ -24,18 +25,49 @@ interface Advertiser {
   status: string;
 }
 
-function mapApiUserToAdvertiser(apiUser: any): Advertiser {
-  return {
-    id: apiUser.id,
-    code: apiUser.id,
+// Temporary type để avoid lỗi any
+interface TempApiUser {
+  id?: number;
+  userId?: number;
+  applicationUserId?: number;
+  fullName?: string;
+  phoneNumber?: string;
+  phone?: string;
+  userName?: string;
+  email?: string;
+  isDeleted?: boolean;
+  advertiser?: {
+    id?: number;
+    companyName?: string;
+    industry?: string;
+    businessArea?: string;
+  };
+  // Allow additional properties
+}
+
+// Sửa type cho function parameter
+function mapApiUserToAdvertiser(apiUser: TempApiUser): Advertiser {
+  // Try to find ID in different possible fields
+  const userId =
+    apiUser.id ||
+    apiUser.userId ||
+    apiUser.applicationUserId ||
+    apiUser.advertiser?.id;
+
+  const mapped = {
+    id: userId || 0, // Fallback to 0 if no ID found
+    code: userId || 0,
     name: apiUser.fullName ?? 'No name',
-    phone: apiUser.phone ?? '',
+    phone: apiUser.phoneNumber ?? apiUser.phone ?? '',
     userName: apiUser.userName ?? '',
     email: apiUser.email ?? '',
     company: apiUser.advertiser?.companyName ?? '',
-    business: apiUser.advertiser?.businessArea ?? '',
+    business:
+      apiUser.advertiser?.industry ?? apiUser.advertiser?.businessArea ?? '',
     status: apiUser.isDeleted ? 'Bị khóa' : 'Hoạt động'
   };
+
+  return mapped;
 }
 
 const AdvertiserList: React.FC = () => {
@@ -60,9 +92,10 @@ const AdvertiserList: React.FC = () => {
   }, [data]);
 
   const handleView = (record: Advertiser) => {
-    setSelectedId(record.id);
+    setSelectedId(record.id); // Ensure this is a number
     setIsViewModalVisible(true);
   };
+
   const closeViewModal = () => {
     setIsViewModalVisible(false);
     setSelectedId(null);
@@ -72,6 +105,7 @@ const AdvertiserList: React.FC = () => {
     setSelectedAdvertiser(record);
     setIsLockModalVisible(true);
   };
+
   const confirmLockUnlock = () => {
     if (selectedAdvertiser) {
       setDataSource((prev) =>
@@ -88,6 +122,7 @@ const AdvertiserList: React.FC = () => {
     setIsLockModalVisible(false);
     setSelectedAdvertiser(null);
   };
+
   const cancelLockUnlock = () => {
     setIsLockModalVisible(false);
     setSelectedAdvertiser(null);
@@ -148,6 +183,7 @@ const AdvertiserList: React.FC = () => {
       </BasePages>
     );
   }
+
   if (error) {
     return (
       <BasePages pageHead="ClickFlow - Nhà quảng cáo ">
@@ -168,6 +204,15 @@ const AdvertiserList: React.FC = () => {
           pageSizeOptions={[10, 20, 50, 100]}
           showAdd={false}
         />
+
+        {/* Modal xem chi tiết */}
+        <AdvertiserDetailModal
+          open={isViewModalVisible}
+          onClose={closeViewModal}
+          advertiserId={selectedId}
+        />
+
+        {/* Modal khóa/mở khóa */}
         <Modal
           title={
             selectedAdvertiser?.status === 'Hoạt động'

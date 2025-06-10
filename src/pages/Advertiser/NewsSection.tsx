@@ -4,8 +4,7 @@ import {
   ChevronRightIcon,
   CalendarDaysIcon,
   TagIcon,
-  SparklesIcon,
-  FireIcon
+  SparklesIcon
 } from '@heroicons/react/24/outline';
 import { newsData, NewsItem, getTagLabel, getTagColor } from './DataNews';
 
@@ -26,7 +25,7 @@ const NewsSection: React.FC = () => {
   // Fill empty slots if not enough news for the page
   const filledPaginatedNews = [...paginatedNews];
   while (filledPaginatedNews.length < itemsPerPage && totalPages > 1) {
-    filledPaginatedNews.push(null);
+    filledPaginatedNews.push(null as any);
   }
 
   const handleNewsClick = (news: NewsItem) => {
@@ -68,6 +67,94 @@ const NewsSection: React.FC = () => {
       : text;
   };
 
+  // Inject styles dynamically
+  useEffect(() => {
+    const styleId = 'news-section-styles';
+
+    // Remove existing styles
+    const existingStyle = document.getElementById(styleId);
+    if (existingStyle) {
+      existingStyle.remove();
+    }
+
+    // Create new style element
+    const style = document.createElement('style');
+    style.id = styleId;
+    style.textContent = `
+      @keyframes slide-in-right {
+        from {
+          opacity: 0;
+          transform: translateX(20px);
+        }
+        to {
+          opacity: 1;
+          transform: translateX(0);
+        }
+      }
+      @keyframes shimmer {
+        0% {
+          background-position: -200px 0;
+        }
+        100% {
+          background-position: calc(200px + 100%) 0;
+        }
+      }
+      .animate-slide-in-right {
+        animation: slide-in-right 0.4s ease-out forwards;
+      }
+      .animate-shimmer {
+        background: linear-gradient(
+          90deg,
+          transparent,
+          rgba(255, 255, 255, 0.4),
+          transparent
+        ) !important;
+        background-size: 200px 100% !important;
+        animation: shimmer 1.5s infinite !important;
+      }
+      .animate-spin-slow {
+        animation: spin 3s linear infinite !important;
+      }
+      .line-clamp-2 {
+        display: -webkit-box !important;
+        -webkit-line-clamp: 2 !important;
+        -webkit-box-orient: vertical !important;
+        overflow: hidden !important;
+      }
+      .line-clamp-3 {
+        display: -webkit-box !important;
+        -webkit-line-clamp: 3 !important;
+        -webkit-box-orient: vertical !important;
+        overflow: hidden !important;
+      }
+      /* Custom scrollbar for news list */
+      .news-scroll::-webkit-scrollbar {
+        width: 4px;
+      }
+      .news-scroll::-webkit-scrollbar-track {
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: 2px;
+      }
+      .news-scroll::-webkit-scrollbar-thumb {
+        background: rgba(139, 92, 246, 0.5);
+        border-radius: 2px;
+      }
+      .news-scroll::-webkit-scrollbar-thumb:hover {
+        background: rgba(139, 92, 246, 0.7);
+      }
+    `;
+
+    document.head.appendChild(style);
+
+    // Cleanup function
+    return () => {
+      const styleToRemove = document.getElementById(styleId);
+      if (styleToRemove) {
+        styleToRemove.remove();
+      }
+    };
+  }, []);
+
   return (
     <div className="relative min-h-screen">
       {/* New Modern Background */}
@@ -85,29 +172,29 @@ const NewsSection: React.FC = () => {
           style={{ animationDelay: '2s' }}
         ></div>
         <div
-          className="bg-blue-500/20 absolute left-1/2 top-1/2 h-32 w-32 -translate-x-1/2 -translate-y-1/2 transform animate-pulse rounded-full blur-2xl filter"
+          className="absolute left-1/2 top-1/2 h-32 w-32 -translate-x-1/2 -translate-y-1/2 transform animate-pulse rounded-full bg-blue blur-2xl filter"
           style={{ animationDelay: '4s' }}
         ></div>
       </div>
 
       <div className="relative z-10 p-4">
         {/* Compact Header */}
-        <div className="relative mb-8 text-center">
-          <div className="relative">
+        <div className="relative mt-12">
+          <div className="text-center">
             <div className="mb-3 flex items-center justify-center">
-              <div className="mr-3 h-3 w-3 animate-pulse rounded-full bg-gradient-to-r from-purple-400 to-pink-400"></div>
-              <h1 className="relative bg-gradient-to-r from-white via-purple-200 to-pink-200 bg-clip-text text-3xl font-black text-transparent drop-shadow-lg">
-                Tin Tức Affiliate Network
-                <div className="absolute -bottom-1 left-1/2 h-0.5 w-24 -translate-x-1/2 transform rounded-full bg-gradient-to-r from-purple-400 to-pink-400"></div>
-              </h1>
-              <div
-                className="to-blue-400 ml-3 h-3 w-3 animate-pulse rounded-full bg-gradient-to-r from-pink-400"
-                style={{ animationDelay: '1s' }}
-              ></div>
+              <SparklesIcon className="animate-spin-slow text-yellow-400 mr-2 h-12 w-12" />
+              <div className="relative mb-8 text-center">
+                <div className="relative">
+                  <div className="mb-3 flex items-center justify-center">
+                    <h1 className="relative bg-gradient-to-r from-white via-purple-200 to-pink-200 bg-clip-text text-3xl font-black text-transparent drop-shadow-lg">
+                      Tin Tức Affiliate Network
+                      <div className="absolute -bottom-1 left-1/2 h-0.5 w-24 -translate-x-1/2 transform rounded-full bg-gradient-to-r from-purple-400 to-pink-400"></div>
+                    </h1>
+                  </div>
+                </div>
+              </div>
+              <SparklesIcon className="animate-spin-slow text-yellow-400 ml-2 h-12 w-12" />
             </div>
-            <p className="text-sm font-medium tracking-wide text-purple-200">
-              Cập nhật tin tức mới nhất về affiliate marketing
-            </p>
           </div>
         </div>
 
@@ -155,8 +242,8 @@ const NewsSection: React.FC = () => {
                 </div>
 
                 <div className="p-6">
-                  <div className="mb-3 flex items-center text-xs text-gray-500">
-                    <CalendarDaysIcon className="mr-1 h-4 w-4 text-purple-500" />
+                  <div className="mb-3 flex items-center text-xs text-gray-600">
+                    <CalendarDaysIcon className="mr-1 h-4 w-4 text-purple-600" />
                     <span className="font-medium">
                       {formatDate(featuredNews.publishedAt)}
                     </span>
@@ -223,7 +310,7 @@ const NewsSection: React.FC = () => {
             {/* Compact News Items */}
             <div
               key={`list-${animateKey}`}
-              className={`space-y-2 transition-all duration-500 ${
+              className={`news-scroll space-y-2 transition-all duration-500 ${
                 isTransitioning
                   ? 'translate-x-8 transform opacity-0'
                   : 'translate-x-0 transform opacity-100'
@@ -362,104 +449,8 @@ const NewsSection: React.FC = () => {
             )}
           </div>
         </div>
-
-        {/* Compact Bottom Section */}
-        <div className="relative mt-12">
-          <div className="to-blue-600 absolute inset-0 rounded-xl bg-gradient-to-r from-purple-600 via-pink-600 opacity-80"></div>
-          <div className="to-blue-600/90 relative rounded-xl border border-white/20 bg-gradient-to-r from-purple-600/90 via-pink-600/90 p-6 text-white shadow-lg backdrop-blur-sm">
-            <div className="text-center">
-              <div className="mb-3 flex items-center justify-center">
-                <SparklesIcon className="text-yellow-300 animate-spin-slow mr-2 h-5 w-5" />
-                <h3 className="text-lg font-bold">
-                  Đăng ký nhận tin tức độc quyền
-                </h3>
-                <SparklesIcon className="text-yellow-300 animate-spin-slow ml-2 h-5 w-5" />
-              </div>
-              <p className="mb-4 text-sm font-medium text-purple-100">
-                Cập nhật xu hướng affiliate marketing mới nhất
-              </p>
-              <div className="mx-auto flex max-w-sm gap-2">
-                <input
-                  type="email"
-                  placeholder="Email của bạn..."
-                  className="flex-1 rounded-lg bg-white/95 px-3 py-2 text-sm font-medium text-gray-900 placeholder-gray-500 shadow-md backdrop-blur-sm focus:outline-none focus:ring-2 focus:ring-white/50"
-                />
-                <button className="transform rounded-lg bg-white px-4 py-2 text-sm font-bold text-purple-600 shadow-md transition-all duration-300 hover:scale-105 hover:bg-gray-100 hover:shadow-lg">
-                  🚀 Đăng ký
-                </button>
-              </div>
-              <p className="mt-2 text-xs text-purple-200">
-                ✨ Miễn phí • 📧 Không spam
-              </p>
-            </div>
-          </div>
-        </div>
       </div>
-
-      {/* Optimized CSS for animations */}
-      <style jsx>{`
-        @keyframes slide-in-right {
-          from {
-            opacity: 0;
-            transform: translateX(20px);
-          }
-          to {
-            opacity: 1;
-            transform: translateX(0);
-          }
-        }
-        @keyframes shimmer {
-          0% {
-            background-position: -200px 0;
-          }
-          100% {
-            background-position: calc(200px + 100%) 0;
-          }
-        }
-        .animate-slide-in-right {
-          animation: slide-in-right 0.4s ease-out forwards;
-        }
-        .animate-shimmer {
-          background: linear-gradient(
-            90deg,
-            transparent,
-            rgba(255, 255, 255, 0.4),
-            transparent
-          );
-          background-size: 200px 100%;
-          animation: shimmer 1.5s infinite;
-        }
-        .animate-spin-slow {
-          animation: spin 3s linear infinite;
-        }
-        .line-clamp-2 {
-          display: -webkit-box;
-          -webkit-line-clamp: 2;
-          -webkit-box-orient: vertical;
-          overflow: hidden;
-        }
-        .line-clamp-3 {
-          display: -webkit-box;
-          -webkit-line-clamp: 3;
-          -webkit-box-orient: vertical;
-          overflow: hidden;
-        }
-        /* Custom scrollbar for news list */
-        div[style*='overflowY']::-webkit-scrollbar {
-          width: 4px;
-        }
-        div[style*='overflowY']::-webkit-scrollbar-track {
-          background: rgba(255, 255, 255, 0.1);
-          border-radius: 2px;
-        }
-        div[style*='overflowY']::-webkit-scrollbar-thumb {
-          background: rgba(139, 92, 246, 0.5);
-          border-radius: 2px;
-        }
-        div[style*='overflowY']::-webkit-scrollbar-thumb:hover {
-          background: rgba(139, 92, 246, 0.7);
-        }
-      `}</style>
+      <br />
     </div>
   );
 };

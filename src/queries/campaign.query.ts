@@ -4,7 +4,8 @@ import {
   CampaignApiResponse,
   CampaignParticipationApiResponse,
   PagingResponse,
-  UploadImageResponse
+  UploadImageResponse,
+  CreateCampaignPayload
 } from '@/types';
 import { useMutation, useQuery } from '@tanstack/react-query';
 
@@ -94,19 +95,7 @@ export const useGetCampaignPublisher = (
 export const useCreateCampaign = () => {
   return useMutation({
     mutationKey: ['create-campaign'],
-    mutationFn: async (model: {
-      name: string;
-      description: string;
-      originURL: string;
-      budget: number;
-      startDate: string;
-      endDate: string;
-      typePay: string;
-      typeCampaign: string;
-      commission: number;
-      percents: number;
-      image: string;
-    }) => {
+    mutationFn: async (model: CreateCampaignPayload) => {
       return await BaseRequest.Post<CampaignApiResponse>(
         `/${SUB_URL}/create-campaign`,
         model

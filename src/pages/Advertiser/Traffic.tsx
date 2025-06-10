@@ -7,15 +7,22 @@ import { useGetTrafficForAdvertiser } from '@/queries/traffic.query';
 import helpers from '@/helpers';
 import BasePages from '@/components/shared/base-pages';
 import Loading from '@/components/ui/loading';
+import { TrafficItem, TrafficApiResponse } from '@/types';
 
-type TrafficType = {
-  id: number;
-  ipAddress: string;
-  referrerURL: string;
-  revenue: number;
-  browser: string;
-  timestamp: string;
-};
+// Mapping function to convert API response to UI model
+function mapTrafficApiToTrafficItem(apiItem: TrafficApiResponse): TrafficItem {
+  return {
+    id: apiItem.id,
+    ipAddress: apiItem.ipAddress,
+    isValid: apiItem.isValid,
+    revenue: 0, // TrafficApiResponse doesn't have revenue, set default
+    deviceType: apiItem.deviceType,
+    orderId: apiItem.clickId, // Map clickId to orderId
+    browser: apiItem.browser,
+    referrerURL: apiItem.referrerURL,
+    timestamp: new Date(apiItem.timestamp).toISOString()
+  };
+}
 
 export default function Traffic() {
   const { pageIndex, pageSize } = helpers.usePaginationParams();
@@ -28,7 +35,12 @@ export default function Traffic() {
 
   const filteredData = useMemo(() => {
     const traffics = data?.result?.datas || [];
-    return traffics.filter((item: TrafficType) => {
+    // Map from TrafficApiResponse to TrafficItem
+    const mappedTraffics = traffics.map((item: TrafficApiResponse) =>
+      mapTrafficApiToTrafficItem(item)
+    );
+
+    return mappedTraffics.filter((item: TrafficItem) => {
       const term = searchTerm.toLowerCase();
       const ipMatch = item.ipAddress?.toLowerCase().includes(term);
       const refMatch = item.referrerURL?.toLowerCase().includes(term);
@@ -36,7 +48,7 @@ export default function Traffic() {
     });
   }, [data, searchTerm]);
 
-  const columns: ColumnDef<TrafficType>[] = [
+  const columns: ColumnDef<TrafficItem>[] = [
     {
       id: 'stt',
       header: 'STT',
@@ -64,13 +76,36 @@ export default function Traffic() {
       }
     },
     {
+      accessorKey: 'isValid',
+      header: 'Valid',
+      cell: ({ row }) => (
+        <span
+          className={`rounded px-2 py-1 text-xs font-semibold ${
+            row.original.isValid
+              ? 'bg-green-100 text-green-800'
+              : 'bg-[#fee2e2] text-[#991b1b]'
+          }`}
+        >
+          {row.original.isValid ? 'Valid' : 'Invalid'}
+        </span>
+      )
+    },
+    {
       accessorKey: 'revenue',
       header: 'Revenue',
       cell: ({ row }) => (
         <span className="font-medium text-green-600">
-          {row.original.revenue.toLocaleString()}
+          {row.original.revenue?.toLocaleString() || '0'}
         </span>
       )
+    },
+    {
+      accessorKey: 'deviceType',
+      header: 'Device Type'
+    },
+    {
+      accessorKey: 'orderId',
+      header: 'Order ID'
     },
     {
       accessorKey: 'browser',
