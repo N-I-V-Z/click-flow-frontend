@@ -1,10 +1,11 @@
+import { useEffect, useState } from 'react';
 import BasePages from '@/components/shared/base-pages.js';
 import Footer from '@/components/shared/footer-home';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useLogin } from '@/queries/auth.query';
-import { useEffect, useState } from 'react';
 import helpers from '@/helpers';
+import __helpers from '@/helpers';
 import { useDispatch } from 'react-redux';
 import { login } from '@/redux/auth.slice';
 import { Eye, EyeOff, User, Lock, ArrowRight } from 'lucide-react';
@@ -17,7 +18,13 @@ import {
   LoginRequest,
   TokenDecoded
 } from '@/types';
-import __helpers from '@/helpers';
+import {
+  GoogleLogin,
+  GoogleOAuthProvider,
+  CredentialResponse
+} from '@react-oauth/google';
+
+import { jwtDecode } from 'jwt-decode';
 
 type FormError = Partial<LoginRequest>;
 
@@ -36,7 +43,6 @@ export default function LoginPage() {
     const token = helpers.cookie_get('AT');
     if (token) {
       dispatch(login());
-      console.log('Người dùng đã đăng nhập');
       window.location.href = '/';
     }
   }, [dispatch]);
@@ -55,24 +61,19 @@ export default function LoginPage() {
   const handleLogin = async () => {
     const errors = validateInputs();
     setError(errors);
-
-    if (Object.keys(errors).length > 0) {
-      return;
-    }
+    if (Object.keys(errors).length > 0) return;
 
     try {
       const data = await Login(formLogin);
-      console.log('Login response:', data);
       helpers.cookie_set(
         'AT',
         (data as ApiResponse<LoginApiResponse>).result?.token ?? ''
       );
       dispatch(login());
-      const decodedToken: TokenDecoded | null = helpers.decodeTokens(
+      const decoded: TokenDecoded | null = helpers.decodeTokens(
         __helpers.cookie_get('AT')
       );
-
-      const role = decodedToken?.Role.toLowerCase();
+      const role = decoded?.Role.toLowerCase();
       if (role === 'admin') {
         router.push('/admin');
       } else if (role === 'advertiser') {
@@ -82,21 +83,51 @@ export default function LoginPage() {
       } else {
         router.push('/404');
       }
-    } catch (err) {
+    } catch {
       setError({ password: 'Tên đăng nhập hoặc mật khẩu không đúng.' });
+    }
+  };
+
+  const handleGoogleSuccess = async (
+    credentialResponse: CredentialResponse
+  ) => {
+    if (!credentialResponse.credential) return;
+    try {
+      // Optionally decode for client-side info:
+      const decodedGoogle: any = jwtDecode(credentialResponse.credential);
+      // Send to your backend
+      const res = await fetch('/api/auth/google', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ token: credentialResponse.credential })
+      });
+      const data: ApiResponse<LoginApiResponse> = await res.json();
+      helpers.cookie_set('AT', data?.result?.token || '');
+      dispatch(login());
+      const decoded: TokenDecoded | null = helpers.decodeTokens(
+        data?.result?.token
+      );
+      const role = decoded?.Role.toLowerCase();
+      if (role === 'admin') {
+        router.push('/admin');
+      } else if (role === 'advertiser') {
+        router.push('/advertiser');
+      } else if (role === 'publisher') {
+        router.push('/publisher');
+      } else {
+        router.push('/404');
+      }
+    } catch {
+      setError({ password: 'Đăng nhập Google thất bại.' });
     }
   };
 
   return (
     <>
-      {/* Custom Breadcrumb */}
       <div className="bg-gray-50 px-8 py-4">
         <div className="mx-auto max-w-5xl">
           <nav className="flex items-center space-x-2 text-sm">
-            <Link
-              to="/"
-              className="text-purple-600 transition-colors hover:text-purple-700"
-            >
+            <Link to="/" className="text-purple-600 hover:text-purple-700">
               Trang chủ
             </Link>
             <span className="text-gray-400">/</span>
@@ -106,19 +137,12 @@ export default function LoginPage() {
       </div>
 
       <BasePages className="bg-gray-50" pageHead="ClickFlow - Đăng nhập">
-        {/* Main Content */}
         <div className="-mt-8 flex items-center justify-center px-6 py-8">
           <div className="w-full max-w-4xl">
-            {/* Login Card */}
             <div className="overflow-hidden rounded-2xl bg-white shadow-xl">
               <div className="flex min-h-[500px]">
-                {/* Left Side - Image */}
                 <div className="relative hidden w-1/2 lg:block">
-                  <div className="h-full w-full">
-                    <ImageLeft />
-                  </div>
-
-                  {/* Optional overlay with branding */}
+                  <ImageLeft />
                   <div className="absolute inset-0 mb-1 rounded bg-gradient-to-t from-black/50 via-transparent to-transparent">
                     <div className="absolute bottom-8 left-8 text-white">
                       <h3 className="mb-2 text-2xl font-bold">
@@ -131,9 +155,7 @@ export default function LoginPage() {
                   </div>
                 </div>
 
-                {/* Right Side - Login Form */}
                 <div className="flex w-full flex-col justify-center p-8 lg:w-1/2">
-                  {/* Logo */}
                   <div className="mb-6 text-center">
                     <Link to="/" className="inline-block">
                       <img
@@ -144,7 +166,6 @@ export default function LoginPage() {
                     </Link>
                   </div>
 
-                  {/* Form Header */}
                   <div className="mb-6 text-center">
                     <h1 className="mb-2 text-2xl font-bold text-gray-900">
                       Đăng nhập
@@ -153,27 +174,23 @@ export default function LoginPage() {
                       Để truy cập{' '}
                       <Link
                         to="/"
-                        className="font-medium text-purple-600 transition-colors hover:text-purple-700"
+                        className="font-medium text-purple-600 hover:text-purple-700"
                       >
                         ClickFlow.vn
                       </Link>
                     </p>
                   </div>
 
-                  {/* Login Form */}
                   <div className="space-y-4">
-                    {/* Username/Email Field */}
+                    {/* Username/Email */}
                     <div>
-                      <label className="mb-2 block text-sm font-medium text-gray-700">
-                        Tên đăng nhập hoặc email
-                      </label>
                       <div className="relative">
                         <div className="absolute inset-y-0 left-0 flex items-center pl-4">
                           <User className="h-5 w-5 text-gray-400" />
                         </div>
                         <Input
-                          className="h-11 rounded-lg border-gray-300 pl-12 text-gray-900 placeholder:text-gray-500 focus:border-purple-500 focus:ring-purple-500"
-                          placeholder="Nhập username hoặc email"
+                          className="h-11 rounded-lg border-gray-300 pl-12 text-gray-900 placeholder-gray-500 focus:border-purple-500 focus:ring-purple-500"
+                          placeholder="Tên tài khoản hoặc Email"
                           value={formLogin.userNameOrEmail}
                           onChange={(e) =>
                             setFormLogin({
@@ -181,9 +198,7 @@ export default function LoginPage() {
                               userNameOrEmail: e.target.value
                             })
                           }
-                          onKeyDown={(e) => {
-                            if (e.key === 'Enter') handleLogin();
-                          }}
+                          onKeyDown={(e) => e.key === 'Enter' && handleLogin()}
                         />
                       </div>
                       {error.userNameOrEmail && (
@@ -193,19 +208,16 @@ export default function LoginPage() {
                       )}
                     </div>
 
-                    {/* Password Field */}
+                    {/* Password */}
                     <div>
-                      <label className="mb-2 block text-sm font-medium text-gray-700">
-                        Mật khẩu
-                      </label>
                       <div className="relative">
                         <div className="absolute inset-y-0 left-0 flex items-center pl-4">
                           <Lock className="h-5 w-5 text-gray-400" />
                         </div>
                         <Input
-                          className="h-11 rounded-lg border-gray-300 pl-12 pr-12 text-gray-900 placeholder:text-gray-500 focus:border-purple-500 focus:ring-purple-500"
+                          className="h-11 rounded-lg border-gray-300 pl-12 pr-12 text-gray-900 placeholder-gray-500 focus:border-purple-500 focus:ring-purple-500"
                           type={showPassword ? 'text' : 'password'}
-                          placeholder="Nhập mật khẩu"
+                          placeholder="Mật khẩu"
                           value={formLogin.password}
                           onChange={(e) =>
                             setFormLogin({
@@ -213,13 +225,11 @@ export default function LoginPage() {
                               password: e.target.value
                             })
                           }
-                          onKeyDown={(e) => {
-                            if (e.key === 'Enter') handleLogin();
-                          }}
+                          onKeyDown={(e) => e.key === 'Enter' && handleLogin()}
                         />
                         <button
                           type="button"
-                          className="absolute inset-y-0 right-0 flex items-center pr-4 text-gray-400 transition-colors hover:text-gray-600"
+                          className="absolute inset-y-0 right-0 flex items-center pr-4 text-gray-400 hover:text-gray-600"
                           onClick={() => setShowPassword(!showPassword)}
                         >
                           {showPassword ? (
@@ -240,7 +250,7 @@ export default function LoginPage() {
                     <div className="text-right">
                       <Link
                         to="/forgot-password"
-                        className="text-sm font-medium text-purple-600 transition-colors hover:text-purple-700"
+                        className="text-sm font-medium text-purple-600 hover:text-purple-700"
                       >
                         Quên mật khẩu?
                       </Link>
@@ -248,7 +258,7 @@ export default function LoginPage() {
 
                     {/* Login Button */}
                     <Button
-                      className="group h-11 w-full rounded-lg bg-gradient-to-r from-purple-600 to-indigo-600 font-semibold text-white shadow-lg transition-all duration-300 hover:scale-[1.02] hover:from-purple-700 hover:to-indigo-700 hover:shadow-xl disabled:opacity-50 disabled:hover:scale-100"
+                      className="group h-11 w-full rounded-lg bg-gradient-to-r from-purple-600 to-indigo-600 font-semibold text-white shadow-lg transition-all duration-300 hover:scale-[1.02] disabled:opacity-50 disabled:hover:scale-100"
                       onClick={handleLogin}
                       disabled={isPending}
                     >
@@ -266,7 +276,23 @@ export default function LoginPage() {
                         )}
                       </span>
                     </Button>
+                    <div className="relative my-6 flex justify-center bg-white px-4 text-sm text-gray-500">
+                      <span className="">Hoặc</span>
+                    </div>
 
+                    {/* Google Login */}
+                    <div className="mt-4 flex justify-center">
+                      <GoogleOAuthProvider
+                        clientId={import.meta.env.VITE_GOOGLE_CLIENT_ID}
+                      >
+                        <GoogleLogin
+                          onSuccess={handleGoogleSuccess}
+                          onError={() =>
+                            setError({ password: 'Đăng nhập Google thất bại.' })
+                          }
+                        />
+                      </GoogleOAuthProvider>
+                    </div>
                     {/* Divider */}
                     <div className="relative my-6">
                       <div className="absolute inset-0 flex items-center">
@@ -274,22 +300,18 @@ export default function LoginPage() {
                       </div>
                       <div className="relative flex justify-center text-sm">
                         <span className="bg-white px-4 text-gray-500">
-                          Chưa có tài khoản?
+                          Đăng kí với
                         </span>
                       </div>
                     </div>
 
                     {/* Register Links */}
                     <div className="space-y-3">
-                      <p className="mb-3 text-center text-sm text-gray-600">
-                        Đăng ký tài khoản mới
-                      </p>
-
                       <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
                         <Link to="/register-publisher">
                           <Button
                             variant="outline"
-                            className="h-10 w-full rounded-lg border-purple-300 bg-white text-purple-700 transition-all hover:border-purple-400 hover:bg-purple-50"
+                            className="h-10 w-full rounded-lg border-purple-300 bg-white text-purple-700 hover:bg-purple-50"
                           >
                             Publisher
                           </Button>
@@ -297,15 +319,14 @@ export default function LoginPage() {
                         <Link to="/register-advertiser">
                           <Button
                             variant="outline"
-                            className="border-blue-300 text-blue-700 hover:bg-blue-50 hover:border-blue-400 h-10 w-full rounded-lg bg-white transition-all"
+                            className="border-blue-300 text-blue-700 hover:bg-blue-50 h-10 w-full rounded-lg bg-white"
                           >
                             Advertiser
                           </Button>
                         </Link>
                       </div>
                     </div>
-
-                    {/* Additional Info */}
+                    {/* Terms */}
                     <div className="mt-6 rounded-lg bg-gray-50 p-3 text-center">
                       <p className="text-xs text-gray-600">
                         Bằng việc đăng nhập, bạn đồng ý với{' '}
