@@ -1,15 +1,9 @@
-// report.query.ts
 import BaseRequest from '@/config/axios.config';
+import { PagingResponse, ReportApiResponse } from '@/types';
 import { useQuery } from '@tanstack/react-query';
 
-/**
- * Hook gọi API lấy danh sách Reports
- * Endpoint: GET /api/Reports?pageIndex={pageIndex}&pageSize={pageSize}&keyword={keyword}
- *
- * @param pageIndex - Số trang (mặc định = 1)
- * @param pageSize  - Kích thước trang (mặc định = 10)
- * @param keyword   - Từ khoá lọc (mặc định = '')
- */
+const SUB_URL = '/api/Reports';
+
 export const useGetReports = (
   pageIndex: number = 1,
   pageSize: number = 10,
@@ -18,9 +12,8 @@ export const useGetReports = (
   return useQuery({
     queryKey: ['get-reports', pageIndex, pageSize, keyword],
     queryFn: async () => {
-      // Gọi API. Nếu keyword rỗng, backend có thể bỏ qua filter
-      return await BaseRequest.Get(
-        `/api/Reports?PageIndex=${pageIndex}&PageSize=${pageSize}&Keyword=${keyword}`
+      return await BaseRequest.Get<PagingResponse<ReportApiResponse>>(
+        `${SUB_URL}?PageIndex=${pageIndex}&PageSize=${pageSize}&Keyword=${keyword}`
       );
     }
   });

@@ -26,7 +26,7 @@ const adminRoutes = [
     path: '/admin',
     element: (
       <LoginRoute>
-        <Suspense fallback={<div>Loading Admin Layout...</div>}>
+        <Suspense>
           <AdminLayout />
         </Suspense>
       </LoginRoute>

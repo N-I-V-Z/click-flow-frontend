@@ -132,9 +132,6 @@ const AdvertiserDashboard: React.FC = () => {
         <CreateNewCampaign
           visible={isModalVisible}
           onCancel={() => setIsModalVisible(false)}
-          onCreate={(values: boolean) => {
-            setIsModalVisible(false);
-          }}
         />
       </div>
     </BasePages>

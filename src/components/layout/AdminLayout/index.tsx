@@ -9,15 +9,10 @@ const { Content, Footer } = Layout;
 const AdminLayout: React.FC = () => {
   return (
     <Layout className="h-screen bg-white">
-      {/* Header cố định trên cùng (cao 64px) */}
       <HeaderAd />
-
-      {/* Sidebar cố định bên trái, ngay dưới Header */}
       <div className="fixed left-0 top-[64px]">
         <SidebarAdmin />
       </div>
-
-      {/* Nội dung chính (scroll) có khoảng trắng trên-dưới */}
       <Content
         className="
           ml-64
@@ -30,8 +25,6 @@ const AdminLayout: React.FC = () => {
       >
         <Outlet />
       </Content>
-
-      {/* Footer cố định dưới cùng */}
       <Footer className="fixed bottom-0 left-0 w-full bg-gray-200 p-4 text-center">
         © {new Date().getFullYear()} ClickFlow. All rights reserved.
       </Footer>

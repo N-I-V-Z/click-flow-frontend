@@ -15,7 +15,6 @@ const { Option } = Select;
 const decodedToken: TokenDecoded | null = helpers.decodeTokens(
   __helpers.cookie_get('AT')
 );
-// PublisherId lấy từ token (hoặc từ context, store,...)
 const PUBLISHER_ID = decodedToken?.Id;
 
 // Số item mỗi trang (client side)
@@ -24,13 +23,10 @@ const PAGE_SIZE = 10;
 const CampaignsPage: React.FC = () => {
   const [form] = Form.useForm();
 
-  // State lưu danh sách campaign hiển thị (để lọc, phân trang phía client)
   const [campaigns, setCampaigns] = useState<any[]>([]);
 
-  // State trang hiện tại (client side)
   const [currentPage, setCurrentPage] = useState<number>(1);
 
-  // State cho Modal đăng ký
   const [isModalVisible, setIsModalVisible] = useState<boolean>(false);
   const [selectedCampaignId, setSelectedCampaignId] = useState<number | null>(
     null

@@ -2,10 +2,8 @@ import { useQuery, useMutation } from '@tanstack/react-query';
 import BaseRequest from '@/config/axios.config';
 import { IFeedback, IFeedbackAPIResponse } from '@/types/index';
 
-/**
- * Hook gọi API lấy danh sách Feedback của 1 campaign
- * Endpoint: GET /api/feedbacks/get-feedbacks-by-campaign/{campaignId}/{pageIndex}/{pageSize}
- */
+const SUB_URL = '/api/Feedbacks';
+
 export const useGetFeedbacksByCampaign = (
   campaignId: number,
   pageIndex: number = 1,
@@ -17,7 +15,7 @@ export const useGetFeedbacksByCampaign = (
     enabled: !!campaignId,
     queryFn: async () => {
       const response: IFeedbackAPIResponse = await BaseRequest.Get(
-        `/api/feedbacks/get-feedbacks-by-campaign/${campaignId}/${pageIndex}/${pageSize}`
+        `${SUB_URL}/get-feedbacks-by-campaign/${campaignId}/${pageIndex}/${pageSize}`
       );
 
       if (!response.isSuccess) {
@@ -36,7 +34,7 @@ export const useCreateFeedback = () => {
     }) => {
       // Thay đổi endpoint hoặc payload tùy backend
       const response = await BaseRequest.Post(
-        '/api/Feedbacks/create-feedback',
+        `${SUB_URL}/create-feedback`,
         payload
       );
       return response;

@@ -7,6 +7,7 @@ import { Eye, EyeOff } from 'lucide-react';
 import { useResetPassword } from '@/queries/auth.query';
 import { Link } from 'react-router-dom';
 import ImageLeft from '../Image';
+import { ResetpasswordRequest } from '@/types';
 type FormReset = {
   email: string;
   newPassword: string;
@@ -17,23 +18,24 @@ type FormError = Partial<FormReset>;
 
 export default function ResetPasswordPage() {
   const { mutateAsync, isPending } = useResetPassword();
-  const [formReset, setFormReset] = useState<FormReset>({
+  const [formReset, setFormReset] = useState<ResetpasswordRequest>({
     email: '',
     newPassword: '',
-    confirmedNewPassword: ''
+    confirmedNewPassword: '',
+    token: ''
   });
   const [error, setError] = useState<FormError>({});
   const [showPassword, setShowPassword] = useState(false);
 
   const validateInputs = (): FormError => {
     const errors: FormError = {};
-    if (!formReset.email.trim()) {
+    if (!formReset?.email.trim()) {
       errors.email = 'Email không được để trống.';
     }
-    if (!formReset.newPassword.trim()) {
+    if (!formReset?.newPassword.trim()) {
       errors.newPassword = 'Mật khẩu mới không được để trống.';
     }
-    if (formReset.newPassword !== formReset.confirmedNewPassword) {
+    if (formReset?.newPassword !== formReset?.confirmedNewPassword) {
       errors.confirmedNewPassword = 'Mật khẩu xác nhận không khớp.';
     }
     return errors;

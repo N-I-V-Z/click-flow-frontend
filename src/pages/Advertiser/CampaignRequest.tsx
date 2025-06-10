@@ -10,60 +10,21 @@ import {
   useUpdateParticipationStatus
 } from '@/queries/campaign.query';
 import Loading from '@/components/ui/loading';
+import { CampaignParticipationApiResponse } from '@/types';
 
-function formatDate(dateString?: string): string {
+function formatDate(dateString?: string | Date): string {
   if (!dateString) return '';
-  const date = new Date(dateString);
-  if (isNaN(date.getTime())) return dateString;
+
+  // Handle both string and Date types
+  const date =
+    typeof dateString === 'string' ? new Date(dateString) : dateString;
+
+  if (isNaN(date.getTime())) return '';
+
   const day = date.getDate().toString().padStart(2, '0');
   const month = (date.getMonth() + 1).toString().padStart(2, '0');
   const year = date.getFullYear();
   return `${day}/${month}/${year}`;
-}
-
-interface IPublisherParticipation {
-  id: number;
-  publisherId: number;
-  status: string;
-  createAt: string;
-  publisher: {
-    id: number;
-    userId: number;
-    applicationUser: {
-      fullName: string;
-      email: string;
-    };
-  };
-  campaign: {
-    name: string;
-    description: string;
-    originURL?: string;
-    budget?: number;
-    remainingBudget?: number;
-    startDate?: string;
-    endDate?: string;
-    typePay?: string;
-    typeCampaign?: string;
-    status?: string;
-    commission?: number;
-    percents?: number;
-    image?: string;
-    averageStarRate?: number;
-  };
-}
-
-interface IApiResponse<T> {
-  statusCode: string;
-  isSuccess: boolean;
-  message: string;
-  result: {
-    datas: T[];
-    pageIndex: number;
-    totalPages: number;
-    totalItems: number;
-    hasPreviousPage: boolean;
-    hasNextPage: boolean;
-  };
 }
 
 const AttractivePublisherParticipationRequest: React.FC = () => {
@@ -72,26 +33,25 @@ const AttractivePublisherParticipationRequest: React.FC = () => {
     useGetPublisherParticipationByStatusForAdvertiser(1, 10, 'Pending');
   const { mutate: updateParticipationStatus } = useUpdateParticipationStatus();
   const [localParticipations, setLocalParticipations] = useState<
-    IPublisherParticipation[]
+    CampaignParticipationApiResponse[] | undefined
   >([]);
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [selectedCampaign, setSelectedCampaign] = useState<
-    IPublisherParticipation['campaign'] | null
+    CampaignParticipationApiResponse['campaign'] | null
   >(null);
 
   useEffect(() => {
     if (data) {
-      const apiData = data as IApiResponse<IPublisherParticipation>;
-      setLocalParticipations(apiData?.result?.datas ?? []);
-      setPageCount(apiData?.result?.totalPages ?? 0);
+      setLocalParticipations(data.result?.datas);
+      setPageCount(data?.result?.totalPages ?? 0);
     }
   }, [data]);
 
   const handleAccept = useCallback(
-    (item: IPublisherParticipation) => {
+    (item: CampaignParticipationApiResponse) => {
       updateParticipationStatus(
         {
-          publisherId: item.publisherId,
+          publisherId: item.publisherId || 0,
           campaignParticipationId: item.id,
           newStatus: 'Participated'
         },
@@ -110,10 +70,10 @@ const AttractivePublisherParticipationRequest: React.FC = () => {
   );
 
   const handleReject = useCallback(
-    (item: IPublisherParticipation) => {
+    (item: CampaignParticipationApiResponse) => {
       updateParticipationStatus(
         {
-          publisherId: item.publisherId,
+          publisherId: item.publisherId || 0,
           campaignParticipationId: item.id,
           newStatus: 'Rejected'
         },
@@ -132,7 +92,7 @@ const AttractivePublisherParticipationRequest: React.FC = () => {
   );
 
   const openModal = useCallback(
-    (campaign: IPublisherParticipation['campaign']) => {
+    (campaign: CampaignParticipationApiResponse['campaign']) => {
       setSelectedCampaign(campaign);
       setIsModalVisible(true);
     },
@@ -144,7 +104,7 @@ const AttractivePublisherParticipationRequest: React.FC = () => {
     setIsModalVisible(false);
   }, []);
 
-  const columns = useMemo<ColumnDef<IPublisherParticipation>[]>(
+  const columns = useMemo<ColumnDef<CampaignParticipationApiResponse>[]>(
     () => [
       {
         header: 'STT',
@@ -152,20 +112,32 @@ const AttractivePublisherParticipationRequest: React.FC = () => {
       },
       {
         accessorKey: 'publisher.applicationUser.fullName',
-        header: 'Publisher'
+        header: 'Publisher',
+        cell: ({ row }) => {
+          // Safe access with fallback
+          return row.original?.publisher?.applicationUser?.fullName || '-';
+        }
       },
       {
         accessorKey: 'campaign.name',
-        header: 'Chiến dịch'
+        header: 'Chiến dịch',
+        cell: ({ row }) => {
+          return row.original?.campaign?.name || '-';
+        }
       },
       {
         accessorKey: 'status',
-        header: 'Trạng thái'
+        header: 'Trạng thái',
+        cell: ({ row }) => {
+          return row.original?.status || '-';
+        }
       },
       {
-        accessorKey: 'createAt',
+        accessorKey: 'createdAt',
         header: 'Ngày tạo',
-        cell: ({ row }) => formatDate(row.original.createAt)
+        cell: ({ row }) => {
+          return formatDate(row.original?.createdAt);
+        }
       },
       {
         id: 'actions',
@@ -175,18 +147,18 @@ const AttractivePublisherParticipationRequest: React.FC = () => {
           return (
             <div className="flex gap-3">
               <Eye
-                onClick={() => openModal(item.campaign)}
-                className="hover:text-blue-700 cursor-pointer text-blue"
+                onClick={() => item?.campaign && openModal(item.campaign)}
+                className="cursor-pointer text-blue hover:text-blue"
                 size={20}
               />
               <Check
                 onClick={() => handleAccept(item)}
-                className="cursor-pointer text-green-500 hover:text-green-700"
+                className="hover:text-green cursor-pointer text-green-500"
                 size={20}
               />
               <X
                 onClick={() => handleReject(item)}
-                className="hover:text-red-700 cursor-pointer text-red"
+                className="cursor-pointer text-red hover:text-red"
                 size={20}
               />
             </div>
@@ -218,7 +190,7 @@ const AttractivePublisherParticipationRequest: React.FC = () => {
 
       <DataTable
         columns={columns}
-        data={localParticipations}
+        data={localParticipations || []}
         pageCount={pageCount}
         pageSizeOptions={[10, 20, 30, 40, 50]}
         showAdd={false}
@@ -239,7 +211,7 @@ const AttractivePublisherParticipationRequest: React.FC = () => {
               {selectedCampaign.image ? (
                 <img
                   src={selectedCampaign.image}
-                  alt={selectedCampaign.name}
+                  alt={selectedCampaign.name || 'Campaign'}
                   className="h-full w-full rounded-lg object-cover"
                 />
               ) : (
@@ -250,7 +222,7 @@ const AttractivePublisherParticipationRequest: React.FC = () => {
               <div className="absolute inset-0 rounded-md bg-gradient-to-t from-black via-transparent to-transparent opacity-70 md:rounded-l-md md:rounded-tr-none"></div>
               <div className="absolute bottom-4 left-4">
                 <h2 className="text-2xl font-bold text-white">
-                  {selectedCampaign.name}
+                  {selectedCampaign.name || 'Untitled Campaign'}
                 </h2>
               </div>
             </div>
@@ -330,9 +302,7 @@ const AttractivePublisherParticipationRequest: React.FC = () => {
                     Ngày bắt đầu
                   </p>
                   <p className="font-medium text-gray-800">
-                    {selectedCampaign.startDate
-                      ? formatDate(selectedCampaign.startDate)
-                      : '-'}
+                    {formatDate(selectedCampaign.startDate)}
                   </p>
                 </div>
                 <div>
@@ -340,9 +310,7 @@ const AttractivePublisherParticipationRequest: React.FC = () => {
                     Ngày kết thúc
                   </p>
                   <p className="font-medium text-gray-800">
-                    {selectedCampaign.endDate
-                      ? formatDate(selectedCampaign.endDate)
-                      : '-'}
+                    {formatDate(selectedCampaign.endDate)}
                   </p>
                 </div>
               </div>

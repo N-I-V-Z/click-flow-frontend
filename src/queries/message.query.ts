@@ -2,7 +2,7 @@ import BaseRequest from '@/config/axios.config';
 import { useMutation, useQuery } from '@tanstack/react-query';
 import { MessageApiResponse, MessageType } from '@/types';
 
-const SUB_URL = `api/Messages`;
+const SUB_URL = `/api/Messages`;
 
 export const useSendMessage = () => {
   return useMutation({
@@ -25,10 +25,7 @@ export const useSendMessage = () => {
         formData.append('File', model.file);
       }
 
-      return await BaseRequest.Post<MessageApiResponse>(
-        `/${SUB_URL}`,
-        formData
-      );
+      return await BaseRequest.Post<MessageApiResponse>(`${SUB_URL}`, formData);
     }
   });
 };
@@ -39,7 +36,7 @@ export const useGetMessagesByConversationId = (conversationId?: number) => {
     enabled: !!conversationId,
     queryFn: async () => {
       return await BaseRequest.Get<MessageApiResponse[]>(
-        `/${SUB_URL}/${conversationId}`
+        `${SUB_URL}/${conversationId}`
       );
     }
   });
@@ -49,7 +46,7 @@ export const useMaskAsRead = () => {
   return useMutation({
     mutationKey: ['mask-as-read'],
     mutationFn: async (model: { conversationId: number }) => {
-      return await BaseRequest.Post(`/${SUB_URL}/mark-as-read`, model);
+      return await BaseRequest.Post(`${SUB_URL}/mark-as-read`, model);
     }
   });
 };

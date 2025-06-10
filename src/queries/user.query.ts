@@ -1,16 +1,25 @@
 import BaseRequest from '@/config/axios.config';
+import {
+  ApplicationUserApiResponse,
+  PagingResponse,
+  UserDetailApiResponse
+} from '@/types';
 import { useQuery } from '@tanstack/react-query';
+
+const SUB_USER_DETAIL_URL = '/api/UserDetails';
+const SUB_USER_URL = '/api/Users';
 
 export const useGetUserDetail = (userId: number) => {
   return useQuery({
     queryKey: ['get-user-detail', userId],
     queryFn: async () => {
-      return await BaseRequest.Get(
-        `/api/UserDetails/get-user-detail?userId=${userId}`
+      return await BaseRequest.Get<UserDetailApiResponse>(
+        `${SUB_USER_DETAIL_URL}/get-user-detail?userId=${userId}`
       );
     }
   });
 };
+
 export const useGetUsersByRole = (
   role: string,
   pageIndex: number = 1,
@@ -19,9 +28,8 @@ export const useGetUsersByRole = (
   return useQuery({
     queryKey: ['users-by-role', role, pageIndex, pageSize],
     queryFn: async () => {
-      // Gọi API: /api/Users/by-role/{role}/{pageIndex}/{pageSize}
-      return await BaseRequest.Get(
-        `/api/Users/by-role/${role}/${pageIndex}/${pageSize}`
+      return await BaseRequest.Get<PagingResponse<ApplicationUserApiResponse>>(
+        `${SUB_USER_URL}/by-role/${role}/${pageIndex}/${pageSize}`
       );
     }
   });
