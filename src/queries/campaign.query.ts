@@ -26,7 +26,9 @@ export const useGetCampaign = (
       return await BaseRequest.Get<PagingResponse<CampaignApiResponse>>(
         `${SUB_URL}/get-campaigns-by-status/${status}/${pageIndex}/${pageSize}`
       );
-    }
+    },
+    staleTime: 1000 * 60 * 5,
+    retry: 3
   });
 };
 
@@ -50,7 +52,9 @@ export const useGetCampaignById = (id?: number) => {
       return await BaseRequest.Get<CampaignApiResponse>(
         `${SUB_URL}/get-campaign-by-id/${id}`
       );
-    }
+    },
+    staleTime: 1000 * 60 * 5,
+    retry: 3
   });
 };
 
@@ -74,7 +78,9 @@ export const useGetCampaignAdvertiser = (
         url += `?status=${status}`;
       }
       return await BaseRequest.Get<PagingResponse<CampaignApiResponse>>(url);
-    }
+    },
+    staleTime: 1000 * 60 * 5,
+    retry: 3
   });
 };
 
@@ -89,7 +95,9 @@ export const useGetCampaignPublisher = (
       return await BaseRequest.Get<PagingResponse<CampaignApiResponse>>(
         `/${SUB_URL}/get-all-campaign-for-publisher/${publisherId}?PageIndex=${pageIndex}&PageSize=${pageSize}`
       );
-    }
+    },
+    staleTime: 1000 * 60 * 5,
+    retry: 3
   });
 };
 
@@ -140,7 +148,9 @@ export const useGetCampaignsJoinedByPublisher = (
       return await BaseRequest.Get<PagingResponse<CampaignApiResponse>>(
         `${SUB_URL}/get-campaigns-joined-by-publisher/${publisherId}/${pageIndex}/${pageSize}`
       );
-    }
+    },
+    staleTime: 1000 * 60 * 5,
+    retry: 3
   });
 };
 export const useGetCampaignListExcpPending = (
@@ -154,7 +164,8 @@ export const useGetCampaignListExcpPending = (
         `${SUB_URL}/get-campaigns-except-from-pending/${pageIndex}/${pageSize}`
       );
     },
-    staleTime: 0, // Data sẽ được coi là stale ngay lập tức
+    staleTime: 1000 * 60 * 5,
+    retry: 3, // Data sẽ được coi là stale ngay lập tức
     refetchOnMount: true // Luôn refetch khi component mount
     // Bỏ keepPreviousData vì không có trong React Query v5
   });
@@ -170,7 +181,9 @@ export const useGetAllCampaignForPublisher = (
         PagingResponse<CampaignApiResponse>
       >(`${SUB_URL}/get-all-campaign-for-publisher/${pageIndex}/${pageSize}`);
       return response;
-    }
+    },
+    staleTime: 1000 * 60 * 5,
+    retry: 3
   });
 };
 
@@ -189,7 +202,9 @@ export const useGetSimilarCampaigns = (
         `/api/Campaigns/get-similar-campaigns/${campaignId}/${pageIndex}/${pageSize}`
       );
       return response;
-    }
+    },
+    staleTime: 1000 * 60 * 5,
+    retry: 3
   });
 };
 export interface IApiCampaign {
@@ -232,7 +247,9 @@ export function useGetCampaignByIdd(id?: number) {
         `/api/Campaigns/get-campaign-by-id-for-publisher/${id}`
       );
       return response.result as IApiCampaign;
-    }
+    },
+    staleTime: 1000 * 60 * 5,
+    retry: 3
   });
 }
 export const useRegisterCampaign = () => {
@@ -259,6 +276,8 @@ export const useGetCampaignCountByAdvertiser = (
       );
       return response.result as number;
     },
+    staleTime: 1000 * 60 * 5,
+    retry: 3,
     enabled: !!advertiserId && !!status
   });
 };
@@ -274,7 +293,9 @@ export const useGetCampaignParticipationCountByStatusForAdvertiser = (
       );
       return response.result as number;
     },
-    enabled: !!status
+    enabled: !!status,
+    staleTime: 1000 * 60 * 5,
+    retry: 3
   });
 };
 
@@ -296,7 +317,9 @@ export const useGetPublisherParticipationByStatusForAdvertiser = (
       >(
         `/${SUB_URL}/get-publisher-paticipation-by-status-for-advertiser/${pageIndex}/${pageSize}?campaignParticipationStatus=${campaignParticipationStatus}`
       );
-    }
+    },
+    staleTime: 1000 * 60 * 5,
+    retry: 3
   });
 };
 
@@ -325,7 +348,9 @@ export const useGetCampaignDetail = (id?: number) => {
       return await BaseRequest.Get<CampaignApiResponse>(
         `${SUB_URL}/get-campaign-by-id/${id}`
       );
-    }
+    },
+    staleTime: 1000 * 60 * 5,
+    retry: 3
   });
 };
 
@@ -344,6 +369,8 @@ export const useGetPublishersInCampaign = (
       >(
         `${SUB_URL}/get-publishers-in-campaign/${campaignId}/${pageIndex}/${pageSize}`
       );
-    }
+    },
+    staleTime: 1000 * 60 * 5,
+    retry: 3
   });
 };

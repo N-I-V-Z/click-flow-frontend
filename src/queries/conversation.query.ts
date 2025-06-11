@@ -24,6 +24,8 @@ export const useGetOwnConversations = () => {
       return await BaseRequest.Get<ConversationListApiResponse[]>(
         `${SUB_URL}/own`
       );
-    }
+    },
+    staleTime: 1000 * 60 * 5,
+    retry: 3
   });
 };

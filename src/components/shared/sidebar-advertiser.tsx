@@ -6,7 +6,8 @@ import {
   LogoutOutlined,
   LinkOutlined,
   UnorderedListOutlined,
-  WechatOutlined
+  WechatOutlined,
+  BellOutlined
 } from '@ant-design/icons';
 import { NavLink } from 'react-router-dom';
 import { ToastContainer } from 'react-toastify';
@@ -93,7 +94,7 @@ const SidebarAdvertiser: React.FC = () => {
         <Menu.Item key="forum" icon={<WechatOutlined />}>
           <NavLink to="/all/forum">Diễn đàn</NavLink>
         </Menu.Item>
-        <Menu.Item key="news" icon={<WechatOutlined />}>
+        <Menu.Item key="news" icon={<BellOutlined />}>
           <NavLink to="/all/news">Tin tức</NavLink>
         </Menu.Item>
       </Menu>

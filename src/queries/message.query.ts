@@ -38,7 +38,9 @@ export const useGetMessagesByConversationId = (conversationId?: number) => {
       return await BaseRequest.Get<MessageApiResponse[]>(
         `${SUB_URL}/${conversationId}`
       );
-    }
+    },
+    staleTime: 1000 * 60 * 5,
+    retry: 3
   });
 };
 

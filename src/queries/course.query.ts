@@ -17,7 +17,9 @@ export const useGetAllCourses = (
       return await BaseRequest.Get<PagingResponse<Course>>(
         `${SUB_URL}/publisher?PageIndex=${pageIndex}&PageSize=${pageSize}`
       );
-    }
+    },
+    staleTime: 1000 * 60 * 5,
+    retry: 3
   });
 };
 
@@ -32,7 +34,9 @@ export const useGetCourseAdmin = (
       return await BaseRequest.Get<PagingResponse<Course>>(
         `${SUB_URL}/admin?PageIndex=${pageIndex}&PageSize=${pageSize}&Keyword=${keyWord}`
       );
-    }
+    },
+    staleTime: 1000 * 60 * 5,
+    retry: 3
   });
 };
 
