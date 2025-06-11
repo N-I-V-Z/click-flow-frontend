@@ -9,6 +9,8 @@ export const useGetOwnWallet = () => {
     queryKey: ['get-own-wallet'],
     queryFn: async () => {
       return await BaseRequest.Get<Wallet>(`${SUB_URL}/own`);
-    }
+    },
+    staleTime: 1000 * 60 * 5,
+    retry: 3
   });
 };

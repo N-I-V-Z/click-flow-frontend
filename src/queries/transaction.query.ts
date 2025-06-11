@@ -17,7 +17,9 @@ export const useGetOwnTransaction = (
       return await BaseRequest.Get<PagingResponse<Transaction>>(
         `${SUB_URL}/own?PageIndex=${pageIndex}&PageSize=${pageSize}`
       );
-    }
+    },
+    staleTime: 1000 * 60 * 5,
+    retry: 3
   });
 };
 

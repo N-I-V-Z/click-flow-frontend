@@ -3,7 +3,7 @@ import BasePages from '@/components/shared/base-pages.js';
 import Footer from '@/components/shared/footer-home';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { useLogin } from '@/queries/auth.query';
+import { useLogin, useLoginGoogle } from '@/queries/auth.query';
 import helpers from '@/helpers';
 import __helpers from '@/helpers';
 import { useDispatch } from 'react-redux';
@@ -16,6 +16,7 @@ import {
   ApiResponse,
   LoginApiResponse,
   LoginRequest,
+  LoginGoogleRequest,
   TokenDecoded
 } from '@/types';
 import {
@@ -24,12 +25,12 @@ import {
   CredentialResponse
 } from '@react-oauth/google';
 
-import { jwtDecode } from 'jwt-decode';
-
 type FormError = Partial<LoginRequest>;
 
 export default function LoginPage() {
   const { mutateAsync: Login, isPending } = useLogin();
+  const { mutateAsync: LoginGoogle, isPending: isPendingGoogle } =
+    useLoginGoogle(); // Add Google login hook
   const [formLogin, setFormLogin] = useState<LoginRequest>({
     userNameOrEmail: '',
     password: ''
@@ -72,7 +73,7 @@ export default function LoginPage() {
       const refreshToken = loginResponse.result?.refreshToken ?? '';
 
       helpers.cookie_set('AT', accessToken);
-      helpers.cookie_set('RT', refreshToken); // ← Thêm dòng này để lưu refresh token
+      helpers.cookie_set('RT', refreshToken);
 
       dispatch(login());
       const decoded: TokenDecoded | null = helpers.decodeTokens(
@@ -97,29 +98,30 @@ export default function LoginPage() {
     credentialResponse: CredentialResponse
   ) => {
     if (!credentialResponse.credential) return;
+
+    // Clear any previous errors
+    setError({});
+
     try {
-      // Optionally decode for client-side info:
-      const decodedGoogle: any = jwtDecode(credentialResponse.credential);
-      // Send to your backend
-      const res = await fetch('/api/auth/google', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ token: credentialResponse.credential })
-      });
-      const data: ApiResponse<LoginApiResponse> = await res.json();
+      // Use the proper hook instead of direct fetch
+      const googleLoginRequest: LoginGoogleRequest = {
+        idToken: credentialResponse.credential
+      };
+
+      const data = await LoginGoogle(googleLoginRequest);
+      const loginResponse = data as ApiResponse<LoginApiResponse>;
 
       // Lưu cả access token và refresh token cho Google login
-      const accessToken = data?.result?.token || '';
-      const refreshToken = data?.result?.refreshToken || '';
+      const accessToken = loginResponse.result?.token ?? '';
+      const refreshToken = loginResponse.result?.refreshToken ?? '';
 
       helpers.cookie_set('AT', accessToken);
-      helpers.cookie_set('RT', refreshToken); // ← Thêm dòng này để lưu refresh token
+      helpers.cookie_set('RT', refreshToken);
 
       dispatch(login());
-      const decoded: TokenDecoded | null = helpers.decodeTokens(
-        data?.result?.token
-      );
+      const decoded: TokenDecoded | null = helpers.decodeTokens(accessToken);
       const role = decoded?.Role.toLowerCase();
+
       if (role === 'admin') {
         router.push('/admin');
       } else if (role === 'advertiser') {
@@ -129,9 +131,14 @@ export default function LoginPage() {
       } else {
         router.push('/404');
       }
-    } catch {
+    } catch (error) {
+      console.error('Google login error:', error);
       setError({ password: 'Đăng nhập Google thất bại.' });
     }
+  };
+
+  const handleGoogleError = () => {
+    setError({ password: 'Đăng nhập Google thất bại.' });
   };
 
   return (
@@ -211,6 +218,7 @@ export default function LoginPage() {
                             })
                           }
                           onKeyDown={(e) => e.key === 'Enter' && handleLogin()}
+                          disabled={isPending || isPendingGoogle}
                         />
                       </div>
                       {error.userNameOrEmail && (
@@ -238,11 +246,13 @@ export default function LoginPage() {
                             })
                           }
                           onKeyDown={(e) => e.key === 'Enter' && handleLogin()}
+                          disabled={isPending || isPendingGoogle}
                         />
                         <button
                           type="button"
                           className="absolute inset-y-0 right-0 flex items-center pr-4 text-gray-400 hover:text-gray-600"
                           onClick={() => setShowPassword(!showPassword)}
+                          disabled={isPending || isPendingGoogle}
                         >
                           {showPassword ? (
                             <EyeOff className="h-5 w-5" />
@@ -272,7 +282,7 @@ export default function LoginPage() {
                     <Button
                       className="group h-11 w-full rounded-lg bg-gradient-to-r from-purple-600 to-indigo-600 font-semibold text-white shadow-lg transition-all duration-300 hover:scale-[1.02] disabled:opacity-50 disabled:hover:scale-100"
                       onClick={handleLogin}
-                      disabled={isPending}
+                      disabled={isPending || isPendingGoogle}
                     >
                       <span className="flex items-center justify-center gap-2">
                         {isPending ? (
@@ -288,6 +298,7 @@ export default function LoginPage() {
                         )}
                       </span>
                     </Button>
+
                     <div className="relative my-6 flex justify-center bg-white px-4 text-sm text-gray-500">
                       <span className="">Hoặc</span>
                     </div>
@@ -297,14 +308,22 @@ export default function LoginPage() {
                       <GoogleOAuthProvider
                         clientId={import.meta.env.VITE_GOOGLE_CLIENT_ID}
                       >
-                        <GoogleLogin
-                          onSuccess={handleGoogleSuccess}
-                          onError={() =>
-                            setError({ password: 'Đăng nhập Google thất bại.' })
+                        <div
+                          className={
+                            isPendingGoogle
+                              ? 'pointer-events-none opacity-50'
+                              : ''
                           }
-                        />
+                        >
+                          <GoogleLogin
+                            onSuccess={handleGoogleSuccess}
+                            onError={handleGoogleError}
+                            useOneTap={false}
+                          />
+                        </div>
                       </GoogleOAuthProvider>
                     </div>
+
                     {/* Divider */}
                     <div className="relative my-6">
                       <div className="absolute inset-0 flex items-center">
@@ -324,6 +343,7 @@ export default function LoginPage() {
                           <Button
                             variant="outline"
                             className="h-10 w-full rounded-lg border-purple-300 bg-white text-purple-700 hover:bg-purple-50"
+                            disabled={isPending || isPendingGoogle}
                           >
                             Publisher
                           </Button>
@@ -332,12 +352,14 @@ export default function LoginPage() {
                           <Button
                             variant="outline"
                             className="border-blue-300 text-blue-700 hover:bg-blue-50 h-10 w-full rounded-lg bg-white"
+                            disabled={isPending || isPendingGoogle}
                           >
                             Advertiser
                           </Button>
                         </Link>
                       </div>
                     </div>
+
                     {/* Terms */}
                     <div className="mt-6 rounded-lg bg-gray-50 p-3 text-center">
                       <p className="text-xs text-gray-600">

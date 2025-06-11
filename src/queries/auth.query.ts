@@ -10,7 +10,8 @@ import {
   RegisterPublisherRequest,
   ApplicationUserApiResponse,
   RegisterAdvertiserRequest,
-  LoginRequest
+  LoginRequest,
+  LoginGoogleRequest
 } from '@/types';
 import { useMutation } from '@tanstack/react-query';
 
@@ -98,6 +99,18 @@ export const useRegisterAdvertiser = () => {
     mutationFn: async (model: RegisterAdvertiserRequest) => {
       return await BaseRequest.Post<ApplicationUserApiResponse>(
         `${SUB_URL}/sign-up`,
+        model
+      );
+    }
+  });
+};
+
+export const useLoginGoogle = () => {
+  return useMutation({
+    mutationKey: ['login-google'],
+    mutationFn: async (model: LoginGoogleRequest) => {
+      return await BaseRequest.Post<LoginApiResponse>(
+        `${SUB_URL}/authen-google`,
         model
       );
     }

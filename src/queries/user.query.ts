@@ -21,7 +21,8 @@ export const useGetUserDetail = (userId: number | undefined) => {
       );
     },
     enabled: !!userId && !isNaN(userId), // Chỉ chạy khi có userId hợp lệ
-    retry: 1,
+    staleTime: 1000 * 60 * 5,
+    retry: 3,
     refetchOnWindowFocus: false
   });
 };
@@ -37,6 +38,8 @@ export const useGetUsersByRole = (
       return await BaseRequest.Get<PagingResponse<ApplicationUserApiResponse>>(
         `${SUB_USER_URL}/by-role/${role}/${pageIndex}/${pageSize}`
       );
-    }
+    },
+    staleTime: 1000 * 60 * 5,
+    retry: 3
   });
 };
