@@ -1,270 +1,411 @@
 import React from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { Modal, Divider } from 'antd';
 import {
-  Layout,
-  Row,
-  Col,
-  Card,
-  Typography,
-  Descriptions,
-  Badge,
-  Tag,
-  Button,
-  message,
-  Modal
-} from 'antd';
-import 'antd/dist/reset.css';
-import {
-  useGetCampaignById,
-  useUpdateCampaignStatus
-} from '@/queries/campaign.query';
-import { ApiResponse, Campaign, CampaignApiResponse } from '@/types';
-import BasePages from '@/components/shared/base-pages';
+  Calendar,
+  Target,
+  DollarSign,
+  Globe,
+  Star,
+  User,
+  Building2
+} from 'lucide-react';
+import { useGetCampaignById } from '@/queries/campaign.query';
 import Loading from '@/components/ui/loading';
+import { ApiResponse, CampaignApiResponse } from '@/types';
 
-const { Content } = Layout;
-const { Title, Paragraph, Text } = Typography;
-const { confirm } = Modal;
+interface CampaignPendingDetailProps {
+  campaignId: number | null;
+  visible: boolean;
+  onClose: () => void;
+}
 
-const CampaignPendingDetail: React.FC = () => {
-  const { id } = useParams();
-  const navigate = useNavigate();
+const CampaignPendingDetail: React.FC<CampaignPendingDetailProps> = ({
+  campaignId,
+  visible,
+  onClose
+}) => {
+  const { data, isLoading, error } = useGetCampaignById(
+    campaignId || undefined
+  );
 
-  const { data, isLoading, error } = useGetCampaignById(Number(id));
-  const { mutate: updateCampaignStatus } = useUpdateCampaignStatus();
+  const campaign = (data as ApiResponse<CampaignApiResponse>)?.result;
 
-  if (isLoading) {
-    return (
-      <Layout className="min-h-screen bg-gray-50">
-        <Content className="p-6">
-          <Loading />
-        </Content>
-      </Layout>
-    );
-  }
-
-  if (error) {
-    return (
-      <Layout className="min-h-screen bg-gray-50">
-        <Content className="p-6">
-          <Card>
-            <Title level={4}>Đã có lỗi xảy ra khi tải chiến dịch!</Title>
-          </Card>
-        </Content>
-      </Layout>
-    );
-  }
-
-  const apiCampaign = (data as ApiResponse<CampaignApiResponse>)?.result;
-  if (!apiCampaign) {
-    return (
-      <Layout className="min-h-screen bg-gray-50">
-        <Content className="p-6">
-          <Card>
-            <Title level={4}>Không tìm thấy chiến dịch!</Title>
-          </Card>
-        </Content>
-      </Layout>
-    );
-  }
-
-  const campaign: Campaign = {
-    id: apiCampaign.id,
-    name: apiCampaign.name,
-    advertiserId: apiCampaign.advertiserId,
-    advertiserName: apiCampaign.advertiser.applicationUser.fullName ?? '',
-    description: apiCampaign.description,
-    originUrl: apiCampaign.originURL,
-    budget: apiCampaign.budget,
-    startDate: apiCampaign.startDate.toUTCString(),
-    endDate: apiCampaign.endDate.toUTCString(),
-    method: apiCampaign.typePay,
-    status: apiCampaign.status,
-    category: apiCampaign.typeCampaign,
-    commissionType: apiCampaign.percents ? '%' : 'VND',
-    commissionValue: apiCampaign.percents ?? apiCampaign.commission,
-    imageUrl: apiCampaign.image
+  const formatCurrency = (amount: number | null) => {
+    if (!amount) return '0 VND';
+    return new Intl.NumberFormat('vi-VN', {
+      style: 'currency',
+      currency: 'VND'
+    }).format(amount);
   };
 
-  let statusBadge;
-  if (campaign.status === 'Hoạt động') {
-    statusBadge = <Badge status="success" text="Hoạt động" />;
-  } else if (campaign.status === 'Bị từ chối') {
-    statusBadge = <Badge status="error" text="Bị từ chối" />;
-  } else {
-    statusBadge = <Badge status="warning" text="Chờ duyệt" />;
-  }
-
-  const categoryTag = (
-    <Tag color="blue" className="font-semibold">
-      {campaign.category}
-    </Tag>
-  );
-  const methodTag = (
-    <Tag color="green" className="font-semibold">
-      {campaign.method}
-    </Tag>
-  );
-
-  const commissionText =
-    campaign.commissionType === '%'
-      ? `${campaign.commissionValue}%`
-      : `${campaign.commissionValue?.toLocaleString()} VND`;
-
-  const confirmUpdateStatus = (action: 'approve' | 'reject') => {
-    confirm({
-      title: action === 'approve' ? 'Duyệt chiến dịch?' : 'Từ chối chiến dịch?',
-      content:
-        action === 'approve'
-          ? `Bạn có chắc muốn duyệt chiến dịch: "${campaign.name}"?`
-          : `Bạn có chắc muốn từ chối chiến dịch: "${campaign.name}"?`,
-      okText: 'Xác nhận',
-      cancelText: 'Hủy',
-      onOk() {
-        const newStatus = action === 'approve' ? 'Approved' : 'Canceled';
-        updateCampaignStatus(
-          { id: campaign.id, status: newStatus },
-          {
-            onSuccess: () => {
-              message.success(
-                action === 'approve'
-                  ? `Đã duyệt chiến dịch: ${campaign.name}`
-                  : `Đã từ chối chiến dịch: ${campaign.name}`
-              );
-              setTimeout(() => {
-                navigate('/admin/campaignrequest');
-              }, 1000);
-            },
-            onError: () => {
-              message.error('Cập nhật trạng thái thất bại!');
-            }
-          }
-        );
-      }
+  const formatDate = (dateString: string | Date) => {
+    return new Date(dateString).toLocaleDateString('vi-VN', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric'
     });
   };
 
-  const handleApprove = () => {
-    confirmUpdateStatus('approve');
-  };
-  const handleReject = () => {
-    confirmUpdateStatus('reject');
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case 'Pending':
+        return { backgroundColor: '#fef3c7', color: '#92400e' };
+      default:
+        return { backgroundColor: '#f3f4f6', color: '#374151' };
+    }
   };
 
-  return (
-    <BasePages pageHead="ClickFlow - Chi tiết chiến dịch (chưa chạy)">
-      <Layout
-        className="min-h-screen"
-        style={{ background: 'linear-gradient(to bottom, #f8fafc, #fff)' }}
+  if (isLoading) {
+    return (
+      <Modal
+        title="Chi tiết chiến dịch"
+        open={visible}
+        onCancel={onClose}
+        footer={null}
+        width={800}
+        centered
       >
-        <Content className="p-6">
-          <div className="mx-auto max-w-7xl">
-            <div className="mb-6 flex items-center justify-between">
-              <Title level={2} className="mb-0">
-                Chi tiết chiến dịch (chưa chạy)
-              </Title>
-              <div className="space-x-3">
-                <Button
-                  type="primary"
-                  onClick={handleApprove}
-                  className="border-none bg-green-600 hover:bg-green-700"
-                >
-                  Duyệt
-                </Button>
-                <Button
-                  danger
-                  onClick={handleReject}
-                  className="hover:bg-red-600"
-                >
-                  Từ chối
-                </Button>
+        <div className="flex items-center justify-center py-12">
+          <Loading />
+        </div>
+      </Modal>
+    );
+  }
+
+  if (error || !campaign) {
+    return (
+      <Modal
+        title="Chi tiết chiến dịch"
+        open={visible}
+        onCancel={onClose}
+        footer={null}
+        width={800}
+        centered
+      >
+        <div className="py-8 text-center" style={{ color: '#dc2626' }}>
+          <p className="font-medium">Không thể tải chi tiết chiến dịch!</p>
+          <p className="mt-1 text-sm">Vui lòng thử lại sau.</p>
+        </div>
+      </Modal>
+    );
+  }
+
+  return (
+    <Modal
+      title={
+        <div className="flex items-center gap-3">
+          <div
+            className="rounded-full p-2"
+            style={{ backgroundColor: '#f3f4f6' }}
+          >
+            <Target className="h-5 w-5" style={{ color: '#6b7280' }} />
+          </div>
+          <span style={{ color: '#111827' }}>Chi tiết chiến dịch</span>
+        </div>
+      }
+      open={visible}
+      onCancel={onClose}
+      footer={null}
+      width={900}
+      centered
+      styles={{
+        body: { maxHeight: '70vh', overflowY: 'auto' }
+      }}
+    >
+      <div className="py-4">
+        {/* Campaign Header */}
+        <div className="mb-6 flex items-start justify-between">
+          <div className="flex-1">
+            <h2 className="mb-3 text-xl font-bold" style={{ color: '#111827' }}>
+              {campaign.name}
+            </h2>
+
+            <div className="mb-4 flex items-center gap-4">
+              <span
+                className="rounded-full px-3 py-1 text-sm font-medium"
+                style={getStatusColor(campaign.status)}
+              >
+                Chờ duyệt
+              </span>
+
+              {campaign.averageStarRate && (
+                <div className="flex items-center gap-1">
+                  <Star
+                    className="h-4 w-4"
+                    style={{ color: '#f59e0b' }}
+                    fill="currentColor"
+                  />
+                  <span
+                    className="text-sm font-medium"
+                    style={{ color: '#111827' }}
+                  >
+                    {campaign.averageStarRate.toFixed(1)}
+                  </span>
+                </div>
+              )}
+
+              <div
+                className="flex items-center gap-1 text-sm"
+                style={{ color: '#6b7280' }}
+              >
+                <Calendar className="h-4 w-4" />
+                <span>ID: #{campaign.id}</span>
               </div>
             </div>
 
-            <Row gutter={[24, 24]} style={{ alignItems: 'stretch' }}>
-              <Col xs={24} md={8} style={{ display: 'flex' }}>
-                <div className="relative flex flex-1 flex-col overflow-hidden rounded-lg bg-white shadow">
-                  <div
-                    className="absolute left-0 right-0 top-0 h-16"
-                    style={{
-                      background:
-                        'linear-gradient(120deg, #06b6d4, #3b82f6, #9333ea)'
-                    }}
+            {/* Campaign Duration */}
+            <div
+              className="rounded-lg border p-4"
+              style={{
+                backgroundColor: '#f9fafb',
+                borderColor: '#e5e7eb'
+              }}
+            >
+              <div className="mb-2 flex items-center gap-2">
+                <Calendar className="h-4 w-4" style={{ color: '#6b7280' }} />
+                <span
+                  className="text-sm font-medium"
+                  style={{ color: '#374151' }}
+                >
+                  Thời gian chiến dịch
+                </span>
+              </div>
+              <div className="text-sm" style={{ color: '#111827' }}>
+                <span className="font-medium">
+                  {formatDate(campaign.startDate)}
+                </span>
+                <span className="mx-2" style={{ color: '#9ca3af' }}>
+                  →
+                </span>
+                <span className="font-medium">
+                  {formatDate(campaign.endDate)}
+                </span>
+              </div>
+              <div className="mt-1 text-xs" style={{ color: '#6b7280' }}>
+                {(() => {
+                  const start = new Date(campaign.startDate);
+                  const end = new Date(campaign.endDate);
+                  const days = Math.ceil(
+                    (end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24)
+                  );
+                  return `Thời gian diễn ra: ${days} ngày`;
+                })()}
+              </div>
+            </div>
+          </div>
+
+          {campaign.image && (
+            <div className="ml-6 flex-shrink-0">
+              <img
+                src={campaign.image}
+                alt={campaign.name}
+                className="h-24 w-24 rounded-lg border object-cover shadow-sm"
+                style={{ borderColor: '#e5e7eb' }}
+              />
+            </div>
+          )}
+        </div>
+
+        <Divider style={{ margin: '20px 0', borderColor: '#e5e7eb' }} />
+
+        {/* Campaign Description */}
+        <div className="mb-6">
+          <h3
+            className="mb-3 text-base font-semibold"
+            style={{ color: '#111827' }}
+          >
+            Mô tả chiến dịch
+          </h3>
+          <div
+            className="rounded-lg border p-4"
+            style={{
+              backgroundColor: '#ffffff',
+              borderColor: '#e5e7eb',
+              color: '#374151'
+            }}
+          >
+            {campaign.description}
+          </div>
+        </div>
+
+        {/* Main Information Grid */}
+        <div className="mb-6 grid gap-6 md:grid-cols-2">
+          {/* Budget & Commission */}
+          <div
+            className="rounded-lg border p-5"
+            style={{
+              backgroundColor: '#ffffff',
+              borderColor: '#e5e7eb'
+            }}
+          >
+            <div className="mb-4 flex items-center gap-3">
+              <DollarSign className="h-5 w-5" style={{ color: '#6b7280' }} />
+              <h4 className="font-semibold" style={{ color: '#111827' }}>
+                Ngân sách & Hoa hồng
+              </h4>
+            </div>
+
+            <div className="space-y-4">
+              <div>
+                <div className="mb-1 flex items-center justify-between">
+                  <span className="text-sm" style={{ color: '#6b7280' }}>
+                    Tổng ngân sách
+                  </span>
+                  <span
+                    className="text-lg font-bold"
+                    style={{ color: '#059669' }}
+                  >
+                    {formatCurrency(campaign.budget)}
+                  </span>
+                </div>
+              </div>
+
+              <Divider style={{ margin: '12px 0', borderColor: '#f3f4f6' }} />
+
+              <div className="space-y-2">
+                {campaign.commission && (
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm" style={{ color: '#6b7280' }}>
+                      Hoa hồng{' '}
+                    </span>
+                    <span
+                      className="font-semibold"
+                      style={{ color: '#111827' }}
+                    >
+                      {formatCurrency(campaign.commission)}
+                    </span>
+                  </div>
+                )}
+                {campaign.percents && (
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm" style={{ color: '#6b7280' }}>
+                      Phần trăm hoa hồng
+                    </span>
+                    <span
+                      className="font-semibold"
+                      style={{ color: '#111827' }}
+                    >
+                      {campaign.percents}%
+                    </span>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+
+          {/* Campaign & Advertiser Info */}
+          <div
+            className="rounded-lg border p-5"
+            style={{
+              backgroundColor: '#ffffff',
+              borderColor: '#e5e7eb'
+            }}
+          >
+            <div className="mb-4 flex items-center gap-3">
+              <Building2 className="h-5 w-5" style={{ color: '#6b7280' }} />
+              <h4 className="font-semibold" style={{ color: '#111827' }}>
+                Thông tin chiến dịch
+              </h4>
+            </div>
+
+            <div className="space-y-4">
+              <div>
+                <div className="mb-2 flex items-center justify-between">
+                  <span className="text-sm" style={{ color: '#6b7280' }}>
+                    Loại thanh toán
+                  </span>
+                  <span className="font-medium" style={{ color: '#111827' }}>
+                    {campaign.typePay}
+                  </span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-sm" style={{ color: '#6b7280' }}>
+                    Loại chiến dịch
+                  </span>
+                  <span className="font-medium" style={{ color: '#111827' }}>
+                    {campaign.typeCampaign}
+                  </span>
+                </div>
+              </div>
+
+              {campaign.advertiser && (
+                <>
+                  <Divider
+                    style={{ margin: '12px 0', borderColor: '#f3f4f6' }}
                   />
-                  <div className="relative flex flex-1 flex-col p-5 pt-20">
-                    <div className="mb-4 flex justify-center">
-                      <img
-                        src={campaign.imageUrl ?? ''}
-                        alt={campaign.name}
-                        className="h-40 w-40 rounded-md object-cover shadow-md"
-                      />
+                  <div>
+                    <div className="mb-3 flex items-center gap-2">
+                      <User className="h-4 w-4" style={{ color: '#6b7280' }} />
+                      <span
+                        className="text-sm font-medium"
+                        style={{ color: '#374151' }}
+                      >
+                        Nhà quảng cáo
+                      </span>
                     </div>
-                    <Title level={4} className="mb-1">
-                      {campaign.name}
-                    </Title>
-                    <Paragraph type="secondary" className="mb-2">
-                      Nhà quảng cáo: {campaign.advertiserName}
-                    </Paragraph>
-                    <div className="flex flex-col gap-1 text-gray-700">
-                      <Text>{statusBadge}</Text>
-                      <Paragraph className="my-3 max-w-sm">
-                        {campaign.description}
-                      </Paragraph>
-                      <div className="flex gap-1">
-                        <Text>{categoryTag}</Text>
-                        <Text>{methodTag}</Text>
+                    <div className="space-y-2">
+                      <div>
+                        <p
+                          className="font-semibold"
+                          style={{ color: '#111827' }}
+                        >
+                          {campaign.advertiser.companyName}
+                        </p>
+                        <p className="text-sm" style={{ color: '#6b7280' }}>
+                          {campaign.advertiser.staffSize} nhân viên •{' '}
+                          {campaign.advertiser.industry}
+                        </p>
                       </div>
+                      {campaign.advertiser.introductionWebsite && (
+                        <a
+                          href={campaign.advertiser.introductionWebsite}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-sm hover:underline"
+                          style={{ color: '#2563eb' }}
+                        >
+                          {campaign.advertiser.introductionWebsite}
+                        </a>
+                      )}
                     </div>
                   </div>
-                </div>
-              </Col>
-
-              <Col xs={24} md={16} style={{ display: 'flex' }}>
-                <Card className="flex-1 shadow-md">
-                  <Title level={4} className="mb-4">
-                    Thông tin chi tiết
-                  </Title>
-                  <Descriptions
-                    bordered
-                    column={1}
-                    labelStyle={{ width: '200px', fontWeight: 'bold' }}
-                  >
-                    <Descriptions.Item label="Mã chiến dịch">
-                      {campaign.id}
-                    </Descriptions.Item>
-                    <Descriptions.Item label="ID Nhà quảng cáo">
-                      {campaign.advertiserId}
-                    </Descriptions.Item>
-                    <Descriptions.Item label="Hoa hồng">
-                      {commissionText}
-                    </Descriptions.Item>
-                    <Descriptions.Item label="Ngân sách (Budget)">
-                      {campaign.budget.toLocaleString()} VND
-                    </Descriptions.Item>
-                    <Descriptions.Item label="Ngày bắt đầu">
-                      {campaign.startDate}
-                    </Descriptions.Item>
-                    <Descriptions.Item label="Ngày kết thúc">
-                      {campaign.endDate}
-                    </Descriptions.Item>
-                    <Descriptions.Item label="Origin URL">
-                      <a
-                        href={campaign.originUrl}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-blue-600 break-all hover:underline"
-                      >
-                        {campaign.originUrl}
-                      </a>
-                    </Descriptions.Item>
-                  </Descriptions>
-                </Card>
-              </Col>
-            </Row>
+                </>
+              )}
+            </div>
           </div>
-        </Content>
-      </Layout>
-    </BasePages>
+        </div>
+
+        {/* Origin URL */}
+        {campaign.originURL && (
+          <div
+            className="rounded-lg border p-4"
+            style={{
+              backgroundColor: '#f9fafb',
+              borderColor: '#e5e7eb'
+            }}
+          >
+            <div className="mb-2 flex items-center gap-2">
+              <Globe className="h-4 w-4" style={{ color: '#6b7280' }} />
+              <span
+                className="text-sm font-medium"
+                style={{ color: '#374151' }}
+              >
+                Liên kết gốc
+              </span>
+            </div>
+            <a
+              href={campaign.originURL}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="break-all text-sm hover:underline"
+              style={{ color: '#2563eb' }}
+            >
+              {campaign.originURL}
+            </a>
+          </div>
+        )}
+      </div>
+    </Modal>
   );
 };
 

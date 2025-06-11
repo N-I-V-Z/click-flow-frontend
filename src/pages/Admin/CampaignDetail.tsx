@@ -1,266 +1,373 @@
-import React, { useEffect, useState } from 'react';
-import { useParams } from 'react-router-dom';
+import React from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
 import {
-  Layout,
-  Row,
-  Col,
-  Card,
-  Typography,
-  Descriptions,
-  Badge,
-  Tag
-} from 'antd';
-import CampaignAnalytics from './CampaignAnalytics';
-import 'antd/dist/reset.css';
-import TrafficTable from './TrafficTable';
+  ArrowLeft,
+  Calendar,
+  Target,
+  DollarSign,
+  Globe,
+  Star
+} from 'lucide-react';
+import { useGetCampaignDetail } from '@/queries/campaign.query';
+import Loading from '@/components/ui/loading';
 import BasePages from '@/components/shared/base-pages';
-
-const { Content } = Layout;
-const { Title, Paragraph, Text } = Typography;
-
-interface Campaign {
-  id: number;
-  name: string;
-  advertiserId: number;
-  advertiserName: string;
-  description: string;
-  originUrl: string;
-  budget: number;
-  startDate: string;
-  endDate: string;
-  method: string; // CPC, CPA, CPS
-  status: string; // Bị từ chối / Hoạt động
-  category: string; // Thực phẩm&Đồ uống, Du lịch& Nghỉ dưỡng, khác
-  commissionType: string; // "VND" hoặc "%"
-  commissionValue: number; // Số tiền hoa hồng hoặc %
-  imageUrl: string; // Ảnh giả lập
-}
-
-// Dữ liệu giả lập
-const initialCampaigns: Campaign[] = [
-  {
-    id: 1,
-    name: 'Mùa Hè Xanh',
-    advertiserId: 101,
-    advertiserName: 'FPT',
-    description:
-      'Chiến dịch quảng bá sản phẩm mùa hè xanh tươi mát, khuyến mãi cực lớn cho khách hàng mùa hè.',
-    originUrl: 'https://example.com/mua-he-xanh',
-    budget: 50000000,
-    startDate: '10/10/2024',
-    endDate: '10/12/2024',
-    method: 'CPC',
-    status: 'Hoạt động',
-    category: 'Thực phẩm & Đồ uống',
-    commissionType: 'VND',
-    commissionValue: 30000,
-    // Ảnh demo
-    imageUrl:
-      'https://scontent.fsgn2-10.fna.fbcdn.net/v/t1.6435-9/102261488_3013160935447101_2486117098089648848_n.jpg?_nc_cat=109&ccb=1-7&_nc_sid=833d8c&_nc_eui2=AeFL06L37otu4aihgigVt_Vzbd0evSjrMeNt3R69KOsx45lz77Dr1YnFjPPFgY4HyY3HCMgr6puvYhwYiVwo233f&_nc_ohc=r6XQ265M_D8Q7kNvgH_Lp_y&_nc_oc=AdgGjcdzyQWyMcQE5FJM0l6-0kEUPGZ27qmC1yMhfugdpEytiieZeZZ5M_1DuRRSE8s&_nc_zt=23&_nc_ht=scontent.fsgn2-10.fna&_nc_gid=ANHmj0Jal0w23mnx-O69mb1&oh=00_AYH1HgcgHJbObIqrtwBiFVMH1BZkV4IwsFopEYyZdosP6w&oe=67F730AE'
-  },
-  {
-    id: 2,
-    name: 'Xuân Hy Vọng',
-    advertiserId: 202,
-    advertiserName: 'Viettel',
-    description:
-      'Khuyến mãi mùa xuân với nhiều ưu đãi hấp dẫn, hoàn tiền data và giảm giá gói cước.',
-    originUrl: 'https://example.com/xuan-hy-vong',
-    budget: 80000000,
-    startDate: '01/01/2024',
-    endDate: '30/03/2024',
-    method: 'CPA',
-    status: 'Hoạt động',
-    category: 'Du lịch & Nghỉ dưỡng',
-    commissionType: '%',
-    commissionValue: 10,
-    imageUrl:
-      'https://scontent.fsgn2-10.fna.fbcdn.net/v/t1.6435-9/102261488_3013160935447101_2486117098089648848_n.jpg?_nc_cat=109&ccb=1-7&_nc_sid=833d8c&_nc_eui2=AeFL06L37otu4aihgigVt_Vzbd0evSjrMeNt3R69KOsx45lz77Dr1YnFjPPFgY4HyY3HCMgr6puvYhwYiVwo233f&_nc_ohc=r6XQ265M_D8Q7kNvgH_Lp_y&_nc_oc=AdgGjcdzyQWyMcQE5FJM0l6-0kEUPGZ27qmC1yMhfugdpEytiieZeZZ5M_1DuRRSE8s&_nc_zt=23&_nc_ht=scontent.fsgn2-10.fna&_nc_gid=ANHmj0Jal0w23mnx-O69mb1&oh=00_AYH1HgcgHJbObIqrtwBiFVMH1BZkV4IwsFopEYyZdosP6w&oe=67F730AE'
-  },
-  {
-    id: 3,
-    name: 'Thu Vàng',
-    advertiserId: 303,
-    advertiserName: 'VinID',
-    description:
-      'Chiến dịch ưu đãi nạp tiền điện thoại, tích điểm đổi quà, mua sắm siêu thị tiện lợi.',
-    originUrl: 'https://example.com/thu-vang',
-    budget: 20000000,
-    startDate: '15/08/2024',
-    endDate: '15/10/2024',
-    method: 'CPS',
-    status: 'Bị từ chối',
-    category: 'khác',
-    commissionType: '%',
-    commissionValue: 5,
-    imageUrl:
-      'https://scontent.fsgn2-10.fna.fbcdn.net/v/t1.6435-9/102261488_3013160935447101_2486117098089648848_n.jpg?_nc_cat=109&ccb=1-7&_nc_sid=833d8c&_nc_eui2=AeFL06L37otu4aihgigVt_Vzbd0evSjrMeNt3R69KOsx45lz77Dr1YnFjPPFgY4HyY3HCMgr6puvYhwYiVwo233f&_nc_ohc=r6XQ265M_D8Q7kNvgH_Lp_y&_nc_oc=AdgGjcdzyQWyMcQE5FJM0l6-0kEUPGZ27qmC1yMhfugdpEytiieZeZZ5M_1DuRRSE8s&_nc_zt=23&_nc_ht=scontent.fsgn2-10.fna&_nc_gid=ANHmj0Jal0w23mnx-O69mb1&oh=00_AYH1HgcgHJbObIqrtwBiFVMH1BZkV4IwsFopEYyZdosP6w&oe=67F730AE'
-  }
-];
+import PublisherListCampaign from './PublisherListCampaign';
+import { ApiResponse, CampaignApiResponse } from '@/types';
 
 const CampaignDetail: React.FC = () => {
-  const { id } = useParams();
-  const [campaign, setCampaign] = useState<Campaign | null>(null);
+  const { id } = useParams<{ id: string }>();
+  const navigate = useNavigate();
+  const campaignId = id ? parseInt(id) : undefined;
 
-  useEffect(() => {
-    if (id) {
-      const found = initialCampaigns.find(
-        (item) => item.id === parseInt(id, 10)
-      );
-      if (found) {
-        setCampaign(found);
-      }
+  const { data, isLoading, error } = useGetCampaignDetail(campaignId);
+
+  const campaign = (data as ApiResponse<CampaignApiResponse>)?.result;
+
+  const handleBack = () => {
+    navigate('/admin/campaignlist?page=1&limit=10');
+  };
+
+  const formatCurrency = (amount: number | null) => {
+    if (!amount) return '0 VND';
+    return new Intl.NumberFormat('vi-VN', {
+      style: 'currency',
+      currency: 'VND'
+    }).format(amount);
+  };
+
+  const formatDate = (dateString: string | Date) => {
+    return new Date(dateString).toLocaleDateString('vi-VN', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric'
+    });
+  };
+
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case 'Hoạt động':
+      case 'Activing':
+        return 'bg-green-100 text-green-800 border-green-200';
+      case 'Chờ duyệt':
+      case 'Pending':
+        return 'bg-yellow-100 text-yellow-800 border-yellow-200';
+      case 'Bị từ chối':
+      case 'Rejected':
+        return 'bg-red-100 text-red-800 border-red-200';
+      default:
+        return 'bg-gray-100 text-gray-800 border-gray-200';
     }
-  }, [id]);
+  };
 
-  if (!campaign) {
+  if (isLoading) {
     return (
-      <Layout className="min-h-screen bg-gray-50">
-        <Content className="p-6">
-          <Card>
-            <Title level={4}>Không tìm thấy chiến dịch!</Title>
-          </Card>
-        </Content>
-      </Layout>
+      <BasePages pageHead="ClickFlow - Chi tiết chiến dịch">
+        <Loading />
+      </BasePages>
     );
   }
 
-  // Badge trạng thái
-  const statusBadge =
-    campaign.status === 'Hoạt động' ? (
-      <Badge status="success" text="Hoạt động" />
-    ) : (
-      <Badge status="error" text="Bị từ chối" />
+  if (error || !campaign) {
+    return (
+      <BasePages pageHead="ClickFlow - Chi tiết chiến dịch">
+        <div className="p-6">
+          <div className="text-red-600 text-center">
+            Đã có lỗi xảy ra khi tải chi tiết chiến dịch!
+          </div>
+        </div>
+      </BasePages>
     );
-
-  // Tag cho category
-  const categoryTag = (
-    <Tag color="blue" className="font-semibold">
-      {campaign.category}
-    </Tag>
-  );
-  const methodTag = (
-    <Tag color="green" className="font-semibold">
-      {campaign.method}
-    </Tag>
-  );
-
-  // Commission hiển thị
-  const commissionText =
-    campaign.commissionType === '%'
-      ? `${campaign.commissionValue}%`
-      : `${campaign.commissionValue.toLocaleString()} VND`;
+  }
 
   return (
-    <BasePages pageHead="ClickFlow - Chi tiết chiến dịch ">
-      <Layout
-        className="min-h-screen"
-        style={{ background: 'linear-gradient(to bottom, #f8fafc, #fff)' }}
-      >
-        <Content className="p-6">
-          <div className="mx-auto max-w-7xl">
-            {/* Tiêu đề trang */}
-            <Title level={2} className="mb-6">
+    <BasePages pageHead="ClickFlow - Chi tiết chiến dịch">
+      <style>{`
+        @keyframes bounce-gentle {
+          0%, 100% { transform: translateY(0); }
+          50% { transform: translateY(-3px); }
+        }
+        @keyframes spin-slow {
+          from { transform: rotate(0deg); }
+          to { transform: rotate(360deg); }
+        }
+        @keyframes pulse-soft {
+          0%, 100% { opacity: 1; }
+          50% { opacity: 0.7; }
+        }
+        @keyframes slide-up {
+          from { transform: translateY(10px); opacity: 0; }
+          to { transform: translateY(0); opacity: 1; }
+        }
+        .animate-bounce-gentle { animation: bounce-gentle 2s infinite; }
+        .animate-spin-slow { animation: spin-slow 3s linear infinite; }
+        .animate-pulse-soft { animation: pulse-soft 2s infinite; }
+        .animate-slide-up { animation: slide-up 0.5s ease-out; }
+      `}</style>
+      <div className="to-blue-50 animate-slide-up min-h-screen bg-gradient-to-br from-gray-50 p-6">
+        <div className="mx-auto max-w-7xl">
+          {/* Header */}
+          <div className="mb-6 flex items-center justify-between">
+            <button
+              onClick={handleBack}
+              className="hover:bg-blue-50 hover:text-blue-600 flex transform items-center gap-2 rounded-lg bg-white px-4 py-2 text-gray-600 shadow-sm transition-all duration-200 hover:-translate-x-1 hover:shadow-md"
+            >
+              <ArrowLeft
+                size={20}
+                className="transition-transform duration-200 group-hover:-translate-x-1"
+              />
+              Quay lại
+            </button>
+            <h1 className="hover:text-blue-600 text-2xl font-bold text-gray-900 transition-colors duration-200">
               Chi tiết chiến dịch
-            </Title>
+            </h1>
+          </div>
 
-            {/* Dùng alignItems: 'stretch' để 2 cột cân chiều cao */}
-            <Row gutter={[24, 24]} style={{ alignItems: 'stretch' }}>
-              {/* Cột trái: flex container để card full height */}
-              <Col xs={24} md={8} style={{ display: 'flex' }}>
-                <div className="relative flex flex-1 flex-col overflow-hidden rounded-lg bg-white shadow">
-                  {/* Gradient header (chiều cao nhỏ hơn) */}
-                  <div
-                    className="absolute left-0 right-0 top-0 h-16"
-                    style={{
-                      background:
-                        'linear-gradient(120deg,rgb(6, 6, 212),rgb(166, 40, 201),rgb(174, 102, 241))'
-                    }}
-                  />
-                  {/* Nội dung card: p-5, pt-20 để đẩy xuống dưới gradient */}
-                  <div className="relative flex flex-1 flex-col p-5 pt-20 ">
-                    {/* Ảnh nằm giữa, bo góc, bóng đổ */}
-                    <div className=" flex flex-col items-center justify-center">
-                      <img
-                        src={campaign.imageUrl}
-                        alt={campaign.name}
-                        className="mb-4 h-40 w-40 rounded-md object-cover shadow-md "
-                      />
+          <div className="grid gap-6 lg:grid-cols-3">
+            {/* Main Content */}
+            <div className="space-y-6 lg:col-span-2">
+              {/* Campaign Info Card */}
+              <div className="transform rounded-xl bg-white p-6 shadow-lg transition-all duration-300 hover:-translate-y-1 hover:shadow-xl">
+                <div className="mb-4 flex items-start justify-between">
+                  <div className="flex-1">
+                    <h2 className="hover:text-blue-600 mb-2 text-2xl font-bold text-gray-900 transition-colors duration-200">
+                      {campaign.name}
+                    </h2>
+                    <div className="mb-3 flex items-center gap-3">
+                      <span
+                        className={`rounded-full border px-3 py-1 text-sm font-medium transition-all duration-200 hover:scale-105 ${getStatusColor(campaign.status)}`}
+                      >
+                        {campaign.status}
+                      </span>
+                      {campaign.averageStarRate && (
+                        <div className="bg-yellow-50 hover:bg-yellow-100 flex items-center gap-1 rounded-full px-2 py-1 transition-colors duration-200">
+                          <Star className="text-yellow-400 animate-pulse-soft h-4 w-4 fill-current" />
+                          <span className="text-sm font-medium">
+                            {campaign.averageStarRate.toFixed(1)}
+                          </span>
+                        </div>
+                      )}
                     </div>
-
-                    <Title level={4}>
-                      <h3>{campaign.name}</h3>
-                    </Title>
-                    <Paragraph type="secondary" className="mb-3">
-                      Nhà quảng cáo: {campaign.advertiserName}
-                    </Paragraph>
-
-                    {/* Một vài thông tin tóm tắt, KHÔNG label */}
-                    <div className="flex flex-col gap-1 text-gray-700">
-                      <Text>{statusBadge}</Text>
-                      {/* Mô tả ngắn (nếu cần) */}
-                      <Paragraph className="my-3 max-w-sm">
-                        {campaign.description}
-                      </Paragraph>
-                      <div className="flex gap-1">
-                        <Text>{categoryTag}</Text>
-                        <Text>{methodTag}</Text>
+                    {/* Thêm thời gian chiến dịch */}
+                    <div className="bg-blue-50 border-blue-400 hover:bg-blue-100 rounded-lg border-l-4 p-3 transition-colors duration-200">
+                      <div className="text-blue-700 flex items-center gap-2 text-sm">
+                        <Calendar className="h-4 w-4" />
+                        <span className="font-medium">Thời gian:</span>
+                      </div>
+                      <div className="text-blue-600 mt-1 text-sm">
+                        <span className="font-medium">
+                          {formatDate(campaign.startDate)}
+                        </span>
+                        <span className="text-blue-400 mx-2">→</span>
+                        <span className="font-medium">
+                          {formatDate(campaign.endDate)}
+                        </span>
+                      </div>
+                      <div className="text-blue-500 mt-1 text-xs">
+                        {(() => {
+                          const start = new Date(campaign.startDate);
+                          const end = new Date(campaign.endDate);
+                          const days = Math.ceil(
+                            (end.getTime() - start.getTime()) /
+                              (1000 * 60 * 60 * 24)
+                          );
+                          return `Thời gian diễn ra: ${days} ngày`;
+                        })()}
                       </div>
                     </div>
                   </div>
+                  {campaign.image && (
+                    <div className="ml-4 flex-shrink-0">
+                      <img
+                        src={campaign.image}
+                        alt={campaign.name}
+                        className="h-20 w-20 transform rounded-lg object-cover shadow-md transition-all duration-300 hover:rotate-2 hover:scale-110 hover:shadow-lg"
+                      />
+                    </div>
+                  )}
                 </div>
-              </Col>
 
-              {/* Cột phải: cũng stretch */}
-              <Col xs={24} md={16} style={{ display: 'flex' }}>
-                <Card className="flex-1 shadow-md">
-                  <Title level={4} className="mb-4">
-                    Thông tin chi tiết
-                  </Title>
-                  <Descriptions
-                    bordered
-                    column={1}
-                    labelStyle={{ width: '200px', fontWeight: 'bold' }}
-                  >
-                    <Descriptions.Item label="Mã chiến dịch">
-                      {campaign.id}
-                    </Descriptions.Item>
-                    <Descriptions.Item label="ID Nhà quảng cáo">
-                      {campaign.advertiserId}
-                    </Descriptions.Item>
-                    <Descriptions.Item label="Hoa hồng">
-                      {commissionText}
-                    </Descriptions.Item>
-                    <Descriptions.Item label="Ngân sách (Budget)">
-                      {campaign.budget.toLocaleString()} VND
-                    </Descriptions.Item>
-                    <Descriptions.Item label="Ngày bắt đầu">
-                      {campaign.startDate}
-                    </Descriptions.Item>
-                    <Descriptions.Item label="Ngày kết thúc">
-                      {campaign.endDate}
-                    </Descriptions.Item>
-                    <Descriptions.Item label="Origin URL">
+                <div className="space-y-4">
+                  <div className="group">
+                    <h3 className="group-hover:text-blue-600 mb-2 text-lg font-semibold text-gray-900 transition-colors duration-200">
+                      Mô tả
+                    </h3>
+                    <p className="rounded-lg bg-gray-50 p-4 leading-relaxed text-gray-700 transition-colors duration-200 hover:bg-gray-100">
+                      {campaign.description}
+                    </p>
+                  </div>
+
+                  <div className="group">
+                    <h3 className="group-hover:text-blue-600 mb-2 text-lg font-semibold text-gray-900 transition-colors duration-200">
+                      Liên kết gốc
+                    </h3>
+                    <a
+                      href={campaign.originURL}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-blue-600 hover:text-blue-800 bg-blue-50 hover:bg-blue-100 inline-flex transform items-center gap-2 rounded-lg px-3 py-2 transition-all duration-200 hover:scale-105"
+                    >
+                      <Globe size={16} className="animate-spin-slow" />
+                      {campaign.originURL}
+                    </a>
+                  </div>
+                </div>
+              </div>
+
+              {/* Campaign Details */}
+              <div className="grid gap-4 md:grid-cols-2">
+                <div className="border-blue-400 transform rounded-xl border-l-4 bg-white p-6 shadow-lg transition-all duration-300 hover:-translate-y-1 hover:shadow-xl">
+                  <div className="mb-4 flex items-center gap-3">
+                    <div className="bg-blue-100 hover:bg-blue-200 rounded-full p-2 transition-colors duration-200">
+                      <DollarSign className="text-blue-600 animate-bounce-gentle h-5 w-5" />
+                    </div>
+                    <h3 className="hover:text-blue-600 text-lg font-semibold text-gray-900 transition-colors duration-200">
+                      Ngân sách
+                    </h3>
+                  </div>
+                  <div className="space-y-3">
+                    <div className="bg-blue-50 hover:bg-blue-100 rounded-lg p-3 transition-colors duration-200">
+                      <p className="text-blue-600 text-sm">Tổng ngân sách</p>
+                      <p className="text-blue-900 text-xl font-bold transition-transform duration-200 hover:scale-105">
+                        {formatCurrency(campaign.budget)}
+                      </p>
+                    </div>
+                    <div className="rounded-lg bg-green-50 p-3 transition-colors duration-200 hover:bg-green-100">
+                      <p className="text-sm text-green-600">
+                        Ngân sách còn lại
+                      </p>
+                      <p className="text-lg font-semibold text-green-700 transition-transform duration-200 hover:scale-105">
+                        {formatCurrency(campaign.remainingBudget)}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="transform rounded-xl border-l-4 border-green-400 bg-white p-6 shadow-lg transition-all duration-300 hover:-translate-y-1 hover:shadow-xl">
+                  <div className="mb-4 flex items-center gap-3">
+                    <div className="rounded-full bg-green-100 p-2 transition-colors duration-200 hover:bg-green-200">
+                      <Target className="animate-pulse-soft h-5 w-5 text-green-600" />
+                    </div>
+                    <h3 className="text-lg font-semibold text-gray-900 transition-colors duration-200 hover:text-green-600">
+                      Hoa hồng
+                    </h3>
+                  </div>
+                  <div className="space-y-3">
+                    {campaign.commission && (
+                      <div className="bg-orange-50 hover:bg-orange-100 rounded-lg p-3 transition-colors duration-200">
+                        <p className="text-orange-600 text-sm">
+                          Hoa hồng cố định
+                        </p>
+                        <p className="text-orange-900 text-xl font-bold transition-transform duration-200 hover:scale-105">
+                          {formatCurrency(campaign.commission)}
+                        </p>
+                      </div>
+                    )}
+                    {campaign.percents && (
+                      <div className="rounded-lg bg-purple-50 p-3 transition-colors duration-200 hover:bg-purple-100">
+                        <p className="text-sm text-purple-600">
+                          Phần trăm hoa hồng
+                        </p>
+                        <p className="text-lg font-semibold text-purple-700 transition-transform duration-200 hover:scale-105">
+                          {campaign.percents}%
+                        </p>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Sidebar */}
+            <div className="space-y-6">
+              {/* Campaign Types */}
+              <div className="transform rounded-xl border-l-4 border-purple-400 bg-white p-6 shadow-lg transition-all duration-300 hover:-translate-y-1 hover:shadow-xl">
+                <h3 className="mb-4 text-lg font-semibold text-gray-900 transition-colors duration-200 hover:text-purple-600">
+                  Thông tin chiến dịch
+                </h3>
+                <div className="space-y-4">
+                  <div className="group rounded-lg bg-purple-50 p-3 transition-colors duration-200 hover:bg-purple-100">
+                    <p className="text-sm text-purple-600 group-hover:text-purple-700">
+                      Loại thanh toán
+                    </p>
+                    <p className="text-base font-medium text-purple-900 transition-transform duration-200 group-hover:scale-105">
+                      {campaign.typePay}
+                    </p>
+                  </div>
+                  <div className="group rounded-lg bg-indigo-50 p-3 transition-colors duration-200 hover:bg-indigo-100">
+                    <p className="text-sm text-indigo-600 group-hover:text-indigo-700">
+                      Loại chiến dịch
+                    </p>
+                    <p className="text-base font-medium text-indigo-900 transition-transform duration-200 group-hover:scale-105">
+                      {campaign.typeCampaign}
+                    </p>
+                  </div>
+                  <div className="group rounded-lg bg-pink-50 p-3 transition-colors duration-200 hover:bg-pink-100">
+                    <p className="text-sm text-pink-600 group-hover:text-pink-700">
+                      ID chiến dịch
+                    </p>
+                    <p className="font-mono text-base text-pink-900 transition-transform duration-200 hover:scale-105">
+                      #{campaign.id}
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Advertiser Info */}
+              {campaign.advertiser && (
+                <div className="border-orange-400 transform rounded-xl border-l-4 bg-white p-6 shadow-lg transition-all duration-300 hover:-translate-y-1 hover:shadow-xl">
+                  <h3 className="hover:text-orange-600 mb-4 text-lg font-semibold text-gray-900 transition-colors duration-200">
+                    Thông tin nhà quảng cáo
+                  </h3>
+                  <div className="space-y-4">
+                    <div className="bg-orange-50 hover:bg-orange-100 group rounded-lg p-3 transition-colors duration-200">
+                      <p className="text-orange-600 group-hover:text-orange-700 text-sm">
+                        Tên công ty
+                      </p>
+                      <p className="text-orange-900 text-base font-medium transition-transform duration-200 group-hover:scale-105">
+                        {campaign.advertiser.companyName}
+                      </p>
+                    </div>
+                    <div className="group rounded-lg bg-cyan-50 p-3 transition-colors duration-200 hover:bg-cyan-100">
+                      <p className="text-sm text-cyan-600 group-hover:text-cyan-700">
+                        Website
+                      </p>
                       <a
-                        href={campaign.originUrl}
+                        href={campaign.advertiser.introductionWebsite}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="text-blue-600 break-all hover:underline"
+                        className="inline-block text-cyan-700 transition-all duration-200 hover:text-cyan-900 hover:underline group-hover:scale-105"
                       >
-                        {campaign.originUrl}
+                        {campaign.advertiser.introductionWebsite}
                       </a>
-                    </Descriptions.Item>
-                  </Descriptions>
-                </Card>
-              </Col>
-            </Row>
+                    </div>
+                    <div className="group rounded-lg bg-teal-50 p-3 transition-colors duration-200 hover:bg-teal-100">
+                      <p className="text-sm text-teal-600 group-hover:text-teal-700">
+                        Quy mô nhân sự
+                      </p>
+                      <p className="text-base font-medium text-teal-900 transition-transform duration-200 group-hover:scale-105">
+                        {campaign.advertiser.staffSize} nhân viên
+                      </p>
+                    </div>
+                    <div className="group rounded-lg bg-emerald-50 p-3 transition-colors duration-200 hover:bg-emerald-100">
+                      <p className="text-sm text-emerald-600 group-hover:text-emerald-700">
+                        Ngành nghề
+                      </p>
+                      <span className="inline-block rounded-full bg-emerald-200 px-2 py-1 text-sm font-medium text-emerald-800 transition-transform duration-200 group-hover:scale-105">
+                        {campaign.advertiser.industry}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
           </div>
-        </Content>
-        <CampaignAnalytics />
-        <div className="mb-10">
-          <TrafficTable campaignId={campaign.id} />
+
+          {/* Publishers List Section - Full Width */}
+          <div className="mt-8">
+            <PublisherListCampaign campaignId={campaign.id} />
+          </div>
         </div>
-      </Layout>
+      </div>
     </BasePages>
   );
 };

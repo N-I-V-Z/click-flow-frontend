@@ -31,8 +31,8 @@ const MissionPage = () => {
   const [coinAnimation, setCoinAnimation] = useState(false);
   const [showNotification, setShowNotification] = useState(false);
   const [notificationMessage, setNotificationMessage] = useState('');
-  const [currentLevel, setCurrentLevel] = useState(2);
-  const [progressToNextLevel, setProgressToNextLevel] = useState(65);
+  const [currentLevel] = useState(2);
+  const [progressToNextLevel] = useState(65);
   const [showOnboardingTip, setShowOnboardingTip] = useState(false);
   const [isLeaderboardVisible, setIsLeaderboardVisible] = useState(false);
   const [completedMissions, setCompletedMissions] = useState([0, 1]);
@@ -245,7 +245,7 @@ const MissionPage = () => {
   return (
     <BasePages pageHead="ClickFlow - Nhiệm vụ">
       <div className="to-blue-100 min-h-screen bg-gradient-to-br from-indigo-100 via-purple-50 px-4 pb-12 pt-6">
-        <style jsx>{`
+        <style>{`
           @keyframes fall {
             0% {
               transform: translateY(-20px) rotate(0deg);
