@@ -1,6 +1,6 @@
 import axios, { AxiosRequestConfig, AxiosResponse } from 'axios';
 import helpers from '../helpers';
-import { ApiResponse } from '@/types';
+import { ApiResponse, LoginApiResponse } from '@/types';
 
 const baseURL = import.meta.env.VITE_API_URL;
 
@@ -67,8 +67,12 @@ const onResponseSuccess = <T>(
  * Hàm logout - xóa tokens và redirect về trang login
  */
 const logout = () => {
-  // helpers.cookie_delete('AT');
-  // window.location.href = '/login';
+  helpers.cookie_delete('AT');
+  helpers.cookie_delete('RT');
+  // Delay redirect để tránh race condition
+  setTimeout(() => {
+    window.location.href = '/login';
+  }, 100);
 };
 
 /**
@@ -103,51 +107,91 @@ const onResponseError = async (error: any) => {
     isRefreshing = true;
 
     try {
-      // Lấy access token hiện tại từ cookie
+      // Lấy cả access token và refresh token từ cookie
       const currentAccessToken = helpers.cookie_get('AT');
+      const currentRefreshToken = helpers.cookie_get('RT');
 
-      if (!currentAccessToken) {
-        console.error('No access token found');
+      if (!currentAccessToken || !currentRefreshToken) {
         processQueue(error, null);
         logout();
         return Promise.reject(error);
       }
 
-      // Gọi API renew token với access token hiện tại
-      const response = await axios.post(
+      // Gọi API renew token với body chứa token và refreshToken
+      const response = await axios.post<ApiResponse<LoginApiResponse>>(
         '/api/Accounts/renew-token',
-        {},
+        {
+          token: currentAccessToken,
+          refreshToken: currentRefreshToken
+        },
         {
           headers: {
-            Authorization: `Bearer ${currentAccessToken}`,
             'Content-Type': 'application/json'
-          }
+          },
+          baseURL: baseURL
         }
       );
-      console.log(response);
-
-      // Kiểm tra nếu response hợp lệ và có token mới
-      if (!response || !response.data || !response.data.accessToken) {
-        console.error('Failed to renew token, response invalid');
+      // Kiểm tra nếu response hợp lệ
+      if (!response || !response.data || response.status !== 200) {
         processQueue(error, null);
         logout();
         return Promise.reject(error);
       }
 
-      // Lấy token mới và lưu vào cookie
-      const newAccessToken = response.data.accessToken;
+      const responseData = response.data;
+
+      // Kiểm tra API response format chuẩn
+      if (!responseData.isSuccess || responseData.statusCode !== 'OK') {
+        processQueue(error, null);
+        logout();
+        return Promise.reject(error);
+      }
+
+      // Kiểm tra result object
+      const result = responseData.result;
+      if (!result) {
+        processQueue(error, null);
+        logout();
+        return Promise.reject(error);
+      }
+
+      // FIX: Lấy token từ đúng đường dẫn trong response structure
+      const newAccessToken = result.token;
+      const newRefreshToken = result.refreshToken;
+
+      if (!newAccessToken) {
+        processQueue(error, null);
+        logout();
+        return Promise.reject(error);
+      }
+
+      // Lưu tokens mới vào cookie
       helpers.cookie_set('AT', newAccessToken);
 
+      if (newRefreshToken) {
+        helpers.cookie_set('RT', newRefreshToken);
+      }
       // Xử lý queue với token mới
       processQueue(null, newAccessToken);
-
-      // Cập nhật header của request gốc và retry request
-      originalRequest.headers['Authorization'] = `Bearer ${newAccessToken}`;
-      return axios(originalRequest);
-    } catch (renewError) {
-      console.error('Error renewing token:', renewError);
-      processQueue(renewError, null);
-      logout();
+      // Wrap retry request trong try-catch để tránh loop
+      try {
+        const retryResponse = await axios(originalRequest);
+        return retryResponse;
+      } catch (retryError: any) {
+        // Không logout nếu original request fail, chỉ return error
+        return Promise.reject(retryError);
+      }
+    } catch (renewError: any) {
+      // Chỉ logout nếu là lỗi 401 hoặc 403 (unauthorized/forbidden)
+      if (
+        renewError?.response &&
+        [401, 403].includes(renewError.response.status)
+      ) {
+        processQueue(renewError, null);
+        logout();
+      } else {
+        processQueue(renewError, null);
+      }
       return Promise.reject(renewError);
     } finally {
       isRefreshing = false;
