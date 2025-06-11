@@ -5,7 +5,8 @@ import {
   CampaignParticipationApiResponse,
   PagingResponse,
   UploadImageResponse,
-  CreateCampaignPayload
+  CreateCampaignPayload,
+  PublisherInCampaignApiResponse
 } from '@/types';
 import { useMutation, useQuery } from '@tanstack/react-query';
 
@@ -152,7 +153,10 @@ export const useGetCampaignListExcpPending = (
       return await BaseRequest.Get<PagingResponse<CampaignApiResponse>>(
         `${SUB_URL}/get-campaigns-except-from-pending/${pageIndex}/${pageSize}`
       );
-    }
+    },
+    staleTime: 0, // Data sẽ được coi là stale ngay lập tức
+    refetchOnMount: true // Luôn refetch khi component mount
+    // Bỏ keepPreviousData vì không có trong React Query v5
   });
 };
 export const useGetAllCampaignForPublisher = (
@@ -307,6 +311,38 @@ export const useUpdateParticipationStatus = () => {
       return await BaseRequest.Put(
         `/api/campaigns/update-status/${publisherId}/${campaignParticipationId}/${newStatus}`,
         {}
+      );
+    }
+  });
+};
+
+export const useGetCampaignDetail = (id?: number) => {
+  return useQuery({
+    queryKey: ['get-campaign-detail', id],
+    enabled: !!id,
+    queryFn: async () => {
+      if (!id) return null;
+      return await BaseRequest.Get<CampaignApiResponse>(
+        `${SUB_URL}/get-campaign-by-id/${id}`
+      );
+    }
+  });
+};
+
+export const useGetPublishersInCampaign = (
+  campaignId?: number,
+  pageIndex: number = 1,
+  pageSize: number = 10
+) => {
+  return useQuery({
+    queryKey: ['get-publishers-in-campaign', campaignId, pageIndex, pageSize],
+    enabled: !!campaignId,
+    queryFn: async () => {
+      if (!campaignId) return null;
+      return await BaseRequest.Get<
+        PagingResponse<PublisherInCampaignApiResponse>
+      >(
+        `${SUB_URL}/get-publishers-in-campaign/${campaignId}/${pageIndex}/${pageSize}`
       );
     }
   });

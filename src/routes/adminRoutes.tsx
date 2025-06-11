@@ -15,9 +15,6 @@ const AdminAdvertiserList = lazy(
 );
 const AdminCampaignDetail = lazy(() => import('@/pages/Admin/CampaignDetail'));
 const AdminManageReport = lazy(() => import('@/pages/Admin/ManageReport'));
-const AdminCampaignPendingDetail = lazy(
-  () => import('@/pages/Admin/CampaignPendingDetail')
-);
 const Support = lazy(() => import('@/pages/Chat/ChatPage'));
 const ManageCourse = lazy(() => import('@/pages/Admin/ManageCourse'));
 
@@ -94,10 +91,6 @@ const adminRoutes = [
       { path: 'manageadvertiser', element: <AdminAdvertiserList /> },
       { path: 'managereport', element: <AdminManageReport /> },
       { path: 'campaign-detail/:id', element: <AdminCampaignDetail /> },
-      {
-        path: 'campaign-request-detail/:id',
-        element: <AdminCampaignPendingDetail />
-      },
       { path: 'support', element: <Support /> },
       { path: 'course', element: <ManageCourse /> }
     ]

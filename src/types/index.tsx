@@ -135,6 +135,7 @@ export type CampaignApiResponse = {
   averageStarRate: number | null;
   advertiserId: number | null;
   advertiser: AdvertiserApiResponse;
+  publisherStatus?: string;
 };
 
 export type AdvertiserApiResponse = {
@@ -393,6 +394,35 @@ export interface UploadImageResponse {
   publicId: string;
   url: string;
 }
+
+export type PublisherInCampaignApiResponse = {
+  id: number;
+  campaignId: number;
+  publisherId: number;
+  status: string; // 'Participated', 'Pending', etc.
+  createdAt: string;
+  totalCampaigns: number;
+  dailyTraffic: number;
+  publisher: {
+    id: number;
+    userId: number;
+    applicationUser: {
+      fullName: string;
+      role: string;
+      isDeleted: boolean;
+      email: string;
+    };
+  };
+};
+
+export type RequestCampaignType = {
+  id: number;
+  name: string;
+  createdAt: Date;
+  endAt: Date;
+  advertiser: string;
+  status: string;
+};
 
 export interface ICreateTrafficPayload {
   deviceType: string;

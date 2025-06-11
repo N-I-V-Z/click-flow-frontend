@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Form, Select, Button, Modal, message, Rate } from 'antd';
 import { useNavigate } from 'react-router-dom';
-import { TokenDecoded } from '@/types';
+import { TokenDecoded, CampaignApiResponse } from '@/types';
 import PaginationSection from '@/components/shared/pagination-section';
 import {
   useGetAllCampaignForPublisher,
@@ -23,7 +23,7 @@ const PAGE_SIZE = 12;
 const CampaignsPage: React.FC = () => {
   const [form] = Form.useForm();
 
-  const [campaigns, setCampaigns] = useState<any[]>([]);
+  const [campaigns, setCampaigns] = useState<CampaignApiResponse[]>([]);
 
   const [currentPage, setCurrentPage] = useState<number>(1);
 
@@ -41,7 +41,7 @@ const CampaignsPage: React.FC = () => {
   } = useGetAllCampaignForPublisher(currentPage, PAGE_SIZE);
 
   // Hook mutation đăng ký
-  const { mutate: registerCampaign, isLoading: isRegisterLoading } =
+  const { mutate: registerCampaign, isPending: isRegisterLoading } =
     useRegisterCampaign();
 
   const navigate = useNavigate();
@@ -96,31 +96,34 @@ const CampaignsPage: React.FC = () => {
   };
 
   // Lọc phía client khi submit form
-  const onFinish = (values: any) => {
+  const onFinish = (values: {
+    status?: string;
+    group?: string;
+    industryStatus?: string;
+    type?: string;
+  }) => {
     if (!campaignsResponse?.result?.datas) return;
 
     let filtered = [...campaignsResponse.result.datas];
 
-    // Lọc trạng thái khóa (demo)
+    // Lọc theo status campaign
     if (values.status === 'active') {
-      filtered = filtered.filter((c) => !c.locked);
+      filtered = filtered.filter(
+        (c) => c.status === 'Activing' || c.status === 'Hoạt động'
+      );
     } else if (values.status === 'locked') {
-      filtered = filtered.filter((c) => c.locked);
+      filtered = filtered.filter(
+        (c) => c.status === 'Paused' || c.status === 'Rejected'
+      );
     }
 
-    // Lọc nhóm ngành (demo)
+    // Lọc theo advertiser industry
     if (values.group && values.group !== 'all') {
-      filtered = filtered.filter((c) => c.industryGroup === values.group);
+      filtered = filtered.filter(
+        (c) => c.advertiser?.industry === values.group
+      );
     }
 
-    // Lọc trạng thái chạy (demo)
-    if (values.industryStatus === 'running') {
-      filtered = filtered.filter((c) => c.isRunning === true);
-    } else if (values.industryStatus === 'not_running') {
-      filtered = filtered.filter((c) => c.isRunning === false);
-    }
-
-    // Lọc loại hình (demo)
     if (values.type && values.type !== 'all') {
       filtered = filtered.filter((c) => c.typePay === values.type);
     }
@@ -219,7 +222,8 @@ const CampaignsPage: React.FC = () => {
         <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6">
           {currentCampaigns.map((campaign) => {
             // Demo cứng "locked" = false
-            const isLocked = false;
+            const isLocked =
+              campaign.status === 'Paused' || campaign.status === 'Rejected';
             // Kiểm tra xem campaign đã tham gia chưa (nếu publisherStatus có giá trị)
             const hasPublisherStatus = !!campaign.publisherStatus;
 
@@ -263,11 +267,12 @@ const CampaignsPage: React.FC = () => {
                   <Rate
                     disabled
                     allowHalf
-                    defaultValue={campaign.averageStarRate}
+                    defaultValue={campaign.averageStarRate || 0}
                   />
                   <span className="block w-full text-center">
                     {'('}
-                    {campaign.averageStarRate?.toFixed(2).replace('.', ',')}
+                    {campaign.averageStarRate?.toFixed(2).replace('.', ',') ||
+                      '0,00'}
                     {')'}
                   </span>
                 </div>

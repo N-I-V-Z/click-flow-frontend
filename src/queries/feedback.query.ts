@@ -1,6 +1,6 @@
 import { useQuery, useMutation } from '@tanstack/react-query';
 import BaseRequest from '@/config/axios.config';
-import { IFeedback, IFeedbackAPIResponse } from '@/types/index';
+import { IFeedback, ApiResponse } from '@/types/index';
 
 const SUB_URL = '/api/Feedbacks';
 
@@ -11,17 +11,18 @@ export const useGetFeedbacksByCampaign = (
 ) => {
   return useQuery<IFeedback[]>({
     queryKey: ['get-feedbacks-by-campaign', campaignId, pageIndex, pageSize],
-    // Chỉ gọi API khi campaignId có giá trị
     enabled: !!campaignId,
-    queryFn: async () => {
-      const response: IFeedbackAPIResponse = await BaseRequest.Get(
+    queryFn: async (): Promise<IFeedback[]> => {
+      const response: ApiResponse<IFeedback[]> = await BaseRequest.Get(
         `${SUB_URL}/get-feedbacks-by-campaign/${campaignId}/${pageIndex}/${pageSize}`
       );
 
       if (!response.isSuccess) {
         throw new Error(response.message || 'Error fetching feedbacks');
       }
-      return response.result;
+
+      // Đảm bảo return type chính xác
+      return response.result ?? [];
     }
   });
 };
