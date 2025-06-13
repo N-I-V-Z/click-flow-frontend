@@ -1,7 +1,15 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { useRouter } from '@/routes/hooks';
+import { useSearchParams } from 'react-router-dom';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue
+} from '@/components/ui/select';
 import {
   Wallet,
   Plus,
@@ -14,8 +22,13 @@ import {
   Loader2,
   Eye,
   EyeOff,
-  MoreHorizontal
+  MoreHorizontal,
+  ChevronRight
 } from 'lucide-react';
+import {
+  DoubleArrowLeftIcon,
+  DoubleArrowRightIcon
+} from '@radix-ui/react-icons';
 import BasePages from '@/components/shared/base-pages';
 import { useGetOwnWallet } from '@/queries/wallet.query';
 import { useGetOwnTransaction } from '@/queries/transaction.query';
@@ -24,11 +37,38 @@ import Recharge from './Recharge';
 
 const PublisherWallet = () => {
   const router = useRouter();
+  const [searchParams, setSearchParams] = useSearchParams();
   const [activeTab, setActiveTab] = useState('all');
-  const [currentPage, setCurrentPage] = useState(1);
   const [showBalance, setShowBalance] = useState(true);
   const [isDepositDialogOpen, setIsDepositDialogOpen] = useState(false);
-  const pageSize = 10;
+
+  const pageSizeOptions = [10, 20, 30, 40, 50];
+
+  // Lấy tham số phân trang từ URL (giống DataTable)
+  const page = searchParams?.get('page') ?? '1';
+  const pageAsNumber = Number(page);
+  const fallbackPage =
+    isNaN(pageAsNumber) || pageAsNumber < 1 ? 1 : pageAsNumber;
+  const limit = searchParams?.get('limit') ?? '10';
+  const limitAsNumber = Number(limit);
+  const fallbackLimit = isNaN(limitAsNumber) ? 10 : limitAsNumber;
+
+  // State phân trang
+  const [{ pageIndex, pageSize }, setPagination] = useState({
+    pageIndex: fallbackPage - 1, // pageIndex là 0-based
+    pageSize: fallbackLimit
+  });
+
+  // Cập nhật URL khi phân trang thay đổi (giống DataTable)
+  useEffect(() => {
+    setSearchParams({
+      ...Object.fromEntries(searchParams),
+      page: (pageIndex + 1).toString(),
+      limit: pageSize.toString()
+    });
+  }, [pageIndex, pageSize, searchParams, setSearchParams]);
+
+  const currentPage = pageIndex + 1; // Convert về 1-based cho display
 
   // API calls
   const {
@@ -64,7 +104,7 @@ const PublisherWallet = () => {
   const formatDate = (dateString) => {
     const date = new Date(dateString);
     const now = new Date();
-    const diffTime = Math.abs(now - date);
+    const diffTime = Math.abs(now.getTime() - date.getTime());
     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
 
     if (diffDays === 1) return 'Hôm qua';
@@ -171,6 +211,34 @@ const PublisherWallet = () => {
       { totalIn: 0, totalOut: 0 }
     );
   }, [transactionData?.result?.datas]);
+
+  // Pagination calculations
+  const totalPages = transactionData?.result?.totalPages || 1;
+  const canPreviousPage = currentPage > 1;
+  const canNextPage = currentPage < totalPages;
+
+  // Pagination handlers (giống DataTable)
+  const goToFirstPage = () =>
+    setPagination((prev) => ({ ...prev, pageIndex: 0 }));
+  const goToPreviousPage = () =>
+    setPagination((prev) => ({
+      ...prev,
+      pageIndex: Math.max(0, prev.pageIndex - 1)
+    }));
+  const goToNextPage = () =>
+    setPagination((prev) => ({
+      ...prev,
+      pageIndex: Math.min(totalPages - 1, prev.pageIndex + 1)
+    }));
+  const goToLastPage = () =>
+    setPagination((prev) => ({ ...prev, pageIndex: totalPages - 1 }));
+
+  const handlePageSizeChange = (newPageSize) => {
+    setPagination({
+      pageIndex: 0, // Reset về trang đầu khi thay đổi page size
+      pageSize: Number(newPageSize)
+    });
+  };
 
   // Loading states
   if (walletLoading || transactionLoading) {
@@ -430,7 +498,7 @@ const PublisherWallet = () => {
               {/* Enhanced Transactions List */}
               <div className="divide-y divide-slate-100">
                 {filteredTransactions.length === 0 ? (
-                  <div className="mb-30 py-20 text-center">
+                  <div className="py-20 text-center">
                     <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-slate-100">
                       <DollarSign className="h-8 w-8 text-slate-400" />
                     </div>
@@ -486,6 +554,93 @@ const PublisherWallet = () => {
                   })
                 )}
               </div>
+
+              {/* Pagination Controls */}
+              {filteredTransactions.length > 0 && (
+                <div className="border-t border-slate-100 p-6">
+                  <div className="flex flex-col items-center justify-end gap-2 space-x-2 sm:flex-row">
+                    <div className="flex w-full items-center justify-between">
+                      <div className="flex-1 text-sm text-muted-foreground">
+                        {/* Thông tin tổng số bản ghi nếu cần */}
+                      </div>
+                      <div className="flex flex-col items-center gap-4 sm:flex-row sm:gap-6 lg:gap-8">
+                        <div className="flex items-center space-x-2">
+                          <p className="whitespace-nowrap text-sm font-medium">
+                            Hiển thị
+                          </p>
+                          <Select
+                            value={`${pageSize}`}
+                            onValueChange={handlePageSizeChange}
+                          >
+                            <SelectTrigger className="h-8 w-[70px]">
+                              <SelectValue placeholder={pageSize} />
+                            </SelectTrigger>
+                            <SelectContent side="top">
+                              {pageSizeOptions.map((size) => (
+                                <SelectItem key={size} value={`${size}`}>
+                                  {size}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </div>
+                      </div>
+                    </div>
+                    <div className="flex w-full items-center justify-between gap-2 sm:justify-end">
+                      <div className="flex w-[150px] items-center justify-center text-sm font-medium">
+                        Trang {currentPage} trên {totalPages}
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <Button
+                          aria-label="Go to first page"
+                          variant="outline"
+                          className="hidden h-8 w-8 p-0 lg:flex"
+                          onClick={goToFirstPage}
+                          disabled={!canPreviousPage}
+                        >
+                          <DoubleArrowLeftIcon
+                            className="h-4 w-4"
+                            aria-hidden="true"
+                          />
+                        </Button>
+                        <Button
+                          aria-label="Go to previous page"
+                          variant="outline"
+                          className="h-8 w-8 p-0"
+                          onClick={goToPreviousPage}
+                          disabled={!canPreviousPage}
+                        >
+                          <ChevronLeft className="h-4 w-4" aria-hidden="true" />
+                        </Button>
+                        <Button
+                          aria-label="Go to next page"
+                          variant="outline"
+                          className="h-8 w-8 p-0"
+                          onClick={goToNextPage}
+                          disabled={!canNextPage}
+                        >
+                          <ChevronRight
+                            className="h-4 w-4"
+                            aria-hidden="true"
+                          />
+                        </Button>
+                        <Button
+                          aria-label="Go to last page"
+                          variant="outline"
+                          className="hidden h-8 w-8 p-0 lg:flex"
+                          onClick={goToLastPage}
+                          disabled={!canNextPage}
+                        >
+                          <DoubleArrowRightIcon
+                            className="h-4 w-4"
+                            aria-hidden="true"
+                          />
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
             </Card>
           </div>
         </div>
@@ -494,7 +649,6 @@ const PublisherWallet = () => {
         <Recharge
           isOpen={isDepositDialogOpen}
           onClose={() => setIsDepositDialogOpen(false)}
-          walletData={walletData}
           onSuccess={handleDepositSuccess}
         />
       </div>

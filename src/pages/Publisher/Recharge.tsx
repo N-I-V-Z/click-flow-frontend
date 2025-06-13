@@ -4,11 +4,11 @@ import { Loader2, Check } from 'lucide-react';
 import { useCreateTransaction } from '@/queries/transaction.query';
 import { TransactionType } from '@/types';
 
-const Recharge = ({ isOpen, onClose, walletData, onSuccess }) => {
+const Recharge = ({ isOpen, onClose, onSuccess }) => {
   const [depositAmount, setDepositAmount] = useState('');
   const [isProcessing, setIsProcessing] = useState(false);
 
-  const createTransactionMutation = useCreateTransaction();
+  const { mutateAsync: createTracsaction } = useCreateTransaction();
 
   // Predefined deposit amounts (VND)
   const quickAmounts = [50000, 100000, 200000, 500000, 1000000, 2000000];
@@ -37,17 +37,11 @@ const Recharge = ({ isOpen, onClose, walletData, onSuccess }) => {
     try {
       const depositData = {
         amount: amount,
-        status: 'PENDING',
-        transactionType: TransactionType.Deposit,
-        walletId: walletData?.result?.id || 0
+        transactionType: TransactionType.Deposit
       };
 
-      await createTransactionMutation.mutateAsync(depositData);
-
-      alert(
-        `Nạp tiền thành công! Đã nạp ${formatCurrency(amount)} vào ví của bạn`
-      );
-
+      const response = await createTracsaction(depositData);
+      window.location.replace(response.result || '');
       // Reset form and close dialog
       setDepositAmount('');
       onClose();
@@ -58,9 +52,7 @@ const Recharge = ({ isOpen, onClose, walletData, onSuccess }) => {
       }
     } catch (error) {
       console.error('Deposit error:', error);
-      alert(
-        `Nạp tiền thất bại: ${error?.response?.data?.message || 'Vui lòng thử lại sau'}`
-      );
+      alert(`Nạp tiền thất bại: ${error || 'Vui lòng thử lại sau'}`);
     } finally {
       setIsProcessing(false);
     }

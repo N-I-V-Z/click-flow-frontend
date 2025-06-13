@@ -160,7 +160,7 @@ const RegisterAdvertiserPage: React.FC = () => {
             <div className="overflow-hidden rounded-2xl bg-white shadow-xl">
               <div className="flex min-h-[600px]">
                 {/* Left Side - Image */}
-                <div className="relative -mt-10 ml-4 hidden w-3/5 lg:block">
+                <div className="relative -mt-10 hidden w-3/5 lg:block">
                   <div className="h-full w-full">
                     <ImageLeft />
                   </div>

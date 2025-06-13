@@ -1,12 +1,32 @@
 const ImageLeft = () => {
   return (
-    <div className="flex h-full w-full flex-col items-center justify-center">
-      <img
-        src="https://images.unsplash.com/photo-1555077292-22a4489e5897?q=80&w=1974&auto=format&fit=crop&ixlib=rb-4.0.3"
-        alt="Illustration"
-        className="w-full max-w-lg rounded-lg object-cover"
-      />
+    <div className="flex h-full w-full flex-col items-center justify-center rounded">
+      <video
+        src="/src/assets/vid.webm"
+        autoPlay
+        loop
+        muted
+        playsInline
+        controls={false}
+        className="h-full w-full object-cover"
+        onError={(e) => {
+          console.error('Video loading error:', e);
+        }}
+        onLoadStart={() => {
+          console.log('Video started loading');
+        }}
+        onCanPlay={() => {
+          console.log('Video can play');
+        }}
+      >
+        <img
+          src="https://images.unsplash.com/photo-1555077292-22a4489e5897?q=80&w=1974&auto=format&fit=crop&ixlib=rb-4.0.3"
+          alt="Fallback illustration"
+          className="h-full w-full object-cover"
+        />
+      </video>
     </div>
   );
 };
+
 export default ImageLeft;

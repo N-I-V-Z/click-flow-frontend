@@ -48,6 +48,7 @@ interface TempApiUser {
 // Sửa type cho function parameter
 function mapApiUserToAdvertiser(apiUser: TempApiUser): Advertiser {
   // Try to find ID in different possible fields
+
   const userId =
     apiUser.id ||
     apiUser.userId ||
@@ -90,6 +91,7 @@ const AdvertiserList: React.FC = () => {
       setDataSource(mapped ?? []);
     }
   }, [data]);
+  // console.log(data);
 
   const handleView = (record: Advertiser) => {
     setSelectedId(record.id); // Ensure this is a number
@@ -202,7 +204,6 @@ const AdvertiserList: React.FC = () => {
           data={dataSource}
           pageCount={-1}
           pageSizeOptions={[10, 20, 50, 100]}
-          showAdd={false}
         />
 
         {/* Modal xem chi tiết */}

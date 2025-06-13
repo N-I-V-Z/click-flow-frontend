@@ -372,9 +372,7 @@ export enum TransactionType {
 
 export interface CreateTransactionAPI {
   amount: number;
-  status: string;
   transactionType: TransactionType;
-  walletId: number;
 }
 
 export interface CreateCourseFormData {
