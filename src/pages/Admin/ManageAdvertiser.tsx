@@ -91,7 +91,6 @@ const AdvertiserList: React.FC = () => {
       setDataSource(mapped ?? []);
     }
   }, [data]);
-  // console.log(data);
 
   const handleView = (record: Advertiser) => {
     setSelectedId(record.id); // Ensure this is a number
