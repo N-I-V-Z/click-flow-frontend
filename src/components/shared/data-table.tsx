@@ -27,9 +27,16 @@ import {
   getPaginationRowModel,
   useReactTable,
   getSortedRowModel,
-  SortingState
+  SortingState,
+  Column
 } from '@tanstack/react-table';
-import { ChevronLeftIcon, ChevronRightIcon } from 'lucide-react';
+import {
+  ChevronLeftIcon,
+  ChevronRightIcon,
+  ChevronUpIcon,
+  ChevronDownIcon,
+  ChevronsUpDownIcon
+} from 'lucide-react';
 import { useSearchParams } from 'react-router-dom';
 import { Input } from '../ui/input';
 import { DataTableSkeleton } from './data-table-skeleton';
@@ -40,14 +47,6 @@ interface DataTableProps<TData, TValue> {
   pageSizeOptions?: number[];
   pageCount: number;
   heightTable?: string;
-  // Row selection props
-  rowSelection?: Record<string, boolean>;
-  onRowSelectionChange?: (
-    updater:
-      | Record<string, boolean>
-      | ((prev: Record<string, boolean>) => Record<string, boolean>)
-  ) => void;
-  onSelectedRowsChange?: (selectedRows: TData[]) => void;
   // Search callback for parent component
   onSearchChange?: (searchTerm: string) => void;
   // Loading state
@@ -63,9 +62,6 @@ export default function DataTable<TData, TValue>({
   pageCount,
   pageSizeOptions = [10, 20, 30, 40, 50],
   heightTable = '80dvh',
-  rowSelection,
-  onRowSelectionChange,
-  onSelectedRowsChange,
   onSearchChange,
   isLoading = false
 }: DataTableProps<TData, TValue>) {
@@ -88,15 +84,6 @@ export default function DataTable<TData, TValue>({
   });
 
   const [sorting, setSorting] = useState<SortingState>([]);
-
-  // Row selection state management
-  const [internalRowSelection, setInternalRowSelection] = useState({});
-  const effectiveRowSelection =
-    rowSelection !== undefined ? rowSelection : internalRowSelection;
-  const effectiveOnRowSelectionChange =
-    onRowSelectionChange !== undefined
-      ? onRowSelectionChange
-      : setInternalRowSelection;
 
   // Cập nhật URL khi phân trang thay đổi
   useEffect(() => {
@@ -125,28 +112,32 @@ export default function DataTable<TData, TValue>({
     getCoreRowModel: getCoreRowModel(),
     state: {
       pagination: { pageIndex, pageSize },
-      sorting,
-      rowSelection: effectiveRowSelection
+      sorting
     },
     onPaginationChange: setPagination,
     getPaginationRowModel: getPaginationRowModel(),
     manualPagination: true, // Quan trọng: sử dụng server-side pagination
     manualFiltering: true, // Quan trọng: sử dụng server-side filtering
     getSortedRowModel: getSortedRowModel(),
-    onSortingChange: setSorting,
-    onRowSelectionChange: effectiveOnRowSelectionChange,
-    enableRowSelection: true
+    onSortingChange: setSorting
   });
 
-  // Callback khi row selection thay đổi
-  useEffect(() => {
-    if (onSelectedRowsChange) {
-      const selectedRows = table
-        .getSelectedRowModel()
-        .rows.map((row) => row.original);
-      onSelectedRowsChange(selectedRows);
+  // Helper function để render sort icon
+  const renderSortIcon = (column: Column<TData, unknown>) => {
+    if (!column.getCanSort()) return null;
+
+    const sorted = column.getIsSorted();
+
+    if (sorted === 'asc') {
+      return <ChevronUpIcon className="ml-2 h-4 w-4" />;
     }
-  }, [effectiveRowSelection, onSelectedRowsChange, table]);
+
+    if (sorted === 'desc') {
+      return <ChevronDownIcon className="ml-2 h-4 w-4" />;
+    }
+
+    return <ChevronsUpDownIcon className="ml-2 h-4 w-4 opacity-50" />;
+  };
 
   if (isLoading) return <DataTableSkeleton columnCount={5} rowCount={10} />;
 
@@ -186,20 +177,19 @@ export default function DataTable<TData, TValue>({
                     }
                     className={
                       header.column.getCanSort()
-                        ? 'cursor-pointer select-none'
+                        ? 'cursor-pointer select-none transition-colors hover:bg-muted/50'
                         : ''
                     }
                   >
-                    {header.isPlaceholder
-                      ? null
-                      : flexRender(
-                          header.column.columnDef.header,
-                          header.getContext()
-                        )}
-                    {{
-                      asc: ' 🔼',
-                      desc: ' 🔽'
-                    }[header.column.getIsSorted() as string] ?? null}
+                    <div className="flex items-center">
+                      {header.isPlaceholder
+                        ? null
+                        : flexRender(
+                            header.column.columnDef.header,
+                            header.getContext()
+                          )}
+                      {renderSortIcon(header.column)}
+                    </div>
                   </TableHead>
                 ))}
               </TableRow>
@@ -240,8 +230,8 @@ export default function DataTable<TData, TValue>({
       <div className="mb-10 flex flex-col items-center justify-end gap-2 space-x-2 py-6 sm:flex-row">
         <div className="flex w-full items-center justify-between">
           <div className="flex-1 text-sm text-muted-foreground">
-            {table.getFilteredSelectedRowModel().rows.length} trên{' '}
-            {table.getRowModel().rows.length} hàng được chọn.
+            {/* {table.getFilteredSelectedRowModel().rows.length} trên{' '}
+            {table.getRowModel().rows.length} hàng được chọn. */}
           </div>
           <div className="flex flex-col items-center gap-4 sm:flex-row sm:gap-6 lg:gap-8">
             <div className="flex items-center space-x-2">

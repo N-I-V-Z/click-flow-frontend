@@ -230,7 +230,7 @@ const CampaignsPage: React.FC = () => {
             return (
               <div
                 key={campaign.id}
-                className={`flex flex-col items-center rounded-lg bg-white p-4 shadow transition-transform duration-300 
+                className={`flex h-[400px] flex-col items-center justify-between rounded-lg bg-white p-4 shadow transition-transform duration-300
                 ${!isLocked ? 'cursor-pointer hover:scale-105 hover:shadow-xl' : 'pointer-events-none opacity-50'}`}
                 // Khi click vào campaign ở CampaignsPage:
                 onClick={() =>
@@ -238,7 +238,7 @@ const CampaignsPage: React.FC = () => {
                 }
               >
                 {/* Logo */}
-                <div className="mb-4 h-32 w-32 overflow-hidden rounded-full">
+                <div className="mb-4 h-32 w-32 flex-shrink-0 overflow-hidden rounded-full">
                   <img
                     src={
                       campaign.image ||
@@ -250,26 +250,29 @@ const CampaignsPage: React.FC = () => {
                 </div>
 
                 {/* Tên chiến dịch */}
-                <h3 className="mb-2 line-clamp-2 text-center text-sm font-semibold text-gray-800">
+                <h3 className="mb-3 line-clamp-2 flex min-h-[40px] items-center text-center text-sm font-semibold text-gray-800">
                   {campaign.name}
                 </h3>
 
                 {/* Hoa hồng */}
-                <div className="mb-1 text-sm text-gray-600">Hoa hồng</div>
-                <div className="mb-2 text-lg font-bold text-[#8229B0]">
-                  {campaign.percents
-                    ? `${campaign.percents}%`
-                    : `${campaign.commission?.toLocaleString()} đ`}
+                <div className="mb-3 flex flex-col items-center">
+                  <div className="mb-1 text-sm text-gray-600">Hoa hồng</div>
+                  <div className="text-lg font-bold text-[#8229B0]">
+                    {campaign.percents
+                      ? `${campaign.percents}%`
+                      : `${campaign.commission?.toLocaleString()} đ`}
+                  </div>
                 </div>
 
                 {/* Hiển thị rating dựa trên averageStarRate */}
-                <div className="mb-3 items-center gap-2  text-gray-600">
+                <div className="mb-4 flex flex-col items-center gap-2 text-gray-600">
                   <Rate
                     disabled
                     allowHalf
                     defaultValue={campaign.averageStarRate || 0}
+                    className="text-sm"
                   />
-                  <span className="block w-full text-center">
+                  <span className="text-center text-sm">
                     {'('}
                     {campaign.averageStarRate?.toFixed(2).replace('.', ',') ||
                       '0,00'}
@@ -278,53 +281,57 @@ const CampaignsPage: React.FC = () => {
                 </div>
 
                 {/* Nút hành động */}
-                {isLocked ? (
-                  <p className="text-red-500 mt-2 font-medium">Đã bị khóa</p>
-                ) : hasPublisherStatus ? (
-                  // Nếu campaign đã tham gia, phân biệt 2 trường hợp:
-                  campaign.publisherStatus === 'Participated' ? (
-                    // Khi Activing thì cho phép copy link
+                <div className="mt-auto w-full">
+                  {isLocked ? (
+                    <p className="text-red-500 text-center font-medium">
+                      Đã bị khóa
+                    </p>
+                  ) : hasPublisherStatus ? (
+                    // Nếu campaign đã tham gia, phân biệt 2 trường hợp:
+                    campaign.publisherStatus === 'Participated' ? (
+                      // Khi Activing thì cho phép copy link
+                      <Button
+                        type="default"
+                        className="w-full bg-white text-[#8229B0] hover:!border-[#9B52BF] hover:!bg-[#9B52BF] hover:!text-white"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          const link = `${window.location.origin}/link/${PUBLISHER_ID}/${campaign.id}`;
+                          navigator.clipboard
+                            .writeText(link)
+                            .then(() => {
+                              message.success('Copy link thành công!');
+                            })
+                            .catch(() => {
+                              message.error('Copy link thất bại!');
+                            });
+                        }}
+                      >
+                        Lấy link
+                      </Button>
+                    ) : (
+                      // Nếu publisherStatus khác Activing (ví dụ: Pending)
+                      <Button
+                        type="default"
+                        className="w-full bg-white text-[#8229B0] hover:!border-[#9B52BF] hover:!bg-[#8229B0] hover:!text-white"
+                        onClick={handlePendingClick}
+                      >
+                        Lấy link
+                      </Button>
+                    )
+                  ) : (
+                    // Nếu chưa tham gia => Nút "Đăng ký"
                     <Button
                       type="default"
-                      className="w-full bg-white text-[#8229B0] hover:!border-[#9B52BF] hover:!bg-[#9B52BF] hover:!text-white"
+                      className="w-full bg-[#8229B0] text-white hover:!border-[#9B52BF] hover:bg-white hover:!text-[#9B52BF]"
                       onClick={(e) => {
                         e.stopPropagation();
-                        const link = `${window.location.origin}/link/${PUBLISHER_ID}/${campaign.id}`;
-                        navigator.clipboard
-                          .writeText(link)
-                          .then(() => {
-                            message.success('Copy link thành công!');
-                          })
-                          .catch(() => {
-                            message.error('Copy link thất bại!');
-                          });
+                        handleRegisterClick(campaign.id);
                       }}
                     >
-                      Lấy link
+                      Đăng ký
                     </Button>
-                  ) : (
-                    // Nếu publisherStatus khác Activing (ví dụ: Pending)
-                    <Button
-                      type="default"
-                      className="w-full bg-white text-[#8229B0] hover:!border-[#9B52BF] hover:!bg-[#8229B0] hover:!text-white"
-                      onClick={handlePendingClick}
-                    >
-                      Lấy link
-                    </Button>
-                  )
-                ) : (
-                  // Nếu chưa tham gia => Nút "Đăng ký"
-                  <Button
-                    type="default"
-                    className="w-full bg-[#8229B0] text-white hover:!border-[#9B52BF] hover:bg-white hover:!text-[#9B52BF]"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleRegisterClick(campaign.id);
-                    }}
-                  >
-                    Đăng ký
-                  </Button>
-                )}
+                  )}
+                </div>
               </div>
             );
           })}

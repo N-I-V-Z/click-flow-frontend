@@ -23,7 +23,9 @@ export const useGetFeedbacksByCampaign = (
 
       // Đảm bảo return type chính xác
       return response.result ?? [];
-    }
+    },
+    staleTime: 1000 * 60 * 5,
+    retry: 3
   });
 };
 export const useCreateFeedback = () => {

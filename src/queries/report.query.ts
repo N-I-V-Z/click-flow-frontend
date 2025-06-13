@@ -15,6 +15,8 @@ export const useGetReports = (
       return await BaseRequest.Get<PagingResponse<ReportApiResponse>>(
         `${SUB_URL}?PageIndex=${pageIndex}&PageSize=${pageSize}&Keyword=${keyword}`
       );
-    }
+    },
+    staleTime: 1000 * 60 * 5,
+    retry: 3
   });
 };

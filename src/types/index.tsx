@@ -243,7 +243,7 @@ export type CampaignParticipationApiResponse = {
   id: number;
   status: string;
   shortLink: string;
-  createdAt: Date;
+  createAt: Date;
   publisherId: number | null;
   publisher: PublisherApiResponse | null;
   campaignId: number;
@@ -508,4 +508,8 @@ export type ChangePasswordRequest = {
   oldPassword: string;
   newPassword: string;
   confirmedNewPassword: string;
+};
+
+export type LoginGoogleRequest = {
+  idToken: string;
 };

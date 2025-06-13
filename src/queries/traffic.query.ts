@@ -20,7 +20,9 @@ export const useGetTraffics = (
       return await BaseRequest.Get<PagingResponse<TrafficApiResponse>>(
         `${SUB_URL}/campaign/${campaignId}?PageIndex=${pageIndex}&PageSize=${pageSize}`
       );
-    }
+    },
+    staleTime: 1000 * 60 * 5,
+    retry: 3
   });
 };
 
@@ -43,7 +45,9 @@ export const useGetTrafficForAdvertiser = (
       return await BaseRequest.Get<PagingResponse<TrafficApiResponse>>(
         `${SUB_URL}/advertiser?PageIndex=${pageIndex}&PageSize=${pageSize}&Keyword=${keyword}`
       );
-    }
+    },
+    staleTime: 1000 * 60 * 5,
+    retry: 3
   });
 };
 
@@ -59,6 +63,8 @@ export function useGetPublisherTraffic(
       return await BaseRequest.Get<PagingResponse<TrafficApiResponse>>(
         `/api/Traffics/publisher?PageIndex=${pageIndex}&PageSize=${pageSize}${campaignParam}`
       );
-    }
+    },
+    staleTime: 1000 * 60 * 5,
+    retry: 3
   });
 }
