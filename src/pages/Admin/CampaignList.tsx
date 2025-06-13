@@ -7,7 +7,6 @@ import {
   PlayCircleOutlined
 } from '@ant-design/icons';
 import DataTable from '@/components/shared/data-table';
-import Loading from '@/components/ui/loading';
 import { ColumnDef } from '@tanstack/react-table';
 import {
   useGetCampaignListExcpPending,
@@ -276,20 +275,14 @@ const CampaignList: React.FC = () => {
             className="rounded-lg shadow-sm"
             style={{ backgroundColor: '#ffffff' }}
           >
-            {isLoading ? (
-              <div className="p-8">
-                <Loading />
-              </div>
-            ) : (
-              <DataTable
-                columns={columns}
-                data={dataSource}
-                pageCount={paginationData?.totalPages || 1}
-                pageSizeOptions={[10, 20, 50, 100]}
-                showAdd={false}
-                heightTable="80dvh"
-              />
-            )}
+            <DataTable
+              columns={columns}
+              data={dataSource}
+              pageCount={paginationData?.totalPages || 1}
+              pageSizeOptions={[10, 20, 50, 100]}
+              heightTable="80dvh"
+              isLoading={isLoading}
+            />
           </div>
 
           {/* Status Change Confirmation Modal */}

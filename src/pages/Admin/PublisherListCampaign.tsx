@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
-
+import { useSearchParams } from 'react-router-dom';
 import { ColumnDef } from '@tanstack/react-table';
 import DataTable from '@/components/shared/data-table';
 import Loading from '@/components/ui/loading';
@@ -9,7 +9,6 @@ import {
   PublisherInCampaignApiResponse,
   PagingResponse
 } from '@/types';
-import __helpers from '@/helpers';
 import { Mail, User, TrendingUp } from 'lucide-react';
 
 interface PublisherListCampaignProps {
@@ -19,18 +18,27 @@ interface PublisherListCampaignProps {
 const PublisherListCampaign: React.FC<PublisherListCampaignProps> = ({
   campaignId
 }) => {
+  const [searchParams] = useSearchParams();
   const [dataSource, setDataSource] = useState<
     PublisherInCampaignApiResponse[]
   >([]);
   const [paginationData, setPaginationData] =
     useState<PagingResponse<PublisherInCampaignApiResponse> | null>(null);
 
-  const { pageIndex, pageSize } = __helpers.usePaginationParams();
+  // Lấy pagination từ URL search params (giống DataTable)
+  const page = searchParams?.get('page') ?? '1';
+  const pageAsNumber = Number(page);
+  const fallbackPage =
+    isNaN(pageAsNumber) || pageAsNumber < 1 ? 1 : pageAsNumber;
+
+  const per_page = searchParams?.get('limit') ?? '10';
+  const perPageAsNumber = Number(per_page);
+  const fallbackPerPage = isNaN(perPageAsNumber) ? 10 : perPageAsNumber;
 
   const { data, isLoading, error, isSuccess } = useGetPublishersInCampaign(
     campaignId,
-    pageIndex,
-    pageSize
+    fallbackPage, // Dùng page từ URL
+    fallbackPerPage // Dùng pageSize từ URL
   );
 
   useEffect(() => {
@@ -47,6 +55,12 @@ const PublisherListCampaign: React.FC<PublisherListCampaignProps> = ({
     }
   }, [data, isSuccess]);
 
+  // Handle search (nếu cần implement search trong tương lai)
+  const handleSearchChange = (searchTerm: string) => {
+    console.log('Search term:', searchTerm);
+    // TODO: Implement search functionality
+  };
+
   const columns = useMemo<ColumnDef<PublisherInCampaignApiResponse>[]>(
     () => [
       {
@@ -54,7 +68,7 @@ const PublisherListCampaign: React.FC<PublisherListCampaignProps> = ({
         header: 'TÊN PUBLISHER',
         cell: ({ row }) => (
           <div className="flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-r from-blue to-purple-500 font-semibold text-white">
+            <div className="from-blue-500 flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-r to-purple-500 font-semibold text-white">
               {row.original.publisher?.applicationUser?.fullName
                 ?.charAt(0)
                 .toUpperCase() || 'P'}
@@ -229,8 +243,9 @@ const PublisherListCampaign: React.FC<PublisherListCampaignProps> = ({
             data={dataSource}
             pageCount={paginationData?.totalPages || 1}
             pageSizeOptions={[5, 10, 20]}
-            showAdd={false}
             heightTable="60dvh"
+            onSearchChange={handleSearchChange}
+            isLoading={isLoading}
           />
         )}
       </div>

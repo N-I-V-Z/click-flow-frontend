@@ -47,12 +47,17 @@ export const useGetTrafficForAdvertiser = (
   });
 };
 
-export function useGetPublisherTraffic(pageIndex = 1, pageSize = 10) {
+export function useGetPublisherTraffic(
+  pageIndex = 1,
+  pageSize = 10,
+  campaignId?: number
+) {
   return useQuery({
-    queryKey: ['publisher-traffic', pageIndex, pageSize],
+    queryKey: ['publisher-traffic', pageIndex, pageSize, campaignId],
     queryFn: async () => {
+      const campaignParam = campaignId ? `&CampaignId=${campaignId}` : '';
       return await BaseRequest.Get<PagingResponse<TrafficApiResponse>>(
-        `/${SUB_URL}/publisher?PageIndex=${pageIndex}&PageSize=${pageSize}`
+        `/api/Traffics/publisher?PageIndex=${pageIndex}&PageSize=${pageSize}${campaignParam}`
       );
     }
   });
