@@ -1,5 +1,5 @@
 import BaseRequest from '@/config/axios.config';
-import { PagingResponse, Transaction } from '@/types';
+import { CreateTransactionAPI, PagingResponse, Transaction } from '@/types';
 import { useQuery, useMutation } from '@tanstack/react-query';
 
 const SUB_URL = `api/Transactions`;
@@ -26,8 +26,8 @@ export const useGetOwnTransaction = (
 export const useCreateTransaction = () => {
   return useMutation({
     mutationKey: ['crete-transaction'],
-    mutationFn: async () => {
-      return await BaseRequest.Post<Transaction>(`/${SUB_URL}`);
+    mutationFn: async (model: CreateTransactionAPI) => {
+      return await BaseRequest.Post<string>(`/${SUB_URL}`, model);
     }
   });
 };

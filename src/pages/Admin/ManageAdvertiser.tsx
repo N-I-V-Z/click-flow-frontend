@@ -204,7 +204,6 @@ const AdvertiserList: React.FC = () => {
           data={dataSource}
           pageCount={-1}
           pageSizeOptions={[10, 20, 50, 100]}
-          showAdd={false}
         />
 
         {/* Modal xem chi tiết */}

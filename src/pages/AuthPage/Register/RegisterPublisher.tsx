@@ -128,7 +128,7 @@ export default function RegisterPublisherPage() {
             <div className="overflow-hidden rounded-2xl bg-white shadow-xl">
               <div className="flex min-h-[500px]">
                 {/* Left Side - Image */}
-                <div className="relative -mt-10 ml-4 hidden w-1/2 lg:block">
+                <div className="relative -mt-10 hidden w-1/2 lg:block">
                   <ImageLeft />
 
                   {/* Optional overlay with branding */}

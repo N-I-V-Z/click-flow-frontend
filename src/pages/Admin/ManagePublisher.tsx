@@ -23,21 +23,17 @@ interface Publisher {
   phone: string;
   userName: string;
   email: string;
-  bankAccount: string;
-  bankName: string;
   status: string;
 }
 
-function mapApiUserToPublisher(apiUser: any): Publisher {
+function mapApiUserToPublisher(apiUser: ApplicationUserApiResponse): Publisher {
   return {
     id: apiUser.id,
     code: `PL${apiUser.id}`,
     name: apiUser.fullName ?? 'No name',
-    phone: apiUser.phone ?? '',
+    phone: apiUser.phoneNumber ?? '',
     userName: apiUser.userName ?? '',
     email: apiUser.email ?? '',
-    bankAccount: apiUser.publisher?.bankAccount ?? '',
-    bankName: apiUser.publisher?.bankName ?? '',
     status: apiUser.isDeleted ? 'Bị khóa' : 'Hoạt động'
   };
 }
@@ -171,7 +167,6 @@ const PublisherList: React.FC = () => {
           data={dataSource}
           pageCount={-1} //
           pageSizeOptions={[10, 20, 30, 40, 50]}
-          showAdd={false}
         />
 
         <Modal
@@ -212,18 +207,6 @@ const PublisherList: React.FC = () => {
                     Email
                   </label>
                   <Input readOnly value={selectedPublisher.email} />
-                </div>
-                <div>
-                  <label className="block font-semibold text-gray-600">
-                    Số tài khoản
-                  </label>
-                  <Input readOnly value={selectedPublisher.bankAccount} />
-                </div>
-                <div>
-                  <label className="block font-semibold text-gray-600">
-                    Tên ngân hàng
-                  </label>
-                  <Input readOnly value={selectedPublisher.bankName} />
                 </div>
               </div>
             </div>

@@ -3,7 +3,7 @@ import { ColumnDef } from '@tanstack/react-table';
 import DataTable from '@/components/shared/data-table';
 import Loading from '@/components/ui/loading';
 import { useGetTraffics } from '@/queries/traffic.query';
-import { ApiResponse, PagingResponse, TrafficApiResponse } from '@/types';
+import { TrafficApiResponse } from '@/types';
 
 interface Traffic {
   traffic_id: number;
@@ -70,9 +70,8 @@ const columns: ColumnDef<Traffic>[] = [
 
 const TrafficTable: React.FC<TrafficTableProps> = ({ campaignId }) => {
   const { data, isLoading, error } = useGetTraffics(campaignId, 1, 10);
-  const trafficData =
-    (data as ApiResponse<PagingResponse<TrafficApiResponse>>)?.result?.datas ||
-    [];
+  const trafficData = useMemo(() => data?.result?.datas || [], [data]);
+
   const convertedTrafficData: Traffic[] = useMemo(() => {
     return trafficData.map((item: TrafficApiResponse) => ({
       traffic_id: item.id,
@@ -83,9 +82,9 @@ const TrafficTable: React.FC<TrafficTableProps> = ({ campaignId }) => {
       is_valid: item.isValid,
       device_type: item.deviceType,
       browser: item.browser,
-      referrer_url: item.referrerURL,
-      revenue: item.revenue,
-      order_id: item.orderId
+      referrer_url: item.referrerURL
+      // revenue: item.revenue,
+      // order_id: item.orderId
     }));
   }, [trafficData]);
   const filteredTrafficData = useMemo(() => {
@@ -113,7 +112,6 @@ const TrafficTable: React.FC<TrafficTableProps> = ({ campaignId }) => {
           data={filteredTrafficData}
           pageCount={pageCount}
           pageSizeOptions={[10, 20, 50, 100]}
-          showAdd={false}
         />
       </div>
     </div>
