@@ -85,15 +85,16 @@ export const useGetCampaignAdvertiser = (
 };
 
 export const useGetCampaignPublisher = (
-  publisherId: number = 1,
+  publisherId?: number,
   pageIndex: number = 1,
-  pageSize: number = 1
+  pageSize: number = 10
 ) => {
   return useQuery({
     queryKey: ['get-campaigns-publisher', publisherId, pageIndex, pageSize],
+    enabled: !!publisherId,
     queryFn: async () => {
       return await BaseRequest.Get<PagingResponse<CampaignApiResponse>>(
-        `/${SUB_URL}/get-all-campaign-for-publisher/${publisherId}?PageIndex=${pageIndex}&PageSize=${pageSize}`
+        `${SUB_URL}/get-campaigns-joined-by-publisher/${publisherId}/${pageIndex}/${pageSize}`
       );
     },
     staleTime: 1000 * 60 * 5,
