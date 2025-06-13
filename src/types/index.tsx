@@ -511,5 +511,3 @@ export type ChangePasswordRequest = {
 export type LoginGoogleRequest = {
   idToken: string;
 };
-
-console.log(abd);
