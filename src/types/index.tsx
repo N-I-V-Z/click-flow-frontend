@@ -511,3 +511,41 @@ export type ChangePasswordRequest = {
 export type LoginGoogleRequest = {
   idToken: string;
 };
+
+export interface Publisher {
+  id: number;
+  code: string;
+  name: string;
+  phone: string;
+  userName: string;
+  email: string;
+  status: string;
+  isBlocked: boolean;
+}
+
+// Advertiser Management Interfaces
+export interface Advertiser {
+  id: number;
+  code: number;
+  name: string;
+  phone: string;
+  userName: string;
+  email: string;
+  company: string;
+  business: string;
+  status: string;
+  isBlocked: boolean;
+}
+
+// Modal Props Interfaces
+export interface PublisherDetailModalProps {
+  open: boolean;
+  onClose: () => void;
+  publisherId: number | null;
+}
+
+export interface AdvertiserDetailModalProps {
+  open: boolean;
+  onClose: () => void;
+  advertiserId: number | null;
+}

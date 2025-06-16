@@ -169,7 +169,7 @@ const TrafficTable: React.FC<TrafficTableProps> = ({
   }
 
   return (
-    <div className="mb-6 rounded-lg bg-white p-6 shadow-2xl transition-transform duration-300 hover:scale-[1.01]">
+    <div className="mb-6 rounded-lg bg-white p-6 shadow-2xl transition-transform duration-300 ">
       {/* Header với Export button */}
       <div className="mb-6 flex items-center justify-between border-b border-gray-200 pb-4">
         <div>

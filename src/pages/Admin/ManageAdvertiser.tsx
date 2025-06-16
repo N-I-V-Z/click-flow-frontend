@@ -1,14 +1,15 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { Modal } from 'antd';
-import { EyeOutlined, CloseCircleOutlined } from '@ant-design/icons';
-import { ColumnDef } from '@tanstack/react-table';
-import Loading from '@/components/ui/loading';
-import { useGetUsersByRole } from '@/queries/user.query';
+import { Modal, message } from 'antd';
 import {
-  ApiResponse,
-  ApplicationUserApiResponse,
-  PagingResponse
-} from '@/types';
+  EyeOutlined,
+  CloseCircleOutlined,
+  CheckCircleOutlined
+} from '@ant-design/icons';
+import { ColumnDef } from '@tanstack/react-table';
+import { useSearchParams } from 'react-router-dom';
+import Loading from '@/components/ui/loading';
+import { useGetUsersByRole, useUpdateUserStatus } from '@/queries/user.query';
+import { ApiResponse, PagingResponse } from '@/types';
 import DataTable from '@/components/shared/data-table';
 import BasePages from '@/components/shared/base-pages';
 import { AdvertiserDetailModal } from './AdvertiserDetailModal';
@@ -23,55 +24,47 @@ interface Advertiser {
   company: string;
   business: string;
   status: string;
+  isBlocked: boolean;
 }
 
-// Temporary type để avoid lỗi any
-interface TempApiUser {
-  id?: number;
-  userId?: number;
-  applicationUserId?: number;
-  fullName?: string;
-  phoneNumber?: string;
-  phone?: string;
-  userName?: string;
-  email?: string;
-  isDeleted?: boolean;
+// Updated interface to match actual API response
+interface ApiUserResponse {
+  id: number;
+  fullName: string;
+  role: string;
+  isDeleted: boolean;
+  email: string;
+  // Add advertiser info if available in actual API
   advertiser?: {
     id?: number;
     companyName?: string;
     industry?: string;
     businessArea?: string;
   };
-  // Allow additional properties
 }
 
-// Sửa type cho function parameter
-function mapApiUserToAdvertiser(apiUser: TempApiUser): Advertiser {
-  // Try to find ID in different possible fields
-
-  const userId =
-    apiUser.id ||
-    apiUser.userId ||
-    apiUser.applicationUserId ||
-    apiUser.advertiser?.id;
+function mapApiUserToAdvertiser(apiUser: ApiUserResponse): Advertiser {
+  const isBlocked = apiUser.isDeleted || false;
 
   const mapped = {
-    id: userId || 0, // Fallback to 0 if no ID found
-    code: userId || 0,
-    name: apiUser.fullName ?? 'No name',
-    phone: apiUser.phoneNumber ?? apiUser.phone ?? '',
-    userName: apiUser.userName ?? '',
-    email: apiUser.email ?? '',
+    id: apiUser.id,
+    code: apiUser.id,
+    name: apiUser.fullName,
+    phone: '', // API doesn't provide phone, set as empty
+    userName: '', // API doesn't provide userName, set as empty
+    email: apiUser.email,
     company: apiUser.advertiser?.companyName ?? '',
     business:
       apiUser.advertiser?.industry ?? apiUser.advertiser?.businessArea ?? '',
-    status: apiUser.isDeleted ? 'Bị khóa' : 'Hoạt động'
+    status: isBlocked ? 'Bị khóa' : 'Hoạt động',
+    isBlocked: isBlocked
   };
 
   return mapped;
 }
 
 const AdvertiserList: React.FC = () => {
+  const [searchParams] = useSearchParams();
   const [dataSource, setDataSource] = useState<Advertiser[]>([]);
   const [isViewModalVisible, setIsViewModalVisible] = useState(false);
   const [selectedId, setSelectedId] = useState<number | null>(null);
@@ -79,13 +72,26 @@ const AdvertiserList: React.FC = () => {
   const [selectedAdvertiser, setSelectedAdvertiser] =
     useState<Advertiser | null>(null);
 
-  const { data, isLoading, error } = useGetUsersByRole('Advertiser', 1, 10);
+  // Get pagination parameters from URL
+  const page = parseInt(searchParams.get('page') || '1');
+  const limit = parseInt(searchParams.get('limit') || '10');
+
+  // Use query with pagination parameters
+  const { data, isLoading, error } = useGetUsersByRole(
+    'Advertiser',
+    page,
+    limit
+  );
+  const updateUserStatusMutation = useUpdateUserStatus();
+
+  // Calculate total pages from API response
+  const pageCount = data?.result?.totalPages || 1;
 
   useEffect(() => {
     if (data?.result) {
       const mapped = (
-        data as ApiResponse<PagingResponse<ApplicationUserApiResponse>>
-      ).result?.datas.map((user: ApplicationUserApiResponse) =>
+        data as ApiResponse<PagingResponse<ApiUserResponse>>
+      ).result?.datas.map((user: ApiUserResponse) =>
         mapApiUserToAdvertiser(user)
       );
       setDataSource(mapped ?? []);
@@ -93,7 +99,7 @@ const AdvertiserList: React.FC = () => {
   }, [data]);
 
   const handleView = (record: Advertiser) => {
-    setSelectedId(record.id); // Ensure this is a number
+    setSelectedId(record.id);
     setIsViewModalVisible(true);
   };
 
@@ -107,18 +113,36 @@ const AdvertiserList: React.FC = () => {
     setIsLockModalVisible(true);
   };
 
-  const confirmLockUnlock = () => {
-    if (selectedAdvertiser) {
-      setDataSource((prev) =>
-        prev.map((item) =>
-          item.id === selectedAdvertiser.id
-            ? {
-                ...item,
-                status: item.status === 'Hoạt động' ? 'Bị khóa' : 'Hoạt động'
-              }
-            : item
-        )
-      );
+  const confirmLockUnlock = async () => {
+    if (selectedAdvertiser && selectedAdvertiser.id) {
+      try {
+        const newBlockedStatus = !selectedAdvertiser.isBlocked;
+
+        await updateUserStatusMutation.mutateAsync({
+          userId: selectedAdvertiser.id,
+          isBlocked: newBlockedStatus
+        });
+
+        // Update local state
+        setDataSource((prev) =>
+          prev.map((item) =>
+            item.id === selectedAdvertiser.id
+              ? {
+                  ...item,
+                  status: newBlockedStatus ? 'Bị khóa' : 'Hoạt động',
+                  isBlocked: newBlockedStatus
+                }
+              : item
+          )
+        );
+
+        message.success(
+          `${newBlockedStatus ? 'Khóa' : 'Mở khóa'} nhà quảng cáo thành công!`
+        );
+      } catch (error) {
+        message.error('Có lỗi xảy ra khi cập nhật trạng thái!');
+        console.error('Error updating user status:', error);
+      }
     }
     setIsLockModalVisible(false);
     setSelectedAdvertiser(null);
@@ -143,11 +167,11 @@ const AdvertiserList: React.FC = () => {
         header: 'TRẠNG THÁI',
         cell: ({ row }) =>
           row.original.status === 'Hoạt động' ? (
-            <span className="font-semibold text-green-600">
+            <span className="font-semibold" style={{ color: '#16A34A' }}>
               {row.original.status}
             </span>
           ) : (
-            <span className="font-semibold text-[#DC0E0E]">
+            <span className="font-semibold" style={{ color: '#DC0E0E' }}>
               {row.original.status}
             </span>
           )
@@ -161,12 +185,52 @@ const AdvertiserList: React.FC = () => {
             <div className="flex justify-center gap-3">
               <EyeOutlined
                 onClick={() => handleView(record)}
-                className="cursor-pointer rounded-full p-1 text-xl text-[#1570EF] transition-colors hover:bg-[#1570EF] hover:text-white"
+                className="cursor-pointer rounded-full p-1 text-xl transition-colors"
+                style={{
+                  color: '#1570EF'
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.backgroundColor = '#1570EF';
+                  e.currentTarget.style.color = 'white';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.backgroundColor = 'transparent';
+                  e.currentTarget.style.color = '#1570EF';
+                }}
               />
-              <CloseCircleOutlined
-                onClick={() => handleLockUnlock(record)}
-                className="cursor-pointer rounded-full p-1 text-xl text-[#DC0E0E] transition-colors hover:bg-[#DC0E0E] hover:text-white"
-              />
+              {record.isBlocked ? (
+                <CheckCircleOutlined
+                  onClick={() => handleLockUnlock(record)}
+                  className="cursor-pointer rounded-full p-1 text-xl transition-colors"
+                  style={{
+                    color: '#16A34A'
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.backgroundColor = '#16A34A';
+                    e.currentTarget.style.color = 'white';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.backgroundColor = 'transparent';
+                    e.currentTarget.style.color = '#16A34A';
+                  }}
+                />
+              ) : (
+                <CloseCircleOutlined
+                  onClick={() => handleLockUnlock(record)}
+                  className="cursor-pointer rounded-full p-1 text-xl transition-colors"
+                  style={{
+                    color: '#DC0E0E'
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.backgroundColor = '#DC0E0E';
+                    e.currentTarget.style.color = 'white';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.backgroundColor = 'transparent';
+                    e.currentTarget.style.color = '#DC0E0E';
+                  }}
+                />
+              )}
             </div>
           );
         }
@@ -201,7 +265,7 @@ const AdvertiserList: React.FC = () => {
         <DataTable
           columns={columns}
           data={dataSource}
-          pageCount={-1}
+          pageCount={pageCount}
           pageSizeOptions={[10, 20, 50, 100]}
         />
 
@@ -215,26 +279,32 @@ const AdvertiserList: React.FC = () => {
         {/* Modal khóa/mở khóa */}
         <Modal
           title={
-            selectedAdvertiser?.status === 'Hoạt động'
-              ? 'Xác nhận khóa'
-              : 'Xác nhận mở khóa'
+            selectedAdvertiser?.isBlocked ? 'Xác nhận mở khóa' : 'Xác nhận khóa'
           }
           open={isLockModalVisible}
           onOk={confirmLockUnlock}
           onCancel={cancelLockUnlock}
           okText="Xác nhận"
           cancelText="Hủy"
+          confirmLoading={updateUserStatusMutation.isPending}
           okButtonProps={{
-            className: 'bg-[#1570EF] text-white border-none'
+            style: {
+              backgroundColor: '#1570EF',
+              color: 'white',
+              border: 'none'
+            }
           }}
           cancelButtonProps={{
-            className: 'text-[#DC0E0E] border-[#DC0E0E] hover:text-white'
+            style: {
+              color: '#DC0E0E',
+              borderColor: '#DC0E0E'
+            }
           }}
         >
           <p>
             Bạn có chắc chắn muốn{' '}
-            {selectedAdvertiser?.status === 'Hoạt động' ? 'khóa' : 'mở khóa'}{' '}
-            nhà quảng cáo <strong>{selectedAdvertiser?.name}</strong> không?
+            {selectedAdvertiser?.isBlocked ? 'mở khóa' : 'khóa'} nhà quảng cáo{' '}
+            <strong>{selectedAdvertiser?.name}</strong> không?
           </p>
         </Modal>
       </div>
