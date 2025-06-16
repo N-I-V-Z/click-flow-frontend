@@ -17,20 +17,20 @@ const Recharge = ({ isOpen, onClose, onSuccess }) => {
   const handleDeposit = async () => {
     const amount = parseFloat(depositAmount.replace(/[^\d]/g, ''));
 
-    if (!amount || amount <= 0) {
-      alert('Vui lòng nhập số tiền hợp lệ');
-      return;
-    }
+    // if (!amount || amount <= 0) {
+    //   alert('Vui lòng nhập số tiền hợp lệ');
+    //   return;
+    // }
 
-    if (amount < 10000) {
-      alert('Số tiền nạp tối thiểu là 10,000 VND');
-      return;
-    }
+    // if (amount < 10000) {
+    //   alert('Số tiền nạp tối thiểu là 10,000 VND');
+    //   return;
+    // }
 
-    if (amount > 50000000) {
-      alert('Số tiền nạp tối đa là 50,000,000 VND');
-      return;
-    }
+    // if (amount > 50000000) {
+    //   alert('Số tiền nạp tối đa là 50,000,000 VND');
+    //   return;
+    // }
 
     setIsProcessing(true);
 
@@ -41,6 +41,7 @@ const Recharge = ({ isOpen, onClose, onSuccess }) => {
       };
 
       const response = await createTracsaction(depositData);
+      console.log(response);
       window.location.replace(response.result || '');
       // Reset form and close dialog
       setDepositAmount('');

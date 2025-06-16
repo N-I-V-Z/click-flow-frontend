@@ -27,7 +27,10 @@ export const useCreateTransaction = () => {
   return useMutation({
     mutationKey: ['crete-transaction'],
     mutationFn: async (model: CreateTransactionAPI) => {
-      return await BaseRequest.Post<string>(`/${SUB_URL}`, model);
+      return await BaseRequest.Post<string>(
+        `${SUB_URL}/payos/create-payment-link`,
+        model
+      );
     }
   });
 };
