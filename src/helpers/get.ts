@@ -40,8 +40,8 @@ export default class GET {
   }
 
   /**
-  * Fotmat số thành dạng 0
-  */
+   * Fotmat số thành dạng 0
+   */
   getPad = (n: string | number): string => {
     n = Number(n);
     if (n === 0) return '0';
@@ -168,12 +168,11 @@ export default class GET {
       return (k << d) | (k >>> (32 - d));
     }
     function K(G: number, k: number) {
-      var I: number, d: number, F: number, H: number, x: number;
-      F = G & 2147483648;
-      H = k & 2147483648;
-      I = G & 1073741824;
-      d = k & 1073741824;
-      x = (G & 1073741823) + (k & 1073741823);
+      const F = G & 2147483648;
+      const H = k & 2147483648;
+      const I = G & 1073741824;
+      const d = k & 1073741824;
+      const x = (G & 1073741823) + (k & 1073741823);
       if (I & d) {
         return x ^ 2147483648 ^ F ^ H;
       }
@@ -261,8 +260,8 @@ export default class GET {
       return k;
     }
 
-    let C = Array();
-    var P: number,
+    const C = [];
+    let P: number,
       h: any,
       E: any,
       v: any,
@@ -271,19 +270,19 @@ export default class GET {
       X: number,
       W: number,
       V: number;
-    var S = 7,
+    const S = 7,
       Q = 12,
       N = 17,
       M = 22;
-    var A = 5,
+    const A = 5,
       z = 9,
       y = 14,
       w = 20;
-    var o = 4,
+    const o = 4,
       m = 11,
       l = 16,
       j = 23;
-    var U = 6,
+    const U = 6,
       T = 10,
       R = 15,
       O = 21;
@@ -440,7 +439,7 @@ export default class GET {
     let str = String(_string || ' ').trim();
     if (str === '') return '';
 
-    const unicode_char: any = {
+    const unicode_char: Record<string, string> = {
       a: 'á|à|ả|ã|ạ|ă|ắ|ặ|ằ|ẳ|ẵ|â|ấ|ầ|ẩ|ẫ|ậ',
       d: 'đ',
       e: 'é|è|ẻ|ẽ|ẹ|ê|ế|ề|ể|ễ|ệ',
@@ -456,10 +455,10 @@ export default class GET {
       U: 'Ú|Ù|Ủ|Ũ|Ụ|Ư|Ứ|Ừ|Ử|Ữ|Ự',
       Y: 'Ý|Ỳ|Ỷ|Ỹ|Ỵ'
     };
-    let unicode_map: any = {};
-    for (var name in unicode_char) {
-      let value = unicode_char[name].split('|');
-      for (var name_u in value) {
+    const unicode_map: object = {};
+    for (const name in unicode_char) {
+      const value = unicode_char[name].split('|');
+      for (const name_u in value) {
         if (value[name_u]) {
           unicode_map[value[name_u]] = name;
         }
@@ -470,9 +469,12 @@ export default class GET {
       special = false;
     }
 
+    /* eslint-disable no-control-regex */
     str = str.replace(/[^\x00-\x80]/g, function (a) {
       return unicode_map[a] ? unicode_map[a] : a;
     });
+    /* eslint-enable no-control-regex */
+
     if (special === true) {
       str = str.replace(/[^a-zA-Z0-9]/g, '-');
       for (let i = 0; i <= 10; i++) {
@@ -494,7 +496,7 @@ export default class GET {
       slug = decodeURIComponent(String(slug || ' '));
       slug = this.getNonUnicode(slug).replace(/[^a-zA-Z0-9]/g, ' ');
       slug = String(slug).trim().replace(/\s/g, '-').toLowerCase();
-      slug = String(slug).replace(/\-+/g, '-').toLowerCase();
+      slug = String(slug).replace(/-+/g, '-').toLowerCase();
       return slug;
     } catch (_) {
       return '';

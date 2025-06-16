@@ -6,6 +6,7 @@ import { LeftOutlined, RightOutlined } from '@ant-design/icons';
 import { useParams, useNavigate } from 'react-router-dom';
 import helpers from '@/helpers';
 import Feedback from './Feedback';
+import ProductLink from './ProductLink'; // Import component mới
 import {
   useGetCampaignByIdd,
   useGetSimilarCampaigns,
@@ -187,9 +188,9 @@ const CampaignDetailPage: React.FC = () => {
   };
 
   // Hàm xử lý khi bấm "Lấy link"
-  const handleCopyLink = (e: React.MouseEvent, cId: number) => {
+  const handleCopyLink = (e: React.MouseEvent, campaignId: number) => {
     e.stopPropagation();
-    const link = `${window.location.origin}/link/${PUBLISHER_ID}/${cId}`;
+    const link = `${window.location.origin}/link?publisherId=${PUBLISHER_ID}&campaignId=${campaignId}`;
     navigator.clipboard
       .writeText(link)
       .then(() => {
@@ -385,14 +386,14 @@ const CampaignDetailPage: React.FC = () => {
                 </Collapse>
               </TabPane>
               <TabPane tab="Product link" key="product-link">
-                <p className="mt-4 text-gray-700">
-                  Danh sách link sản phẩm, banner, v.v...
-                </p>
+                {/* Sử dụng component ProductLink mới */}
+                <ProductLink
+                  campaignId={campaignId}
+                  originUrl={campaign.originUrl}
+                />
               </TabPane>
               <TabPane tab="Feedbacks" key="feedbacks">
-                <p className="mt-4 text-gray-700">
-                  <Feedback campaignId={campaignId} />
-                </p>
+                <Feedback campaignId={campaignId} />
               </TabPane>
             </Tabs>
           </div>

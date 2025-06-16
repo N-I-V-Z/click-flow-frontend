@@ -1,5 +1,3 @@
-const he = require('he');
-
 export default class helper_parse {
   /**
    * Take only number in a string
@@ -85,16 +83,6 @@ export default class helper_parse {
   }
 
   /**
-   * Parse string like html entities encode
-   * @param {*} s
-   * @returns
-   */
-  parseEntities(s: any) {
-    s = String(s || ' ');
-    return he.escape(s);
-  }
-
-  /**
    * Check and return valid JSON
    * @param {*} s
    * @returns Clean and valid JSON
@@ -113,7 +101,13 @@ export default class helper_parse {
       .replace(/\\b/g, '\\b')
       .replace(/\\f/g, '\\f');
     // remove non-printable and other non-valid JSON chars
-    s = s.replace(/[\u0000-\u0019]+/g, '');
+    s = s
+      .split('')
+      .filter(
+        (ch) =>
+          ch.charCodeAt(0) > 0x1f || ch === '\n' || ch === '\r' || ch === '\t'
+      )
+      .join('');
     return s;
   }
 
@@ -130,7 +124,8 @@ export default class helper_parse {
       email = String(email || ' ').trim();
 
       const filter =
-        /^([a-zA-Z0-9_.-])+\@(([a-zA-Z0-9-])+\.)+([a-zA-Z0-9]{2,4})+$/;
+        /^([a-zA-Z0-9_.-])+@(([a-zA-Z0-9-])+\.)+([a-zA-Z0-9]{2,4})+$/;
+
       if (filter.test(email)) {
         return true;
       }

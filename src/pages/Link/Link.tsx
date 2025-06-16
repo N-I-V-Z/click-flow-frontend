@@ -1,13 +1,12 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { useParams } from 'react-router-dom';
+import { useSearchParams } from 'react-router-dom';
 import { useCreateTraffic } from '@/queries/traffic.query';
 import PageHead from '@/components/shared/page-head';
 
 const LinkPage: React.FC = () => {
-  const { publisherId, campaignId } = useParams<{
-    publisherId: string;
-    campaignId: string;
-  }>();
+  const [searchParams] = useSearchParams();
+  const publisherId = searchParams.get('publisherId');
+  const campaignId = searchParams.get('campaignId');
 
   const { mutateAsync: createTraffic } = useCreateTraffic();
   const [hasExecuted, setHasExecuted] = useState(false); // Prevent multiple executions
@@ -69,11 +68,6 @@ const LinkPage: React.FC = () => {
   return (
     <div style={{ padding: '2rem' }}>
       <PageHead title={'Đang chuyển trang...'} />
-      <div style={{ textAlign: 'center' }}>
-        <p>Đang xử lý...</p>
-        <p>Publisher ID: {publisherId}</p>
-        <p>Campaign ID: {campaignId}</p>
-      </div>
     </div>
   );
 };

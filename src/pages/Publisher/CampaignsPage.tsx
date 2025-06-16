@@ -295,7 +295,7 @@ const CampaignsPage: React.FC = () => {
                         className="w-full bg-white text-[#8229B0] hover:!border-[#9B52BF] hover:!bg-[#9B52BF] hover:!text-white"
                         onClick={(e) => {
                           e.stopPropagation();
-                          const link = `${window.location.origin}/link/${PUBLISHER_ID}/${campaign.id}`;
+                          const link = `${window.location.origin}/link?publisherId=${PUBLISHER_ID}&campaignId=${campaign.id}`;
                           navigator.clipboard
                             .writeText(link)
                             .then(() => {

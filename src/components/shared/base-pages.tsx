@@ -30,8 +30,7 @@ const BasePages = ({
       <div className={className}>
         <div className="hidden items-center justify-between md:flex md:pr-8">
           <div> {breadcrumbs && <Breadcrumbs items={breadcrumbs} />}</div>
-          <div className="flex items-center justify-center">
-          </div>
+          <div className="flex items-center justify-center"></div>
         </div>
         {children}
       </div>
