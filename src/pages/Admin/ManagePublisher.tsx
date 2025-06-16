@@ -1,57 +1,77 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { Modal, Button, Input } from 'antd';
+import { Modal, message } from 'antd';
 import {
   EyeOutlined,
   CloseCircleOutlined,
-  UserOutlined
+  CheckCircleOutlined
 } from '@ant-design/icons';
 import DataTable from '@/components/shared/data-table';
 import Loading from '@/components/ui/loading';
 import { ColumnDef } from '@tanstack/react-table';
+import { useSearchParams } from 'react-router-dom';
 import BasePages from '@/components/shared/base-pages';
-import { useGetUsersByRole } from '@/queries/user.query';
-import {
-  ApiResponse,
-  ApplicationUserApiResponse,
-  PagingResponse
-} from '@/types';
+import { useGetUsersByRole, useUpdateUserStatus } from '@/queries/user.query';
+import { ApiResponse, PagingResponse, Publisher } from '@/types';
+import { PublisherDetailModal } from './PublisherDetailModal';
 
-interface Publisher {
+// Updated interface to match actual API response
+interface ApiUserResponse {
   id: number;
-  code: string;
-  name: string;
-  phone: string;
-  userName: string;
+  fullName: string;
+  role: string;
+  isDeleted: boolean;
   email: string;
-  status: string;
 }
 
-function mapApiUserToPublisher(apiUser: ApplicationUserApiResponse): Publisher {
-  return {
+// Updated mapping function to match actual API response
+function mapApiUserToPublisher(apiUser: ApiUserResponse): Publisher {
+  const isBlocked = apiUser.isDeleted || false;
+
+  const mapped = {
     id: apiUser.id,
     code: `PL${apiUser.id}`,
-    name: apiUser.fullName ?? 'No name',
-    phone: apiUser.phoneNumber ?? '',
-    userName: apiUser.userName ?? '',
-    email: apiUser.email ?? '',
-    status: apiUser.isDeleted ? 'Bị khóa' : 'Hoạt động'
+    name: apiUser.fullName,
+    phone: '', // API doesn't provide phone, set as empty
+    userName: '', // API doesn't provide userName, set as empty
+    email: apiUser.email,
+    status: isBlocked ? 'Bị khóa' : 'Hoạt động',
+    isBlocked: isBlocked
   };
+
+  return mapped;
 }
 
 const PublisherList: React.FC = () => {
+  const [searchParams] = useSearchParams();
   const [dataSource, setDataSource] = useState<Publisher[]>([]);
   const [isViewModalVisible, setIsViewModalVisible] = useState(false);
+  const [selectedId, setSelectedId] = useState<number | null>(null);
+  const [isLockModalVisible, setIsLockModalVisible] = useState(false);
   const [selectedPublisher, setSelectedPublisher] = useState<Publisher | null>(
     null
   );
-  const [isLockModalVisible, setIsLockModalVisible] = useState(false);
-  const { data, isLoading, error } = useGetUsersByRole('Publisher', 1, 10);
+
+  // Get pagination parameters from URL
+  const page = parseInt(searchParams.get('page') || '1');
+  const limit = parseInt(searchParams.get('limit') || '10');
+
+  // Use query with pagination parameters
+  const { data, isLoading, error } = useGetUsersByRole(
+    'Publisher',
+    page,
+    limit
+  );
+  const updateUserStatusMutation = useUpdateUserStatus();
+
+  // Calculate total pages from API response
+  const pageCount = data?.result?.totalPages || 1;
 
   useEffect(() => {
     if (data?.result) {
+      // Updated to use the correct type
       const mapped = (
-        data as ApiResponse<PagingResponse<ApplicationUserApiResponse>>
-      ).result?.datas.map((user: ApplicationUserApiResponse) =>
+        data as ApiResponse<PagingResponse<ApiUserResponse>>
+      ).result?.datas.map((user: ApiUserResponse) =>
         mapApiUserToPublisher(user)
       );
       setDataSource(mapped ?? []);
@@ -59,13 +79,13 @@ const PublisherList: React.FC = () => {
   }, [data]);
 
   const handleView = (record: Publisher) => {
-    setSelectedPublisher(record);
+    setSelectedId(record.id);
     setIsViewModalVisible(true);
   };
 
   const closeViewModal = () => {
     setIsViewModalVisible(false);
-    setSelectedPublisher(null);
+    setSelectedId(null);
   };
 
   const handleLockUnlock = (record: Publisher) => {
@@ -73,18 +93,35 @@ const PublisherList: React.FC = () => {
     setIsLockModalVisible(true);
   };
 
-  const confirmLockUnlock = () => {
-    if (selectedPublisher) {
-      setDataSource((prev) =>
-        prev.map((item) =>
-          item.id === selectedPublisher.id
-            ? {
-                ...item,
-                status: item.status === 'Hoạt động' ? 'Bị khóa' : 'Hoạt động'
-              }
-            : item
-        )
-      );
+  const confirmLockUnlock = async () => {
+    if (selectedPublisher && selectedPublisher.id) {
+      try {
+        const newBlockedStatus = !selectedPublisher.isBlocked;
+
+        await updateUserStatusMutation.mutateAsync({
+          userId: selectedPublisher.id,
+          isBlocked: newBlockedStatus
+        });
+
+        // Update local state
+        setDataSource((prev) =>
+          prev.map((item) =>
+            item.id === selectedPublisher.id
+              ? {
+                  ...item,
+                  status: newBlockedStatus ? 'Bị khóa' : 'Hoạt động',
+                  isBlocked: newBlockedStatus
+                }
+              : item
+          )
+        );
+
+        message.success(
+          `${newBlockedStatus ? 'Khóa' : 'Mở khóa'} nhà tiếp thị thành công!`
+        );
+      } catch (error) {
+        message.error('Có lỗi xảy ra khi cập nhật trạng thái!');
+      }
     }
     setIsLockModalVisible(false);
     setSelectedPublisher(null);
@@ -109,11 +146,11 @@ const PublisherList: React.FC = () => {
         header: 'TRẠNG THÁI',
         cell: ({ row }) =>
           row.original.status === 'Hoạt động' ? (
-            <span className="font-semibold text-green-600">
+            <span className="font-semibold" style={{ color: '#16A34A' }}>
               {row.original.status}
             </span>
           ) : (
-            <span className="font-semibold text-[#DC0E0E]">
+            <span className="font-semibold" style={{ color: '#DC0E0E' }}>
               {row.original.status}
             </span>
           )
@@ -127,12 +164,52 @@ const PublisherList: React.FC = () => {
             <div className="flex justify-center gap-3">
               <EyeOutlined
                 onClick={() => handleView(record)}
-                className="cursor-pointer rounded-full p-1 text-xl text-[#1570EF] transition-colors hover:bg-[#1570EF] hover:text-white"
+                className="cursor-pointer rounded-full p-1 text-xl transition-colors"
+                style={{
+                  color: '#1570EF'
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.backgroundColor = '#1570EF';
+                  e.currentTarget.style.color = 'white';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.backgroundColor = 'transparent';
+                  e.currentTarget.style.color = '#1570EF';
+                }}
               />
-              <CloseCircleOutlined
-                onClick={() => handleLockUnlock(record)}
-                className="cursor-pointer rounded-full p-1 text-xl text-[#DC0E0E] transition-colors hover:bg-[#DC0E0E] hover:text-white"
-              />
+              {record.isBlocked ? (
+                <CheckCircleOutlined
+                  onClick={() => handleLockUnlock(record)}
+                  className="cursor-pointer rounded-full p-1 text-xl transition-colors"
+                  style={{
+                    color: '#16A34A'
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.backgroundColor = '#16A34A';
+                    e.currentTarget.style.color = 'white';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.backgroundColor = 'transparent';
+                    e.currentTarget.style.color = '#16A34A';
+                  }}
+                />
+              ) : (
+                <CloseCircleOutlined
+                  onClick={() => handleLockUnlock(record)}
+                  className="cursor-pointer rounded-full p-1 text-xl transition-colors"
+                  style={{
+                    color: '#DC0E0E'
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.backgroundColor = '#DC0E0E';
+                    e.currentTarget.style.color = 'white';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.backgroundColor = 'transparent';
+                    e.currentTarget.style.color = '#DC0E0E';
+                  }}
+                />
+              )}
             </div>
           );
         }
@@ -150,6 +227,7 @@ const PublisherList: React.FC = () => {
       </BasePages>
     );
   }
+
   if (error) {
     return (
       <BasePages pageHead="ClickFlow - Nhà tiếp thị ">
@@ -162,79 +240,50 @@ const PublisherList: React.FC = () => {
     <BasePages pageHead="ClickFlow - Nhà tiếp thị ">
       <div className="mb-10 p-4">
         <h2 className="mb-4 text-xl font-semibold">Nhà tiếp thị</h2>
+
         <DataTable
           columns={columns}
           data={dataSource}
-          pageCount={-1} //
+          pageCount={pageCount}
           pageSizeOptions={[10, 20, 30, 40, 50]}
         />
 
-        <Modal
+        {/* Modal xem chi tiết */}
+        <PublisherDetailModal
           open={isViewModalVisible}
-          onCancel={closeViewModal}
-          footer={<Button onClick={closeViewModal}>Đóng</Button>}
-          title={null}
-        >
-          {selectedPublisher && (
-            <div>
-              <div className="flex items-center gap-3">
-                <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-gray-200 text-2xl text-gray-600">
-                  <UserOutlined />
-                </div>
-                <div>
-                  <h3 className="text-lg font-semibold">
-                    {selectedPublisher.name}
-                  </h3>
-                  <p className="text-sm text-gray-500">Nhà tiếp thị</p>
-                </div>
-              </div>
-              <hr className="my-4 border-gray-300" />
-              <div className="space-y-3">
-                <div>
-                  <label className="block font-semibold text-gray-600">
-                    Số điện thoại
-                  </label>
-                  <Input readOnly value={selectedPublisher.phone} />
-                </div>
-                <div>
-                  <label className="block font-semibold text-gray-600">
-                    Tên người dùng
-                  </label>
-                  <Input readOnly value={selectedPublisher.userName} />
-                </div>
-                <div>
-                  <label className="block font-semibold text-gray-600">
-                    Email
-                  </label>
-                  <Input readOnly value={selectedPublisher.email} />
-                </div>
-              </div>
-            </div>
-          )}
-        </Modal>
+          onClose={closeViewModal}
+          publisherId={selectedId}
+        />
 
+        {/* Modal khóa/mở khóa */}
         <Modal
           title={
-            selectedPublisher?.status === 'Hoạt động'
-              ? 'Xác nhận khóa'
-              : 'Xác nhận mở khóa'
+            selectedPublisher?.isBlocked ? 'Xác nhận mở khóa' : 'Xác nhận khóa'
           }
           open={isLockModalVisible}
           onOk={confirmLockUnlock}
           onCancel={cancelLockUnlock}
           okText="Xác nhận"
           cancelText="Hủy"
+          confirmLoading={updateUserStatusMutation.isPending}
           okButtonProps={{
-            className: 'bg-[#1570EF] text-white border-none'
+            style: {
+              backgroundColor: '#1570EF',
+              color: 'white',
+              border: 'none'
+            }
           }}
           cancelButtonProps={{
-            className: 'text-[#DC0E0E] border-[#DC0E0E] hover:text-white'
+            style: {
+              color: '#DC0E0E',
+              borderColor: '#DC0E0E'
+            }
           }}
         >
           <p>
             Bạn có chắc chắn muốn{' '}
-            {selectedPublisher?.status === 'Hoạt động' ? 'khóa' : 'mở khóa'} nhà
-            tiếp thị <strong>{selectedPublisher?.name}</strong> không?
+            {selectedPublisher?.isBlocked ? 'mở khóa' : 'khóa'} nhà tiếp thị{' '}
+            <strong>{selectedPublisher?.name}</strong> không?
           </p>
         </Modal>
       </div>

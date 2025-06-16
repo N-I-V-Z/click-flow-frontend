@@ -3,7 +3,7 @@ import { Suspense, lazy } from 'react';
 const LinkPage = lazy(() => import('@/pages/Link/Link'));
 const LinkRoutes = [
   {
-    path: '/link/:publisherId/:campaignId',
+    path: '/link',
     element: (
       <Suspense>
         <LinkPage />
