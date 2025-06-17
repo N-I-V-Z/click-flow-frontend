@@ -150,7 +150,7 @@ export default function RegisterPublisherPage() {
                   <div className="text-center">
                     <Link to="/" className="inline-block">
                       <img
-                        src="src/assets/logo.jpg"
+                        src="/assets/logo.jpg"
                         alt="ClickFlow Logo"
                         className="mx-auto h-16 w-auto rounded-xl shadow-md"
                       />

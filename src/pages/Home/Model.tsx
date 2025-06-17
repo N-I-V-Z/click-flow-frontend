@@ -28,7 +28,7 @@ const Model: React.FC = () => {
           >
             <div className="flex h-24 w-24 items-center justify-center rounded-full bg-gradient-to-br from-pink-500 to-yellow shadow-lg">
               <img
-                src="/src/assets/Advertisers.png"
+                src="/assets/Advertisers.png"
                 alt="Nhà Cung Cấp"
                 className="h-16"
               />
@@ -82,7 +82,7 @@ const Model: React.FC = () => {
           >
             <div className="flex h-24 w-24 items-center justify-center rounded-full bg-gradient-to-br from-blue to-indigo-600 shadow-lg">
               <img
-                src="src/assets/Publishers.png"
+                src="/assets/Publishers.png"
                 alt="Nhà Phân Phối"
                 className="h-20"
               />

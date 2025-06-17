@@ -2,7 +2,7 @@ const ImageLeft = () => {
   return (
     <div className="flex h-full w-full flex-col items-center justify-center rounded">
       <video
-        src="/src/assets/vid.webm"
+        src="/assets/vid.webm"
         autoPlay
         loop
         muted

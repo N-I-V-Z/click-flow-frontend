@@ -9,8 +9,7 @@ import {
 import * as THREE from 'three';
 
 // Dynamic asset URL resolved by Vite
-const MODEL_URL = new URL('../../assets/robot_playground.glb', import.meta.url)
-  .href;
+const MODEL_URL = new URL('/assets/robot_playground.glb', import.meta.url).href;
 
 function Robot() {
   const group = useRef<THREE.Group>(null);

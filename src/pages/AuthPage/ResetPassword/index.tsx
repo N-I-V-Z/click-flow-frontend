@@ -84,7 +84,7 @@ export default function ResetPasswordPage() {
               .
               <Link to="/">
                 <img
-                  src="src/assets/logo.jpg"
+                  src="/assets/logo.jpg"
                   alt="Logo"
                   className="w-30 mx-auto mb-10 mt-10 h-20 rounded-lg"
                 />
