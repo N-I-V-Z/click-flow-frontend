@@ -3,6 +3,7 @@ import BasePages from '@/components/shared/base-pages.js';
 import Footer from '@/components/shared/footer-home';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { toast } from 'react-toastify';
 import { useLogin, useLoginGoogle } from '@/queries/auth.query';
 import helpers from '@/helpers';
 import __helpers from '@/helpers';
@@ -24,18 +25,16 @@ import {
   GoogleOAuthProvider,
   CredentialResponse
 } from '@react-oauth/google';
-
-type FormError = Partial<LoginRequest>;
+import ToastNotification from '@/components/shared/toast-notification';
 
 export default function LoginPage() {
   const { mutateAsync: Login, isPending } = useLogin();
   const { mutateAsync: LoginGoogle, isPending: isPendingGoogle } =
-    useLoginGoogle(); // Add Google login hook
+    useLoginGoogle();
   const [formLogin, setFormLogin] = useState<LoginRequest>({
     userNameOrEmail: '',
     password: ''
   });
-  const [error, setError] = useState<FormError>({});
   const [showPassword, setShowPassword] = useState(false);
   const dispatch = useDispatch();
   const router = useRouter();
@@ -48,21 +47,20 @@ export default function LoginPage() {
     }
   }, [dispatch]);
 
-  const validateInputs = (): FormError => {
-    const errors: FormError = {};
+  const validateInputs = (): boolean => {
     if (!formLogin.userNameOrEmail.trim()) {
-      errors.userNameOrEmail = 'Tên đăng nhập không được để trống.';
+      toast.error('Tên đăng nhập không được để trống.');
+      return false;
     }
     if (!formLogin.password.trim()) {
-      errors.password = 'Mật khẩu không được để trống.';
+      toast.error('Mật khẩu không được để trống.');
+      return false;
     }
-    return errors;
+    return true;
   };
 
   const handleLogin = async () => {
-    const errors = validateInputs();
-    setError(errors);
-    if (Object.keys(errors).length > 0) return;
+    if (!validateInputs()) return;
 
     try {
       const data = await Login(formLogin);
@@ -80,6 +78,9 @@ export default function LoginPage() {
         __helpers.cookie_get('AT')
       );
       const role = decoded?.Role.toLowerCase();
+
+      toast.success('Đăng nhập thành công!');
+
       if (role === 'admin') {
         router.push('/admin');
       } else if (role === 'advertiser') {
@@ -90,7 +91,7 @@ export default function LoginPage() {
         router.push('/404');
       }
     } catch {
-      setError({ password: 'Tên đăng nhập hoặc mật khẩu không đúng.' });
+      toast.error('Tên đăng nhập hoặc mật khẩu không đúng.');
     }
   };
 
@@ -99,11 +100,7 @@ export default function LoginPage() {
   ) => {
     if (!credentialResponse.credential) return;
 
-    // Clear any previous errors
-    setError({});
-
     try {
-      // Use the proper hook instead of direct fetch
       const googleLoginRequest: LoginGoogleRequest = {
         idToken: credentialResponse.credential
       };
@@ -122,6 +119,8 @@ export default function LoginPage() {
       const decoded: TokenDecoded | null = helpers.decodeTokens(accessToken);
       const role = decoded?.Role.toLowerCase();
 
+      toast.success('Đăng nhập Google thành công!');
+
       if (role === 'admin') {
         router.push('/admin');
       } else if (role === 'advertiser') {
@@ -133,12 +132,12 @@ export default function LoginPage() {
       }
     } catch (error) {
       console.error('Google login error:', error);
-      setError({ password: 'Đăng nhập Google thất bại.' });
+      toast.error('Đăng nhập Google thất bại. Vui lòng thử lại.');
     }
   };
 
   const handleGoogleError = () => {
-    setError({ password: 'Đăng nhập Google thất bại.' });
+    toast.error('Đăng nhập Google thất bại. Vui lòng thử lại.');
   };
 
   return (
@@ -221,11 +220,6 @@ export default function LoginPage() {
                           disabled={isPending || isPendingGoogle}
                         />
                       </div>
-                      {error.userNameOrEmail && (
-                        <p className="text-red-600 mt-2 text-sm">
-                          {error.userNameOrEmail}
-                        </p>
-                      )}
                     </div>
 
                     {/* Password */}
@@ -261,11 +255,6 @@ export default function LoginPage() {
                           )}
                         </button>
                       </div>
-                      {error.password && (
-                        <p className="text-red-600 mt-2 text-sm">
-                          {error.password}
-                        </p>
-                      )}
                     </div>
 
                     {/* Forgot Password */}
@@ -388,6 +377,7 @@ export default function LoginPage() {
       </BasePages>
 
       <Footer />
+      <ToastNotification />
     </>
   );
 }

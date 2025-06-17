@@ -155,7 +155,6 @@ export type AdvertiserApiResponse = {
 //   isDeleted: boolean;
 //   advertiser: AdvertiserApiResponse;
 //   userDetail: UserDetail;
-
 // };
 export type ApplicationUserApiResponse = {
   // Basic info
