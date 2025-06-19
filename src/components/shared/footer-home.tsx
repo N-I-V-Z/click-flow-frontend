@@ -8,18 +8,18 @@ import {
   MailOutlined,
   TikTokOutlined
 } from '@ant-design/icons';
-import { Link } from 'react-router-dom';
+import FlowerAnimation from './flower-animation';
 
 export default function Footer() {
   return (
-    <footer className="relative mt-16 bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 text-white">
+    <footer className="relative mt-2 overflow-hidden bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 text-white">
       {/* Decorative top border */}
       <div className="absolute left-0 right-0 top-0 h-1 bg-gradient-to-r from-purple-500 via-purple-600 to-purple-500" />
 
-      <div className="container mx-auto px-6 py-12 lg:px-8">
-        <div className="grid grid-cols-1 gap-12 md:grid-cols-2 lg:grid-cols-3">
+      <div className="lg:px-22 container mx-auto px-2 pt-12">
+        <div className="grid grid-cols-1 gap-12 md:grid-cols-2 lg:grid-cols-4">
           {/* Brand Section */}
-          <div className="space-y-6">
+          <div className="space-y-4">
             <div>
               <h2 className="bg-gradient-to-r from-purple-400 to-purple-600 bg-clip-text text-2xl font-bold text-transparent">
                 Click Flow
@@ -32,12 +32,20 @@ export default function Footer() {
 
             {/* Social Media */}
             <div className="flex space-x-4">
-              <Link to="https://www.facebook.com/profile.php?id=61576613399333">
-                <FacebookOutlined className="text-xl text-white transition-colors hover:text-purple-400" />{' '}
-              </Link>
-              <Link to="https://www.tiktok.com/@clickflow.affiliate?is_from_webapp=1&sender_device=pc">
-                <TikTokOutlined className="text-xl text-white transition-colors hover:text-purple-400" />{' '}
-              </Link>
+              <a
+                href="https://www.facebook.com/profile.php?id=61576613399333"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                <FacebookOutlined className="text-xl text-white transition-colors hover:text-purple-400" />
+              </a>
+              <a
+                href="https://www.tiktok.com/@clickflow.affiliate?is_from_webapp=1&sender_device=pc"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                <TikTokOutlined className="text-xl text-white transition-colors hover:text-purple-400" />
+              </a>
             </div>
           </div>
 
@@ -69,61 +77,44 @@ export default function Footer() {
           </div>
 
           {/* Quick Links */}
-          <div className="space-y-6">
+          <div className="ml-[-10] space-y-6 px-2">
             <h3 className="border-b border-gray-700 pb-2 text-xl font-semibold text-purple-400">
               Liên kết nhanh
             </h3>
             <nav className="space-y-3">
-              <Link
-                to="/"
+              <a
+                href="/"
                 className="flex items-center text-gray-300 transition-all hover:translate-x-2 hover:text-purple-400"
               >
                 <HomeOutlined className="mr-2" /> Trang chủ
-              </Link>
+              </a>
 
-              <Link
-                to="/learn-more"
+              <a
+                href="/learn-more"
                 className="flex items-center text-gray-300 transition-all hover:translate-x-2 hover:text-purple-400"
               >
                 <InfoCircleOutlined className="mr-2" /> Về chúng tôi
-              </Link>
-              <Link
-                to="/privacy"
+              </a>
+              <a
+                href="/privacy"
                 className="flex items-center text-gray-300 transition-all hover:translate-x-2 hover:text-purple-400"
               >
                 <SettingOutlined className="mr-2" /> Chính sách bảo mật
-              </Link>
+              </a>
             </nav>
           </div>
-        </div>
 
-        {/* Newsletter Section */}
-        {/* <div className="mt-12 rounded-2xl border border-purple-500/20 bg-gradient-to-r from-purple-500/10 to-purple-600/10 p-8">
-          <div className="text-center">
-            <h3 className="mb-2 text-xl font-semibold text-purple-400">
-              Đăng ký nhận tin tức
-            </h3>
-            <p className="mb-6 text-gray-300">
-              Nhận thông tin mới nhất về sản phẩm và dịch vụ của chúng tôi
-            </p>
-            <div className="mx-auto flex max-w-md space-x-3">
-              <input
-                type="email"
-                placeholder="Nhập email của bạn"
-                className="flex-1 rounded-lg border border-gray-700 bg-gray-800 px-4 py-3 text-white placeholder-gray-500 focus:border-purple-400 focus:outline-none focus:ring-2 focus:ring-purple-400/20"
-              />
-              <button className="rounded-lg bg-gradient-to-r from-purple-500 to-purple-600 px-6 py-3 font-semibold text-white transition-all hover:scale-105 hover:shadow-lg hover:shadow-purple-500/25">
-                Đăng ký
-              </button>
-            </div>
+          {/* Flower Animation Section - Bên phải cột liên kết nhanh */}
+          <div className="flex content-end items-start justify-center">
+            <FlowerAnimation />
           </div>
-        </div> */}
+        </div>
       </div>
 
       {/* Footer Bottom */}
       <div className="border-t border-gray-700 bg-gray-900/50">
         <div className="container mx-auto px-6 py-6">
-          <div className=" items-center justify-between space-y-4 text-center md:flex-row md:space-y-0">
+          <div className="items-center justify-between space-y-4 text-center md:flex-row md:space-y-0">
             <div className="text-sm text-gray-400">
               © 2025 Click Flow. Tất cả quyền được bảo lưu.
             </div>

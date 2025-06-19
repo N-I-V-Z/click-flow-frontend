@@ -66,7 +66,7 @@ export default function Background() {
       </div>
 
       {/* Content */}
-      <div className="relative z-10 mx-auto max-w-7xl px-6 pb-32 pt-20">
+      <div className="relative z-10 mx-auto max-w-7xl px-6 pb-2 pt-20">
         {/* Badge */}
         <motion.div
           className="mb-8 flex justify-center"
@@ -75,7 +75,7 @@ export default function Background() {
           transition={{ duration: 0.6 }}
         >
           <div className="inline-flex items-center rounded-full border border-white/20 bg-white/10 px-4 py-2 text-sm text-purple-200 backdrop-blur-md">
-            <Zap className="text-yellow-400 mr-2 h-4 w-4" />
+            <Zap className="mr-2 h-4 w-4 text-yellow" />
             Platform Affiliate Thế Hệ Mới
           </div>
         </motion.div>
@@ -114,7 +114,7 @@ export default function Background() {
         >
           {/* Left: Robot model - now spans 3 columns */}
           <div className="flex items-center justify-center md:col-span-3">
-            <div className="max-h-[650px] w-full">
+            <div className="mb-20 max-h-[650px] w-full">
               <RobotCanvas />
             </div>
           </div>
