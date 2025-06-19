@@ -3,7 +3,7 @@ import { FaClock, FaTimesCircle, FaPause, FaCheckCircle } from 'react-icons/fa';
 import CreateNewCampaign from './CreateNewCampaign';
 import CampaignRequest from './CampaignRequest';
 import { useGetUserDetail } from '@/queries/user.query';
-import { ApiResponse, UserDetailApiResponse, TokenDecoded } from '@/types';
+import { TokenDecoded } from '@/types';
 import helpers from '@/helpers';
 import __helpers from '@/helpers';
 
@@ -19,9 +19,8 @@ const advertiserId =
 
 const AdvertiserDashboard: React.FC = () => {
   const [isModalVisible, setIsModalVisible] = useState(false);
-  const { data, isLoading } = useGetUserDetail(1);
-  const user = (data as ApiResponse<UserDetailApiResponse>)?.result;
-  const greetingName = user?.fullName || (isLoading ? '...' : 'User');
+  const { data } = useGetUserDetail(advertiserId);
+  const user = data?.result;
 
   // Gọi API đếm số lượng campaign cho 2 trạng thái: Canceled & Completed
   const { data: canceledCount, isLoading: isCanceledLoading } =
@@ -44,7 +43,7 @@ const AdvertiserDashboard: React.FC = () => {
         <header className="bg-transparent px-10 py-5">
           <div className="text-center text-white">
             <h1 className="mb-0 text-3xl font-bold text-[#DD83E0]">
-              Xin chào, {greetingName}
+              Xin chào, {user?.user.fullName}
             </h1>
             <p className="text-gray-500">Chúc bạn có một ngày tốt lành</p>
           </div>

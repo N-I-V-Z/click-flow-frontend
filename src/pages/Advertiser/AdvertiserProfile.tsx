@@ -17,15 +17,24 @@ import ChangePassword from '@/components/shared/change-password';
 import { useGetUserDetail } from '@/queries/user.query';
 import BasePages from '@/components/shared/base-pages';
 import Loading from '@/components/ui/loading';
+import { TokenDecoded } from '@/types';
+import helpers from '@/helpers';
+import __helpers from '@/helpers';
+
+const decodedToken: TokenDecoded | null = helpers.decodeTokens(
+  __helpers.cookie_get('AT')
+);
+const advertiserId =
+  decodedToken?.Id !== undefined ? parseInt(decodedToken.Id) : 0;
 
 const AdvertiserProfile = () => {
   const router = useRouter();
   const [activeSection, setActiveSection] = useState<
     'personal' | 'changePassword'
   >('personal');
-  const { data, isLoading, error } = useGetUserDetail(2);
+  const { data, isLoading, error } = useGetUserDetail(advertiserId);
   const user = data?.result;
-
+  console.log(user);
   if (isLoading) {
     return (
       <BasePages pageHead="ClickFlow - Hồ sơ">
@@ -89,7 +98,7 @@ const AdvertiserProfile = () => {
                 <Avatar className="relative h-36 w-36 border-4 border-white shadow-2xl">
                   <AvatarImage
                     src={user.avatarURL}
-                    alt={user.fullName}
+                    alt={user.user.fullName}
                     className="object-cover"
                   />
                   <AvatarFallback className="bg-gradient-to-br from-blue to-purple-600 text-4xl font-bold text-white">
@@ -102,7 +111,7 @@ const AdvertiserProfile = () => {
                 <div className="flex flex-col items-center md:items-start">
                   <div className="mb-2 flex items-center space-x-3">
                     <h1 className="text-4xl font-bold text-white">
-                      {user.fullName}
+                      {user.user.fullName}
                     </h1>
                   </div>
                   <div className="grid w-full max-w-2xl grid-cols-1 gap-4 md:grid-cols-3">
@@ -209,7 +218,7 @@ const AdvertiserProfile = () => {
                             </label>
                             <div className="group-hover:bg-blue-50 mt-2 rounded-xl bg-gray-50 p-4 transition-colors">
                               <p className="group-hover:text-blue-600 text-lg font-semibold text-gray-800">
-                                {user.fullName}
+                                {user.user.fullName}
                               </p>
                             </div>
                           </div>

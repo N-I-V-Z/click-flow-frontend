@@ -3,16 +3,24 @@ import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { useRouter } from '@/routes/hooks';
 import { useGetUserDetail } from '@/queries/user.query';
-import { ApiResponse, UserDetailApiResponse } from '@/types';
 import { PencilLine, Wallet, KeySquare } from 'lucide-react';
 import BasePages from '@/components/shared/base-pages';
+import helpers from '@/helpers';
+import __helpers from '@/helpers';
+import { TokenDecoded } from '@/types';
+
+const decodedToken: TokenDecoded | null = helpers.decodeTokens(
+  __helpers.cookie_get('AT')
+);
+const publisherId =
+  decodedToken?.Id !== undefined ? parseInt(decodedToken.Id) : 0;
 
 const PublisherProfile = () => {
   const router = useRouter();
 
   // Fetch user data
-  const { data, isLoading, error } = useGetUserDetail(2);
-  const user = (data as ApiResponse<UserDetailApiResponse>)?.result;
+  const { data, isLoading, error } = useGetUserDetail(publisherId);
+  const user = data?.result;
 
   if (isLoading) {
     return (
@@ -57,7 +65,7 @@ const PublisherProfile = () => {
                   <h2 className="text-3xl font-bold text-gray-800">
                     {user.fullName}
                   </h2>
-                  <p className="text-blue-600 mt-1">Publisher</p>
+                  <p className="text-blue-600 mt-1">{user?.user.fullName}</p>
                 </div>
               </div>
 
@@ -101,7 +109,7 @@ const PublisherProfile = () => {
                   <div className="group">
                     <p className="text-sm text-gray-500">Họ và Tên</p>
                     <p className="group-hover:text-blue-600 mt-2 text-lg font-medium text-gray-800">
-                      {user.fullName}
+                      {user?.user.fullName}
                     </p>
                   </div>
 
