@@ -5,7 +5,6 @@ import {
   ForgotPasswordRequest,
   LoginApiResponse,
   LogoutRequest,
-  RegisterRequest,
   ResetpasswordRequest,
   RegisterPublisherRequest,
   ApplicationUserApiResponse,
@@ -28,18 +27,6 @@ export const useLogin = () => {
   });
 };
 
-export const useRegister = () => {
-  return useMutation({
-    mutationKey: ['register'],
-    mutationFn: async (model: RegisterRequest) => {
-      return await BaseRequest.Post<ApplicationUserApiResponse>(
-        `${SUB_URL}/`,
-        model
-      );
-    }
-  });
-};
-
 export const useForgotPassword = () => {
   return useMutation({
     mutationKey: ['forgotPassword'],
@@ -51,6 +38,7 @@ export const useForgotPassword = () => {
     }
   });
 };
+
 export const useLogout = () => {
   return useMutation({
     mutationKey: ['logout'],

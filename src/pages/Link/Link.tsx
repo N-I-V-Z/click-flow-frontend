@@ -47,11 +47,8 @@ const LinkPage: React.FC = () => {
       };
 
       try {
-        console.log('Creating traffic...', payload);
         const response = await createTraffic(payload);
-
         if (response?.result?.url && response?.result?.clickId) {
-          console.log('Redirecting to:', response.result.url);
           window.location.replace(
             `${response.result.url}?clickId=${response.result.clickId}`
           );

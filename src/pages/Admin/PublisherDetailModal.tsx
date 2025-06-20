@@ -23,8 +23,6 @@ export const PublisherDetailModal: React.FC<PublisherDetailModalProps> = ({
   onClose,
   publisherId
 }) => {
-  console.log('🖼️ PublisherDetailModal props:', { open, publisherId });
-
   // Hook sẽ không chạy khi publisherId là null
   const { data, isLoading, error } = useGetUserDetail(publisherId || undefined);
 

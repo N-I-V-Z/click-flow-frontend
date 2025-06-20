@@ -37,7 +37,7 @@ const PublisherProfile = () => {
           <h3 className="text-2xl font-bold">Data not available</h3>
           <Button
             className="hover:bg-blue-50 mt-4 rounded-md border border-blue bg-white text-blue"
-            onClick={() => window.location.reload()}
+            onClick={() => router.reload()}
           >
             Retry
           </Button>

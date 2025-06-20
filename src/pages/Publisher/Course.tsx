@@ -2,6 +2,7 @@ import { useState } from 'react';
 import BasePages from '@/components/shared/base-pages';
 import PageHead from '@/components/shared/page-head';
 import { useGetAllCourses } from '@/queries/course.query';
+import { useJoinCourse } from '@/queries/course.query'; // Import the new hook
 import PaginationSection from '@/components/shared/pagination-section';
 import {
   Grid,
@@ -11,22 +12,45 @@ import {
   ShoppingCart,
   Search,
   Sparkles,
-  X
+  X,
+  Loader2,
+  CheckCircle,
+  AlertCircle
 } from 'lucide-react';
 import Loading from '@/components/ui/loading';
+import { CourseResponse } from '@/types';
 
-type Course = {
-  id: number;
-  title: string;
-  createAt: string;
-  updateAt: string;
-  createById: number;
-  avgRate: number;
-  price: number;
-  lessonLearned: string;
-  content: string;
-  description: string;
-};
+// Toast notification component
+const Toast = ({
+  message,
+  type,
+  onClose
+}: {
+  message: string;
+  type: 'success' | 'error';
+  onClose: () => void;
+}) => (
+  <div
+    className={`fixed right-4 top-4 z-[100] flex items-center space-x-3 rounded-2xl px-6 py-4 shadow-2xl backdrop-blur-sm duration-300 animate-in slide-in-from-top-2 ${
+      type === 'success'
+        ? 'bg-emerald-500/90 text-white'
+        : 'bg-red-500/90 text-white'
+    }`}
+  >
+    {type === 'success' ? (
+      <CheckCircle className="h-5 w-5" />
+    ) : (
+      <AlertCircle className="h-5 w-5" />
+    )}
+    <span className="font-medium">{message}</span>
+    <button
+      onClick={onClose}
+      className="ml-2 text-white/80 transition-colors hover:text-white"
+    >
+      <X className="h-4 w-4" />
+    </button>
+  </div>
+);
 
 const StarRating = ({ rating }: { rating: number }) => (
   <div className="flex items-center space-x-1">
@@ -56,11 +80,18 @@ const formatDate = (dateString: string) => {
 };
 
 type CourseDetailProps = {
-  course: Course;
+  course: CourseResponse;
   onClose: () => void;
+  onJoinCourse: (courseId: number) => void;
+  isJoining: boolean;
 };
 
-const CourseDetail = ({ course, onClose }: CourseDetailProps) => (
+const CourseDetail = ({
+  course,
+  onClose,
+  onJoinCourse,
+  isJoining
+}: CourseDetailProps) => (
   <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4 backdrop-blur-sm duration-300 animate-in fade-in">
     <PageHead title="ClickFlow – Chi tiết khóa học" />
 
@@ -109,11 +140,16 @@ const CourseDetail = ({ course, onClose }: CourseDetailProps) => (
         {/* Action buttons */}
         <div className="mb-8 flex flex-wrap gap-4">
           <button
-            onClick={() => alert(`Đã thêm "${course.title}" vào giỏ hàng!`)}
-            className="flex transform items-center space-x-2 rounded-2xl bg-gradient-to-r from-purple-600 to-indigo-600 px-8 py-4 font-semibold text-white shadow-lg transition-all duration-200 hover:scale-105 hover:from-purple-700 hover:to-indigo-700 hover:shadow-xl"
+            onClick={() => onJoinCourse(course.id)}
+            disabled={isJoining}
+            className="flex transform items-center space-x-2 rounded-2xl bg-gradient-to-r from-purple-600 to-indigo-600 px-8 py-4 font-semibold text-white shadow-lg transition-all duration-200 hover:scale-105 hover:from-purple-700 hover:to-indigo-700 hover:shadow-xl disabled:transform-none disabled:cursor-not-allowed disabled:opacity-50"
           >
-            <ShoppingCart className="h-5 w-5" />
-            <span>Thêm vào giỏ hàng</span>
+            {isJoining ? (
+              <Loader2 className="h-5 w-5 animate-spin" />
+            ) : (
+              <ShoppingCart className="h-5 w-5" />
+            )}
+            <span>{isJoining ? 'Đang xử lý...' : 'Mua khóa học ngay'}</span>
           </button>
         </div>
 
@@ -132,7 +168,7 @@ const CourseDetail = ({ course, onClose }: CourseDetailProps) => (
 
             <div className="from-blue-50 border-blue-100 rounded-2xl border bg-gradient-to-br to-white p-8">
               <h3 className="mb-4 flex items-center text-2xl font-bold text-gray-900">
-                <div className="mr-4 h-8 w-1 rounded-full bg-gradient-to-b from-blue to-cyan-500" />
+                <div className="from-blue-500 mr-4 h-8 w-1 rounded-full bg-gradient-to-b to-cyan-500" />
                 Nội dung giáo trình
               </h3>
               <p className="text-lg leading-relaxed text-gray-700">
@@ -194,26 +230,67 @@ const CourseDetail = ({ course, onClose }: CourseDetailProps) => (
 const UdemyBody = () => {
   const [currentPage, setCurrentPage] = useState<number>(1);
   const [searchQuery, setSearchQuery] = useState('');
-  const [selectedCourse, setSelectedCourse] = useState<Course | null>(null);
+  const [selectedCourse, setSelectedCourse] = useState<CourseResponse | null>(
+    null
+  );
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
+  const [toast, setToast] = useState<{
+    message: string;
+    type: 'success' | 'error';
+  } | null>(null);
 
   const {
     data: apiResponse,
     isLoading,
     isError
   } = useGetAllCourses(currentPage);
+
+  const { mutateAsync: joinCourse, isPending } = useJoinCourse();
+
   const courses = apiResponse?.result?.datas || [];
   const totalItems = apiResponse?.result?.totalItems || 0;
   const postsPerPage = 10;
 
-  const filteredCourses = courses.filter((course: Course) =>
+  const filteredCourses = courses.filter((course: CourseResponse) =>
     course.title.toLowerCase().includes(searchQuery.toLowerCase())
   );
+
+  const handleJoinCourse = async (courseId: number) => {
+    try {
+      await joinCourse(courseId);
+      setToast({
+        message: 'Đăng ký khóa học thành công! Chúc bạn học tập hiệu quả.',
+        type: 'success'
+      });
+      // Close modal after successful purchase
+      setSelectedCourse(null);
+    } catch (error) {
+      setToast({
+        message: 'Có lỗi xảy ra khi đăng ký khóa học. Vui lòng thử lại.',
+        type: 'error'
+      });
+    }
+  };
+
+  const handleQuickJoin = async (e: React.MouseEvent, courseId: number) => {
+    e.stopPropagation();
+    await handleJoinCourse(courseId);
+  };
 
   return (
     <BasePages pageHead="ClickFlow - Khóa học">
       <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-100">
         {isLoading && <Loading />}
+
+        {/* Toast notification */}
+        {toast && (
+          <Toast
+            message={toast.message}
+            type={toast.type}
+            onClose={() => setToast(null)}
+          />
+        )}
+
         {isError && (
           <div className="flex h-screen items-center justify-center">
             <div className="text-center">
@@ -224,6 +301,7 @@ const UdemyBody = () => {
             </div>
           </div>
         )}
+
         {!isLoading && !isError && (
           <>
             {/* Hero Section */}
@@ -234,7 +312,7 @@ const UdemyBody = () => {
                 <div className="mx-auto max-w-4xl text-center">
                   <div className="mb-6 flex justify-center">
                     <div className="flex items-center space-x-2 rounded-full border border-white/20 bg-white/10 px-6 py-2 backdrop-blur-sm">
-                      <Sparkles className="h-5 w-5 text-yellow" />
+                      <Sparkles className="text-yellow-400 h-5 w-5" />
                       <span className="font-semibold text-white">
                         Học tập không giới hạn
                       </span>
@@ -242,7 +320,7 @@ const UdemyBody = () => {
                   </div>
                   <h1 className="mb-6 text-5xl font-bold leading-tight text-white sm:text-6xl">
                     Nâng cao
-                    <span className="bg-gradient-to-r from-yellow to-orange bg-clip-text text-transparent">
+                    <span className="from-yellow-400 to-orange-400 bg-gradient-to-r bg-clip-text text-transparent">
                       {' '}
                       kỹ năng{' '}
                     </span>
@@ -253,7 +331,7 @@ const UdemyBody = () => {
                     mọi lúc, mọi nơi với nội dung được cập nhật liên tục.
                   </p>
                   <div className="flex flex-col justify-center gap-4 sm:flex-row">
-                    <button className="transform rounded-2xl bg-gradient-to-r from-yellow to-orange px-8 py-4 font-bold text-white shadow-lg transition-all duration-200 hover:scale-105 hover:from-yellow hover:to-orange hover:shadow-xl">
+                    <button className="from-yellow-400 to-orange-400 hover:from-yellow-500 hover:to-orange-500 transform rounded-2xl bg-gradient-to-r px-8 py-4 font-bold text-white shadow-lg transition-all duration-200 hover:scale-105 hover:shadow-xl">
                       Bắt đầu học ngay
                     </button>
                     <button className="rounded-2xl border border-white/20 bg-white/10 px-8 py-4 font-semibold text-white backdrop-blur-sm transition-all duration-200 hover:bg-white/20">
@@ -324,7 +402,7 @@ const UdemyBody = () => {
 
               {viewMode === 'grid' ? (
                 <div className="mb-10 grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-                  {filteredCourses.map((course: Course) => (
+                  {filteredCourses.map((course: CourseResponse) => (
                     <div
                       key={course.id}
                       className="group relative flex transform cursor-pointer flex-col overflow-hidden rounded-3xl border border-gray-100 bg-white shadow-sm transition-all duration-300 hover:-translate-y-2 hover:border-purple-200 hover:shadow-xl"
@@ -353,7 +431,7 @@ const UdemyBody = () => {
                         </div>
                       </div>
 
-                      <div className="flex flex-1 flex-col p-2">
+                      <div className="flex flex-1 flex-col p-6">
                         <h3 className="mb-2 line-clamp-2 h-12 text-lg font-bold text-gray-900 transition-colors group-hover:text-purple-700">
                           {course.title}
                         </h3>
@@ -371,10 +449,15 @@ const UdemyBody = () => {
                             {course.price.toLocaleString()}₫
                           </span>
                           <button
-                            className="transform rounded-xl bg-gradient-to-r from-purple-600 to-indigo-600 px-4 py-2 font-medium text-white shadow-md transition-all duration-200 hover:scale-105 hover:from-purple-700 hover:to-indigo-700"
-                            onClick={(e) => e.stopPropagation()}
+                            className="flex transform items-center space-x-1 rounded-xl bg-gradient-to-r from-purple-600 to-indigo-600 px-4 py-2 font-medium text-white shadow-md transition-all duration-200 hover:scale-105 hover:from-purple-700 hover:to-indigo-700 disabled:transform-none disabled:cursor-not-allowed disabled:opacity-50"
+                            onClick={(e) => handleQuickJoin(e, course.id)}
+                            disabled={isPending}
                           >
-                            Thêm vào giỏ
+                            {isPending ? (
+                              <Loader2 className="h-4 w-4 animate-spin" />
+                            ) : (
+                              <span>Mua ngay</span>
+                            )}
                           </button>
                         </div>
                       </div>
@@ -383,7 +466,7 @@ const UdemyBody = () => {
                 </div>
               ) : (
                 <div className="mb-10 space-y-6">
-                  {filteredCourses.map((course: Course) => (
+                  {filteredCourses.map((course: CourseResponse) => (
                     <div
                       key={course.id}
                       className="group cursor-pointer overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-sm transition-all duration-300 hover:border-purple-200 hover:shadow-lg"
@@ -396,9 +479,9 @@ const UdemyBody = () => {
                         }
                       }}
                     >
-                      <div className="flex flex-col p-4 md:flex-row">
+                      <div className="flex flex-col p-6 md:flex-row">
                         {/* Course Image */}
-                        <div className="relative h-48 flex-shrink-0 overflow-hidden bg-gradient-to-br from-purple-400 via-pink-400 to-indigo-500 md:w-80">
+                        <div className="relative h-48 flex-shrink-0 overflow-hidden rounded-2xl bg-gradient-to-br from-purple-400 via-pink-400 to-indigo-500 md:w-80">
                           <div className="absolute inset-0 bg-gradient-to-r from-black/20 to-transparent" />
                           <div className="absolute left-4 top-4">
                             <div className="rounded-full bg-white/90 px-3 py-1 text-sm font-semibold text-purple-700 backdrop-blur-sm">
@@ -443,10 +526,18 @@ const UdemyBody = () => {
                               {course.price.toLocaleString()}₫
                             </span>
                             <button
-                              className="transform rounded-xl bg-gradient-to-r from-purple-600 to-indigo-600 px-6 py-3 font-medium text-white shadow-md transition-all duration-200 hover:scale-105 hover:from-purple-700 hover:to-indigo-700"
-                              onClick={(e) => e.stopPropagation()}
+                              className="flex transform items-center space-x-2 rounded-xl bg-gradient-to-r from-purple-600 to-indigo-600 px-6 py-3 font-medium text-white shadow-md transition-all duration-200 hover:scale-105 hover:from-purple-700 hover:to-indigo-700 disabled:transform-none disabled:cursor-not-allowed disabled:opacity-50"
+                              onClick={(e) => handleQuickJoin(e, course.id)}
+                              disabled={isPending}
                             >
-                              Thêm vào giỏ hàng
+                              {isPending ? (
+                                <Loader2 className="h-4 w-4 animate-spin" />
+                              ) : (
+                                <ShoppingCart className="h-5 w-5" />
+                              )}
+                              <span>
+                                {isPending ? 'Đang xử lý...' : 'Mua khóa học'}
+                              </span>
                             </button>
                           </div>
                         </div>
@@ -474,6 +565,8 @@ const UdemyBody = () => {
               <CourseDetail
                 course={selectedCourse}
                 onClose={() => setSelectedCourse(null)}
+                onJoinCourse={handleJoinCourse}
+                isJoining={isPending}
               />
             )}
           </>

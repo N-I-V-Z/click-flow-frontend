@@ -8,6 +8,9 @@ import { useResetPassword } from '@/queries/auth.query';
 import { Link } from 'react-router-dom';
 import ImageLeft from '../Image';
 import { ResetpasswordRequest } from '@/types';
+import { useRouter } from '@/routes/hooks';
+import ToastNotification from '@/components/shared/toast-notification';
+import { toast } from 'react-toastify';
 type FormReset = {
   email: string;
   newPassword: string;
@@ -26,7 +29,7 @@ export default function ResetPasswordPage() {
   });
   const [error, setError] = useState<FormError>({});
   const [showPassword, setShowPassword] = useState(false);
-
+  const router = useRouter();
   const validateInputs = (): FormError => {
     const errors: FormError = {};
     if (!formReset?.email.trim()) {
@@ -50,8 +53,8 @@ export default function ResetPasswordPage() {
 
     try {
       await mutateAsync(formReset);
-      alert('Mật khẩu đã được đặt lại thành công!');
-      window.location.href = '/login';
+      toast.success('Mật khẩu đã được đặt lại thành công!');
+      router.push('/login');
     } catch (err) {
       setError({ email: 'Không thể đặt lại mật khẩu. Vui lòng thử lại.' });
     }
@@ -84,7 +87,7 @@ export default function ResetPasswordPage() {
               .
               <Link to="/">
                 <img
-                  src="src/assets/logo.jpg"
+                  src="/assets/logo.jpg"
                   alt="Logo"
                   className="w-30 mx-auto mb-10 mt-10 h-20 rounded-lg"
                 />
@@ -197,6 +200,7 @@ export default function ResetPasswordPage() {
         </div>
       </BasePages>
       <Footer />
+      <ToastNotification />
     </>
   );
 }
