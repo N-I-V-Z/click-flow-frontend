@@ -23,12 +23,9 @@ type TFileUploadProps = {
  * Khu vực kéo thả có một biểu tượng máy ảnh và văn bản "Add Image".
  */
 export default function FileUpload({ onChange, value }: TFileUploadProps) {
-  console.log('files=>', value);
-
   const { getRootProps, getInputProps } = useDropzone({
     accept: 'image/*' as unknown as Accept,
     onDrop: (acceptedFiles: File[]) => {
-      console.log('files acceptedFiles=>', acceptedFiles);
       onUpdateFile(acceptedFiles);
     }
   });

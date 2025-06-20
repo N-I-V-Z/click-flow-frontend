@@ -43,9 +43,9 @@ export default function LoginPage() {
     const token = helpers.cookie_get('AT');
     if (token) {
       dispatch(login());
-      window.location.href = '/';
+      router.push('/');
     }
-  }, [dispatch]);
+  }, [dispatch, router]);
 
   const validateInputs = (): boolean => {
     if (!formLogin.userNameOrEmail.trim()) {

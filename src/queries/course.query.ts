@@ -1,5 +1,10 @@
 import BaseRequest from '@/config/axios.config';
-import { Course, CreateCourseFormData, PagingResponse } from '@/types';
+import {
+  BaseResponse,
+  CourseResponse,
+  CreateCourseFormData,
+  PagingResponse
+} from '@/types';
 import { useQuery, useMutation } from '@tanstack/react-query';
 
 const SUB_URL = `api/Courses`;
@@ -14,7 +19,7 @@ export const useGetAllCourses = (
   return useQuery({
     queryKey: ['get-courses', pageIndex, pageSize],
     queryFn: async () => {
-      return await BaseRequest.Get<PagingResponse<Course>>(
+      return await BaseRequest.Get<PagingResponse<CourseResponse>>(
         `${SUB_URL}/publisher?PageIndex=${pageIndex}&PageSize=${pageSize}`
       );
     },
@@ -31,7 +36,7 @@ export const useGetCourseAdmin = (
   return useQuery({
     queryKey: ['get-courses', pageIndex, pageSize],
     queryFn: async () => {
-      return await BaseRequest.Get<PagingResponse<Course>>(
+      return await BaseRequest.Get<PagingResponse<CourseResponse>>(
         `${SUB_URL}/admin?PageIndex=${pageIndex}&PageSize=${pageSize}&Keyword=${keyWord}`
       );
     },
@@ -47,6 +52,17 @@ export const useCreateCourse = () => {
       return await BaseRequest.Post<CreateCourseFormData>(
         `/${SUB_URL}`,
         payload
+      );
+    }
+  });
+};
+
+export const useJoinCourse = () => {
+  return useMutation({
+    mutationKey: ['join-course'],
+    mutationFn: async (campaignId: number) => {
+      return await BaseRequest.Post<BaseResponse>(
+        `/${SUB_URL}/${campaignId}/join`
       );
     }
   });

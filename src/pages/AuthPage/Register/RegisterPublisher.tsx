@@ -10,11 +10,16 @@ import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { Eye, EyeOff, User, Mail, Phone, Lock, ArrowRight } from 'lucide-react';
 import { RegisterPublisherRequest, Role } from '@/types';
+import { useRouter } from '@/routes/hooks';
 
 type FormError = Partial<RegisterPublisherRequest>;
 
 export default function RegisterPublisherPage() {
-  const { isPending } = useRegisterPublisher();
+  const {
+    mutateAsync: register,
+    isPending,
+    isSuccess
+  } = useRegisterPublisher();
   const [showPassword, setShowPassword] = useState(false);
   const [formPublisher, setFormPublisher] = useState<RegisterPublisherRequest>({
     email: '',
@@ -25,6 +30,8 @@ export default function RegisterPublisherPage() {
     phoneNumber: '',
     role: Role.Publisher
   });
+
+  const router = useRouter();
 
   const [error, setError] = useState<FormError>({});
 
@@ -87,10 +94,7 @@ export default function RegisterPublisherPage() {
     }
 
     try {
-      toast.success('Đăng ký thành công!');
-      setTimeout(() => {
-        window.location.href = '/login';
-      }, 1500);
+      await register(formPublisher);
     } catch (err) {
       if (err instanceof Error) {
         toast.error(`Lỗi: ${err.message}`);
@@ -101,7 +105,12 @@ export default function RegisterPublisherPage() {
       }
     }
   };
-
+  if (isSuccess) {
+    toast.success('Đăng ký thành công!');
+    setTimeout(() => {
+      router.push('/login');
+    }, 1500);
+  }
   return (
     <>
       {/* Custom Breadcrumb */}

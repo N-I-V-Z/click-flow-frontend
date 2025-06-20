@@ -57,7 +57,6 @@ const PublisherListCampaign: React.FC<PublisherListCampaignProps> = ({
 
   // Handle search (nếu cần implement search trong tương lai)
   const handleSearchChange = (searchTerm: string) => {
-    console.log('Search term:', searchTerm);
     // TODO: Implement search functionality
   };
 
