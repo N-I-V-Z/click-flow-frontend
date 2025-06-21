@@ -10,6 +10,7 @@ import { IFeedback } from '@/types/index';
 import { TokenDecoded } from '@/types';
 import helpers from '@/helpers';
 import __helpers from '@/helpers';
+import { toast } from 'react-toastify';
 const decodedToken: TokenDecoded | null = helpers.decodeTokens(
   __helpers.cookie_get('AT')
 );
@@ -168,7 +169,7 @@ const Feedback: React.FC<{ campaignId: number }> = ({ campaignId }) => {
   /** Submit tạo feedback */
   const handleSubmitReview = async () => {
     if (newRating === 0 || !newContent.trim()) {
-      alert('Vui lòng chọn số sao và nhập nội dung đánh giá!');
+      toast.warning('Vui lòng chọn số sao và nhập nội dung đánh giá!');
       return;
     }
     try {
@@ -180,7 +181,7 @@ const Feedback: React.FC<{ campaignId: number }> = ({ campaignId }) => {
       await refetch();
       closeModal();
     } catch (err) {
-      alert(`Tạo feedback thất bại: ${(err as Error).message}`);
+      toast.error(`Tạo feedback thất bại: ${(err as Error).message}`);
     }
   };
 
@@ -203,7 +204,7 @@ const Feedback: React.FC<{ campaignId: number }> = ({ campaignId }) => {
   /** Submit cập nhật feedback */
   const handleEditSubmit = async () => {
     if (editingStarRate === 0 || !editingContent.trim()) {
-      alert('Vui lòng chọn số sao và nhập nội dung đánh giá!');
+      toast.error('Vui lòng chọn số sao và nhập nội dung đánh giá!');
       return;
     }
     try {
@@ -215,7 +216,7 @@ const Feedback: React.FC<{ campaignId: number }> = ({ campaignId }) => {
       await refetch();
       closeEditModal();
     } catch (err) {
-      alert(`Cập nhật feedback thất bại: ${(err as Error).message}`);
+      toast.error(`Cập nhật feedback thất bại: ${(err as Error).message}`);
     }
   };
 

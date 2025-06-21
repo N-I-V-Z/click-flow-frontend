@@ -43,9 +43,9 @@ export default function LoginPage() {
     const token = helpers.cookie_get('AT');
     if (token) {
       dispatch(login());
-      window.location.href = '/';
+      router.push('/');
     }
-  }, [dispatch]);
+  }, [dispatch, router]);
 
   const validateInputs = (): boolean => {
     if (!formLogin.userNameOrEmail.trim()) {
@@ -177,7 +177,7 @@ export default function LoginPage() {
                   <div className="mb-6 text-center">
                     <Link to="/" className="inline-block">
                       <img
-                        src="src/assets/logo.jpg"
+                        src="/assets/logo.jpg"
                         alt="ClickFlow Logo"
                         className="mx-auto h-12 w-auto rounded-xl shadow-md"
                       />
