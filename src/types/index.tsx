@@ -334,7 +334,7 @@ export enum ChatTab {
   Publisher = 'publisher'
 }
 
-export interface Course {
+export interface CourseResponse {
   id: number;
   title: string;
   createAt: string;

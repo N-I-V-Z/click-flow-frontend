@@ -23,13 +23,11 @@ import __helpers from '@/helpers';
 
 const CampaignRequest: React.FC = () => {
   const { pageIndex, pageSize } = __helpers.usePaginationParams();
-  console.log('CampaignRequest pageIndex:', pageIndex, 'pageSize:', pageSize);
   const { data, isLoading, error, refetch } = useGetCampaign(
     'Pending',
     pageIndex,
     pageSize
   );
-  console.log('CampaignRequest data:', data);
   const rawCampaigns =
     (data as ApiResponse<PagingResponse<CampaignApiResponse>>)?.result?.datas ??
     [];

@@ -41,8 +41,7 @@ const TrafficTable: React.FC<TrafficTableProps> = ({
   const pageCount = data?.result?.totalPages || 0;
 
   // Handle search (nếu cần implement search trong tương lai)
-  const handleSearchChange = (searchTerm: string) => {
-    console.log('Search term:', searchTerm);
+  const handleSearchChange = () => {
     // TODO: Implement search functionality
   };
 

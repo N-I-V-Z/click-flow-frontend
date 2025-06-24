@@ -10,10 +10,11 @@ import ThemeProvider from './theme-provider';
 import { SidebarProvider } from '@/hooks/use-sidebar';
 // import { MouseEffectProvider } from './MouseEffectProvider';
 
-export const queryClient = new QueryClient({
+const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
-      retry: 2
+      staleTime: 1000 * 60 * 5,
+      retry: 3
     }
   }
 });

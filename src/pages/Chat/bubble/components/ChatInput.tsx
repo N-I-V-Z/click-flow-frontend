@@ -3,6 +3,8 @@ import { Button } from '@/components/ui/button';
 import { Send, Smile } from 'lucide-react';
 import ImageUpload from '../../components/ImageUploadComponent';
 import EmojiPicker from '../../components/EmojiPicker';
+import ToastNotification from '@/components/shared/toast-notification';
+import { toast } from 'react-toastify';
 
 interface ChatInputProps {
   input: string;
@@ -44,7 +46,7 @@ export const ChatInput: React.FC<ChatInputProps> = ({
     const file = event.target.files?.[0];
     if (file && onSendFile) {
       if (file.size > 10 * 1024 * 1024) {
-        alert('File quá lớn. Vui lòng chọn file nhỏ hơn 10MB.');
+        toast.error('File quá lớn. Vui lòng chọn file nhỏ hơn 10MB.');
         return;
       }
       onSendFile(file);
@@ -67,73 +69,76 @@ export const ChatInput: React.FC<ChatInputProps> = ({
   };
 
   return (
-    <div className="relative border-t border-gray-100 bg-white p-4">
-      {/* EmojiPicker Component */}
-      <EmojiPicker
-        isVisible={showEmojiPicker}
-        onEmojiSelect={handleEmojiSelect}
-        onClose={handleCloseEmojiPicker}
-        className="absolute bottom-20 left-4" // Position above the input area
-      />
+    <>
+      <div className="relative border-t border-gray-100 bg-white p-4">
+        {/* EmojiPicker Component */}
+        <EmojiPicker
+          isVisible={showEmojiPicker}
+          onEmojiSelect={handleEmojiSelect}
+          onClose={handleCloseEmojiPicker}
+          className="absolute bottom-20 left-4" // Position above the input area
+        />
 
-      <div className="flex w-full items-end gap-2">
-        {/* File Upload Button */}
-        <ImageUpload onSendFile={onSendFile} disabled={isSending} />
+        <div className="flex w-full items-end gap-2">
+          {/* File Upload Button */}
+          <ImageUpload onSendFile={onSendFile} disabled={isSending} />
 
-        {/* Emoji Button */}
-        <Button
-          variant="ghost"
-          size="icon"
-          onClick={onToggleEmojiPicker}
-          className="flex-shrink-0 text-gray-600 hover:bg-gray-100"
-          disabled={isSending}
-        >
-          <Smile size={18} />
-        </Button>
-
-        {/* Textarea Input */}
-        <div className="relative flex-1">
-          <textarea
-            ref={textareaRef}
-            placeholder="Nhập..."
-            value={input}
-            onChange={(e) => onInputChange(e.target.value)}
-            onKeyDown={(e) => {
-              if (e.key === 'Enter' && !e.shiftKey) {
-                e.preventDefault();
-                onSend();
-              }
-            }}
-            className="max-h-[120px] min-h-[44px] w-full resize-none overflow-hidden rounded-xl border border-gray-200 px-4 py-3 leading-5 focus:border-purple-300 focus:outline-none focus:ring-2 focus:ring-purple-100"
+          {/* Emoji Button */}
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={onToggleEmojiPicker}
+            className="flex-shrink-0 text-gray-600 hover:bg-gray-100"
             disabled={isSending}
-            style={{ height: '44px' }}
-            rows={1}
-          />
+          >
+            <Smile size={18} />
+          </Button>
+
+          {/* Textarea Input */}
+          <div className="relative flex-1">
+            <textarea
+              ref={textareaRef}
+              placeholder="Nhập..."
+              value={input}
+              onChange={(e) => onInputChange(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' && !e.shiftKey) {
+                  e.preventDefault();
+                  onSend();
+                }
+              }}
+              className="max-h-[120px] min-h-[44px] w-full resize-none overflow-hidden rounded-xl border border-gray-200 px-4 py-3 leading-5 focus:border-purple-300 focus:outline-none focus:ring-2 focus:ring-purple-100"
+              disabled={isSending}
+              style={{ height: '44px' }}
+              rows={1}
+            />
+          </div>
+
+          {/* Send Button */}
+          <Button
+            onClick={() => onSend()}
+            disabled={!input.trim() || isSending}
+            className="h-11 flex-shrink-0 rounded-xl bg-gradient-to-r from-purple-600 to-pink-600 px-4 transition-all duration-200 hover:from-purple-700 hover:to-pink-700 disabled:cursor-not-allowed disabled:opacity-50"
+          >
+            {isSending ? (
+              <div className="h-4 w-4 animate-spin rounded-full border-b-2 border-white"></div>
+            ) : (
+              <Send size={18} />
+            )}
+          </Button>
         </div>
 
-        {/* Send Button */}
-        <Button
-          onClick={() => onSend()}
-          disabled={!input.trim() || isSending}
-          className="h-11 flex-shrink-0 rounded-xl bg-gradient-to-r from-purple-600 to-pink-600 px-4 transition-all duration-200 hover:from-purple-700 hover:to-pink-700 disabled:cursor-not-allowed disabled:opacity-50"
-        >
-          {isSending ? (
-            <div className="h-4 w-4 animate-spin rounded-full border-b-2 border-white"></div>
-          ) : (
-            <Send size={18} />
-          )}
-        </Button>
+        {/* Hidden File Input */}
+        <input
+          ref={fileInputRef}
+          type="file"
+          onChange={handleFileUpload}
+          className="hidden"
+          accept="image/*,.pdf,.doc,.docx,.txt"
+          multiple={false}
+        />
       </div>
-
-      {/* Hidden File Input */}
-      <input
-        ref={fileInputRef}
-        type="file"
-        onChange={handleFileUpload}
-        className="hidden"
-        accept="image/*,.pdf,.doc,.docx,.txt"
-        multiple={false}
-      />
-    </div>
+      <ToastNotification />
+    </>
   );
 };

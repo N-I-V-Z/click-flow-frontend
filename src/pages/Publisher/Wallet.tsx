@@ -274,7 +274,7 @@ const PublisherWallet = () => {
             <p className="mb-6 text-slate-600">
               Không thể tải dữ liệu ví. Vui lòng thử lại.
             </p>
-            <Button onClick={() => window.location.reload()} className="w-full">
+            <Button onClick={() => router.reload()} className="w-full">
               Thử lại
             </Button>
           </Card>

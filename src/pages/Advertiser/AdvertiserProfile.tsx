@@ -34,7 +34,6 @@ const AdvertiserProfile = () => {
   >('personal');
   const { data, isLoading, error } = useGetUserDetail(advertiserId);
   const user = data?.result;
-  console.log(user);
   if (isLoading) {
     return (
       <BasePages pageHead="ClickFlow - Hồ sơ">
@@ -58,7 +57,7 @@ const AdvertiserProfile = () => {
           <p className="mb-4 text-gray-600">Vui lòng thử lại sau</p>
           <Button
             className="bg-blue-600 hover:bg-blue-700 text-white"
-            onClick={() => window.location.reload()}
+            onClick={() => router.reload()}
           >
             Thử lại
           </Button>

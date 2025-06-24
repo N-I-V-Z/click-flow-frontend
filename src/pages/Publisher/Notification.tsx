@@ -174,7 +174,6 @@ export default function EnhancedNotificationBell({
 
     // Xử lý link nếu có
     if (notification.link) {
-      console.log(`Navigating to: ${notification.link}`);
       // Trong thực tế, bạn sẽ dùng router để chuyển trang
       // navigate(notification.link);
     }
@@ -537,9 +536,6 @@ export default function EnhancedNotificationBell({
                             <button
                               onClick={(e) => {
                                 e.stopPropagation();
-                                console.log(
-                                  `Opening link: ${notification.link}`
-                                );
                                 // navigate(notification.link);
                               }}
                               className={`ml-2 flex items-center text-xs font-medium ${
@@ -606,9 +602,7 @@ export default function EnhancedNotificationBell({
               className={`border-t px-4 py-3 text-center ${theme === 'dark' ? 'border-gray-700 bg-gray-900' : 'border-gray-200 bg-gray-50'}`}
             >
               <button
-                onClick={
-                  onViewAll || (() => console.log('View all notifications'))
-                }
+                onClick={onViewAll}
                 className={`text-sm font-medium ${theme === 'dark' ? 'text-purple-400 hover:text-purple-300' : 'text-purple-600 hover:text-purple-800'}`}
               >
                 Xem tất cả thông báo

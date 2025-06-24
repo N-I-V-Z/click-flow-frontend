@@ -1,5 +1,6 @@
 import { useState } from 'react';
-
+import ToastNotification from '@/components/shared/toast-notification';
+import { toast } from 'react-toastify';
 interface UpgradePackageProps {
   currentPlan: string;
   setCurrentPlan: (plan: string) => void;
@@ -14,7 +15,7 @@ export default function UpgradePackage({
   const handleUpgrade = (plan: string): void => {
     if (plan === currentPlan) return;
     // Ví dụ gọi API hoặc xử lý logic nâng cấp
-    alert(`Đã chọn nâng cấp lên gói: ${plan}`);
+    toast.success(`Đã chọn nâng cấp lên gói: ${plan}`);
     setCurrentPlan(plan);
     setShowUpgradeModal(false);
   };
@@ -456,6 +457,7 @@ export default function UpgradePackage({
           </div>
         </div>
       )}
+      <ToastNotification />
     </>
   );
 }

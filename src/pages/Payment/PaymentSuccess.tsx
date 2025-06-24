@@ -10,6 +10,7 @@ import {
 } from 'lucide-react';
 import { useSearchParams } from 'react-router-dom';
 import BasePages from '@/components/shared/base-pages';
+import { useRouter } from '@/routes/hooks';
 
 interface TransactionData {
   transactionId: string;
@@ -32,18 +33,17 @@ const PayOSSuccessPage: React.FC = () => {
     timestamp: new Date().toLocaleString('vi-VN'),
     paymentMethod: 'Thẻ ngân hàng'
   });
-
+  const [searchParams] = useSearchParams();
   const [copied, setCopied] = useState<boolean>(false);
   const [isVisible, setIsVisible] = useState<boolean>(false);
-
+  const router = useRouter();
   useEffect(() => {
     // Animation effect on load
     setIsVisible(true);
 
     // Simulate receiving transaction data from URL params or API
-    const urlParams = new URLSearchParams(window.location.search);
-    const amount = urlParams.get('amount');
-    const orderCode = urlParams.get('orderCode');
+    const amount = searchParams.get('amount');
+    const orderCode = searchParams.get('orderCode');
 
     if (amount) {
       setTransactionData((prev) => ({
@@ -52,7 +52,7 @@ const PayOSSuccessPage: React.FC = () => {
         orderCode: orderCode || prev.orderCode
       }));
     }
-  }, []);
+  }, [searchParams]);
 
   const copyTransactionId = async (): Promise<void> => {
     try {
@@ -263,7 +263,7 @@ const PayOSSuccessPage: React.FC = () => {
   };
 
   const goHome = (): void => {
-    window.location.href = '/';
+    router.push('/');
   };
   const [urlParams] = useSearchParams();
   const getOrderCodeFromURL = (): string => {

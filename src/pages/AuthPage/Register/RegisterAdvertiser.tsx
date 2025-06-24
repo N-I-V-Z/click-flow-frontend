@@ -21,6 +21,7 @@ import {
   Briefcase
 } from 'lucide-react';
 import { Industry, RegisterAdvertiserRequest, Role } from '@/types';
+import { useRouter } from '@/routes/hooks';
 
 type FormError = Partial<RegisterAdvertiserRequest>;
 
@@ -32,7 +33,11 @@ const industryOptions = [
 ];
 
 const RegisterAdvertiserPage: React.FC = () => {
-  const { isPending } = useRegisterAdvertiser();
+  const {
+    mutateAsync: register,
+    isPending,
+    isSuccess
+  } = useRegisterAdvertiser();
 
   const [formAdvertiser, setFormAdvertiser] =
     useState<RegisterAdvertiserRequest>({
@@ -50,7 +55,7 @@ const RegisterAdvertiserPage: React.FC = () => {
     });
   const [error, setError] = useState<FormError>({});
   const [showPassword, setShowPassword] = useState(false);
-
+  const router = useRouter();
   const validateInputs = (): FormError => {
     const errors: FormError = {};
 
@@ -117,10 +122,7 @@ const RegisterAdvertiserPage: React.FC = () => {
     }
 
     try {
-      toast.success('Đăng ký thành công!');
-      setTimeout(() => {
-        window.location.href = '/login';
-      }, 1500);
+      await register(formAdvertiser);
     } catch (err) {
       if (err instanceof Error) {
         toast.error(`Lỗi: ${err.message}`);
@@ -131,6 +133,12 @@ const RegisterAdvertiserPage: React.FC = () => {
       }
     }
   };
+  if (isSuccess) {
+    toast.success('Đăng ký thành công!');
+    setTimeout(() => {
+      router.push('/login');
+    }, 1500);
+  }
 
   return (
     <>
@@ -184,7 +192,7 @@ const RegisterAdvertiserPage: React.FC = () => {
                   <div className="text-center">
                     <Link to="/" className="inline-block">
                       <img
-                        src="src/assets/logo.jpg"
+                        src="/assets/logo.jpg"
                         alt="ClickFlow Logo"
                         className="mx-auto h-16 w-auto rounded-xl shadow-md"
                       />
