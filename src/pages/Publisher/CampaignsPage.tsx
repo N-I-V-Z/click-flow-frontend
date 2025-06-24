@@ -171,28 +171,15 @@ const CampaignsPage: React.FC = () => {
             onFinish={onFinish}
             className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-4"
           >
-            <Form.Item name="status" label="Trạng thái">
-              <Select placeholder="Chọn trạng thái" allowClear>
-                <Option value="active">Đang hoạt động</Option>
-                <Option value="locked">Đã bị khóa</Option>
-              </Select>
-            </Form.Item>
             <Form.Item name="group" label="Nhóm ngành hàng">
               <Select placeholder="Chọn nhóm ngành hàng" allowClear>
                 <Option value="all">Tất cả</Option>
-                <Option value="Thực phẩm & đồ uống">Thực phẩm & đồ uống</Option>
-                <Option value="Du lịch & nghỉ dưỡng">
-                  Du lịch & nghỉ dưỡng
-                </Option>
-                <Option value="Khác">Khác</Option>
+                <Option value="FoodAndBeverage">Thực phẩm & đồ uống</Option>
+                <Option value="Education">Giáo dục</Option>
+                <Option value="Other">Khác</Option>
               </Select>
             </Form.Item>
-            <Form.Item name="industryStatus" label="Trạng thái chạy">
-              <Select placeholder="Chọn trạng thái chạy" allowClear>
-                <Option value="running">Đang chạy</Option>
-                <Option value="not_running">Chưa chạy</Option>
-              </Select>
-            </Form.Item>
+
             <Form.Item name="type" label="Loại hình">
               <Select placeholder="Chọn loại hình" allowClear>
                 <Option value="all">Tất cả</Option>

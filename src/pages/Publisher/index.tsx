@@ -1,6 +1,5 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { motion } from 'framer-motion';
-import TableSearchInput from '@/components/shared/table-search-input';
 import {
   LineChart,
   Line,
@@ -14,9 +13,7 @@ import {
   Pie,
   Cell
 } from 'recharts';
-import TrafficTable from './traffictable';
 import BasePages from '@/components/shared/base-pages';
-import { useGetCampaignPublisher } from '@/queries/campaign.query';
 import __helpers from '@/helpers';
 import helpers from '@/helpers';
 
@@ -27,15 +24,6 @@ const PublisherDashboard: React.FC = () => {
   const publisherId = decodedToken?.Id ? Number(decodedToken.Id) : undefined;
 
   // State cho campaign đã chọn
-  const [selectedCampaignId, setSelectedCampaignId] = useState<
-    number | undefined
-  >(1);
-
-  // Lấy danh sách campaigns mà publisher đã tham gia
-  const { data: campaignsData, isLoading: campaignsLoading } =
-    useGetCampaignPublisher(publisherId, 1, 100);
-
-  const campaigns = campaignsData?.result?.datas || [];
 
   // -------------------- DỮ LIỆU MẪU --------------------
   const stats = {
@@ -111,12 +99,6 @@ const PublisherDashboard: React.FC = () => {
     transition: { duration: 0.5 }
   };
 
-  // Handle campaign change
-  const handleCampaignChange = (campaignId: string) => {
-    const newCampaignId = campaignId === 'all' ? undefined : Number(campaignId);
-    setSelectedCampaignId(newCampaignId);
-  };
-
   return (
     <BasePages pageHead="ClickFlow - Dashboard">
       <div className="to-blue-100 min-h-screen bg-gradient-to-br from-indigo-100 via-purple-50 p-6">
@@ -126,57 +108,6 @@ const PublisherDashboard: React.FC = () => {
               Dashboard
             </h1>
           </div>
-
-          {/* Campaign Filter */}
-          <motion.div
-            initial="initial"
-            animate="animate"
-            variants={fadeInUp}
-            className="mb-6 flex flex-wrap items-center gap-4 rounded-lg bg-white p-4 shadow-lg"
-          >
-            <div className="flex items-center gap-2">
-              <label
-                htmlFor="campaign-select"
-                className="text-sm font-medium text-gray-700"
-              >
-                Chiến dịch:
-              </label>
-              <select
-                id="campaign-select"
-                value={selectedCampaignId || 'all'}
-                onChange={(e) => handleCampaignChange(e.target.value)}
-                className="focus:ring-blue-400 min-w-[200px] rounded border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2"
-                disabled={campaignsLoading}
-              >
-                <option value="all">Tất cả chiến dịch</option>
-                {campaigns.map((campaign) => (
-                  <option key={campaign.id} value={campaign.id}>
-                    {campaign.name}
-                  </option>
-                ))}
-              </select>
-              {campaignsLoading && (
-                <span className="text-xs text-gray-500">Đang tải...</span>
-              )}
-            </div>
-
-            <div className="flex items-center gap-2">
-              <label
-                className="text-sm font-medium text-gray-700"
-                htmlFor="date-range"
-              >
-                Ngày:
-              </label>
-              <input
-                id="date-range"
-                type="text"
-                placeholder="15/02/2025 đến 15/02/2025"
-                className="focus:ring-blue-400 rounded border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2"
-              />
-            </div>
-
-            <TableSearchInput />
-          </motion.div>
 
           {/* Thẻ thống kê */}
           <div className="mb-6 grid grid-cols-1 gap-4 md:grid-cols-3">
@@ -235,9 +166,6 @@ const PublisherDashboard: React.FC = () => {
               </ResponsiveContainer>
             </div>
           </motion.div>
-
-          {/* Traffic Table với selectedCampaignId */}
-          <TrafficTable selectedCampaignId={selectedCampaignId} />
 
           {/* Bảng thông tin */}
           <div className="mb-5 grid grid-cols-1 gap-6 md:grid-cols-2">

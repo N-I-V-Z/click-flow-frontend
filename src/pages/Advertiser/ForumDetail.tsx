@@ -1,5 +1,3 @@
-// File: src/pages/Advertiser/ForumDetail.tsx
-
 import { useState, FC } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { FaComment, FaChevronDown, FaEllipsisH } from 'react-icons/fa';
@@ -12,9 +10,10 @@ import {
   formatCommentCount,
   formatTimeAgo
 } from '@/utils/commentUtils';
+import { ForumPost, ForumAuthor } from '@/types';
 
 // ----------------------------------------------
-// Kiểu dữ liệu Comment & Post
+// Kiểu dữ liệu Comment (giữ nguyên cho tương thích UI)
 // ----------------------------------------------
 interface Comment {
   id: string;
@@ -27,26 +26,23 @@ interface Comment {
   replies?: Comment[];
 }
 
-interface Post {
-  id: string;
-  author: string;
-  avatarUrl: string;
-  title: string;
-  content: string;
+// Extend ForumPost để thêm các field cần thiết cho UI
+interface ExtendedForumPost extends ForumPost {
   likes: number;
   liked: boolean;
   comments: Comment[];
-  createdAt: number;
+  // Thêm helper properties cho UI
+  avatarUrl?: string; // Để tương thích với comment interface
 }
 
 // ----------------------------------------------
 // Props cho ForumDetail
 // ----------------------------------------------
 interface ForumDetailProps {
-  post: Post;
+  post: ExtendedForumPost;
   onBack: () => void;
-  toggleLikePost: (p: Post) => void;
-  updatePost: (p: Post) => void;
+  toggleLikePost: (p: ExtendedForumPost) => void;
+  updatePost: (p: ExtendedForumPost) => void;
 }
 
 const ForumDetail: FC<ForumDetailProps> = ({
@@ -88,6 +84,18 @@ const ForumDetail: FC<ForumDetailProps> = ({
     id: ''
   });
 
+  // Helper để lấy avatar URL từ API data
+  const getAvatarUrl = (authorData?: ForumAuthor) => {
+    return (
+      authorData?.userDetail?.avatarURL || 'https://i.pravatar.cc/40?u=default'
+    );
+  };
+
+  // Helper để lấy display name từ API data
+  const getDisplayName = (authorData?: ForumAuthor) => {
+    return authorData?.fullName || 'Người dùng';
+  };
+
   // --------------------------------------------
   // Sắp xếp comment dựa vào sortBy
   // --------------------------------------------
@@ -123,7 +131,10 @@ const ForumDetail: FC<ForumDetailProps> = ({
         return item;
       });
     const updatedComments = updateList(post.comments);
-    const updatedPost: Post = { ...post, comments: updatedComments };
+    const updatedPost: ExtendedForumPost = {
+      ...post,
+      comments: updatedComments
+    };
     updatePost(updatedPost);
   };
 
@@ -171,7 +182,10 @@ const ForumDetail: FC<ForumDetailProps> = ({
       // Comment mới ở top-level
       updatedComments = [newC, ...post.comments];
     }
-    const updatedPost: Post = { ...post, comments: updatedComments };
+    const updatedPost: ExtendedForumPost = {
+      ...post,
+      comments: updatedComments
+    };
     updatePost(updatedPost);
 
     setCommentText('');
@@ -190,7 +204,10 @@ const ForumDetail: FC<ForumDetailProps> = ({
           replies: item.replies ? removeRecursively(item.replies) : undefined
         }));
     const updatedComments = removeRecursively(post.comments);
-    const updatedPost: Post = { ...post, comments: updatedComments };
+    const updatedPost: ExtendedForumPost = {
+      ...post,
+      comments: updatedComments
+    };
     updatePost(updatedPost);
   };
 
@@ -241,7 +258,10 @@ const ForumDetail: FC<ForumDetailProps> = ({
         return item;
       });
     const updatedComments = updateTextRecursively(post.comments);
-    const updatedPost: Post = { ...post, comments: updatedComments };
+    const updatedPost: ExtendedForumPost = {
+      ...post,
+      comments: updatedComments
+    };
     updatePost(updatedPost);
     setEditingId(null);
     setEditingText('');
@@ -296,7 +316,7 @@ const ForumDetail: FC<ForumDetailProps> = ({
                 <span className="text-sm font-medium text-purple-600">
                   {parentAuthor}
                 </span>
-                {reply.author === post.author && (
+                {reply.author === getDisplayName(post.author) && (
                   <span className="rounded-full bg-purple-100 px-2 py-1 text-xs font-bold text-purple-600">
                     TÁC GIẢ
                   </span>
@@ -476,7 +496,7 @@ const ForumDetail: FC<ForumDetailProps> = ({
                   <span className="text-lg font-bold text-gray-800">
                     {c.author}
                   </span>
-                  {c.author === post.author && (
+                  {c.author === getDisplayName(post.author) && (
                     <span className="rounded-full bg-gradient-to-r from-purple-100 to-pink-100 px-3 py-1 text-xs font-bold text-purple-600">
                       TÁC GIẢ
                     </span>
@@ -674,6 +694,11 @@ const ForumDetail: FC<ForumDetailProps> = ({
       );
     });
 
+  // Xử lý conversion thời gian từ API
+  const getFormattedTime = (dateString: string) => {
+    return formatTimeAgo(new Date(dateString).getTime());
+  };
+
   // --------------------------------------------
   // Giao diện Detail
   // --------------------------------------------
@@ -731,29 +756,29 @@ const ForumDetail: FC<ForumDetailProps> = ({
               <div className="flex items-center space-x-4">
                 <motion.img
                   whileHover={{ scale: 1.1, rotate: 5 }}
-                  src={post.avatarUrl}
-                  alt={post.author}
+                  src={getAvatarUrl(post.author)}
+                  alt={getDisplayName(post.author)}
                   className="h-16 w-16 rounded-full border-4 border-purple-400 object-cover shadow-xl"
                 />
                 <div>
                   <div className="text-xl font-bold text-gray-900">
-                    {post.author}
+                    {getDisplayName(post.author)}
                   </div>
                   <div className="text-sm text-gray-500">
-                    {formatTimeAgo(post.createdAt)}
+                    {getFormattedTime(post.createdAt)}
                   </div>
                 </div>
               </div>
 
               {/* Menu cho post của "Bạn" */}
-              {post.author === 'Bạn' && (
+              {post.author?.email === 'admin@email.com' && ( // Thay bằng email user hiện tại
                 <div className="relative">
                   <motion.button
                     whileHover={{ scale: 1.1 }}
                     whileTap={{ scale: 0.9 }}
                     onClick={() =>
                       setMenuOpenId((prev) =>
-                        prev === post.id ? null : post.id
+                        prev === post.id.toString() ? null : post.id.toString()
                       )
                     }
                     className="rounded-full p-3 transition-colors hover:bg-purple-100/50"
@@ -761,7 +786,7 @@ const ForumDetail: FC<ForumDetailProps> = ({
                     <FaEllipsisH className="text-gray-500" />
                   </motion.button>
                   <AnimatePresence>
-                    {menuOpenId === post.id && (
+                    {menuOpenId === post.id.toString() && (
                       <motion.div
                         initial={{ opacity: 0, scale: 0.9, y: -10 }}
                         animate={{ opacity: 1, scale: 1, y: 0 }}
@@ -771,7 +796,7 @@ const ForumDetail: FC<ForumDetailProps> = ({
                         <div className="py-2">
                           <button
                             onClick={() => {
-                              setEditingId(post.id);
+                              setEditingId(post.id.toString());
                               setEditingText(post.content);
                               setMenuOpenId(null);
                             }}
@@ -781,7 +806,11 @@ const ForumDetail: FC<ForumDetailProps> = ({
                           </button>
                           <button
                             onClick={() =>
-                              handleDeleteClick('post', post.id, post.title)
+                              handleDeleteClick(
+                                'post',
+                                post.id.toString(),
+                                post.title
+                              )
                             }
                             className="text-red-600 hover:bg-red-50 w-full px-4 py-2 text-left text-sm"
                           >
@@ -795,8 +824,22 @@ const ForumDetail: FC<ForumDetailProps> = ({
               )}
             </div>
 
+            {/* Title */}
+            {post.title && (
+              <h1 className="mb-4 text-2xl font-bold text-gray-800">
+                {post.title}
+              </h1>
+            )}
+
+            {/* Topic */}
+            <div className="mb-4">
+              <span className="inline-block rounded-full bg-purple-100 px-3 py-1 text-sm font-medium text-purple-700">
+                {post.topic}
+              </span>
+            </div>
+
             {/* Nội dung post */}
-            {editingId === post.id ? (
+            {editingId === post.id.toString() ? (
               <div className="mb-6">
                 <RichTextEditor
                   value={editingText}
@@ -817,7 +860,7 @@ const ForumDetail: FC<ForumDetailProps> = ({
                   </button>
                   <button
                     onClick={() => {
-                      const updatedPost: Post = {
+                      const updatedPost: ExtendedForumPost = {
                         ...post,
                         content: editingText
                       };
@@ -837,6 +880,18 @@ const ForumDetail: FC<ForumDetailProps> = ({
                 dangerouslySetInnerHTML={{ __html: post.content }}
               />
             )}
+
+            {/* Post stats */}
+            <div className="mb-6 flex items-center space-x-6 text-sm text-gray-500">
+              <div className="flex items-center space-x-2">
+                <span>👁️</span>
+                <span>{post.view} lượt xem</span>
+              </div>
+              <div className="flex items-center space-x-2">
+                <span>💬</span>
+                <span>{post.feedbackNumber} phản hồi</span>
+              </div>
+            </div>
 
             {/* Actions cho post */}
             <div className="flex items-center justify-between border-t border-purple-200/50 pt-6">

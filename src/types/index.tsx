@@ -548,3 +548,49 @@ export interface AdvertiserDetailModalProps {
   onClose: () => void;
   advertiserId: number | null;
 }
+
+// Forum/Post related types - Thêm vào cuối file types/index.ts
+
+export interface ForumUserDetail {
+  id: number;
+  dateOfBirth: string;
+  gender: string;
+  avatarURL: string;
+  address: string;
+  applicationUserId: number;
+  fullName?: string;
+  user?: ApplicationUserApiResponse;
+}
+
+export interface ForumAuthor {
+  id: number;
+  fullName: string;
+  role: string;
+  isDeleted: boolean;
+  email: string;
+  userDetail: ForumUserDetail;
+}
+
+export interface ForumPost {
+  id: number;
+  title: string;
+  content: string;
+  topic: string;
+  createdAt: string;
+  view: number;
+  feedbackNumber: number;
+  author: ForumAuthor;
+}
+
+export interface ForumApiResponse {
+  statusCode: string;
+  isSuccess: boolean;
+  message: string;
+  result: ForumPost[]; // Đây phải là array, không phải single object
+}
+
+export interface CreateForumPostPayload {
+  title: string;
+  content: string;
+  topic: string;
+}
