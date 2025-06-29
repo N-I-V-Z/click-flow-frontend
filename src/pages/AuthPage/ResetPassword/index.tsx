@@ -3,14 +3,12 @@ import Footer from '@/components/shared/footer-home';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useState } from 'react';
-import { Eye, EyeOff } from 'lucide-react';
-import { useResetPassword } from '@/queries/auth.query';
+import { useForgotPassword } from '@/queries/auth.query';
 import { Link } from 'react-router-dom';
 import ImageLeft from '../Image';
-import { ResetpasswordRequest } from '@/types';
-import { useRouter } from '@/routes/hooks';
+import { ForgotPasswordRequest } from '@/types';
 import ToastNotification from '@/components/shared/toast-notification';
-import { toast } from 'react-toastify';
+
 type FormReset = {
   email: string;
   newPassword: string;
@@ -19,27 +17,73 @@ type FormReset = {
 
 type FormError = Partial<FormReset>;
 
+// Popup Component
+const SuccessPopup = ({
+  isOpen,
+  onClose,
+  message
+}: {
+  isOpen: boolean;
+  onClose: () => void;
+  message: string;
+}) => {
+  if (!isOpen) return null;
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+      <div className="relative mx-4 w-full max-w-md rounded-lg bg-white shadow-xl">
+        <div className="p-6 text-center">
+          {/* Success Icon */}
+          <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-green-100">
+            <svg
+              className="h-8 w-8 text-green-600"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M5 13l4 4L19 7"
+              />
+            </svg>
+          </div>
+
+          {/* Title */}
+          <h3 className="mb-2 text-lg font-semibold text-gray-900">
+            Thành công!
+          </h3>
+
+          {/* Message */}
+          <p className="mb-6 text-sm text-gray-600">{message}</p>
+
+          {/* Close Button */}
+          <Button
+            onClick={onClose}
+            className="w-full bg-[#9B52BF] text-white hover:bg-[#8A47AB]"
+          >
+            Đóng
+          </Button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
 export default function ResetPasswordPage() {
-  const { mutateAsync, isPending } = useResetPassword();
-  const [formReset, setFormReset] = useState<ResetpasswordRequest>({
-    email: '',
-    newPassword: '',
-    confirmedNewPassword: '',
-    token: ''
+  const { mutateAsync, isPending } = useForgotPassword();
+  const [formReset, setFormReset] = useState<ForgotPasswordRequest>({
+    email: ''
   });
   const [error, setError] = useState<FormError>({});
-  const [showPassword, setShowPassword] = useState(false);
-  const router = useRouter();
+  const [showSuccessPopup, setShowSuccessPopup] = useState(false);
+  const [successMessage, setSuccessMessage] = useState('');
+
   const validateInputs = (): FormError => {
     const errors: FormError = {};
     if (!formReset?.email.trim()) {
       errors.email = 'Email không được để trống.';
-    }
-    if (!formReset?.newPassword.trim()) {
-      errors.newPassword = 'Mật khẩu mới không được để trống.';
-    }
-    if (formReset?.newPassword !== formReset?.confirmedNewPassword) {
-      errors.confirmedNewPassword = 'Mật khẩu xác nhận không khớp.';
     }
     return errors;
   };
@@ -52,12 +96,20 @@ export default function ResetPasswordPage() {
     }
 
     try {
-      await mutateAsync(formReset);
-      toast.success('Mật khẩu đã được đặt lại thành công!');
-      router.push('/login');
+      const response = await mutateAsync(formReset);
+      // Thay vì toast, hiển thị popup
+      setSuccessMessage(
+        response.result?.message || 'Đã gửi email đặt lại mật khẩu thành công!'
+      );
+      setShowSuccessPopup(true);
     } catch (err) {
       setError({ email: 'Không thể đặt lại mật khẩu. Vui lòng thử lại.' });
     }
+  };
+
+  const handleClosePopup = () => {
+    setShowSuccessPopup(false);
+    setSuccessMessage('');
   };
 
   return (
@@ -112,71 +164,13 @@ export default function ResetPasswordPage() {
                 )}
               </div>
 
-              <div>
-                <label className="text-sm font-medium text-gray-700">
-                  Mật khẩu mới
-                </label>
-                <div className="relative">
-                  <Input
-                    type={showPassword ? 'text' : 'password'}
-                    value={formReset.newPassword}
-                    onChange={(e) =>
-                      setFormReset({
-                        ...formReset,
-                        newPassword: e.target.value
-                      })
-                    }
-                  />
-                  <button
-                    type="button"
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500"
-                    onClick={() => setShowPassword(!showPassword)}
-                  >
-                    {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
-                  </button>
-                </div>
-                {error.newPassword && (
-                  <p className="text-[12px] text-red">{error.newPassword}</p>
-                )}
-              </div>
-
-              <div>
-                <label className="text-sm font-medium text-gray-700">
-                  Xác nhận mật khẩu
-                </label>
-                <div className="relative">
-                  <Input
-                    type="password"
-                    value={formReset.confirmedNewPassword}
-                    onChange={(e) =>
-                      setFormReset({
-                        ...formReset,
-                        confirmedNewPassword: e.target.value
-                      })
-                    }
-                  />
-                  <button
-                    type="button"
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500"
-                    onClick={() => setShowPassword(!showPassword)}
-                  >
-                    {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
-                  </button>
-                </div>
-                {error.confirmedNewPassword && (
-                  <p className="text-[12px] text-red">
-                    {error.confirmedNewPassword}
-                  </p>
-                )}
-              </div>
-
               <div className="flex flex-col items-center gap-4">
                 <Button
                   className="w-full bg-yellow text-black"
                   onClick={handleReset}
                   disabled={isPending}
                 >
-                  {isPending ? 'Đang xử lý...' : 'Đặt lại mật khẩu'}
+                  {isPending ? 'Đang xử lý...' : 'Gửi'}
                 </Button>
                 <p className="text-center text-[12px] text-muted-foreground">
                   Đăng ký tài khoản <br />
@@ -199,6 +193,14 @@ export default function ResetPasswordPage() {
           </div>
         </div>
       </BasePages>
+
+      {/* Success Popup */}
+      <SuccessPopup
+        isOpen={showSuccessPopup}
+        onClose={handleClosePopup}
+        message={successMessage}
+      />
+
       <Footer />
       <ToastNotification />
     </>

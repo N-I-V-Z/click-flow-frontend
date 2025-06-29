@@ -103,12 +103,9 @@ const RegisterChoice = () => {
                     </div>
                     <div>
                       <h2 className="text-3xl font-bold text-white">
-                        Nhà cung cấp
+                        Advertiser
                       </h2>
                       <div className="mt-1 flex items-center gap-2">
-                        <span className="text-sm font-medium text-purple-300">
-                          Provider
-                        </span>
                         <span className="rounded-full bg-purple-500/20 px-2 py-1 text-xs font-medium text-purple-300">
                           Doanh nghiệp
                         </span>
@@ -290,12 +287,9 @@ const RegisterChoice = () => {
                     </div>
                     <div>
                       <h2 className="text-3xl font-bold text-white">
-                        Nhà phân phối
+                        Publisher
                       </h2>
                       <div className="mt-1 flex items-center gap-2">
-                        <span className="text-sm font-medium text-blue">
-                          Distributor
-                        </span>
                         <span className="rounded-full bg-blue px-2 py-1 text-xs font-medium text-white">
                           Cá nhân
                         </span>
