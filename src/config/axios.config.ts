@@ -2,8 +2,8 @@ import axios, { AxiosRequestConfig, AxiosResponse } from 'axios';
 import helpers from '../helpers';
 import { ApiResponse, LoginApiResponse } from '@/types';
 
-const baseURL = import.meta.env.VITE_API_URL;
-// const baseURL = '';
+// const baseURL = import.meta.env.VITE_API_URL;
+const baseURL = '';
 
 // Biến để theo dõi trạng thái refresh token để tránh multiple refresh calls
 let isRefreshing = false;
