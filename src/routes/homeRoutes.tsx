@@ -1,6 +1,7 @@
 import { Outlet } from 'react-router-dom';
 import { Suspense, lazy } from 'react';
 import ScrollToTop from '@/hooks/scroll-to-top';
+import RenewPasswordPage from '@/pages/AuthPage/ResetPassword/ForgotPassword';
 
 const SystemLayout = lazy(() => import('@/components/layout/index'));
 const HomePage = lazy(() => import('@/pages/Home/index'));
@@ -32,7 +33,8 @@ const homeRoutes = [
       { path: 'forgot-password', element: <ForgotPasswordPage /> },
       { path: 'register-publisher', element: <RegisterPublisherPage /> },
       { path: 'privacy', element: <Privacy /> },
-      { path: 'learn-more', element: <LearnMorePage /> }
+      { path: 'learn-more', element: <LearnMorePage /> },
+      { path: 'renew-password', element: <RenewPasswordPage /> }
     ]
   }
 ];

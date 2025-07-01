@@ -347,6 +347,13 @@ export interface CourseResponse {
   description: string;
 }
 
+export interface VideoCourseResponse {
+  id: number;
+  link: string;
+  title: string;
+  courseId: number;
+}
+
 export interface Wallet {
   id: number;
   balance: number;

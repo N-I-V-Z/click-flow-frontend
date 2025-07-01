@@ -28,6 +28,22 @@ export const useGetAllCourses = (
   });
 };
 
+export const useGetAllCoursesJoin = (
+  pageIndex: number = 1,
+  pageSize: number = 10
+) => {
+  return useQuery({
+    queryKey: ['get-courses-join', pageIndex, pageSize],
+    queryFn: async () => {
+      return await BaseRequest.Get<PagingResponse<CourseResponse>>(
+        `${SUB_URL}/joined?PageIndex=${pageIndex}&PageSize=${pageSize}`
+      );
+    },
+    staleTime: 1000 * 60 * 5,
+    retry: 3
+  });
+};
+
 export const useGetCourseAdmin = (
   pageIndex: number = 1,
   pageSize: number = 10,
@@ -65,5 +81,16 @@ export const useJoinCourse = () => {
         `/${SUB_URL}/${campaignId}/join`
       );
     }
+  });
+};
+
+export const useGetVideoCheck = (courseId?: number) => {
+  return useQuery({
+    queryKey: ['get-courses-check'],
+    queryFn: async () => {
+      return await BaseRequest.Get<boolean>(`${SUB_URL}/${courseId}/check`);
+    },
+    staleTime: 1000 * 60 * 5,
+    retry: 3
   });
 };
