@@ -10,6 +10,9 @@ const Forum = lazy(() => import('@/pages/Advertiser/Forum'));
 const News = lazy(() => import('@/pages/Advertiser/NewsSection'));
 const PaymentSuccess = lazy(() => import('@/pages/Payment/PaymentSuccess'));
 const PaymentCancel = lazy(() => import('@/pages/Payment/PaymentCancel'));
+const ForumDetailPage = lazy(
+  () => import('@/pages/Advertiser/ForumDetailPage')
+);
 const adverAndPubRoutes = [
   {
     path: '/all', // hay bạn muốn gọi là '/common' cũng được
@@ -54,6 +57,18 @@ const adverAndPubRoutes = [
         element: (
           <RoleRoute allowedRoles={['Advertiser', 'Publisher']}>
             <PaymentCancel />
+          </RoleRoute>
+        )
+      },
+      // Thêm route forum-detail vào adverAndPubRoute
+      {
+        path: 'forum-detail/:id',
+        element: (
+          <RoleRoute allowedRoles={['Advertiser', 'Publisher']}>
+            <Suspense>
+              {/** ForumDetailPage sẽ tự lấy post từ location.state hoặc fetch từ API */}
+              <ForumDetailPage />
+            </Suspense>
           </RoleRoute>
         )
       }

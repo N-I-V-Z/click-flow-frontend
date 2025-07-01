@@ -68,3 +68,42 @@ export function useGetPublisherTraffic(
     retry: 3
   });
 }
+
+// Thống kê trình duyệt cho publisher
+export interface PublisherBrowserStat {
+  browser: string;
+  clickCount: number;
+  clickRate: number;
+}
+
+export const useGetPublisherBrowserStats = () => {
+  return useQuery({
+    queryKey: ['publisher-browser-stats'],
+    queryFn: async () => {
+      return await BaseRequest.Get<PublisherBrowserStat[]>(
+        '/api/Traffics/publishers/statistics/browsers'
+      );
+    },
+    staleTime: 1000 * 60 * 5,
+    retry: 3
+  });
+};
+
+// Thống kê thiết bị cho publisher
+export interface PublisherDeviceStat {
+  deviceType: string;
+  count: number;
+}
+
+export const useGetPublisherDeviceStats = () => {
+  return useQuery({
+    queryKey: ['publisher-device-stats'],
+    queryFn: async () => {
+      return await BaseRequest.Get<PublisherDeviceStat[]>(
+        '/api/Traffics/publishers/statistics/devices'
+      );
+    },
+    staleTime: 1000 * 60 * 5,
+    retry: 3
+  });
+};

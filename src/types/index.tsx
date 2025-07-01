@@ -550,7 +550,21 @@ export interface AdvertiserDetailModalProps {
 }
 
 // Forum/Post related types - Thêm vào cuối file types/index.ts
+// Thay thế interface ForumPost cũ thành:
+export interface ForumPost {
+  id: number;
+  title: string;
+  content: string;
+  topic: string;
+  createdAt: string;
+  likeCount: number; // Thêm mới
+  feedbackNumber: number;
+  author: ForumAuthor;
+  isLikedByCurrentUser: boolean; // Thêm mới
+  // Các field khác nếu có...
+}
 
+// Các interface khác giữ nguyên
 export interface ForumUserDetail {
   id: number;
   dateOfBirth: string;
@@ -571,17 +585,6 @@ export interface ForumAuthor {
   userDetail: ForumUserDetail;
 }
 
-export interface ForumPost {
-  id: number;
-  title: string;
-  content: string;
-  topic: string;
-  createdAt: string;
-  view: number;
-  feedbackNumber: number;
-  author: ForumAuthor;
-}
-
 export interface ForumApiResponse {
   statusCode: string;
   isSuccess: boolean;
@@ -593,4 +596,73 @@ export interface CreateForumPostPayload {
   title: string;
   content: string;
   topic: string;
+}
+
+// ===== COMMENT SYSTEM TYPES =====
+
+// Comment Author interface (tương tự ForumAuthor)
+export interface CommentAuthor {
+  id: number;
+  fullName: string;
+  role: string;
+  isDeleted: boolean;
+  email: string;
+  userDetail: ForumUserDetail;
+}
+
+// Main Comment interface
+export interface CommentApiResponse {
+  id: number;
+  content: string;
+  createdAt: string;
+  authorId: number;
+  author?: CommentAuthor;
+  postId: number;
+  parentCommentId?: number | null;
+  replies: CommentApiResponse[]; // Nested replies
+  likes?: number; // Có thể chưa có trong API
+  liked?: boolean; // Có thể chưa có trong API
+}
+
+// Response wrapper cho comment list
+export interface CommentListResponse {
+  statusCode: string;
+  isSuccess: boolean;
+  message: string;
+  result: CommentApiResponse[];
+}
+
+// Payload để tạo comment mới
+export interface CreateCommentPayload {
+  content: string;
+  postId: number;
+  parentCommentId?: number | null; // null nếu là comment gốc, có giá trị nếu là reply
+}
+
+// Payload để cập nhật comment
+export interface UpdateCommentPayload {
+  content: string;
+}
+
+// Extended comment cho UI (với likes fake)
+export interface ExtendedComment extends CommentApiResponse {
+  likes: number;
+  liked: boolean;
+  replies: ExtendedComment[]; // Override để dùng ExtendedComment
+}
+
+// ===== UI COMMENT TYPES (phụ trợ cho UI, không ảnh hưởng API) =====
+export interface UIComment {
+  id: string;
+  content: string;
+  createdAt: number;
+  author: string;
+  authorRole: string;
+  avatarUrl: string;
+  postId: number;
+  parentCommentId?: string | null;
+  replies: UIComment[];
+  likes: number;
+  liked: boolean;
+  authorId: number; // add for permission check
 }

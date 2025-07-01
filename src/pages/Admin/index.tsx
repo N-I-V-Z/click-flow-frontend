@@ -12,6 +12,7 @@ import {
   BarChart,
   Bar
 } from 'recharts';
+import { useGetOwnWallet } from '@/queries/wallet.query';
 
 const AdminDashboard: React.FC = () => {
   // Dữ liệu giả lập cho LineChart (doanh thu theo tháng)
@@ -30,6 +31,10 @@ const AdminDashboard: React.FC = () => {
     { name: 'Advertiser', count: 500 }
   ];
 
+  // Lấy số dư ví
+  const { data: walletData, isLoading: walletLoading } = useGetOwnWallet();
+  const balance = walletData?.result?.balance ?? 0;
+
   return (
     <BasePages pageHead="ClickFlow - Dashboard">
       <div className="mb-10 p-4">
@@ -37,7 +42,9 @@ const AdminDashboard: React.FC = () => {
         <div className="mb-6 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
           {/* Doanh thu tháng này */}
           <div className="rounded bg-[#24A503] p-4 text-center text-white">
-            <h2 className="text-2xl font-bold">385.4tr</h2>
+            <h2 className="text-2xl font-bold">
+              {walletLoading ? '...' : balance.toLocaleString('vi-VN') + 'đ'}
+            </h2>
             <p>Doanh thu tháng này</p>
           </div>
 

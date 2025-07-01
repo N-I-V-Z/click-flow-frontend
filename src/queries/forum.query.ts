@@ -22,7 +22,6 @@ export const useGetAllPosts = (
       const response = await BaseRequest.Get<ForumApiResponse>(
         `${SUB_URL}/get-all-posts/${pageIndex}/${pageSize}`
       );
-      console.log('API Response:', response); // Debug log
       return response;
     },
     staleTime: 1000 * 60 * 5,
@@ -70,23 +69,27 @@ export const useGetPostsByTopic = (
 };
 
 /**
- * Hook gọi API tìm kiếm bài viết
+ * Hook tìm kiếm bài viết với phân trang
  */
-export const useSearchPosts = (
-  searchTerm: string,
-  pageIndex: number = 1,
-  pageSize: number = 10
-) => {
-  return useQuery({
-    queryKey: ['search-posts', searchTerm, pageIndex, pageSize],
-    enabled: !!searchTerm && searchTerm.trim().length > 0,
-    queryFn: async () => {
-      return await BaseRequest.Get<ForumApiResponse>(
-        `${SUB_URL}/search-posts?searchTerm=${encodeURIComponent(searchTerm)}&pageIndex=${pageIndex}&pageSize=${pageSize}`
+export const useSearchPosts = () => {
+  return useMutation({
+    mutationKey: ['search-posts'],
+    mutationFn: async (payload: {
+      keyword: string;
+      topic?: string;
+      authorId?: number;
+      pageIndex: number;
+      pageSize: number;
+    }) => {
+      return await BaseRequest.Post<ForumApiResponse>(
+        `${SUB_URL}/search?pageIndex=${payload.pageIndex}&pageSize=${payload.pageSize}`,
+        {
+          keyword: payload.keyword,
+          topic: payload.topic || 'QA',
+          authorId: payload.authorId || 0
+        }
       );
-    },
-    staleTime: 1000 * 60 * 2, // Tìm kiếm có thể cần cập nhật thường xuyên hơn
-    retry: 3
+    }
   });
 };
 
@@ -110,12 +113,16 @@ export const useUpdatePost = () => {
     mutationKey: ['update-post'],
     mutationFn: async (payload: {
       id: number;
-      data: Partial<CreateForumPostPayload>;
+      title: string;
+      content: string;
+      topic: string;
     }) => {
-      return await BaseRequest.Put<ForumPost>(
-        `${SUB_URL}/update-post/${payload.id}`,
-        payload.data
-      );
+      return await BaseRequest.Put<ForumPost>(`${SUB_URL}/update-post`, {
+        id: payload.id,
+        title: payload.title,
+        content: payload.content,
+        topic: payload.topic
+      });
     }
   });
 };
