@@ -45,49 +45,81 @@ const TrafficTable: React.FC<TrafficTableProps> = ({
     // TODO: Implement search functionality
   };
 
-  // Định nghĩa columns cho DataTable
+  // Định nghĩa columns cho DataTable với responsive design
   const columns = useMemo<ColumnDef<TrafficApiResponse>[]>(
     () => [
       {
         accessorKey: 'id',
         header: 'ID',
-        cell: ({ row }) => <div>{row.getValue('id')}</div>
+        size: 60,
+        cell: ({ row }) => (
+          <div className="text-center font-medium">{row.getValue('id')}</div>
+        )
       },
       {
         accessorKey: 'ipAddress',
         header: 'IP Address',
-        cell: ({ row }) => <div>{row.getValue('ipAddress')}</div>
+        size: 120,
+        cell: ({ row }) => (
+          <div className="font-mono text-xs">{row.getValue('ipAddress')}</div>
+        )
       },
       {
         accessorKey: 'browser',
         header: 'Browser',
-        cell: ({ row }) => <div>{row.getValue('browser')}</div>
+        size: 80,
+        cell: ({ row }) => (
+          <div className="text-sm">{row.getValue('browser')}</div>
+        )
       },
       {
         accessorKey: 'deviceType',
         header: 'Device',
-        cell: ({ row }) => <div>{row.getValue('deviceType')}</div>
+        size: 80,
+        cell: ({ row }) => {
+          const device = row.getValue('deviceType') as string;
+          return (
+            <div className="flex items-center gap-1 text-sm">
+              <span>{device}</span>
+            </div>
+          );
+        }
       },
       {
         accessorKey: 'referrerURL',
-        header: 'ReferrerURL',
-        cell: ({ row }) => (
-          <div className="max-w-xs truncate">{row.getValue('referrerURL')}</div>
-        )
+        header: 'Referrer URL',
+        size: 200,
+        cell: ({ row }) => {
+          const url = row.getValue('referrerURL') as string;
+          return (
+            <div className="max-w-[200px]">
+              <a
+                href={url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="truncate text-xs text-[#2563EB] hover:text-[#1E40AF] hover:underline"
+                title={url}
+              >
+                {url}
+              </a>
+            </div>
+          );
+        }
       },
       {
         accessorKey: 'campaignParticipation',
         header: 'Campaign',
+        size: 180,
         cell: ({ row }) => {
           const campaignParticipation = row.getValue(
             'campaignParticipation'
           ) as TrafficApiResponse['campaignParticipation'];
           return (
-            <div className="max-w-xs">
-              <p className="truncate font-medium">
+            <div className="max-w-[180px]">
+              <p className="truncate text-sm font-medium text-[#111827]">
                 {campaignParticipation?.campaign?.name || 'N/A'}
               </p>
-              <p className="text-xs text-gray-500">
+              <p className="text-xs text-[#6B7280]">
                 ID: #{campaignParticipation?.campaign?.id || 'N/A'}
               </p>
             </div>
@@ -96,28 +128,37 @@ const TrafficTable: React.FC<TrafficTableProps> = ({
       },
       {
         accessorKey: 'isValid',
-        header: 'Valid',
+        header: 'Status',
+        size: 80,
         cell: ({ row }) => {
           const isValid = row.getValue('isValid') as boolean;
           return (
             <span
-              className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${
+              className={`inline-flex items-center rounded-full px-2 py-1 text-xs font-medium ${
                 isValid
-                  ? 'bg-green-100 text-green-800'
+                  ? 'bg-[#DCFCE7] text-[#166534]'
                   : 'bg-[#FEE2E2] text-[#991B1B]'
               }`}
             >
-              {isValid ? 'Valid' : 'Invalid'}
+              {isValid ? '✓ Valid' : '✗ Invalid'}
             </span>
           );
         }
       },
       {
         accessorKey: 'timestamp',
-        header: 'Timestamp',
+        header: 'Time',
+        size: 140,
         cell: ({ row }) => {
           const timestamp = row.getValue('timestamp') as Date | string;
-          return <div>{formatTimestamp(timestamp)}</div>;
+          const formatted = formatTimestamp(timestamp);
+          const [date, time] = formatted.split(' ');
+          return (
+            <div className="text-xs">
+              <div className="font-medium text-[#111827]">{date}</div>
+              <div className="text-[#6B7280]">{time}</div>
+            </div>
+          );
         }
       }
     ],
@@ -164,16 +205,18 @@ const TrafficTable: React.FC<TrafficTableProps> = ({
 
   if (isError) {
     console.error(error);
-    return <div className="text-red-500">Lỗi khi tải dữ liệu traffic!</div>;
+    return <div className="text-[#DC2626]">Lỗi khi tải dữ liệu traffic!</div>;
   }
 
   return (
-    <div className="mb-6 rounded-lg bg-white p-6 shadow-2xl transition-transform duration-300 ">
-      {/* Header với Export button */}
-      <div className="mb-6 flex items-center justify-between border-b border-gray-200 pb-4">
+    <div className="w-full">
+      {/* Header với Export button - Responsive */}
+      <div className="mb-4 flex flex-col gap-3 border-b border-[#E5E7EB] pb-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h2 className="text-xl font-bold text-gray-800">Traffic Data</h2>
-          <p className="text-sm text-gray-500">
+          <h2 className="text-lg font-bold text-[#111827] sm:text-xl">
+            Traffic Data
+          </h2>
+          <p className="text-sm text-[#6B7280]">
             {selectedCampaignId
               ? `Campaign ID: ${selectedCampaignId}`
               : 'Tất cả chiến dịch'}
@@ -182,38 +225,39 @@ const TrafficTable: React.FC<TrafficTableProps> = ({
         <button
           onClick={handleExportCSV}
           disabled={!trafficData.length}
-          className="transform rounded-lg bg-gradient-to-r from-blue to-[#2563EB] px-6 py-3 font-semibold text-white shadow-lg transition-all duration-200 hover:scale-105 hover:from-[#2563EB] hover:to-[#1D4ED8] hover:shadow-xl disabled:cursor-not-allowed disabled:from-gray-400 disabled:to-gray-500"
+          className="flex items-center justify-center gap-2 rounded-lg bg-gradient-to-r from-[#3B82F6] to-[#2563EB] px-4 py-2 text-sm font-semibold text-white shadow-md transition-all duration-200 hover:from-[#2563EB] hover:to-[#1D4ED8] hover:shadow-lg disabled:cursor-not-allowed disabled:from-[#9CA3AF] disabled:to-[#6B7280] sm:px-6 sm:py-3"
         >
-          <span className="flex items-center gap-2">
-            <svg
-              className="h-4 w-4"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
-              />
-            </svg>
-            Xuất Excel (CSV)
-          </span>
+          <svg
+            className="h-4 w-4"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+            />
+          </svg>
+          <span className="hidden sm:inline">Xuất Excel (CSV)</span>
+          <span className="sm:hidden">CSV</span>
         </button>
       </div>
 
-      {/* DataTable Container */}
-      <div className="overflow-hidden rounded-lg border border-gray-200">
-        <DataTable
-          columns={columns}
-          data={trafficData}
-          pageCount={pageCount}
-          isLoading={isLoading}
-          pageSizeOptions={[10, 20, 30, 50]}
-          heightTable="70dvh"
-          onSearchChange={handleSearchChange}
-        />
+      {/* DataTable Container - Responsive với scroll */}
+      <div className="w-full overflow-hidden rounded-lg border border-[#E5E7EB] bg-white shadow-sm">
+        <div className="overflow-x-auto">
+          <DataTable
+            columns={columns}
+            data={trafficData}
+            pageCount={pageCount}
+            isLoading={isLoading}
+            pageSizeOptions={[10, 20, 30, 50]}
+            heightTable="60dvh"
+            onSearchChange={handleSearchChange}
+          />
+        </div>
       </div>
     </div>
   );

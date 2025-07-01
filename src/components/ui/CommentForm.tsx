@@ -20,6 +20,7 @@ interface CommentFormProps {
   size?: 'sm' | 'md' | 'lg';
   autoFocus?: boolean;
   showActions?: boolean;
+  avatarUrl?: string; // thêm prop avatarUrl
 }
 
 const CommentForm: React.FC<CommentFormProps> = ({
@@ -31,7 +32,8 @@ const CommentForm: React.FC<CommentFormProps> = ({
   replyTo,
   size = 'md',
   autoFocus = false,
-  showActions = true
+  showActions = true,
+  avatarUrl // nhận prop avatarUrl
 }) => {
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
@@ -117,7 +119,7 @@ const CommentForm: React.FC<CommentFormProps> = ({
           initial={{ scale: 0 }}
           animate={{ scale: 1 }}
           transition={{ delay: 0.1, type: 'spring', stiffness: 200 }}
-          src="https://i.pravatar.cc/40?u=me"
+          src={avatarUrl || 'https://i.pravatar.cc/40?u=me'}
           alt="Bạn"
           className={`${avatarSizes[size]} border-gradient-to-r from-blue-400 rounded-full border-2 to-purple-500 object-cover shadow-md`}
         />
@@ -183,7 +185,17 @@ const CommentForm: React.FC<CommentFormProps> = ({
                   disabled={!value.trim()}
                   whileHover={{ scale: value.trim() ? 1.05 : 1 }}
                   whileTap={{ scale: value.trim() ? 0.95 : 1 }}
-                  className={`from-blue-500 hover:from-blue-600 flex items-center space-x-2 rounded-lg bg-gradient-to-r to-purple-600 text-white transition-all duration-200 hover:to-purple-700 hover:shadow-lg disabled:cursor-not-allowed disabled:from-gray-300 disabled:to-gray-400 ${buttonSizes[size]}`}
+                  style={{
+                    background: value.trim()
+                      ? 'linear-gradient(90deg,#7e57c2,#ab47bc)'
+                      : '#e0e0e0',
+                    color: value.trim() ? '#fff' : '#bdbdbd',
+                    border: 'none',
+                    boxShadow: value.trim() ? '0 2px 8px #b39ddb80' : 'none',
+                    cursor: value.trim() ? 'pointer' : 'not-allowed',
+                    transition: 'all 0.2s'
+                  }}
+                  className={`flex items-center space-x-2 rounded-lg transition-all duration-200 ${buttonSizes[size]}`}
                 >
                   <FaPaperPlane
                     className={size === 'sm' ? 'text-xs' : 'text-sm'}

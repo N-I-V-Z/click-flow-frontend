@@ -1,158 +1,98 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { FaPlus, FaComment, FaSearch, FaEllipsisH } from 'react-icons/fa';
-import ForumDetail from './ForumDetail';
+import { FaPlus, FaComment, FaEllipsisH } from 'react-icons/fa';
 import BasePages from '@/components/shared/base-pages';
-import LikeButton from '@/components/ui/LikeButton';
 import ConfirmModal from '@/components/ui/ConfirmModal';
 import CreatePostModal from '@/components/ui/CreatePostModal';
 import RichTextEditor from '@/components/ui/RichTextEditor';
+import { useToast } from '@/components/ui/use-toast';
+import { formatCommentCount } from '@/utils/commentUtils';
 import {
-  getTotalCommentCount,
-  formatCommentCount,
-  formatTimeAgo
-} from '@/utils/commentUtils';
+  useGetAllPosts,
+  useCreatePost,
+  useUpdatePost,
+  useDeletePost
+} from '@/queries/forum.query';
+import { ForumPost, ExtendedComment } from '@/types';
+import helpers from '@/helpers';
+import { TokenDecoded } from '@/types';
+import { useNavigate, useSearchParams } from 'react-router-dom';
+import {
+  useLikePost,
+  useUnlikePost,
+  useCheckLiked
+} from '@/queries/like.query';
+import LikeButton from '@/components/ui/LikeButton';
 
-// ----------------------------------------------
-// Fake data (initialPosts) dùng làm mẫu
-// ----------------------------------------------
-const initialPosts = [
-  {
-    id: '1',
-    author: 'Admin',
-    avatarUrl: 'https://i.pravatar.cc/40?u=admin',
-    title: '',
-    content:
-      '<h2>Chào mừng đến với diễn đàn!</h2><p>Đây là bài viết mẫu để bạn kiểm tra giao diện và tính năng like/comment. Hy vọng bạn sẽ <strong>đóng góp xây dựng cộng đồng</strong> tốt hơn nhé!</p><p>Bạn có thể sử dụng <em>rich text editor</em> để tạo nội dung đẹp với <span style="color: rgb(147, 51, 234);">màu sắc</span> và <u>định dạng</u> khác nhau.</p>',
-    likes: 5,
-    liked: false,
-    comments: [
-      {
-        id: 'c1',
-        author: 'Nguyễn Văn A',
-        avatarUrl: 'https://i.pravatar.cc/40?u=nvA',
-        content: '<p>Bài viết rất <strong>hữu ích</strong>, cảm ơn bạn! 😊</p>',
-        likes: 2,
-        liked: false,
-        createdAt: Date.now() - 600000,
-        replies: [
-          {
-            id: 'c1-1',
-            author: 'Trần Thị B',
-            avatarUrl: 'https://i.pravatar.cc/40?u=ttB',
-            content: '<p>Mình cũng thấy vậy. <em>Rất tuyệt vời!</em></p>',
-            likes: 1,
-            liked: false,
-            createdAt: Date.now() - 300000
-          },
-          {
-            id: 'c1-2',
-            author: 'Bạn',
-            avatarUrl: 'https://i.pravatar.cc/40?u=me',
-            content: '<p>Ok, thanks!</p>',
-            likes: 0,
-            liked: false,
-            createdAt: Date.now() - 200000
-          },
-          {
-            id: 'c1-3',
-            author: 'Khách',
-            avatarUrl: 'https://i.pravatar.cc/40?u=guest',
-            content: '<p>Cám ơn!</p>',
-            likes: 0,
-            liked: false,
-            createdAt: Date.now() - 100000
-          },
-          {
-            id: 'c1-4',
-            author: 'Bạn',
-            avatarUrl: 'https://i.pravatar.cc/40?u=me',
-            content: '<p>Thử thêm bình luận dài hơn để test hiển thị.</p>',
-            likes: 0,
-            liked: false,
-            createdAt: Date.now() - 50000
-          },
-          {
-            id: 'c1-5',
-            author: 'Người khác',
-            avatarUrl: 'https://i.pravatar.cc/40?u=other',
-            content:
-              '<p>Một reply thứ 5 để test <span style="color: rgb(34, 197, 94);">Xem thêm</span>.</p>',
-            likes: 0,
-            liked: false,
-            createdAt: Date.now() - 20000
-          }
-        ]
-      },
-      {
-        id: 'c2',
-        author: 'Phạm Thị C',
-        avatarUrl: 'https://i.pravatar.cc/40?u=ptC',
-        content: '<p>Cần thêm ví dụ cụ thể nữa nhé.</p>',
-        likes: 0,
-        liked: false,
-        createdAt: Date.now() - 1200000
-      }
-    ],
-    createdAt: Date.now() - 3600000
-  },
-  {
-    id: '2',
-    author: 'Bạn',
-    avatarUrl: 'https://i.pravatar.cc/40?u=me',
-    title: '',
-    content:
-      "<h3>Mình có thắc mắc về TypeScript</h3><p>Bạn nào giúp mình cách sửa lỗi type trong <code>React hook useState</code>?</p><blockquote>Lỗi: Type 'string' is not assignable to type 'number'</blockquote>",
-    likes: 1,
-    liked: false,
-    comments: [],
-    createdAt: Date.now() - 7200000
-  }
-];
+const decodedToken: TokenDecoded | null = helpers.decodeTokens(
+  helpers.cookie_get('AT')
+);
+const advertiserId =
+  decodedToken?.Id !== undefined ? parseInt(decodedToken.Id) : 0;
 
-// ----------------------------------------------
-// Kiểu dữ liệu Comment & Post
-// ----------------------------------------------
-interface Comment {
-  id: string;
-  author: string;
-  avatarUrl: string;
-  content: string;
+interface ExtendedForumPost extends ForumPost {
   likes: number;
   liked: boolean;
-  createdAt: number;
-  replies?: Comment[];
+  comments: ExtendedComment[];
+  avatarUrl?: string;
+  view?: number;
 }
 
-interface Post {
-  id: string;
-  author: string;
-  avatarUrl: string;
-  title: string;
-  content: string;
-  likes: number;
-  liked: boolean;
-  comments: Comment[];
-  createdAt: number;
+// Helper: trả về class màu hệ 16 cho từng role
+function getRoleColor(role?: string) {
+  switch (role) {
+    case 'Publisher':
+      return 'bg-[#F87171] text-[#B91C1C] border-[#FCA5A5]'; // đỏ
+    case 'Admin':
+      return 'bg-[#A78BFA] text-[#6D28D9] border-[#DDD6FE]'; // tím
+    case 'Advertiser':
+      return 'bg-[#34D399] text-[#065F46] border-[#6EE7B7]'; // xanh lá
+    default:
+      return 'bg-[#F3F4F6] text-[#374151] border-[#E5E7EB]';
+  }
+}
+
+// Helper: format thời gian kiểu "x phút/giờ trước" nếu <24h, còn lại thì ngày giờ
+function formatTimeAgoVi(utcString?: string) {
+  if (!utcString) return '';
+  try {
+    const now = new Date();
+    const date = new Date(utcString);
+    const diffMs = now.getTime() - date.getTime();
+    const diffMin = Math.floor(diffMs / 60000);
+    const diffHour = Math.floor(diffMin / 60);
+    if (diffHour < 24) {
+      if (diffHour >= 1) return `${diffHour} giờ trước`;
+      if (diffMin >= 1) return `${diffMin} phút trước`;
+      return 'Vừa xong';
+    }
+    return date.toLocaleString('vi-VN', {
+      hour: '2-digit',
+      minute: '2-digit',
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric'
+    });
+  } catch {
+    return '';
+  }
 }
 
 export default function Forum() {
   // --------------------------------------------
+  // Toast notifications
+  // --------------------------------------------
+  const { toast } = useToast();
+
+  // --------------------------------------------
   // State & refs
   // --------------------------------------------
-  const [posts, setPosts] = useState<Post[]>([]);
-  const [filteredPosts, setFilteredPosts] = useState<Post[]>([]);
-  const [loading, setLoading] = useState<boolean>(true);
+  const [searchParams, setSearchParams] = useSearchParams();
+  const pageParam = parseInt(searchParams.get('page') || '1', 10);
+  const limitParam = parseInt(searchParams.get('limit') || '10', 10);
 
-  const [selectedPost, setSelectedPost] = useState<Post | null>(null);
-  const [showCreate, setShowCreate] = useState(false);
-
-  const [searchText, setSearchText] = useState<string>('');
-  const searchRef = useRef<HTMLInputElement>(null);
-
-  // State cho edit post
-  const [editingPostId, setEditingPostId] = useState<string | null>(null);
-  const [editingPostText, setEditingPostText] = useState('');
+  const [currentPage, setCurrentPage] = useState(pageParam);
+  const [totalPages, setTotalPages] = useState(1);
 
   // State cho menu 3 chấm
   const [menuOpenId, setMenuOpenId] = useState<string | null>(null);
@@ -166,139 +106,177 @@ export default function Forum() {
     postId: ''
   });
 
-  // --------------------------------------------
-  // 1) Load dữ liệu fake
-  // --------------------------------------------
-  useEffect(() => {
-    setTimeout(() => {
-      setPosts(initialPosts);
-      setFilteredPosts(initialPosts);
-      setLoading(false);
-    }, 300);
-  }, []);
+  // State cần thiết cho logic và JSX
+  const [posts, setPosts] = useState<ExtendedForumPost[]>([]);
+  const [showCreate, setShowCreate] = useState(false);
+  const [editingPostId, setEditingPostId] = useState<string | null>(null);
+  const [editingPostText, setEditingPostText] = useState('');
+  const [selectedPost, setSelectedPost] = useState<ExtendedForumPost | null>(
+    null
+  );
+
+  // Thêm state cho pageSize
+  const [pageSize, setPageSize] = useState(limitParam);
 
   // --------------------------------------------
-  // 2) Tìm kiếm (filter)
+  // API Hooks
+  // --------------------------------------------
+  const {
+    data: postsResponse,
+    isLoading,
+    error,
+    refetch
+  } = useGetAllPosts(currentPage, pageSize);
+
+  const createPostMutation = useCreatePost();
+  const updatePostMutation = useUpdatePost();
+  const deletePostMutation = useDeletePost();
+
+  // --------------------------------------------
+  // Load dữ liệu từ API
   // --------------------------------------------
   useEffect(() => {
-    if (!searchText.trim()) {
-      setFilteredPosts(posts);
-      return;
+    if (postsResponse?.result && Array.isArray(postsResponse.result)) {
+      const transformedPosts: ExtendedForumPost[] = postsResponse.result.map(
+        (post) => ({
+          ...post,
+          likes: post.likeCount || 0,
+          liked: post.isLikedByCurrentUser || false,
+          comments: [],
+          avatarUrl: post.author.userDetail.avatarURL,
+          view: 0
+        })
+      );
+      setPosts(transformedPosts);
+      // Ưu tiên lấy tổng số bài từ totalCount nếu có, fallback về result.length
+      let totalItems: number;
+      const resultWithTotalCount = postsResponse.result as {
+        totalCount?: number;
+        length: number;
+      };
+      if (typeof resultWithTotalCount.totalCount === 'number') {
+        totalItems = resultWithTotalCount.totalCount;
+      } else {
+        totalItems = resultWithTotalCount.length;
+      }
+      const calculatedPages = Math.ceil(totalItems / pageSize);
+      setTotalPages(Math.max(1, calculatedPages));
+      if (currentPage > calculatedPages) setCurrentPage(1);
+    } else {
+      setPosts([]);
     }
-    const txt = searchText.trim().toLowerCase();
-    const filtered = posts.filter(
-      (p) =>
-        p.title.toLowerCase().includes(txt) ||
-        p.content.toLowerCase().includes(txt)
-    );
-    setFilteredPosts(filtered);
-  }, [searchText, posts]);
+  }, [postsResponse, pageSize, currentPage]);
+
+  // Sử dụng useEffect để gọi refetch khi currentPage hoặc pageSize thay đổi
+  useEffect(() => {
+    refetch();
+  }, [currentPage, pageSize, refetch]);
+
+  // Khi đổi currentPage/pageSize thì update query string
+  useEffect(() => {
+    setSearchParams({ page: String(currentPage), limit: String(pageSize) });
+  }, [currentPage, pageSize, setSearchParams]);
 
   // --------------------------------------------
-  // 3) Tạo bài mới (fake)
+  // Tạo bài mới
   // --------------------------------------------
-  const handleCreatePost = (data: { content: string }) => {
-    const newPost: Post = {
-      id: Date.now().toString(),
-      author: 'Bạn',
-      avatarUrl: 'https://i.pravatar.cc/40?u=me',
-      title: '', // Bỏ title, chỉ dùng content
-      content: data.content, // Store as HTML
-      likes: 0,
-      liked: false,
-      comments: [],
-      createdAt: Date.now()
-    };
-    setPosts([newPost, ...posts]);
-    setFilteredPosts([newPost, ...filteredPosts]);
-    setShowCreate(false);
+  const handleCreatePost = async (data: {
+    title: string;
+    content: string;
+    topic: string;
+  }) => {
+    try {
+      await createPostMutation.mutateAsync({
+        title: data.title,
+        content: data.content,
+        topic: data.topic
+      });
+
+      refetch();
+      setShowCreate(false);
+      toast({
+        title: 'Thành công!',
+        description: 'Bài viết đã được tạo thành công',
+        variant: 'success'
+      });
+    } catch (error) {
+      toast({
+        title: 'Lỗi!',
+        description: 'Có lỗi xảy ra khi tạo bài viết',
+        variant: 'destructive'
+      });
+    }
   };
 
   // --------------------------------------------
-  // 4) Toggle like cho post (fake)
+  // Edit post
   // --------------------------------------------
-  const toggleLikePost = (p: Post) => {
-    const updated = {
-      ...p,
-      liked: !p.liked,
-      likes: p.likes + (p.liked ? -1 : 1)
-    };
-    setPosts((prev) => prev.map((x) => (x.id === p.id ? updated : x)));
-    setFilteredPosts((prev) => prev.map((x) => (x.id === p.id ? updated : x)));
-    if (selectedPost && selectedPost.id === p.id) {
-      setSelectedPost(updated);
-    }
-  };
-
-  // --------------------------------------------
-  // 5) Edit post (fake)
-  // --------------------------------------------
-  const handleEditPost = (postId: string) => {
+  const handleEditPost = (postId: number) => {
     const post = posts.find((p) => p.id === postId);
     if (post) {
-      setEditingPostId(postId);
+      setEditingPostId(postId.toString());
       setEditingPostText(post.content);
       setMenuOpenId(null);
     }
   };
 
-  const saveEditedPost = (postId: string) => {
-    const updatedPosts = posts.map((p) => {
-      if (p.id === postId) {
-        return {
-          ...p,
-          content: editingPostText // Store as HTML, no title needed
-        };
+  const saveEditedPost = async (postId: string) => {
+    try {
+      const post = posts.find((p) => p.id.toString() === postId);
+      if (!post) return;
+
+      await updatePostMutation.mutateAsync({
+        id: parseInt(postId),
+        title: post.title,
+        content: editingPostText,
+        topic: post.topic
+      });
+
+      refetch();
+      setEditingPostId(null);
+      setEditingPostText('');
+      toast({
+        title: 'Cập nhật thành công!',
+        description: 'Bài viết đã được cập nhật',
+        variant: 'success'
+      });
+    } catch (error) {
+      toast({
+        title: 'Lỗi!',
+        description: 'Có lỗi xảy ra khi cập nhật bài viết',
+        variant: 'destructive'
+      });
+    }
+  };
+
+  // --------------------------------------------
+  // Delete post
+  // --------------------------------------------
+  const handleDeletePost = async (postId: string) => {
+    try {
+      await deletePostMutation.mutateAsync(parseInt(postId));
+      refetch();
+
+      if (selectedPost && selectedPost.id.toString() === postId) {
+        setSelectedPost(null);
       }
-      return p;
-    });
 
-    setPosts(updatedPosts);
-    setFilteredPosts(
-      updatedPosts.filter(
-        (p) =>
-          !searchText.trim() ||
-          p.title.toLowerCase().includes(searchText.toLowerCase()) ||
-          p.content.toLowerCase().includes(searchText.toLowerCase())
-      )
-    );
-
-    // Update selectedPost if it's being edited
-    if (selectedPost && selectedPost.id === postId) {
-      const updatedPost = updatedPosts.find((p) => p.id === postId);
-      if (updatedPost) setSelectedPost(updatedPost);
-    }
-
-    setEditingPostId(null);
-    setEditingPostText('');
-  };
-
-  // --------------------------------------------
-  // 6) Delete post (fake)
-  // --------------------------------------------
-  const handleDeletePost = (postId: string) => {
-    const updatedPosts = posts.filter((p) => p.id !== postId);
-    setPosts(updatedPosts);
-    setFilteredPosts(
-      updatedPosts.filter(
-        (p) =>
-          !searchText.trim() ||
-          p.title.toLowerCase().includes(searchText.toLowerCase()) ||
-          p.content.toLowerCase().includes(searchText.toLowerCase())
-      )
-    );
-
-    // If deleted post is currently selected, go back to list
-    if (selectedPost && selectedPost.id === postId) {
-      setSelectedPost(null);
+      toast({
+        title: 'Đã xóa!',
+        description: 'Bài viết đã được xóa thành công',
+        variant: 'success'
+      });
+    } catch (error) {
+      toast({
+        title: 'Lỗi!',
+        description: 'Có lỗi xảy ra khi xóa bài viết',
+        variant: 'destructive'
+      });
     }
   };
 
-  // --------------------------------------------
-  // Handle delete modal
-  // --------------------------------------------
-  const handleDeleteClick = (postId: string) => {
-    setDeleteModal({ isOpen: true, postId });
+  const handleDeleteClick = (postId: number) => {
+    setDeleteModal({ isOpen: true, postId: postId.toString() });
     setMenuOpenId(null);
   };
 
@@ -308,10 +286,82 @@ export default function Forum() {
   };
 
   // --------------------------------------------
-  // Giao diện Home (danh sách bài + search + modal)
+  // Handle post click
+  // --------------------------------------------
+  const navigate = useNavigate();
+  const handlePostClick = (post: ExtendedForumPost) => {
+    navigate(`/all/forum-detail/${post.id}`, { state: { post } });
+  };
+
+  // --------------------------------------------
+  // Pagination component
+  // --------------------------------------------
+  const renderPagination = () => {
+    // Luôn hiển thị pagination, kể cả khi chỉ có 1 trang
+    return (
+      <div className="mt-8 flex flex-wrap items-center justify-between rounded-xl border border-gray-200 bg-white/80 px-2 py-4 shadow-sm">
+        {/* Dropdown chọn số bài/trang */}
+        <div className="flex items-center gap-2">
+          <span>Hiển thị</span>
+          <select
+            className="rounded border px-2 py-1 focus:outline-none"
+            value={pageSize}
+            onChange={(e) => {
+              const newSize = Number(e.target.value);
+              setPageSize(newSize);
+              setCurrentPage(1); // Reset về trang 1 khi đổi page size
+            }}
+          >
+            <option value={10}>10</option>
+            <option value={20}>20</option>
+            <option value={50}>50</option>
+          </select>
+        </div>
+        {/* Thông tin trang và nút chuyển trang */}
+        <div className="flex items-center gap-2">
+          <span className="font-semibold">
+            Trang {currentPage} trên {totalPages}
+          </span>
+          <button
+            onClick={() => setCurrentPage(1)}
+            disabled={currentPage === 1}
+            className="rounded border bg-white px-2 py-1 disabled:opacity-50"
+          >
+            &#171;
+          </button>
+          <button
+            onClick={() => setCurrentPage((prev) => Math.max(1, prev - 1))}
+            disabled={currentPage === 1}
+            className="rounded border bg-white px-2 py-1 disabled:opacity-50"
+          >
+            &#60;
+          </button>
+          <button
+            onClick={() =>
+              setCurrentPage((prev) => Math.min(totalPages, prev + 1))
+            }
+            disabled={currentPage === totalPages}
+            className="rounded border bg-white px-2 py-1 disabled:opacity-50"
+          >
+            &#62;
+          </button>
+          <button
+            onClick={() => setCurrentPage(totalPages)}
+            disabled={currentPage === totalPages}
+            className="rounded border bg-white px-2 py-1 disabled:opacity-50"
+          >
+            &#187;
+          </button>
+        </div>
+      </div>
+    );
+  };
+
+  // --------------------------------------------
+  // Render Home
   // --------------------------------------------
   const renderHome = () => {
-    if (loading) {
+    if (isLoading) {
       return (
         <div
           className="relative flex min-h-screen items-center justify-center overflow-x-hidden"
@@ -333,6 +383,34 @@ export default function Forum() {
       );
     }
 
+    if (error) {
+      return (
+        <div
+          className="relative flex min-h-screen items-center justify-center overflow-x-hidden"
+          style={{
+            backgroundImage:
+              'url(https://24hstore.vn/upload_images/images/hinh-nen-mau-tim/Hinh-nen-mau-tim-dam-1.jpg)',
+            backgroundSize: 'cover',
+            backgroundPosition: 'center',
+            backgroundAttachment: 'fixed'
+          }}
+        >
+          <div className="absolute inset-0 bg-black/20 backdrop-blur-[1px]" />
+          <div className="relative z-10 text-center">
+            <span className="mb-4 block text-xl font-medium text-white">
+              Có lỗi xảy ra khi tải dữ liệu
+            </span>
+            <button
+              onClick={() => refetch()}
+              className="rounded-lg bg-[#8B5CF6] px-6 py-2 text-white hover:bg-[#7C3AED]"
+            >
+              Thử lại
+            </button>
+          </div>
+        </div>
+      );
+    }
+
     return (
       <BasePages pageHead="ClickFlow - Diễn đàn ">
         <div
@@ -347,9 +425,8 @@ export default function Forum() {
         >
           <div className="absolute inset-0 bg-black/20 backdrop-blur-[1px]" />
 
-          {/* Fixed: Tăng padding-bottom từ pb-32 lên pb-40 để tránh đè lên footer */}
           <div className="relative z-10 space-y-6 px-4 py-6 pb-40">
-            {/* Header với Search + nút tạo bài */}
+            {/* Header */}
             <motion.div
               initial={{ opacity: 0, y: -20 }}
               animate={{ opacity: 1, y: 0 }}
@@ -360,23 +437,11 @@ export default function Forum() {
               </h1>
 
               <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
-                <div className="relative w-full sm:w-64">
-                  <FaSearch className="absolute left-3 top-1/2 -translate-y-1/2 transform text-purple-400" />
-                  <input
-                    ref={searchRef}
-                    type="text"
-                    value={searchText}
-                    onChange={(e) => setSearchText(e.target.value)}
-                    placeholder="Tìm kiếm..."
-                    className="w-full rounded-xl border border-purple-200 bg-white/90 py-3 pl-10 pr-4 text-sm placeholder-purple-400 shadow-lg backdrop-blur-sm focus:border-purple-500 focus:outline-none focus:ring-2 focus:ring-purple-200"
-                  />
-                </div>
-
                 <motion.button
                   onClick={() => setShowCreate(true)}
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
-                  className="flex items-center justify-center space-x-2 rounded-xl bg-gradient-to-r from-purple-500 to-pink-500 px-6 py-3 text-sm font-medium text-white shadow-lg transition-all hover:from-purple-600 hover:to-pink-600 hover:shadow-xl"
+                  className="flex items-center justify-center space-x-2 rounded-xl bg-gradient-to-r from-[#8B5CF6] to-[#EC4899] px-6 py-3 text-sm font-medium text-white shadow-lg transition-all hover:from-[#7C3AED] hover:to-[#E11D48] hover:shadow-xl"
                 >
                   <FaPlus className="text-base" />
                   <span>Tạo bài</span>
@@ -391,6 +456,18 @@ export default function Forum() {
               onSubmit={handleCreatePost}
             />
 
+            {/* Thông tin phân trang */}
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              className="flex items-center justify-between text-sm text-white/80"
+            >
+              <span>
+                Trang {currentPage} / {totalPages}
+              </span>
+              <span>{posts.length} bài viết</span>
+            </motion.div>
+
             {/* Danh sách bài viết */}
             <motion.div
               initial={{ opacity: 0 }}
@@ -398,7 +475,7 @@ export default function Forum() {
               transition={{ delay: 0.2 }}
               className="grid grid-cols-1 gap-6"
             >
-              {filteredPosts.length === 0 ? (
+              {posts.length === 0 ? (
                 <motion.div
                   initial={{ opacity: 0, scale: 0.9 }}
                   animate={{ opacity: 1, scale: 1 }}
@@ -406,20 +483,16 @@ export default function Forum() {
                 >
                   <div className="mb-4 text-6xl">📝</div>
                   <h3 className="mb-2 text-xl font-semibold text-gray-700">
-                    Không tìm thấy bài viết
+                    Không có bài viết
                   </h3>
-                  <p className="text-gray-500">
-                    Hãy thử tìm kiếm với từ khóa khác hoặc tạo bài viết mới!
-                  </p>
+                  <p className="text-gray-500">Hãy tạo bài viết đầu tiên!</p>
                 </motion.div>
               ) : (
-                filteredPosts.map((p, index) => {
-                  // Truncate HTML content for preview (keep first 300 chars of HTML)
+                posts.map((p, index) => {
                   const preview =
                     p.content.length > 300
                       ? p.content.substring(0, 300) + '...'
                       : p.content;
-
                   return (
                     <motion.div
                       key={p.id}
@@ -432,24 +505,36 @@ export default function Forum() {
                       <div className="mb-4 flex items-center">
                         <motion.img
                           whileHover={{ scale: 1.1, rotate: 5 }}
-                          src={p.avatarUrl}
-                          alt={p.author}
+                          src={p.author.userDetail.avatarURL}
+                          alt={p.author.fullName}
                           className="border-3 mr-3 h-12 w-12 rounded-full border-purple-400 object-cover shadow-lg"
                         />
-                        <div
-                          onClick={() => setSelectedPost(p)}
-                          className="flex-1"
-                        >
-                          <div className="text-base font-bold text-gray-900">
-                            {p.author}
+                        <div className="flex flex-1 flex-col justify-center">
+                          <div
+                            onClick={() => handlePostClick(p)}
+                            className="flex items-center gap-2"
+                          >
+                            <div className="text-base font-bold text-gray-900">
+                              {p.author.fullName}
+                            </div>
+                            {p.author.role && (
+                              <span
+                                className={`ml-1 rounded border px-2 py-0.5 text-xs font-bold ${getRoleColor(p.author.role)}`}
+                              >
+                                {p.author.role}
+                              </span>
+                            )}
                           </div>
-                          <div className="text-sm text-gray-500">
-                            {formatTimeAgo(p.createdAt)}
-                          </div>
+                          {/* Thời gian bài viết nhỏ, phụ, dưới tên user */}
+                          {p.createdAt && (
+                            <span className="ml-0 mt-1 block text-xs font-normal text-gray-400">
+                              {formatTimeAgoVi(p.createdAt)}
+                            </span>
+                          )}
                         </div>
 
-                        {/* Menu cho bài của "Bạn" */}
-                        {p.author === 'Bạn' && (
+                        {/* Menu cho bài của user hiện tại */}
+                        {p.author.id === advertiserId && (
                           <div
                             className="relative"
                             onClick={(e) => e.stopPropagation()}
@@ -459,7 +544,9 @@ export default function Forum() {
                               whileTap={{ scale: 0.9 }}
                               onClick={() =>
                                 setMenuOpenId((prev) =>
-                                  prev === p.id ? null : p.id
+                                  prev === p.id.toString()
+                                    ? null
+                                    : p.id.toString()
                                 )
                               }
                               className="rounded-full p-2 transition-colors hover:bg-purple-100/50"
@@ -467,7 +554,7 @@ export default function Forum() {
                               <FaEllipsisH className="text-gray-500" />
                             </motion.button>
                             <AnimatePresence>
-                              {menuOpenId === p.id && (
+                              {menuOpenId === p.id.toString() && (
                                 <motion.div
                                   initial={{ opacity: 0, scale: 0.9, y: -10 }}
                                   animate={{ opacity: 1, scale: 1, y: 0 }}
@@ -496,7 +583,7 @@ export default function Forum() {
                       </div>
 
                       {/* Content hoặc RichTextEditor nếu đang edit */}
-                      {editingPostId === p.id ? (
+                      {editingPostId === p.id.toString() ? (
                         <div
                           className="mb-4"
                           onClick={(e) => e.stopPropagation()}
@@ -522,7 +609,7 @@ export default function Forum() {
                             <button
                               onClick={(e) => {
                                 e.stopPropagation();
-                                saveEditedPost(p.id);
+                                saveEditedPost(p.id.toString());
                               }}
                               className="transform rounded-lg bg-purple-500 px-3 py-1 text-xs text-white transition hover:scale-105 hover:bg-purple-600"
                             >
@@ -531,32 +618,81 @@ export default function Forum() {
                           </div>
                         </div>
                       ) : (
-                        <div onClick={() => setSelectedPost(p)}>
+                        <div onClick={() => handlePostClick(p)}>
+                          {/* Title */}
+                          {p.title && (
+                            <h3 className="mb-2 text-lg font-semibold text-gray-800">
+                              {p.title}
+                            </h3>
+                          )}
+
+                          {/* Content (giới hạn 2 dòng, thêm ... nếu dài) */}
                           <div
-                            className="prose prose-purple mb-4 max-w-none leading-relaxed text-gray-700 [&>*:first-child]:mt-0 [&>*:last-child]:mb-0"
+                            className="prose prose-purple mb-4 line-clamp-2 max-w-none cursor-pointer whitespace-pre-line break-words leading-relaxed text-gray-700 [&>*:first-child]:mt-0 [&>*:last-child]:mb-0"
+                            style={{
+                              wordBreak: 'break-word',
+                              display: '-webkit-box',
+                              WebkitLineClamp: 2,
+                              WebkitBoxOrient: 'vertical',
+                              overflow: 'hidden',
+                              textOverflow: 'ellipsis'
+                            }}
                             dangerouslySetInnerHTML={{ __html: preview }}
                           />
+
+                          {/* Topic tag */}
+                          <div className="mb-3">
+                            <span
+                              className="inline-block max-w-[120px] cursor-pointer truncate rounded-full px-3 py-1.5 text-xs font-medium"
+                              style={{
+                                backgroundColor:
+                                  p.topic === 'QA'
+                                    ? '#EFF6FF'
+                                    : p.topic === 'Tips'
+                                      ? '#FFFBEB'
+                                      : '#F5F3FF',
+                                color:
+                                  p.topic === 'QA'
+                                    ? '#3B82F6'
+                                    : p.topic === 'Tips'
+                                      ? '#F59E0B'
+                                      : '#8B5CF6'
+                              }}
+                              title={p.topic}
+                            >
+                              {p.topic === 'QA'
+                                ? 'Q&A'
+                                : p.topic === 'Tips'
+                                  ? 'Tips'
+                                  : 'Other'}
+                            </span>
+                          </div>
                         </div>
                       )}
 
                       <div className="flex items-center justify-between text-gray-600">
                         <div className="flex items-center space-x-6">
-                          <LikeButton
-                            liked={p.liked}
+                          {/* Like button */}
+                          <ForumLikeButton
+                            postId={p.id}
                             likes={p.likes}
-                            onToggle={() => toggleLikePost(p)}
-                            size="md"
+                            liked={p.liked}
+                            onLikeChange={(liked, likes) => {
+                              setPosts((prev) =>
+                                prev.map((x) =>
+                                  x.id === p.id ? { ...x, liked, likes } : x
+                                )
+                              );
+                            }}
                           />
-
+                          {/* Comment section */}
                           <div
-                            className="flex cursor-pointer items-center space-x-2 transition-colors hover:text-purple-500"
-                            onClick={() => setSelectedPost(p)}
+                            className="flex cursor-pointer items-center space-x-2 transition-colors hover:text-[#8B5CF6]"
+                            onClick={() => handlePostClick(p)}
                           >
                             <FaComment className="text-lg" />
                             <span className="font-medium">
-                              {formatCommentCount(
-                                getTotalCommentCount(p.comments)
-                              )}
+                              {formatCommentCount(p.feedbackNumber)}
                             </span>
                           </div>
                         </div>
@@ -566,6 +702,11 @@ export default function Forum() {
                 })
               )}
             </motion.div>
+
+            {/* Pagination luôn hiển thị dưới danh sách, thêm mb-16 để không bị che */}
+            <div className="mb-16 flex w-full justify-center">
+              {renderPagination()}
+            </div>
 
             {/* Modal xác nhận xóa */}
             <ConfirmModal
@@ -585,24 +726,61 @@ export default function Forum() {
   };
 
   // --------------------------------------------
-  // Nếu đã chọn 1 post → show ForumDetail, ngược lại render Home
+  // Main render
   // --------------------------------------------
-  return selectedPost ? (
-    <ForumDetail
-      post={selectedPost}
-      onBack={() => setSelectedPost(null)}
-      toggleLikePost={toggleLikePost}
-      updatePost={(updated: Post) => {
-        setPosts((prev) =>
-          prev.map((x) => (x.id === updated.id ? updated : x))
-        );
-        setFilteredPosts((prev) =>
-          prev.map((x) => (x.id === updated.id ? updated : x))
-        );
-        setSelectedPost(updated);
-      }}
+  return renderHome();
+}
+
+// Component Like cho từng post, dùng hook đúng chuẩn React
+function ForumLikeButton({
+  postId,
+  likes: initialLikes,
+  liked: initialLiked,
+  onLikeChange
+}: {
+  postId: number;
+  likes: number;
+  liked: boolean;
+  onLikeChange: (liked: boolean, likes: number) => void;
+}) {
+  const { data: likedApi = initialLiked } = useCheckLiked(postId);
+  const likePostMutation = useLikePost();
+  const unlikePostMutation = useUnlikePost();
+  const [liked, setLiked] = useState(likedApi);
+  const [likes, setLikes] = useState(initialLikes);
+  useEffect(() => {
+    setLiked(likedApi);
+  }, [likedApi]);
+  useEffect(() => {
+    setLikes(initialLikes);
+  }, [initialLikes]);
+  const handleToggleLike = async () => {
+    if (liked) {
+      try {
+        await unlikePostMutation.mutateAsync(postId);
+        setLiked(false);
+        setLikes((prev) => Math.max(0, prev - 1));
+        onLikeChange(false, likes - 1);
+      } catch (error) {
+        // handle error
+      }
+    } else {
+      try {
+        await likePostMutation.mutateAsync(postId);
+        setLiked(true);
+        setLikes((prev) => prev + 1);
+        onLikeChange(true, likes + 1);
+      } catch (error) {
+        // handle error
+      }
+    }
+  };
+  return (
+    <LikeButton
+      liked={liked}
+      likes={likes}
+      onToggle={handleToggleLike}
+      size="md"
     />
-  ) : (
-    renderHome()
   );
 }
