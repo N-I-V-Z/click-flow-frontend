@@ -64,11 +64,11 @@ const LikeButton: React.FC<LikeButtonProps> = ({
       >
         {liked ? (
           <FaHeart
-            className={`${iconSizeClasses[size]} text-red drop-shadow-sm`}
+            className={`${iconSizeClasses[size]} text-[#ef4444] drop-shadow-sm transition-colors`}
           />
         ) : (
           <FaRegHeart
-            className={`${iconSizeClasses[size]} group-hover:text-red-400 text-gray-500 transition-colors`}
+            className={`${iconSizeClasses[size]} text-[#6B7280] transition-colors group-hover:text-[#ef4444]`}
           />
         )}
 
@@ -80,7 +80,7 @@ const LikeButton: React.FC<LikeButtonProps> = ({
               initial={{ scale: 0, opacity: 0.8 }}
               animate={{ scale: 2, opacity: 0 }}
               transition={{ duration: 0.4 }}
-              className="bg-red-400 absolute inset-0 rounded-full"
+              className="absolute inset-0 rounded-full bg-red-400"
             />
 
             {/* Particles bay ra */}
@@ -103,7 +103,7 @@ const LikeButton: React.FC<LikeButtonProps> = ({
                   duration: 0.6,
                   delay: i * 0.02
                 }}
-                className="bg-red-400 absolute left-1/2 top-1/2 h-1 w-1 rounded-full"
+                className="absolute left-1/2 top-1/2 h-1 w-1 rounded-full bg-red-400"
                 style={{
                   transform: 'translate(-50%, -50%)'
                 }}
@@ -130,7 +130,7 @@ const LikeButton: React.FC<LikeButtonProps> = ({
 
       {/* Hiệu ứng glow khi hover */}
       <motion.div
-        className="bg-red-200 absolute inset-0 rounded-full opacity-0 transition-opacity duration-200 group-hover:opacity-20"
+        className="absolute inset-0 rounded-full bg-red-200 opacity-0 transition-opacity duration-200 group-hover:opacity-20"
         style={{ scale: 1.5 }}
       />
     </motion.button>
