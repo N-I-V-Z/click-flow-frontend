@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Form, Select, Button, Modal, message, Rate } from 'antd';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { TokenDecoded, CampaignApiResponse } from '@/types';
 import PaginationSection from '@/components/shared/pagination-section';
 import {
@@ -17,15 +17,17 @@ const decodedToken: TokenDecoded | null = helpers.decodeTokens(
 );
 const PUBLISHER_ID = decodedToken?.Id;
 
-// Số item mỗi trang (client side)
-const PAGE_SIZE = 12;
-
 const CampaignsPage: React.FC = () => {
   const [form] = Form.useForm();
 
-  const [campaigns, setCampaigns] = useState<CampaignApiResponse[]>([]);
+  // --- Pagination state from URL ---
+  const [searchParams, setSearchParams] = useSearchParams();
+  const initialPage = parseInt(searchParams.get('page') || '1', 10);
+  const initialLimit = parseInt(searchParams.get('limit') || '12', 10);
 
-  const [currentPage, setCurrentPage] = useState<number>(1);
+  const [campaigns, setCampaigns] = useState<CampaignApiResponse[]>([]);
+  const [currentPage, setCurrentPage] = useState<number>(initialPage);
+  const [pageSize, setPageSize] = useState<number>(initialLimit);
 
   const [isModalVisible, setIsModalVisible] = useState<boolean>(false);
   const [selectedCampaignId, setSelectedCampaignId] = useState<number | null>(
@@ -38,7 +40,7 @@ const CampaignsPage: React.FC = () => {
     isLoading,
     isError,
     refetch: refetchCampaigns
-  } = useGetAllCampaignForPublisher(currentPage, PAGE_SIZE);
+  } = useGetAllCampaignForPublisher(currentPage, pageSize);
 
   // Hook mutation đăng ký
   const { mutate: registerCampaign, isPending: isRegisterLoading } =
@@ -52,6 +54,19 @@ const CampaignsPage: React.FC = () => {
       setCampaigns(campaignsResponse.result.datas);
     }
   }, [campaignsResponse]);
+
+  // Sync URL when currentPage or pageSize changes
+  useEffect(() => {
+    setSearchParams({ page: String(currentPage), limit: String(pageSize) });
+  }, [currentPage, pageSize, setSearchParams]);
+
+  // Sync state if URL changes (e.g., browser navigation)
+  useEffect(() => {
+    const urlPage = parseInt(searchParams.get('page') || '1', 10);
+    const urlLimit = parseInt(searchParams.get('limit') || '12', 10);
+    if (urlPage !== currentPage) setCurrentPage(urlPage);
+    if (urlLimit !== pageSize) setPageSize(urlLimit);
+  }, [searchParams, currentPage, pageSize]);
 
   // Mở Modal xác nhận đăng ký
   const handleRegisterClick = (campaignId: number) => {
@@ -139,12 +154,12 @@ const CampaignsPage: React.FC = () => {
       setCampaigns(campaignsResponse.result.datas);
     }
     setCurrentPage(1);
+    setPageSize(12);
   };
 
-  // Phân trang client side
-  const startIndex = (currentPage - 1) * PAGE_SIZE;
-  const endIndex = startIndex + PAGE_SIZE;
-  const currentCampaigns = campaigns.slice(startIndex, endIndex);
+  // Phân trang server side (dựa vào API trả về totalPages)
+  const currentCampaigns = campaigns;
+  const totalPages = campaignsResponse?.result?.totalPages || 1;
 
   // Loading state
   if (isLoading) {
@@ -324,13 +339,14 @@ const CampaignsPage: React.FC = () => {
           })}
         </div>
 
-        {/* Phân trang (client side) */}
+        {/* Phân trang (server side) */}
         <div className="mb-8 mt-4">
           <PaginationSection
-            totalPosts={campaigns.length}
-            postsPerPage={PAGE_SIZE}
             currentPage={currentPage}
             setCurrentPage={setCurrentPage}
+            totalPages={totalPages}
+            setPageSize={setPageSize}
+            postsPerPage={pageSize} // for default value in selector
           />
         </div>
 

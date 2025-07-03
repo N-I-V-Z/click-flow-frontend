@@ -7,7 +7,7 @@ import {
 } from '@/types';
 import { useMutation, useQuery } from '@tanstack/react-query';
 
-const SUB_URL = `api/Posts`;
+const SUB_URL = `/api/Posts`;
 
 /**
  * Hook gọi API lấy danh sách Posts

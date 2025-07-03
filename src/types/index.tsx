@@ -677,6 +677,7 @@ export interface CommentListResponse {
   isSuccess: boolean;
   message: string;
   result: CommentApiResponse[];
+  datas?: CommentApiResponse[]; // Thêm dòng này để hỗ trợ API paging
 }
 
 // Payload để tạo comment mới
