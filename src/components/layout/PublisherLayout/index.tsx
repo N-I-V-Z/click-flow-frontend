@@ -2,7 +2,7 @@
 import React, { Suspense } from 'react';
 import { Outlet } from 'react-router-dom';
 import { Layout } from 'antd';
-import HeaderAd from '@/components/shared/header-advertiser';
+import HeaderPublisher from '@/components/shared/header-publisher';
 import SidebarPublisher from '@/components/shared/sidebar-publisher';
 
 import ChatBubble from '@/pages/Chat/bubble';
@@ -12,7 +12,7 @@ const PublisherLayout: React.FC = () => {
   return (
     <Layout className="h-screen bg-white">
       {/* Header Publisher */}
-      <HeaderAd />
+      <HeaderPublisher />
 
       {/* Sidebar Publisher */}
       <div className="fixed left-0 top-[64px]">

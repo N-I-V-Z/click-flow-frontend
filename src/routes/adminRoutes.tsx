@@ -2,6 +2,7 @@ import { Navigate } from 'react-router-dom';
 import { Suspense, lazy } from 'react';
 import LoginRoute from './private/LoginRoute';
 import RoleRoute from './private/RoleRoute';
+import ManagePlansPage from '@/pages/Admin/ManagePlan';
 
 const AdminLayout = lazy(() => import('@/components/layout/AdminLayout'));
 const AdminDashboard = lazy(() => import('@/pages/Admin/index'));
@@ -92,7 +93,8 @@ const adminRoutes = [
       { path: 'managereport', element: <AdminManageReport /> },
       { path: 'campaign-detail/:id', element: <AdminCampaignDetail /> },
       { path: 'support', element: <Support /> },
-      { path: 'course', element: <ManageCourse /> }
+      { path: 'course', element: <ManageCourse /> },
+      { path: 'plan', element: <ManagePlansPage /> }
     ]
   }
 ];

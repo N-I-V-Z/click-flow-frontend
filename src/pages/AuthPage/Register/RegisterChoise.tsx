@@ -20,19 +20,19 @@ export default function RegisterChoiceModal({
             initial={{ x: -100, opacity: 0 }}
             animate={{ x: 0, opacity: 1 }}
             transition={{ duration: 0.6 }}
-            className="relative flex-1 bg-gradient-to-br from-purple-600 via-purple-700 to-indigo-700 p-12 text-white"
+            className="relative flex-1 bg-gradient-to-br from-violet-600 via-purple-600 to-fuchsia-600 p-12 text-white"
           >
             {/* Background Pattern */}
             <div className="absolute inset-0 bg-[url('data:image/svg+xml,%3Csvg%20width%3D%2260%22%20height%3D%2260%22%20viewBox%3D%220%200%2060%2060%22%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%3E%3Cg%20fill%3D%22none%22%20fill-rule%3D%22evenodd%22%3E%3Cg%20fill%3D%22%23ffffff%22%20fill-opacity%3D%220.05%22%3E%3Ccircle%20cx%3D%227%22%20cy%3D%227%22%20r%3D%221%22/%3E%3Ccircle%20cx%3D%2227%22%20cy%3D%2227%22%20r%3D%221%22/%3E%3Ccircle%20cx%3D%2247%22%20cy%3D%2247%22%20r%3D%221%22/%3E%3C/g%3E%3C/g%3E%3C/svg%3E')]" />
 
             {/* Floating Elements */}
             <div className="absolute right-8 top-8 h-24 w-24 animate-pulse rounded-full bg-white/10 blur-2xl" />
-            <div className="absolute bottom-12 left-8 h-16 w-16 animate-pulse rounded-full bg-pink-500/20 blur-xl delay-1000" />
+            <div className="absolute bottom-12 left-8 h-16 w-16 animate-pulse rounded-full bg-yellow-400/20 blur-xl delay-1000" />
 
             <div className="relative z-10 flex h-full flex-col justify-between">
               {/* Header */}
               <div>
-                <div className="mb-6 inline-flex items-center rounded-full bg-white/10 px-4 py-2 backdrop-blur-sm">
+                <div className="mb-6 inline-flex items-center rounded-full bg-white/15 px-4 py-2 backdrop-blur-sm">
                   <svg
                     className="mr-2 h-5 w-5"
                     fill="none"
@@ -52,7 +52,7 @@ export default function RegisterChoiceModal({
                 <h2 className="mb-4 text-4xl font-bold leading-tight">
                   Kiếm tiền từ
                   <br />
-                  <span className="bg-gradient-to-r from-yellow to-pink-300 bg-clip-text text-transparent">
+                  <span className="bg-gradient-to-r from-yellow-300 to-orange-400 bg-clip-text text-transparent">
                     nội dung của bạn
                   </span>
                 </h2>
@@ -68,7 +68,7 @@ export default function RegisterChoiceModal({
                 <div className="flex items-center gap-4">
                   <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-white/20 backdrop-blur-sm">
                     <svg
-                      className="h-6 w-6"
+                      className="h-6 w-6 text-yellow-300"
                       fill="none"
                       stroke="currentColor"
                       viewBox="0 0 24 24"
@@ -92,7 +92,7 @@ export default function RegisterChoiceModal({
                 <div className="flex items-center gap-4">
                   <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-white/20 backdrop-blur-sm">
                     <svg
-                      className="h-6 w-6"
+                      className="h-6 w-6 text-yellow-300"
                       fill="none"
                       stroke="currentColor"
                       viewBox="0 0 24 24"
@@ -116,7 +116,7 @@ export default function RegisterChoiceModal({
                 <div className="flex items-center gap-4">
                   <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-white/20 backdrop-blur-sm">
                     <svg
-                      className="h-6 w-6"
+                      className="h-6 w-6 text-yellow-300"
                       fill="none"
                       stroke="currentColor"
                       viewBox="0 0 24 24"
@@ -161,9 +161,9 @@ export default function RegisterChoiceModal({
                   </Button>
                 </Link>
 
-                <p className="text-purple mt-4 text-center text-sm">
+                <p className="mt-4 text-center text-sm text-purple-200">
                   Tham gia cùng{' '}
-                  <span className="text-yellow-300 font-bold">8,500+</span>{' '}
+                  <span className="font-bold text-yellow-300">8,500+</span>{' '}
                   Publishers thành công
                 </p>
               </div>
@@ -175,18 +175,18 @@ export default function RegisterChoiceModal({
             initial={{ x: 100, opacity: 0 }}
             animate={{ x: 0, opacity: 1 }}
             transition={{ duration: 0.6, delay: 0.2 }}
-            className="from-blue-500 relative flex-1 bg-gradient-to-br via-gray-50 to-blue p-12 text-gray-800"
+            className="relative flex-1 bg-gradient-to-br from-slate-50 to-blue-200 p-12 text-gray-800"
           >
             {/* Background Pattern */}
-            <div className="absolute inset-0 bg-[url('data:image/svg+xml,%3Csvg%20width%3D%2260%22%20height%3D%2260%22%20viewBox%3D%220%200%2060%2060%22%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%3E%3Cg%20fill%3D%22none%22%20fill-rule%3D%22evenodd%22%3E%3Cg%20fill%3D%22%236366f1%22%20fill-opacity%3D%220.03%22%3E%3Ccircle%20cx%3D%227%22%20cy%3D%227%22%20r%3D%221%22/%3E%3Ccircle%20cx%3D%2227%22%20cy%3D%2227%22%20r%3D%221%22/%3E%3Ccircle%20cx%3D%2247%22%20cy%3D%2247%22%20r%3D%221%22/%3E%3C/g%3E%3C/g%3E%3C/svg%3E')]" />
+            <div className="absolute inset-0 bg-[url('data:image/svg+xml,%3Csvg%20width%3D%2260%22%20height%3D%2260%22%20viewBox%3D%220%200%2060%2060%22%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%3E%3Cg%20fill%3D%22none%22%20fill-rule%3D%22evenodd%22%3E%3Cg%20fill%3D%22%233b82f6%22%20fill-opacity%3D%220.03%22%3E%3Ccircle%20cx%3D%227%22%20cy%3D%227%22%20r%3D%221%22/%3E%3Ccircle%20cx%3D%2227%22%20cy%3D%2227%22%20r%3D%221%22/%3E%3Ccircle%20cx%3D%2247%22%20cy%3D%2247%22%20r%3D%221%22/%3E%3C/g%3E%3C/g%3E%3C/svg%3E')]" />
 
             {/* Floating Elements */}
-            <div className="absolute bottom-12 right-8 h-16 w-16 animate-pulse rounded-full bg-indigo-300/20 blur-xl delay-1000" />
+            <div className="absolute bottom-12 right-8 h-16 w-16 animate-pulse rounded-full bg-blue-400/20 blur-xl delay-1000" />
 
             <div className="relative z-10 flex h-full flex-col justify-between">
               {/* Header */}
               <div>
-                <div className="mb-6 inline-flex items-center rounded-full bg-blue px-4 py-2">
+                <div className="mb-6 inline-flex items-center rounded-full bg-blue-600 px-4 py-2">
                   <svg
                     className="mr-2 h-5 w-5 text-white"
                     fill="none"
@@ -208,7 +208,7 @@ export default function RegisterChoiceModal({
                 <h2 className="mb-4 text-4xl font-bold leading-tight text-gray-900">
                   Tăng trưởng
                   <br />
-                  <span className="bg-gradient-to-r from-blue to-indigo-600 bg-clip-text text-transparent">
+                  <span className="bg-gradient-to-r from-blue-600 to-cyan-600 bg-clip-text text-transparent">
                     doanh nghiệp x10
                   </span>
                 </h2>
@@ -222,7 +222,7 @@ export default function RegisterChoiceModal({
               {/* Features */}
               <div className="mb-8 space-y-4">
                 <div className="flex items-center gap-4">
-                  <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-blue">
+                  <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-blue-600">
                     <svg
                       className="h-6 w-6 text-white"
                       fill="none"
@@ -248,7 +248,7 @@ export default function RegisterChoiceModal({
                 </div>
 
                 <div className="flex items-center gap-4">
-                  <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-blue">
+                  <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-blue-600">
                     <svg
                       className="h-6 w-6 text-white"
                       fill="none"
@@ -274,7 +274,7 @@ export default function RegisterChoiceModal({
                 </div>
 
                 <div className="flex items-center gap-4">
-                  <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-blue">
+                  <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-blue-600">
                     <svg
                       className="h-6 w-6 text-white"
                       fill="none"
@@ -304,7 +304,7 @@ export default function RegisterChoiceModal({
               <div>
                 <Link to="register-advertiser">
                   <Button
-                    className="group w-full rounded-xl bg-gradient-to-r from-blue to-indigo-600 px-8 py-4 text-lg font-semibold text-white shadow-lg transition-all duration-300 hover:scale-105 hover:from-blue hover:to-indigo-700 hover:shadow-xl"
+                    className="group w-full rounded-xl bg-gradient-to-r from-blue-600 to-blue-700 px-8 py-4 text-lg font-semibold text-white shadow-lg transition-all duration-300 hover:scale-105 hover:from-blue-700 hover:to-blue-800 hover:shadow-xl"
                     onClick={onClose}
                   >
                     <span className="flex items-center justify-center gap-2">
@@ -328,7 +328,7 @@ export default function RegisterChoiceModal({
 
                 <p className="mt-4 text-center text-sm text-gray-600">
                   Được tin tưởng bởi{' '}
-                  <span className="text-blue-600 font-bold">1,200+</span> doanh
+                  <span className="font-bold text-blue-600">1,200+</span> doanh
                   nghiệp
                 </p>
               </div>
@@ -339,7 +339,7 @@ export default function RegisterChoiceModal({
         {/* Close Button */}
         <button
           onClick={onClose}
-          className="absolute right-4 top-4 z-20 flex h-10 w-10 items-center justify-center bg-white text-black transition-all"
+          className="absolute right-4 top-4 z-20 flex h-10 w-10 items-center justify-center rounded-full bg-white/90 text-gray-700 shadow-lg backdrop-blur-sm transition-all hover:bg-white hover:text-gray-900"
         >
           <svg
             className="h-5 w-5"

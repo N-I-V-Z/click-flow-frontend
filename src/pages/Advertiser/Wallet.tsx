@@ -1,5 +1,5 @@
 import BasePages from '@/components/shared/base-pages';
-import React, { useMemo } from 'react';
+import React, { useMemo, useState } from 'react';
 import {
   LineChart,
   Line,
@@ -13,21 +13,33 @@ import {
 import { useGetOwnWallet } from '@/queries/wallet.query';
 import { useGetOwnTransaction } from '@/queries/transaction.query';
 import { Transaction, TransactionType } from '@/types';
+import Recharge from '../Publisher/Recharge';
 
 const Wallet: React.FC = () => {
+  // State cho modal nạp tiền
+  const [isDepositDialogOpen, setIsDepositDialogOpen] = useState(false);
+
   // Fetch wallet data
   const {
     data: walletData,
     isLoading: walletLoading,
-    error: walletError
+    error: walletError,
+    refetch: refetchWallet
   } = useGetOwnWallet();
 
   // Fetch transaction data (increased page size to get more data for chart)
   const {
     data: transactionData,
     isLoading: transactionLoading,
-    error: transactionError
+    error: transactionError,
+    refetch: refetchTransactions
   } = useGetOwnTransaction(1, 50);
+
+  // Handle successful deposit
+  const handleDepositSuccess = async () => {
+    // Refresh wallet and transaction data
+    await Promise.all([refetchWallet(), refetchTransactions()]);
+  };
 
   // Process transaction data for chart
   const chartData = useMemo(() => {
@@ -116,7 +128,7 @@ const Wallet: React.FC = () => {
   if (walletLoading || transactionLoading) {
     return (
       <BasePages pageHead="ClickFlow - Ví">
-        <div className="from-yellow-100 to-yellow-50 min-h-screen bg-gradient-to-r p-6">
+        <div className="min-h-screen bg-gradient-to-r from-yellow-100 to-yellow-50 p-6">
           <div className="flex min-h-96 items-center justify-center">
             <div className="text-xl text-gray-600">Đang tải dữ liệu...</div>
           </div>
@@ -128,9 +140,9 @@ const Wallet: React.FC = () => {
   if (walletError || transactionError) {
     return (
       <BasePages pageHead="ClickFlow - Ví">
-        <div className="from-yellow-100 to-yellow-50 min-h-screen bg-gradient-to-r p-6">
+        <div className="min-h-screen bg-gradient-to-r from-yellow-100 to-yellow-50 p-6">
           <div className="flex min-h-96 items-center justify-center">
-            <div className="text-red-600 text-xl">
+            <div className="text-xl text-red-600">
               Có lỗi xảy ra khi tải dữ liệu
             </div>
           </div>
@@ -141,7 +153,7 @@ const Wallet: React.FC = () => {
 
   return (
     <BasePages pageHead="ClickFlow - Ví">
-      <div className="from-yellow-100 to-yellow-50 min-h-screen bg-gradient-to-r p-6">
+      <div className=" min-h-screen p-6">
         <div className="mx-auto max-w-6xl">
           {/* Header với tiêu đề và card thông tin */}
           <div className="mb-8 flex flex-col items-center justify-between sm:flex-row">
@@ -176,8 +188,6 @@ const Wallet: React.FC = () => {
               </div>
             </div>
           </div>
-
-          {/* Debug info - có thể xóa sau khi test */}
 
           {/* Khu vực chính: Biểu đồ và Lịch sử giao dịch */}
           <div className="grid grid-cols-1 gap-8 lg:grid-cols-3">
@@ -271,15 +281,24 @@ const Wallet: React.FC = () => {
                   )}
                 </div>
               </div>
-              {/* Nút Rút tiền */}
               <div className="mt-6 flex justify-end">
-                <button className="rounded-lg bg-gradient-to-r from-green-400 to-green-600 px-6 py-3 text-white shadow-lg transition hover:from-green-500 hover:to-green-700">
-                  Rút tiền
+                <button
+                  onClick={() => setIsDepositDialogOpen(true)}
+                  className="rounded-lg bg-gradient-to-r from-green-400 to-green-600 px-6 py-3 text-white shadow-lg transition hover:from-green-500 hover:to-green-700"
+                >
+                  Nạp tiền
                 </button>
               </div>
             </div>
           </div>
         </div>
+
+        {/* Deposit Modal Component */}
+        <Recharge
+          isOpen={isDepositDialogOpen}
+          onClose={() => setIsDepositDialogOpen(false)}
+          onSuccess={handleDepositSuccess}
+        />
       </div>
     </BasePages>
   );

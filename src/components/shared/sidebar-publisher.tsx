@@ -5,7 +5,6 @@ import {
   UserOutlined,
   LogoutOutlined,
   ReadOutlined,
-  SolutionOutlined,
   WechatOutlined,
   PlaySquareOutlined
 } from '@ant-design/icons';
@@ -107,16 +106,6 @@ const SidebarPublisher: React.FC = () => {
           `}
         >
           <NavLink to="/publisher/campaign">Chiến dịch</NavLink>
-        </Menu.Item>
-        <Menu.Item
-          key="/publisher/mission"
-          icon={<SolutionOutlined />}
-          className={`
-            hover:!border-[#9B52BF] hover:bg-white hover:!text-[#9B52BF] 
-            ${selectedKey === '/publisher/mission' ? '!bg-[#9B52BF] !text-white' : ''}
-          `}
-        >
-          <NavLink to="/publisher/mission">Nhiệm vụ</NavLink>
         </Menu.Item>
         <Menu.Item key="forum" icon={<WechatOutlined />}>
           <NavLink to="/all/forum">Diễn đàn</NavLink>

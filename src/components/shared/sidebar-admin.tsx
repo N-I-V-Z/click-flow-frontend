@@ -7,8 +7,10 @@ import {
   FileTextOutlined,
   OrderedListOutlined,
   PullRequestOutlined,
-  MessageOutlined
+  MessageOutlined,
+  GiftOutlined
 } from '@ant-design/icons';
+
 import { NavLink, useLocation } from 'react-router-dom';
 import { BiBuildings } from 'react-icons/bi';
 import { useDispatch } from 'react-redux';
@@ -179,6 +181,16 @@ const SidebarAdmin: React.FC = () => {
           `}
         >
           <NavLink to="/admin/course">Khóa học</NavLink>
+        </Menu.Item>
+        <Menu.Item
+          key="/admin/plan"
+          icon={<GiftOutlined />}
+          className={`
+            hover:!border-[#9B52BF] hover:bg-white hover:!text-[#9B52BF]
+            ${selectedKey === '/admin/plan' ? '!bg-[#9B52BF] !text-white' : ''}
+          `}
+        >
+          <NavLink to="/admin/plan">Quản lí gói</NavLink>
         </Menu.Item>
       </Menu>
 

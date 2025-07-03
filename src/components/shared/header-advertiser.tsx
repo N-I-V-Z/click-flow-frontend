@@ -2,12 +2,9 @@ import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
-import UpgradePackage from '@/pages/Publisher/UpgradePackage';
-import NotificationBell from '@/pages/Publisher/Notification';
 import { logoURLAd } from '@/constants/data';
 export default function HeaderAd() {
   const [isLogoutOpen, setIsLogoutOpen] = useState<boolean>(false);
-  const [currentPlan, setCurrentPlan] = useState<string>('basic');
   const handleLogout = (): void => {
     toast.success('Đăng xuất thành công!', {
       position: 'top-right',
@@ -31,18 +28,6 @@ export default function HeaderAd() {
             />
           </Link>
         </div>
-
-        {/* Header Actions */}
-        <div className="flex items-center gap-4">
-          {/* Notification Bell */}
-          <NotificationBell />
-
-          {/* Upgrade Package Button */}
-          <UpgradePackage
-            currentPlan={currentPlan}
-            setCurrentPlan={setCurrentPlan}
-          />
-        </div>
       </nav>
 
       {/* Modal xác nhận đăng xuất */}
@@ -60,7 +45,7 @@ export default function HeaderAd() {
               </button>
               <button
                 onClick={handleLogout}
-                className="hover:bg-red-600 rounded bg-blue px-4 py-2 text-white"
+                className="bg-blue rounded px-4 py-2 text-white hover:bg-red-600"
               >
                 Đăng xuất
               </button>

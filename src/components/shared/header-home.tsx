@@ -87,7 +87,7 @@ export default function HeaderNav() {
               <Button
                 onClick={showLogoutModal}
                 disabled={isPending}
-                className="group relative overflow-hidden rounded-xl border-0 bg-gradient-to-r from-pink-500 to-red px-6 py-2.5 font-medium text-white shadow-lg transition-all duration-200 hover:scale-105 hover:from-pink-600 hover:to-red hover:shadow-xl"
+                className="to-red hover:to-red group relative overflow-hidden rounded-xl border-0 bg-gradient-to-r from-pink-500 px-6 py-2.5 font-medium text-white shadow-lg transition-all duration-200 hover:scale-105 hover:from-pink-600 hover:shadow-xl"
               >
                 <div className="flex items-center gap-2">
                   <Icons.logOut className="h-4 w-4 transition-transform group-hover:rotate-12" />
@@ -135,7 +135,7 @@ export default function HeaderNav() {
                   key="cancel"
                   onClick={handleCancelLogout}
                   disabled={isPending}
-                  className="mr-3 rounded-xl border border-white/20 bg-white/10 px-6 py-2.5 font-medium text-white backdrop-blur-sm transition-all duration-200 hover:border-white/30 hover:bg-white/20"
+                  className="mr-3 rounded-xl border border-white/20 bg-white/10 px-6 py-2.5 font-medium text-black backdrop-blur-sm transition-all duration-200 hover:border-white/30 hover:bg-white/70"
                 >
                   Hủy
                 </Button>,
@@ -143,7 +143,7 @@ export default function HeaderNav() {
                   key="logout"
                   onClick={handleConfirmLogout}
                   disabled={isPending}
-                  className="to-red-500 hover:to-red-600 rounded-xl border-0 bg-gradient-to-r from-pink-500 px-6 py-2.5 font-medium text-white shadow-lg transition-all duration-200 hover:from-pink-600 hover:shadow-xl"
+                  className="to-red rounded-xl border-0 bg-gradient-to-r from-pink-500 px-6 py-2.5 font-medium text-white shadow-lg transition-all duration-200 hover:from-pink-600 hover:to-red-600 hover:shadow-xl"
                 >
                   {isPending ? (
                     <>

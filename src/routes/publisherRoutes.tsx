@@ -17,7 +17,6 @@ const ChangePassword = lazy(
 const PublisherProfile = lazy(
   () => import('@/pages/Publisher/PublisherProfile')
 );
-const Misson = lazy(() => import('@/pages/Publisher/Misson'));
 const Wallet = lazy(() => import('@/pages/Publisher/Wallet'));
 const Courses = lazy(() => import('@/pages/Publisher/Course'));
 
@@ -72,15 +71,6 @@ const PublisherRoutes = [
           <RoleRoute allowedRoles={['Publisher']}>
             {' '}
             <ChangePassword />
-          </RoleRoute>
-        )
-      },
-      {
-        path: 'mission',
-        element: (
-          <RoleRoute allowedRoles={['Publisher']}>
-            {' '}
-            <Misson />
           </RoleRoute>
         )
       },
