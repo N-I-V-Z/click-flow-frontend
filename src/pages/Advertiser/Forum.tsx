@@ -13,7 +13,12 @@ import {
   useUpdatePost,
   useDeletePost
 } from '@/queries/forum.query';
-import { ForumPost, ExtendedComment } from '@/types';
+import {
+  ForumPost,
+  ExtendedComment,
+  PagingResponse,
+  ApiResponse
+} from '@/types';
 import helpers from '@/helpers';
 import { TokenDecoded } from '@/types';
 import { useNavigate, useSearchParams } from 'react-router-dom';
@@ -42,11 +47,11 @@ interface ExtendedForumPost extends ForumPost {
 function getRoleColor(role?: string) {
   switch (role) {
     case 'Publisher':
-      return 'bg-[#F87171] text-[#B91C1C] border-[#FCA5A5]'; // đỏ
+      return 'bg-[#FEE2E2] text-[#B91C1C] border-[#FCA5A5]'; // đỏ lợt
     case 'Admin':
-      return 'bg-[#A78BFA] text-[#6D28D9] border-[#DDD6FE]'; // tím
+      return 'bg-[#EDE9FE] text-[#6D28D9] border-[#DDD6FE]'; // tím lợt
     case 'Advertiser':
-      return 'bg-[#34D399] text-[#065F46] border-[#6EE7B7]'; // xanh lá
+      return 'bg-[#D1FAE5] text-[#065F46] border-[#6EE7B7]'; // xanh lá lợt
     default:
       return 'bg-[#F3F4F6] text-[#374151] border-[#E5E7EB]';
   }
@@ -126,7 +131,12 @@ export default function Forum() {
     isLoading,
     error,
     refetch
-  } = useGetAllPosts(currentPage, pageSize);
+  } = useGetAllPosts(currentPage, pageSize) as {
+    data?: ApiResponse<PagingResponse<ForumPost>>;
+    isLoading: boolean;
+    error: any;
+    refetch: () => void;
+  };
 
   const createPostMutation = useCreatePost();
   const updatePostMutation = useUpdatePost();
@@ -136,32 +146,21 @@ export default function Forum() {
   // Load dữ liệu từ API
   // --------------------------------------------
   useEffect(() => {
-    if (postsResponse?.result && Array.isArray(postsResponse.result)) {
-      const transformedPosts: ExtendedForumPost[] = postsResponse.result.map(
-        (post) => ({
+    if (postsResponse?.result && Array.isArray(postsResponse.result.datas)) {
+      const transformedPosts: ExtendedForumPost[] =
+        postsResponse.result.datas.map((post) => ({
           ...post,
           likes: post.likeCount || 0,
           liked: post.isLikedByCurrentUser || false,
           comments: [],
           avatarUrl: post.author.userDetail.avatarURL,
           view: 0
-        })
-      );
+        }));
       setPosts(transformedPosts);
-      // Ưu tiên lấy tổng số bài từ totalCount nếu có, fallback về result.length
-      let totalItems: number;
-      const resultWithTotalCount = postsResponse.result as {
-        totalCount?: number;
-        length: number;
-      };
-      if (typeof resultWithTotalCount.totalCount === 'number') {
-        totalItems = resultWithTotalCount.totalCount;
-      } else {
-        totalItems = resultWithTotalCount.length;
-      }
-      const calculatedPages = Math.ceil(totalItems / pageSize);
-      setTotalPages(Math.max(1, calculatedPages));
-      if (currentPage > calculatedPages) setCurrentPage(1);
+      // Lấy totalPages từ API
+      const apiTotalPages = postsResponse.result.totalPages || 1;
+      setTotalPages(apiTotalPages);
+      if (currentPage > apiTotalPages) setCurrentPage(1);
     } else {
       setPosts([]);
     }
@@ -290,6 +289,7 @@ export default function Forum() {
   // --------------------------------------------
   const navigate = useNavigate();
   const handlePostClick = (post: ExtendedForumPost) => {
+    window.scrollTo(0, 0);
     navigate(`/all/forum-detail/${post.id}`, { state: { post } });
   };
 
@@ -499,8 +499,8 @@ export default function Forum() {
                       initial={{ opacity: 0, y: 30 }}
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ delay: index * 0.1, duration: 0.4 }}
-                      whileHover={{ scale: 1.01, y: -2 }}
-                      className="transform cursor-pointer rounded-3xl border border-white/50 bg-white/95 p-6 shadow-xl backdrop-blur-sm transition-all duration-300 hover:shadow-2xl"
+                      // Bỏ whileHover và hover:shadow-2xl
+                      className="transform cursor-pointer rounded-3xl border border-white/50 bg-white/95 p-6 shadow-xl backdrop-blur-sm transition-all duration-300"
                     >
                       <div className="mb-4 flex items-center">
                         <motion.img

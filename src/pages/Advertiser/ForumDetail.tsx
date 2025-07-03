@@ -4,10 +4,10 @@ import { FaComment, FaChevronDown, FaEllipsisH } from 'react-icons/fa';
 import CommentForm from '@/components/ui/CommentForm';
 import RichTextEditor from '@/components/ui/RichTextEditor';
 import {
-  getTotalCommentCount,
-  formatCommentCount,
-  formatTimeAgo
+  getTotalCommentCountUI,
+  formatCommentCount
 } from '@/utils/commentUtils';
+import { formatTimeAgoVi } from '@/utils/dateUtils';
 import {
   ForumPost,
   ForumAuthor,
@@ -17,7 +17,6 @@ import {
 import {
   useGetCommentsByPostId,
   useCreateComment,
-  useCreateReply,
   useUpdateComment
 } from '@/queries/comment.query';
 import { useDeletePost } from '@/queries/forum.query';
@@ -31,6 +30,8 @@ import {
   useUnlikePost
 } from '@/queries/like.query';
 import LikeButton from '@/components/ui/LikeButton';
+import { useGetUserDetail } from '@/queries/user.query';
+import { useGetPostById } from '@/queries/forum.query';
 
 const decodedToken: TokenDecoded | null = helpers.decodeTokens(
   __helpers.cookie_get('AT')
@@ -62,27 +63,21 @@ const ForumDetail: FC<ForumDetailProps> = ({ post, onBack, updatePost }) => {
   // --------------------------------------------
   const [commentText, setCommentText] = useState('');
   const [replyToId, setReplyToId] = useState<string | null>(null);
-
   const [filterOpen, setFilterOpen] = useState(false);
   const [sortBy, setSortBy] = useState<'newest' | 'oldest' | 'likes'>('newest');
-
-  // Track ID comment nào đang được edit, đồng thời store text mới
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editingText, setEditingText] = useState('');
-
-  // Track ID của comment/post nào đang mở menu 3-chấm
+  const [editingGif, setEditingGif] = useState<string | null>(null);
   const [menuOpenId, setMenuOpenId] = useState<string | null>(null);
-
-  // Đảm bảo khai báo state local cho comments ở đầu function ForumDetail
   const [comments, setComments] = useState<UIComment[]>(post.comments || []);
-
-  // State cho popup xác nhận xóa
   const [deleteModal, setDeleteModal] = useState<{
     isOpen: boolean;
     type: 'post' | 'comment' | null;
     id: string;
     title?: string;
   }>({ isOpen: false, type: null, id: '', title: '' });
+  // Thêm state cho phân trang comment
+  const [commentsToShow, setCommentsToShow] = useState(10);
 
   // --------------------------------------------
   // API Hooks
@@ -95,7 +90,6 @@ const ForumDetail: FC<ForumDetailProps> = ({ post, onBack, updatePost }) => {
   } = useGetCommentsByPostId(post.id);
 
   const createCommentMutation = useCreateComment();
-  const createReplyMutation = useCreateReply();
   const updateCommentMutation = useUpdateComment();
   const deletePostMutation = useDeletePost();
   const deleteCommentMutation = useDeleteComment();
@@ -118,7 +112,7 @@ const ForumDetail: FC<ForumDetailProps> = ({ post, onBack, updatePost }) => {
         return {
           id: comment.id ? comment.id.toString() : '',
           content: comment.content,
-          createdAt: Number(new Date(comment.createdAt).getTime()),
+          createdAt: comment.createdAt, // giữ nguyên string ISO từ API
           author: name,
           authorRole: role,
           avatarUrl,
@@ -170,11 +164,12 @@ const ForumDetail: FC<ForumDetailProps> = ({ post, onBack, updatePost }) => {
   };
 
   // Helper lấy avatar user hiện tại
-  const currentUserAvatar = decodedToken?.Id
-    ? (decodedToken?.Role === 'Advertiser'
-        ? post.author?.userDetail?.avatarURL
-        : undefined) || 'https://i.pravatar.cc/40?u=' + decodedToken.Id
-    : 'https://i.pravatar.cc/40?u=default';
+  // Sửa: lấy avatar từ comment đầu tiên của user hiện tại nếu có, nếu không thì dùng avatar mặc định
+  const userId = decodedToken?.Id ? Number(decodedToken.Id) : undefined;
+  const { data: userDetail } = useGetUserDetail(userId);
+  const currentUserAvatar =
+    userDetail?.result?.avatarURL ||
+    `https://i.pravatar.cc/40?u=${userId || 'default'}`;
 
   // --------------------------------------------
   // Sắp xếp comment dựa vào sortBy
@@ -184,32 +179,45 @@ const ForumDetail: FC<ForumDetailProps> = ({ post, onBack, updatePost }) => {
     if (sortBy === 'likes') {
       arr.sort((a, b) => b.likes - a.likes);
     } else if (sortBy === 'newest') {
-      arr.sort((a, b) => b.createdAt - a.createdAt);
+      arr.sort(
+        (a, b) =>
+          new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+      );
     } else {
-      arr.sort((a, b) => a.createdAt - b.createdAt);
+      arr.sort(
+        (a, b) =>
+          new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
+      );
     }
     return arr;
   };
 
   // --------------------------------------------
   // Thêm comment hoặc reply (sử dụng API)
-  // --------------------------------------------
-  const handlePostComment = async () => {
-    const txt = commentText.trim();
-    if (!txt) return;
+  // Sửa lại để nhận cả text và gifUrl từ CommentForm
+  const handlePostComment = async ({
+    text,
+    gifUrl
+  }: {
+    text: string;
+    gifUrl: string | null;
+  }) => {
+    const txt = text.trim();
+    if (!txt && !gifUrl) return;
+
+    let content = txt;
+    if (gifUrl) {
+      content = content + (content ? '\n' : '') + `[GIF]${gifUrl}[/GIF]`;
+    }
 
     try {
       const payload: CreateCommentPayload = {
-        content: txt,
+        content,
         postId: post.id,
         parentCommentId: replyToId ? parseInt(replyToId) : null
       };
 
-      if (replyToId) {
-        await createReplyMutation.mutateAsync(payload);
-      } else {
-        await createCommentMutation.mutateAsync(payload);
-      }
+      await createCommentMutation.mutateAsync(payload);
 
       // Refresh comments
       refetchComments();
@@ -224,22 +232,51 @@ const ForumDetail: FC<ForumDetailProps> = ({ post, onBack, updatePost }) => {
 
   // --------------------------------------------
   // Lưu chỉnh sửa comment (sử dụng API)
-  // --------------------------------------------
+  // Khi vào chế độ edit, nếu comment có GIF thì tự động lấy GIF đầu tiên ra preview
   const saveEditedComment = async (id: string) => {
     try {
+      let content = editingText;
+      if (editingGif) {
+        content = content + (content ? '\n' : '') + `[GIF]${editingGif}[/GIF]`;
+      }
       await updateCommentMutation.mutateAsync({
         id: parseInt(id),
-        data: { content: editingText }
+        data: { content }
       });
 
       refetchComments();
       setEditingId(null);
       setEditingText('');
+      setEditingGif(null);
     } catch (error) {
       console.error('Error updating comment:', error);
       alert('Có lỗi xảy ra khi cập nhật bình luận');
     }
   };
+
+  // Khi bắt đầu edit comment, nếu có GIF thì setEditingGif
+  const handleEditComment = (comment: UIComment) => {
+    setEditingId(comment.id);
+    setEditingText(comment.content.replace(/\[GIF\](.*?)\[\/GIF\]/g, ''));
+    // Lấy GIF đầu tiên nếu có
+    const match = comment.content.match(/\[GIF\](.*?)\[\/GIF\]/);
+    setEditingGif(match ? match[1] : null);
+    setMenuOpenId(null);
+  };
+
+  // Helper: trả về class màu hệ 16 cho từng role (giống Forum)
+  function getRoleColor(role?: string) {
+    switch (role) {
+      case 'Publisher':
+        return 'bg-[#FEE2E2] text-[#B91C1C] border-[#FCA5A5]'; // đỏ lợt
+      case 'Admin':
+        return 'bg-[#EDE9FE] text-[#6D28D9] border-[#DDD6FE]'; // tím lợt
+      case 'Advertiser':
+        return 'bg-[#D1FAE5] text-[#065F46] border-[#6EE7B7]'; // xanh lá lợt
+      default:
+        return 'bg-[#F3F4F6] text-[#374151] border-[#E5E7EB]';
+    }
+  }
 
   // --------------------------------------------
   // Render comment chính + replies (có đệ quy)
@@ -263,126 +300,51 @@ const ForumDetail: FC<ForumDetailProps> = ({ post, onBack, updatePost }) => {
             <span className="text-sm font-semibold">{reply.author}</span>
             {reply.authorRole && (
               <span
-                className="ml-1 rounded border px-2 py-0.5 text-xs font-bold"
-                style={{
-                  backgroundColor: '#F5F3FF',
-                  color: '#8B5CF6',
-                  borderColor: '#C4B5FD'
-                }}
+                className={`ml-1 rounded border px-2 py-0.5 text-xs font-bold ${getRoleColor(reply.authorRole)}`}
               >
                 {reply.authorRole}
               </span>
             )}
-            {reply.authorId === advertiserId && (
+            {reply.authorId === post.author.id && (
               <span className="ml-1 rounded bg-purple-100 px-2 py-0.5 text-xs font-bold text-purple-700">
                 TÁC GIẢ
               </span>
             )}
-          </div>
-          <div
-            className="prose prose-xs mb-2"
-            dangerouslySetInnerHTML={{ __html: reply.content }}
-          />
-          <div className="mb-1 text-xs text-gray-400">
-            {formatTimeAgo(reply.createdAt, 7)}
-          </div>
-          {reply.replies &&
-            reply.replies.length > 0 &&
-            renderReplies(reply.replies, level + 1)}
-        </div>
-      </motion.div>
-    ));
-
-  const renderComments = (list: UIComment[]): JSX.Element[] =>
-    sortedComments(list).map((c) => {
-      return (
-        <motion.div
-          key={c.id}
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.4 }}
-          className="mb-6 rounded-3xl border border-white/50 bg-white/95 p-8 shadow-xl backdrop-blur-sm transition-all duration-300 hover:shadow-2xl"
-        >
-          {/* Avatar + header của comment chính */}
-          <div className="mb-4 flex items-center justify-between">
-            <div className="flex items-center space-x-4">
-              <motion.img
-                whileHover={{ scale: 1.1, rotate: 5 }}
-                src={c.avatarUrl}
-                alt={c.author}
-                className="h-14 w-14 rounded-full border-4 border-purple-400 object-cover shadow-lg"
-              />
-              <div>
-                <div className="flex items-center space-x-2">
-                  {/* Hiển thị tên + tag role đẹp cho comment chính */}
-                  <span className="flex items-center gap-2 text-lg font-bold text-gray-800">
-                    {c.author}
-                    {c.authorRole && (
-                      <span
-                        className="ml-1 rounded border px-2 py-0.5 text-xs font-bold"
-                        style={{
-                          backgroundColor: '#F5F3FF',
-                          color: '#8B5CF6',
-                          borderColor: '#C4B5FD'
-                        }}
-                      >
-                        {c.authorRole}
-                      </span>
-                    )}
-                  </span>
-                  {c.author === getDisplayName(post.author) && (
-                    <span className="rounded-full bg-gradient-to-r from-purple-100 to-pink-100 px-3 py-1 text-xs font-bold text-purple-600">
-                      TÁC GIẢ
-                    </span>
-                  )}
-                </div>
-                <div className="text-sm text-gray-500">
-                  {formatTimeAgo(c.createdAt, 7)}
-                </div>
-              </div>
-            </div>
-
-            {/* Menu cho comment của "Bạn" - FIX: Kiểm tra theo ID thay vì tên */}
-            {c.authorId === advertiserId && (
-              <div className="relative">
+            {/* Menu cho reply của user hiện tại */}
+            {reply.authorId === advertiserId && (
+              <div className="relative ml-2">
                 <motion.button
                   whileHover={{ scale: 1.1 }}
                   whileTap={{ scale: 0.9 }}
                   onClick={() =>
-                    setMenuOpenId((prev) => (prev === c.id ? null : c.id))
+                    setMenuOpenId((prev) =>
+                      prev === reply.id ? null : reply.id
+                    )
                   }
-                  className="rounded-full p-3 transition-colors hover:bg-purple-100/50"
+                  className="rounded-full p-2 transition-colors hover:bg-purple-100/50"
                 >
-                  <FaEllipsisH className="text-gray-500" />
+                  <FaEllipsisH className="text-xs text-gray-500" />
                 </motion.button>
                 <AnimatePresence>
-                  {menuOpenId === c.id && (
+                  {menuOpenId === reply.id && (
                     <motion.div
                       initial={{ opacity: 0, scale: 0.9, y: -10 }}
                       animate={{ opacity: 1, scale: 1, y: 0 }}
                       exit={{ opacity: 0, scale: 0.9, y: -10 }}
-                      className="absolute right-0 z-20 mt-2 w-36 origin-top-right rounded-xl border border-purple-200 bg-white/95 shadow-xl backdrop-blur-sm"
+                      className="absolute right-0 z-20 mt-2 w-32 origin-top-right rounded-xl border border-purple-200 bg-white/95 shadow-xl backdrop-blur-sm"
                     >
                       <div className="py-2">
                         <button
                           onClick={() => {
-                            setEditingId(c.id);
-                            setEditingText(c.content);
-                            setMenuOpenId(null);
+                            handleEditComment(reply);
                           }}
-                          className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-purple-50"
+                          className="w-full px-4 py-2 text-left text-xs text-gray-700 hover:bg-purple-50"
                         >
                           Chỉnh sửa
                         </button>
                         <button
-                          onClick={() =>
-                            handleDeleteClick(
-                              'post',
-                              post.id.toString(),
-                              post.title
-                            )
-                          }
-                          className="w-full px-4 py-2 text-left text-sm text-red-600 hover:bg-red-50"
+                          onClick={() => handleDeleteClick('comment', reply.id)}
+                          className="w-full px-4 py-2 text-left text-xs text-red-600 hover:bg-red-50"
                         >
                           Xóa
                         </button>
@@ -393,72 +355,230 @@ const ForumDetail: FC<ForumDetailProps> = ({ post, onBack, updatePost }) => {
               </div>
             )}
           </div>
-
-          {/* Nội dung comment */}
-          {editingId === c.id ? (
-            <div className="mb-4">
-              <RichTextEditor
+          {/* Nội dung hoặc form chỉnh sửa */}
+          {editingId === reply.id ? (
+            <div className="mb-2">
+              <CommentForm
                 value={editingText}
                 onChange={setEditingText}
+                gifUrl={editingGif}
+                onGifChange={setEditingGif}
+                onSubmit={({ text, gifUrl }) => {
+                  setEditingGif(gifUrl);
+                  saveEditedComment(reply.id);
+                }}
+                onCancel={() => {
+                  setEditingId(null);
+                  setEditingText('');
+                  setEditingGif(null);
+                }}
                 placeholder="Chỉnh sửa bình luận..."
-                height={150}
-                className="mb-3"
+                size="sm"
+                avatarUrl={reply.avatarUrl}
+                showActions={true}
               />
-              <div className="flex justify-end space-x-2">
-                <button
-                  onClick={() => {
-                    setEditingId(null);
-                    setEditingText('');
-                  }}
-                  className="rounded-lg border border-gray-300 px-4 py-2 text-sm text-gray-700 transition hover:bg-gray-100"
-                >
-                  Hủy
-                </button>
-                <button
-                  onClick={() => saveEditedComment(c.id)}
-                  className="rounded-lg bg-purple-500 px-4 py-2 text-sm text-white transition hover:bg-purple-600"
-                >
-                  Lưu
-                </button>
-              </div>
             </div>
           ) : (
             <div
-              className="prose prose-sm mb-4 max-w-none whitespace-pre-line break-words leading-relaxed text-gray-700"
+              className="prose prose-xs mb-2 break-words"
               style={{ wordBreak: 'break-word' }}
-              dangerouslySetInnerHTML={{ __html: c.content }}
-            />
+            >
+              {renderCommentContent(reply.content)}
+            </div>
           )}
-
-          {/* Render replies nếu có */}
-          {c.replies && c.replies.length > 0 && (
-            <div className="ml-8 mt-2">{renderReplies(c.replies)}</div>
-          )}
-
-          {/* Actions cho post */}
-          <div className="flex items-center justify-between border-t border-purple-200/50 pt-6">
-            <div className="flex items-center space-x-8">
-              <div className="flex items-center space-x-2 text-gray-500">
-                <FaComment className="text-xl" />
-                <span className="text-lg font-medium">
-                  {formatCommentCount(getTotalCommentCount(post.comments))}
-                </span>
-              </div>
-              <ForumDetailLikeButton
-                postId={post.id}
-                likes={post.likes}
-                liked={post.liked}
+          <div className="mb-1 text-xs text-gray-400">
+            {formatTimeAgoVi(reply.createdAt)}
+          </div>
+          {/* Nút trả lời cho reply */}
+          <button
+            className="mt-2 rounded-lg border border-purple-200 bg-white/80 px-3 py-1 text-xs font-medium text-purple-600 hover:bg-purple-50"
+            onClick={() => setReplyToId(reply.id)}
+          >
+            Trả lời
+          </button>
+          {/* Form reply cho reply */}
+          {replyToId === reply.id && (
+            <div className="mt-2">
+              <CommentForm
+                value={commentText}
+                onChange={setCommentText}
+                onSubmit={handlePostComment}
+                placeholder={`Phản hồi cho ${reply.author}...`}
+                size="sm"
+                avatarUrl={currentUserAvatar}
+                autoFocus
+                onCancel={() => {
+                  setReplyToId(null);
+                  setCommentText('');
+                }}
               />
             </div>
-          </div>
-        </motion.div>
-      );
-    });
+          )}
+          {/* Render reply lồng nếu có */}
+          {reply.replies &&
+            reply.replies.length > 0 &&
+            renderReplies(reply.replies, level + 1)}
+        </div>
+      </motion.div>
+    ));
 
-  // Xử lý conversion thời gian từ API
-  const getFormattedTime = (dateString: string) => {
-    return formatTimeAgo(new Date(dateString).getTime());
-  };
+  // Render comments: chỉ render comment cha (parentCommentId === null)
+  const renderComments = (list: UIComment[]): JSX.Element[] =>
+    sortedComments(list.filter((c) => !c.parentCommentId))
+      .slice(0, commentsToShow)
+      .map((c) => {
+        return (
+          <motion.div
+            key={c.id}
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.4 }}
+            className="mb-6 rounded-3xl border border-white/50 bg-white/95 p-8 shadow-xl backdrop-blur-sm transition-all duration-300 hover:shadow-2xl"
+          >
+            {/* Avatar + header của comment chính */}
+            <div className="mb-4 flex items-center justify-between">
+              <div className="flex items-center space-x-4">
+                <motion.img
+                  whileHover={{ scale: 1.1, rotate: 5 }}
+                  src={c.avatarUrl}
+                  alt={c.author}
+                  className="h-14 w-14 rounded-full border-4 border-purple-400 object-cover shadow-lg"
+                />
+                <div>
+                  <div className="flex items-center space-x-2">
+                    {/* Hiển thị tên + tag role đẹp cho comment chính */}
+                    <span className="flex items-center gap-2 text-lg font-bold text-gray-800">
+                      {c.author}
+                      {c.authorRole && (
+                        <span
+                          className={`ml-1 rounded border px-2 py-0.5 text-xs font-bold ${getRoleColor(c.authorRole)}`}
+                        >
+                          {c.authorRole}
+                        </span>
+                      )}
+                    </span>
+                    {/* Tag tác giả: so sánh id tác giả với post.author.id */}
+                    {c.authorId === post.author.id && (
+                      <span className="rounded-full bg-gradient-to-r from-purple-100 to-pink-100 px-3 py-1 text-xs font-bold text-purple-600">
+                        TÁC GIẢ
+                      </span>
+                    )}
+                  </div>
+                  <div className="text-sm text-gray-500">
+                    {formatTimeAgoVi(c.createdAt)}
+                  </div>
+                </div>
+              </div>
+
+              {/* Menu cho comment cha của user hiện tại */}
+              {c.authorId === advertiserId && (
+                <div className="relative">
+                  <motion.button
+                    whileHover={{ scale: 1.1 }}
+                    whileTap={{ scale: 0.9 }}
+                    onClick={() =>
+                      setMenuOpenId((prev) => (prev === c.id ? null : c.id))
+                    }
+                    className="rounded-full p-3 transition-colors hover:bg-purple-100/50"
+                  >
+                    <FaEllipsisH className="text-gray-500" />
+                  </motion.button>
+                  <AnimatePresence>
+                    {menuOpenId === c.id && (
+                      <motion.div
+                        initial={{ opacity: 0, scale: 0.9, y: -10 }}
+                        animate={{ opacity: 1, scale: 1, y: 0 }}
+                        exit={{ opacity: 0, scale: 0.9, y: -10 }}
+                        className="absolute right-0 z-20 mt-2 w-36 origin-top-right rounded-xl border border-purple-200 bg-white/95 shadow-xl backdrop-blur-sm"
+                      >
+                        <div className="py-2">
+                          <button
+                            onClick={() => {
+                              handleEditComment(c);
+                            }}
+                            className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-purple-50"
+                          >
+                            Chỉnh sửa
+                          </button>
+                          <button
+                            onClick={() => handleDeleteClick('comment', c.id)}
+                            className="w-full px-4 py-2 text-left text-sm text-red-600 hover:bg-red-50"
+                          >
+                            Xóa
+                          </button>
+                        </div>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                </div>
+              )}
+            </div>
+
+            {/* Nội dung comment */}
+            {editingId === c.id ? (
+              <div className="mb-4">
+                <CommentForm
+                  value={editingText}
+                  onChange={setEditingText}
+                  gifUrl={editingGif}
+                  onGifChange={setEditingGif}
+                  onSubmit={({ text, gifUrl }) => {
+                    setEditingGif(gifUrl);
+                    saveEditedComment(c.id);
+                  }}
+                  onCancel={() => {
+                    setEditingId(null);
+                    setEditingText('');
+                    setEditingGif(null);
+                  }}
+                  placeholder="Chỉnh sửa bình luận..."
+                  size="sm"
+                  avatarUrl={c.avatarUrl}
+                  showActions={true}
+                />
+              </div>
+            ) : (
+              <div
+                className="prose prose-sm mb-4 max-w-none whitespace-pre-line break-words leading-relaxed text-gray-700"
+                style={{ wordBreak: 'break-word' }}
+              >
+                {renderCommentContent(c.content)}
+              </div>
+            )}
+
+            {/* Render replies nếu có */}
+            {c.replies && c.replies.length > 0 && (
+              <div className="ml-8 mt-2">{renderReplies(c.replies)}</div>
+            )}
+
+            {/* Nút trả lời cho comment chính */}
+            <button
+              className="mt-2 rounded-lg border border-purple-200 bg-white/80 px-3 py-1 text-xs font-medium text-purple-600 hover:bg-purple-50"
+              onClick={() => setReplyToId(c.id)}
+            >
+              Trả lời
+            </button>
+            {/* Form reply cho comment chính */}
+            {replyToId === c.id && (
+              <div className="mt-3">
+                <CommentForm
+                  value={commentText}
+                  onChange={setCommentText}
+                  onSubmit={handlePostComment}
+                  placeholder={`Phản hồi cho ${c.author}...`}
+                  size="sm"
+                  avatarUrl={currentUserAvatar}
+                  autoFocus
+                  onCancel={() => {
+                    setReplyToId(null);
+                    setCommentText('');
+                  }}
+                />
+              </div>
+            )}
+          </motion.div>
+        );
+      });
 
   // --------------------------------------------
   // Hàm mở popup xác nhận xóa
@@ -493,6 +613,33 @@ const ForumDetail: FC<ForumDetailProps> = ({ post, onBack, updatePost }) => {
       }
     }
   };
+
+  // Helper: render nội dung comment, tự động hiển thị GIF nếu có [GIF]url[/GIF]
+  function renderCommentContent(content: string) {
+    const gifRegex = /\[GIF\](.*?)\[\/GIF\]/g;
+    let lastIndex = 0;
+    const elements: React.ReactNode[] = [];
+    let match;
+    while ((match = gifRegex.exec(content)) !== null) {
+      const [full, url] = match;
+      if (match.index > lastIndex) {
+        elements.push(content.slice(lastIndex, match.index));
+      }
+      elements.push(
+        <img
+          src={url}
+          alt="GIF"
+          className="my-2 inline-block max-h-40 rounded-lg border border-purple-200"
+          style={{ display: 'block' }}
+        />
+      );
+      lastIndex = match.index + full.length;
+    }
+    if (lastIndex < content.length) {
+      elements.push(content.slice(lastIndex));
+    }
+    return <>{elements}</>;
+  }
 
   // --------------------------------------------
   // Giao diện Detail
@@ -531,7 +678,7 @@ const ForumDetail: FC<ForumDetailProps> = ({ post, onBack, updatePost }) => {
             <div className="flex items-center space-x-2 rounded-lg bg-white/90 px-3 py-2 text-sm text-gray-600 shadow-md backdrop-blur-sm">
               <FaComment />
               <span className="font-medium">
-                {formatCommentCount(getTotalCommentCount(comments))} bình luận
+                {formatCommentCount(getTotalCommentCountUI(comments))} bình luận
               </span>
             </div>
           </div>
@@ -559,7 +706,7 @@ const ForumDetail: FC<ForumDetailProps> = ({ post, onBack, updatePost }) => {
                     {getDisplayName(post.author)}
                   </div>
                   <div className="text-sm text-gray-500">
-                    {getFormattedTime(post.createdAt)}
+                    {formatTimeAgoVi(post.createdAt)}
                   </div>
                 </div>
               </div>
@@ -633,6 +780,7 @@ const ForumDetail: FC<ForumDetailProps> = ({ post, onBack, updatePost }) => {
             </div>
 
             {/* Nội dung post */}
+            {/* 123456 */}
             {editingId === post.id.toString() ? (
               <div className="mb-6">
                 <RichTextEditor
@@ -678,38 +826,24 @@ const ForumDetail: FC<ForumDetailProps> = ({ post, onBack, updatePost }) => {
             {/* Actions cho post */}
             <div className="flex items-center justify-between border-t border-purple-200/50 pt-6">
               <div className="flex items-center space-x-8">
-                <div className="flex items-center space-x-2 text-gray-500">
-                  <FaComment className="text-xl" />
-                  <span className="text-lg font-medium">
-                    {formatCommentCount(getTotalCommentCount(post.comments))}
-                  </span>
-                </div>
+                {/* Like button trước, comment sau */}
                 <ForumDetailLikeButton
                   postId={post.id}
                   likes={post.likes}
                   liked={post.liked}
+                  post={post}
+                  updatePost={updatePost}
                 />
+                {/* Số comment kế bên nút tim */}
+                <div className="flex items-center space-x-2 text-gray-500">
+                  <FaComment className="text-xl" />
+                  <span className="text-lg font-medium">
+                    {formatCommentCount(getTotalCommentCountUI(comments))}
+                  </span>
+                </div>
               </div>
             </div>
           </motion.div>
-
-          {/* Chỗ nhập comment chính */}
-          {!replyToId && (
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.2 }}
-            >
-              <CommentForm
-                value={commentText}
-                onChange={setCommentText}
-                onSubmit={handlePostComment}
-                placeholder="Chia sẻ suy nghĩ của bạn..."
-                size="lg"
-                avatarUrl={currentUserAvatar}
-              />
-            </motion.div>
-          )}
 
           {/* Dropdown lọc comment */}
           <motion.div
@@ -738,7 +872,6 @@ const ForumDetail: FC<ForumDetailProps> = ({ post, onBack, updatePost }) => {
                 <FaChevronDown className="text-purple-500" />
               </motion.div>
             </motion.button>
-
             <AnimatePresence>
               {filterOpen && (
                 <motion.div
@@ -772,6 +905,23 @@ const ForumDetail: FC<ForumDetailProps> = ({ post, onBack, updatePost }) => {
                 </motion.div>
               )}
             </AnimatePresence>
+          </motion.div>
+
+          {/* Form comment chính luôn hiển thị */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.2 }}
+            className="mt-4"
+          >
+            <CommentForm
+              value={commentText}
+              onChange={setCommentText}
+              onSubmit={handlePostComment}
+              placeholder="Chia sẻ suy nghĩ của bạn..."
+              size="lg"
+              avatarUrl={currentUserAvatar}
+            />
           </motion.div>
 
           {/* Loading state cho comments */}
@@ -811,6 +961,18 @@ const ForumDetail: FC<ForumDetailProps> = ({ post, onBack, updatePost }) => {
               className="space-y-6"
             >
               {renderComments(comments)}
+              {/* Nút xem thêm nếu còn comment chưa render */}
+              {sortedComments(comments.filter((c) => !c.parentCommentId))
+                .length > commentsToShow && (
+                <div className="mt-6 flex justify-center">
+                  <button
+                    className="rounded-full bg-purple-100 px-6 py-2 font-semibold text-purple-700 shadow transition hover:bg-purple-200"
+                    onClick={() => setCommentsToShow((prev) => prev + 10)}
+                  >
+                    Xem thêm bình luận
+                  </button>
+                </div>
+              )}
             </motion.div>
           )}
 
@@ -887,18 +1049,24 @@ function ForumDetailLikeButton({
   postId,
   likes: initialLikes,
   liked: initialLiked,
-  onLikeChange
+  post,
+  onLikeChange,
+  updatePost
 }: {
   postId: number;
   likes: number;
   liked: boolean;
+  post: ExtendedForumPost;
   onLikeChange?: (liked: boolean, likes: number) => void;
+  updatePost?: (post: ExtendedForumPost) => void;
 }): JSX.Element {
   const { data: likedApi = initialLiked } = useCheckLiked(postId);
   const likePostMutation = useLikePost();
   const unlikePostMutation = useUnlikePost();
   const [liked, setLiked] = useState(likedApi);
   const [likes, setLikes] = useState(initialLikes);
+  const { refetch: refetchPost } = useGetPostById(postId);
+
   useEffect(() => {
     setLiked(likedApi);
   }, [likedApi]);
@@ -912,6 +1080,22 @@ function ForumDetailLikeButton({
         setLiked(false);
         setLikes((prev) => Math.max(0, prev - 1));
         onLikeChange?.(false, likes - 1);
+        if (updatePost) {
+          const { data } = await refetchPost();
+          const forumData = data?.result ? data.result : data;
+          if (
+            forumData &&
+            'likeCount' in forumData &&
+            'isLikedByCurrentUser' in forumData
+          ) {
+            updatePost({
+              ...post,
+              ...forumData,
+              likes: forumData.likeCount,
+              liked: forumData.isLikedByCurrentUser
+            });
+          }
+        }
       } catch (error) {
         // handle error
       }
@@ -921,12 +1105,27 @@ function ForumDetailLikeButton({
         setLiked(true);
         setLikes((prev) => prev + 1);
         onLikeChange?.(true, likes + 1);
+        if (updatePost) {
+          const { data } = await refetchPost();
+          const forumData = data?.result ? data.result : data;
+          if (
+            forumData &&
+            'likeCount' in forumData &&
+            'isLikedByCurrentUser' in forumData
+          ) {
+            updatePost({
+              ...post,
+              ...forumData,
+              likes: forumData.likeCount,
+              liked: forumData.isLikedByCurrentUser
+            });
+          }
+        }
       } catch (error) {
         // handle error
       }
     }
   };
-  // Khi like/unlike thành công, nếu có onLikeChange thì gọi updatePost để đồng bộ lại post cha
   useEffect(() => {
     if (onLikeChange) onLikeChange(liked, likes);
     // eslint-disable-next-line react-hooks/exhaustive-deps
