@@ -3,11 +3,14 @@ import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { ColumnDef } from '@tanstack/react-table';
 import DataTable from '@/components/shared/data-table';
-import { useGetTrafficForAdvertiser } from '@/queries/traffic.query';
+import { useGetTraffics } from '@/queries/traffic.query';
+import { useGetCampaignAdvertiser } from '@/queries/campaign.query';
 import helpers from '@/helpers';
 import BasePages from '@/components/shared/base-pages';
 import Loading from '@/components/ui/loading';
-import { TrafficItem, TrafficApiResponse } from '@/types';
+import { TrafficItem, TrafficApiResponse, TokenDecoded } from '@/types';
+import __helpers from '@/helpers';
+import { useSearchParams } from 'react-router-dom';
 
 // Mapping function to convert API response to UI model
 function mapTrafficApiToTrafficItem(apiItem: TrafficApiResponse): TrafficItem {
@@ -25,34 +28,74 @@ function mapTrafficApiToTrafficItem(apiItem: TrafficApiResponse): TrafficItem {
 }
 
 export default function Traffic() {
-  const { pageIndex, pageSize } = helpers.usePaginationParams();
+  const [searchParams] = useSearchParams();
   const [searchTerm, setSearchTerm] = useState('');
-  const { data, isLoading, isError } = useGetTrafficForAdvertiser(
-    pageIndex,
-    pageSize,
-    searchTerm
+  const [selectedCampaignId, setSelectedCampaignId] = useState<number | null>(
+    null
   );
 
+  // Get pagination params from URL
+  const page = searchParams?.get('page') ?? '1';
+  const pageAsNumber = Number(page);
+  const currentPage =
+    isNaN(pageAsNumber) || pageAsNumber < 1 ? 1 : pageAsNumber;
+
+  const limit = searchParams?.get('limit') ?? '10';
+  const limitAsNumber = Number(limit);
+  const pageSize = isNaN(limitAsNumber) ? 10 : limitAsNumber;
+
+  const decodedToken: TokenDecoded | null = helpers.decodeTokens(
+    __helpers.cookie_get('AT')
+  );
+  const advertiserId =
+    decodedToken?.Id !== undefined ? parseInt(decodedToken.Id) : 0;
+
+  const {
+    data: campaignsData,
+    isLoading: campaignsLoading,
+    isError: campaignsError
+  } = useGetCampaignAdvertiser(advertiserId, undefined, 1, 100); // Get all campaigns
+
+  // Fetch traffic data for selected campaign with current pagination
+  const {
+    data: trafficData,
+    isLoading: trafficLoading,
+    isError: trafficError
+  } = useGetTraffics(
+    selectedCampaignId || undefined,
+    currentPage, // Use currentPage directly (1-based)
+    pageSize
+  );
+
+  const campaigns = campaignsData?.result?.datas || [];
+
   const filteredData = useMemo(() => {
-    const traffics = data?.result?.datas || [];
+    if (!selectedCampaignId || !trafficData?.result?.datas) {
+      return [];
+    }
+
+    const traffics = trafficData.result.datas;
     // Map from TrafficApiResponse to TrafficItem
     const mappedTraffics = traffics.map((item: TrafficApiResponse) =>
       mapTrafficApiToTrafficItem(item)
     );
 
+    // If search is handled on frontend (optional - you might want to move this to backend)
     return mappedTraffics.filter((item: TrafficItem) => {
+      if (!searchTerm) return true;
+
       const term = searchTerm.toLowerCase();
       const ipMatch = item.ipAddress?.toLowerCase().includes(term);
       const refMatch = item.referrerURL?.toLowerCase().includes(term);
       return ipMatch || refMatch;
     });
-  }, [data, searchTerm]);
+  }, [trafficData, searchTerm, selectedCampaignId]);
 
   const columns: ColumnDef<TrafficItem>[] = [
     {
       id: 'stt',
-      header: 'STT',
-      cell: ({ row }) => row.index + 1
+      header: 'ID',
+      cell: ({ row }) => row.original.id
     },
     {
       accessorKey: 'ipAddress',
@@ -68,7 +111,7 @@ export default function Traffic() {
             href={ref}
             target="_blank"
             rel="noopener noreferrer"
-            className="text-blue-500 hover:text-blue-700 underline transition-colors"
+            className="text-blue-500 underline transition-colors hover:text-blue-700"
           >
             {ref}
           </a>
@@ -87,15 +130,6 @@ export default function Traffic() {
           }`}
         >
           {row.original.isValid ? 'Valid' : 'Invalid'}
-        </span>
-      )
-    },
-    {
-      accessorKey: 'revenue',
-      header: 'Revenue',
-      cell: ({ row }) => (
-        <span className="font-medium text-green-600">
-          {row.original.revenue?.toLocaleString() || '0'}
         </span>
       )
     },
@@ -119,6 +153,19 @@ export default function Traffic() {
     }
   ];
 
+  // Handle campaign selection
+  const handleCampaignChange = (
+    event: React.ChangeEvent<HTMLSelectElement>
+  ) => {
+    const campaignId = event.target.value ? parseInt(event.target.value) : null;
+    setSelectedCampaignId(campaignId);
+    // Reset search term when changing campaign
+    setSearchTerm('');
+  };
+
+  const isLoading = campaignsLoading || trafficLoading;
+  const isError = campaignsError || trafficError;
+
   if (isLoading) {
     return (
       <div className="flex h-screen items-center justify-center">
@@ -130,7 +177,7 @@ export default function Traffic() {
   if (isError) {
     return (
       <div className="flex h-screen items-center justify-center">
-        <div className="text-red-600 text-xl font-semibold">
+        <div className="text-xl font-semibold text-red-600">
           Lỗi khi tải dữ liệu.
         </div>
       </div>
@@ -146,17 +193,47 @@ export default function Traffic() {
               <h2 className="mb-4 text-3xl font-bold text-gray-800 sm:mb-0">
                 Danh sách Traffic
               </h2>
-              <div className="mt-4 sm:mt-0">
-                <input
-                  type="text"
-                  placeholder="Tìm kiếm..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="rounded border p-2"
-                />
+              <div className="mt-4 flex flex-col gap-4 sm:mt-0 sm:flex-row">
+                {/* Campaign Dropdown */}
+                <div className="flex flex-col">
+                  <label
+                    htmlFor="campaign-select"
+                    className="mb-1 text-sm font-medium text-gray-700"
+                  >
+                    Chọn Campaign
+                  </label>
+                  <select
+                    id="campaign-select"
+                    value={selectedCampaignId || ''}
+                    onChange={handleCampaignChange}
+                    className="min-w-[150px] rounded border border-gray-300 p-2 focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+                  >
+                    <option value="">-- Chọn Campaign --</option>
+                    {campaigns.map((campaign) => (
+                      <option key={campaign.id} value={campaign.id}>
+                        {campaign.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
               </div>
             </div>
-            <DataTable columns={columns} data={filteredData} pageCount={1} />
+
+            {/* Show message when no campaign is selected */}
+            {!selectedCampaignId ? (
+              <div className="py-8 text-center">
+                <p className="text-lg text-gray-500">
+                  Vui lòng chọn một campaign để xem danh sách traffic
+                </p>
+              </div>
+            ) : (
+              <DataTable
+                columns={columns}
+                data={filteredData}
+                pageCount={trafficData?.result?.totalPages || 1}
+                isLoading={trafficLoading}
+              />
+            )}
           </div>
         </div>
         <ToastContainer position="top-center" autoClose={3000} />

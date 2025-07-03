@@ -82,11 +82,22 @@ export const getMaxDepth = (comments: Comment[]): number => {
 };
 
 /**
- * Format thời gian hiển thị comment
+ * Format thời gian hiển thị comment, có hỗ trợ offset múi giờ (mặc định +7)
  */
-export const formatTimeAgo = (timestamp: number): string => {
-  const now = Date.now();
-  const diffInSeconds = Math.floor((now - timestamp) / 1000);
+export const formatTimeAgo = (
+  timestamp: number,
+  offsetHours: number = 7
+): string => {
+  if (!timestamp || isNaN(timestamp)) return 'Không xác định';
+  // Nếu timestamp là string ISO, convert sang số
+  let ts = timestamp;
+  if (typeof timestamp === 'string') {
+    ts = Date.parse(timestamp);
+  }
+  // Cộng offset múi giờ (mặc định +7)
+  const localTs = ts + offsetHours * 60 * 60 * 1000;
+  const now = Date.now() + offsetHours * 60 * 60 * 1000;
+  const diffInSeconds = Math.floor((now - localTs) / 1000);
 
   if (diffInSeconds < 60) {
     return 'Vừa xong';
@@ -100,6 +111,6 @@ export const formatTimeAgo = (timestamp: number): string => {
     const days = Math.floor(diffInSeconds / 86400);
     return `${days} ngày trước`;
   } else {
-    return new Date(timestamp).toLocaleDateString('vi-VN');
+    return new Date(localTs).toLocaleDateString('vi-VN');
   }
 };

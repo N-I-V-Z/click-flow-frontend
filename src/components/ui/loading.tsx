@@ -23,7 +23,7 @@ export default function Loading() {
             repeatType: 'reverse'
           }}
         >
-          Click<span className="text-pink-400">Flow</span>
+          Click<span className="text-[#F6B93B]">Flow</span>
         </motion.h1>
       </div>
     </div>

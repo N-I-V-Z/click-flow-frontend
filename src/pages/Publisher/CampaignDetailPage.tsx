@@ -2,11 +2,12 @@ import React from 'react';
 import { Button, Rate, Tabs, Collapse, Modal, message } from 'antd';
 import { motion } from 'framer-motion';
 import Slider from 'react-slick';
-import { LeftOutlined, RightOutlined } from '@ant-design/icons';
+import { LeftOutlined, RightOutlined, LockOutlined } from '@ant-design/icons';
 import { useParams, useNavigate } from 'react-router-dom';
 import helpers from '@/helpers';
 import Feedback from './Feedback';
-import ProductLink from './ProductLink'; // Import component mới
+import ProductLink from './ProductLink';
+import TrafficTable from './traffictable'; // Import component TrafficTable
 import {
   useGetCampaignByIdd,
   useGetSimilarCampaigns,
@@ -95,7 +96,25 @@ const SamplePrevArrow: React.FC<any> = (props) => {
   );
 };
 
-// ====== 4) Component chính ======
+// ====== 4) Component thông báo khi chưa tham gia ======
+const RestrictedAccess: React.FC = () => {
+  return (
+    <div className="flex flex-col items-center justify-center px-6 py-12">
+      <div className="mb-4 rounded-full bg-gray-100 p-6">
+        <LockOutlined className="text-4xl text-gray-400" />
+      </div>
+      <h3 className="mb-2 text-lg font-semibold text-gray-700">
+        Truy cập bị hạn chế
+      </h3>
+      <p className="max-w-md text-center text-gray-500">
+        Bạn cần tham gia chiến dịch và được duyệt để có thể xem nội dung này.
+        Vui lòng đăng ký tham gia chiến dịch trước.
+      </p>
+    </div>
+  );
+};
+
+// ====== 5) Component chính ======
 const { TabPane } = Tabs;
 const { Panel } = Collapse;
 
@@ -148,7 +167,10 @@ const CampaignDetailPage: React.FC = () => {
     );
   }
 
-  // ====== 5) Các hàm xử lý ======
+  // ====== 6) Kiểm tra quyền truy cập ======
+  const hasParticipatedAccess = campaign.publisherStatus === 'Participated';
+
+  // ====== 7) Các hàm xử lý ======
   // Hàm đăng ký
   const handleRegister = () => {
     Modal.confirm({
@@ -201,7 +223,7 @@ const CampaignDetailPage: React.FC = () => {
       });
   };
 
-  // ====== 6) Tùy theo publisherStatus hiển thị nút ======
+  // ====== 8) Tùy theo publisherStatus hiển thị nút ======
   const renderButton = () => {
     if (!campaign.publisherStatus) {
       // Chưa tham gia => Hiển thị nút "Đăng ký"
@@ -248,7 +270,7 @@ const CampaignDetailPage: React.FC = () => {
     return null;
   };
 
-  // ====== 7) Cấu hình slider ======
+  // ====== 9) Cấu hình slider ======
   const sliderSettings = {
     dots: false,
     infinite: similarCampaigns.length > 1,
@@ -385,13 +407,26 @@ const CampaignDetailPage: React.FC = () => {
                   </Panel>
                 </Collapse>
               </TabPane>
+
               <TabPane tab="Product link" key="product-link">
-                {/* Sử dụng component ProductLink mới */}
-                <ProductLink
-                  campaignId={campaignId}
-                  originUrl={campaign.originUrl}
-                />
+                {hasParticipatedAccess ? (
+                  <ProductLink
+                    campaignId={campaignId}
+                    originUrl={campaign.originUrl}
+                  />
+                ) : (
+                  <RestrictedAccess />
+                )}
               </TabPane>
+
+              <TabPane tab="Traffic" key="traffic">
+                {hasParticipatedAccess ? (
+                  <TrafficTable selectedCampaignId={campaignId} />
+                ) : (
+                  <RestrictedAccess />
+                )}
+              </TabPane>
+
               <TabPane tab="Feedbacks" key="feedbacks">
                 <Feedback campaignId={campaignId} />
               </TabPane>

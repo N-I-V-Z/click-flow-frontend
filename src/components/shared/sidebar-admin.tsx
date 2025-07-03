@@ -150,7 +150,7 @@ const SidebarAdmin: React.FC = () => {
           <NavLink to="/admin/managepublisher">Nhà tiếp thị</NavLink>
         </Menu.Item>
 
-        <Menu.Item
+        {/* <Menu.Item
           key="/admin/managereport"
           icon={<FileTextOutlined />}
           className={`
@@ -159,7 +159,7 @@ const SidebarAdmin: React.FC = () => {
           `}
         >
           <NavLink to="/admin/managereport">Báo cáo</NavLink>
-        </Menu.Item>
+        </Menu.Item> */}
 
         <Menu.Item
           key="/admin/support"
