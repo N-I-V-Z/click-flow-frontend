@@ -56,7 +56,7 @@ const AdvertiserDashboard: React.FC = () => {
             <button
               type="button"
               onClick={() => setIsModalVisible(true)}
-              className="hover:from-orange-600 hover:to-red-600 transform rounded-lg bg-gradient-to-r from-orange to-red px-6 py-3 font-semibold text-white shadow-lg transition-all duration-300 hover:scale-105 hover:shadow-xl"
+              className="transform rounded-lg bg-gradient-to-r from-orange-500 to-red-500 px-6 py-3 font-semibold text-white shadow-lg transition-all duration-300 hover:scale-105 hover:from-orange-600 hover:to-red-600 hover:shadow-xl"
             >
               ✨ Tạo mới chiến dịch
             </button>
@@ -65,7 +65,7 @@ const AdvertiserDashboard: React.FC = () => {
           {/* Các thẻ thống kê trạng thái chiến dịch */}
           <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 md:grid-cols-4">
             {/* Cần phê duyệt (Pending) */}
-            <div className="transform rounded-xl bg-gradient-to-br from-blue to-blue p-6 text-center text-white backdrop-blur transition-all duration-300 hover:scale-105 hover:shadow-xl">
+            <div className="transform rounded-xl bg-gradient-to-br from-blue-500 to-blue-600 p-6 text-center text-white backdrop-blur transition-all duration-300 hover:scale-105 hover:shadow-xl">
               <div className="mb-3 flex justify-center">
                 <div className="rounded-full bg-white/20 p-3">
                   <FaClock size={32} />
@@ -80,7 +80,7 @@ const AdvertiserDashboard: React.FC = () => {
             </div>
 
             {/* Đã từ chối (Rejected) */}
-            <div className="transform rounded-xl bg-gradient-to-br from-red to-red p-6 text-center text-white backdrop-blur transition-all duration-300 hover:scale-105 hover:shadow-xl">
+            <div className="transform rounded-xl bg-gradient-to-br from-red-500 to-red-600 p-6 text-center text-white backdrop-blur transition-all duration-300 hover:scale-105 hover:shadow-xl">
               <div className="mb-3 flex justify-center">
                 <div className="rounded-full bg-white/20 p-3">
                   <FaTimesCircle size={32} />
@@ -93,7 +93,7 @@ const AdvertiserDashboard: React.FC = () => {
             </div>
 
             {/* Tạm dừng (Canceled) */}
-            <div className="transform rounded-xl bg-gradient-to-br from-orange to-orange p-6 text-center text-white backdrop-blur transition-all duration-300 hover:scale-105 hover:shadow-xl">
+            <div className="transform rounded-xl bg-gradient-to-br from-orange-500 to-orange-600 p-6 text-center text-white backdrop-blur transition-all duration-300 hover:scale-105 hover:shadow-xl">
               <div className="mb-3 flex justify-center">
                 <div className="rounded-full bg-white/20 p-3">
                   <FaPause size={32} />

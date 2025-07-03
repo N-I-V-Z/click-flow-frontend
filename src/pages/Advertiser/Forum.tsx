@@ -570,7 +570,7 @@ export default function Forum() {
                                     </div>
                                     <div
                                       onClick={() => handleDeleteClick(p.id)}
-                                      className="text-red-600 hover:bg-red-50 cursor-pointer px-4 py-2 text-sm"
+                                      className="cursor-pointer px-4 py-2 text-sm text-red-600 hover:bg-red-50"
                                     >
                                       Xóa
                                     </div>

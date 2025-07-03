@@ -5,6 +5,7 @@ import {
   UserOutlined,
   LogoutOutlined,
   ReadOutlined,
+  SolutionOutlined,
   WechatOutlined
 } from '@ant-design/icons';
 import { NavLink, useLocation } from 'react-router-dom';
@@ -106,7 +107,7 @@ const SidebarPublisher: React.FC = () => {
         >
           <NavLink to="/publisher/campaign">Chiến dịch</NavLink>
         </Menu.Item>
-        {/* <Menu.Item
+        <Menu.Item
           key="/publisher/mission"
           icon={<SolutionOutlined />}
           className={`
@@ -115,7 +116,7 @@ const SidebarPublisher: React.FC = () => {
           `}
         >
           <NavLink to="/publisher/mission">Nhiệm vụ</NavLink>
-        </Menu.Item> */}
+        </Menu.Item>
         <Menu.Item
           key="/all/forum"
           icon={<WechatOutlined />}

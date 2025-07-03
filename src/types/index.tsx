@@ -555,6 +555,38 @@ export interface AdvertiserDetailModalProps {
   onClose: () => void;
   advertiserId: number | null;
 }
+export type Plans = {
+  id: number;
+  name: string;
+  maxCampaigns: number;
+  maxClicksPerMonth: number;
+  maxConversionsPerMonth: number;
+  description: string;
+  price: number;
+  isActive: boolean;
+  durationDays: number;
+};
+
+export type PlanRequest = {
+  name: string;
+  maxCampaigns: number;
+  maxClicksPerMonth: number;
+  maxConversionsPerMonth: number;
+  price: number;
+  durationDays: number;
+  description: string;
+};
+
+export type PlanAssign = {
+  planId: number;
+};
+
+export type UserPlan = {
+  id: number;
+  userId: number;
+  planId: number;
+  plan: Plans;
+};
 
 // Forum/Post related types - Thêm vào cuối file types/index.ts
 // Thay thế interface ForumPost cũ thành:

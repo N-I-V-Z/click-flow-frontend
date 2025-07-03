@@ -111,7 +111,7 @@ export default function Traffic() {
             href={ref}
             target="_blank"
             rel="noopener noreferrer"
-            className="text-blue-500 hover:text-blue-700 underline transition-colors"
+            className="text-blue-500 underline transition-colors hover:text-blue-700"
           >
             {ref}
           </a>
@@ -177,7 +177,7 @@ export default function Traffic() {
   if (isError) {
     return (
       <div className="flex h-screen items-center justify-center">
-        <div className="text-red-600 text-xl font-semibold">
+        <div className="text-xl font-semibold text-red-600">
           Lỗi khi tải dữ liệu.
         </div>
       </div>
@@ -206,7 +206,7 @@ export default function Traffic() {
                     id="campaign-select"
                     value={selectedCampaignId || ''}
                     onChange={handleCampaignChange}
-                    className="focus:border-blue-500 focus:ring-blue-500 min-w-[150px] rounded border border-gray-300 p-2 focus:ring-1"
+                    className="min-w-[150px] rounded border border-gray-300 p-2 focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
                   >
                     <option value="">-- Chọn Campaign --</option>
                     {campaigns.map((campaign) => (

@@ -156,7 +156,7 @@ const PublisherDashboard: React.FC = () => {
 
   return (
     <BasePages pageHead="ClickFlow - Dashboard">
-      <div className="to-blue-100 min-h-screen bg-gradient-to-br from-indigo-100 via-purple-50 p-6">
+      <div className="min-h-screen bg-gradient-to-br from-indigo-100 via-purple-50 to-blue-100 p-6">
         <motion.div initial="initial" animate="animate" variants={fadeInUp}>
           <div className="mb-6">
             <h1 className="bg-gradient-to-r from-indigo-600 to-pink-600 bg-clip-text text-4xl font-extrabold text-transparent drop-shadow-lg">
@@ -291,7 +291,7 @@ const PublisherDashboard: React.FC = () => {
                     onClick={() => setChartType('area')}
                     className={`rounded-md px-3 py-1 text-xs font-medium transition-all ${
                       chartType === 'area'
-                        ? 'text-blue-600 bg-white shadow-sm'
+                        ? 'bg-white text-blue-600 shadow-sm'
                         : 'text-gray-600 hover:text-gray-800'
                     }`}
                   >
@@ -301,7 +301,7 @@ const PublisherDashboard: React.FC = () => {
                     onClick={() => setChartType('bar')}
                     className={`rounded-md px-3 py-1 text-xs font-medium transition-all ${
                       chartType === 'bar'
-                        ? 'text-blue-600 bg-white shadow-sm'
+                        ? 'bg-white text-blue-600 shadow-sm'
                         : 'text-gray-600 hover:text-gray-800'
                     }`}
                   >
@@ -311,7 +311,7 @@ const PublisherDashboard: React.FC = () => {
                     onClick={() => setChartType('composed')}
                     className={`rounded-md px-3 py-1 text-xs font-medium transition-all ${
                       chartType === 'composed'
-                        ? 'text-blue-600 bg-white shadow-sm'
+                        ? 'bg-white text-blue-600 shadow-sm'
                         : 'text-gray-600 hover:text-gray-800'
                     }`}
                   >

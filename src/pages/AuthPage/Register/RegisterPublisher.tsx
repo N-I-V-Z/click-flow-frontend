@@ -201,16 +201,13 @@ export default function RegisterPublisherPage() {
                     <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
                       {/* Username */}
                       <div>
-                        <label className="mb-2 block text-sm font-medium text-gray-700">
-                          Tên đăng nhập
-                        </label>
                         <div className="relative">
                           <div className="absolute inset-y-0 left-0 flex items-center pl-4">
                             <User className="h-5 w-5 text-gray-400" />
                           </div>
                           <Input
                             className="h-10 rounded-lg border-gray-300 pl-12 text-gray-900 placeholder:text-gray-500 focus:border-purple-500 focus:ring-purple-500"
-                            placeholder="Nhập tên đăng nhập"
+                            placeholder="Tên đăng nhập"
                             value={formPublisher.userName}
                             onChange={(e) =>
                               setFormPublisher({
@@ -221,7 +218,7 @@ export default function RegisterPublisherPage() {
                           />
                         </div>
                         {error.userName && (
-                          <p className="text-red-600 mt-2 text-sm">
+                          <p className="mt-2 text-sm text-red-600">
                             {error.userName}
                           </p>
                         )}
@@ -229,16 +226,13 @@ export default function RegisterPublisherPage() {
 
                       {/* Full Name */}
                       <div>
-                        <label className="mb-2 block text-sm font-medium text-gray-700">
-                          Họ và tên
-                        </label>
                         <div className="relative">
                           <div className="absolute inset-y-0 left-0 flex items-center pl-4">
                             <User className="h-5 w-5 text-gray-400" />
                           </div>
                           <Input
                             className="h-10 rounded-lg border-gray-300 pl-12 text-gray-900 placeholder:text-gray-500 focus:border-purple-500 focus:ring-purple-500"
-                            placeholder="Nhập họ và tên"
+                            placeholder="Họ và tên"
                             value={formPublisher.fullName}
                             onChange={(e) =>
                               setFormPublisher({
@@ -249,7 +243,7 @@ export default function RegisterPublisherPage() {
                           />
                         </div>
                         {error.fullName && (
-                          <p className="text-red-600 mt-2 text-sm">
+                          <p className="mt-2 text-sm text-red-600">
                             {error.fullName}
                           </p>
                         )}
@@ -260,9 +254,6 @@ export default function RegisterPublisherPage() {
                     <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
                       {/* Email */}
                       <div>
-                        <label className="mb-2 block text-sm font-medium text-gray-700">
-                          Email
-                        </label>
                         <div className="relative">
                           <div className="absolute inset-y-0 left-0 flex items-center pl-4">
                             <Mail className="h-5 w-5 text-gray-400" />
@@ -270,7 +261,7 @@ export default function RegisterPublisherPage() {
                           <Input
                             className="h-10 rounded-lg border-gray-300 pl-12 text-gray-900 placeholder:text-gray-500 focus:border-purple-500 focus:ring-purple-500"
                             type="email"
-                            placeholder="Nhập email"
+                            placeholder="Email"
                             value={formPublisher.email}
                             onChange={(e) =>
                               setFormPublisher({
@@ -281,7 +272,7 @@ export default function RegisterPublisherPage() {
                           />
                         </div>
                         {error.email && (
-                          <p className="text-red-600 mt-2 text-sm">
+                          <p className="mt-2 text-sm text-red-600">
                             {error.email}
                           </p>
                         )}
@@ -289,16 +280,13 @@ export default function RegisterPublisherPage() {
 
                       {/* Phone */}
                       <div>
-                        <label className="mb-2 block text-sm font-medium text-gray-700">
-                          Số điện thoại
-                        </label>
                         <div className="relative">
                           <div className="absolute inset-y-0 left-0 flex items-center pl-4">
                             <Phone className="h-5 w-5 text-gray-400" />
                           </div>
                           <Input
                             className="h-10 rounded-lg border-gray-300 pl-12 text-gray-900 placeholder:text-gray-500 focus:border-purple-500 focus:ring-purple-500"
-                            placeholder="Nhập số điện thoại"
+                            placeholder="Số điện thoại"
                             value={formPublisher.phoneNumber}
                             onChange={(e) =>
                               setFormPublisher({
@@ -309,7 +297,7 @@ export default function RegisterPublisherPage() {
                           />
                         </div>
                         {error.phoneNumber && (
-                          <p className="text-red-600 mt-2 text-sm">
+                          <p className="mt-2 text-sm text-red-600">
                             {error.phoneNumber}
                           </p>
                         )}
@@ -320,9 +308,6 @@ export default function RegisterPublisherPage() {
                     <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
                       {/* Password */}
                       <div>
-                        <label className="mb-2 block text-sm font-medium text-gray-700">
-                          Mật khẩu
-                        </label>
                         <div className="relative">
                           <div className="absolute inset-y-0 left-0 flex items-center pl-4">
                             <Lock className="h-5 w-5 text-gray-400" />
@@ -330,7 +315,7 @@ export default function RegisterPublisherPage() {
                           <Input
                             className="h-10 rounded-lg border-gray-300 pl-12 pr-12 text-gray-900 placeholder:text-gray-500 focus:border-purple-500 focus:ring-purple-500"
                             type={showPassword ? 'text' : 'password'}
-                            placeholder="Nhập mật khẩu"
+                            placeholder="Mật khẩu"
                             value={formPublisher.password}
                             onChange={(e) =>
                               setFormPublisher({
@@ -352,7 +337,7 @@ export default function RegisterPublisherPage() {
                           </button>
                         </div>
                         {error.password && (
-                          <p className="text-red-600 mt-2 text-sm">
+                          <p className="mt-2 text-sm text-red-600">
                             {error.password}
                           </p>
                         )}
@@ -360,9 +345,6 @@ export default function RegisterPublisherPage() {
 
                       {/* Confirm Password */}
                       <div>
-                        <label className="mb-2 block text-sm font-medium text-gray-700">
-                          Xác nhận mật khẩu
-                        </label>
                         <div className="relative">
                           <div className="absolute inset-y-0 left-0 flex items-center pl-4">
                             <Lock className="h-5 w-5 text-gray-400" />
@@ -379,9 +361,20 @@ export default function RegisterPublisherPage() {
                               })
                             }
                           />
+                          <button
+                            type="button"
+                            className="absolute inset-y-0 right-0 flex items-center pr-4 text-gray-400 transition-colors hover:text-gray-600"
+                            onClick={() => setShowPassword(!showPassword)}
+                          >
+                            {showPassword ? (
+                              <EyeOff className="h-5 w-5" />
+                            ) : (
+                              <Eye className="h-5 w-5" />
+                            )}
+                          </button>
                         </div>
                         {error.confirmPassword && (
-                          <p className="text-red-600 mt-2 text-sm">
+                          <p className="mt-2 text-sm text-red-600">
                             {error.confirmPassword}
                           </p>
                         )}
@@ -429,7 +422,7 @@ export default function RegisterPublisherPage() {
                       <Link to="/register-advertiser">
                         <Button
                           variant="outline"
-                          className="border-blue-300 text-blue-700 hover:bg-blue-50 hover:border-blue-400 h-10 w-full rounded-lg bg-white transition-all"
+                          className="h-10 w-full rounded-lg border-blue-300 bg-white text-blue-700 transition-all hover:border-blue-400 hover:bg-blue-50"
                         >
                           Đăng ký Advertiser
                         </Button>

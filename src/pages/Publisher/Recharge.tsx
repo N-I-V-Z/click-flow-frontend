@@ -18,22 +18,6 @@ const Recharge = ({ isOpen, onClose, onSuccess }) => {
   // Handle deposit submission
   const handleDeposit = async () => {
     const amount = parseFloat(depositAmount.replace(/[^\d]/g, ''));
-
-    // if (!amount || amount <= 0) {
-    //   alert('Vui lòng nhập số tiền hợp lệ');
-    //   return;
-    // }
-
-    // if (amount < 10000) {
-    //   alert('Số tiền nạp tối thiểu là 10,000 VND');
-    //   return;
-    // }
-
-    // if (amount > 50000000) {
-    //   alert('Số tiền nạp tối đa là 50,000,000 VND');
-    //   return;
-    // }
-
     setIsProcessing(true);
 
     try {
@@ -110,9 +94,8 @@ const Recharge = ({ isOpen, onClose, onSuccess }) => {
         onClick={handleBackdropClick}
       >
         <div className="w-full max-w-md overflow-hidden rounded-3xl bg-white shadow-2xl">
-          <div className="bg-gradient-to-br from-blue to-purple-600 p-6 text-white">
+          <div className="bg-gradient-to-br from-blue-500 to-purple-600 p-6 text-white">
             <h2 className="text-xl font-bold">Nạp tiền vào ví</h2>
-            <p className="text-sm text-black">Nhập số tiền bạn muốn nạp</p>
           </div>
 
           <div className="space-y-6 p-6">
@@ -127,7 +110,7 @@ const Recharge = ({ isOpen, onClose, onSuccess }) => {
                   placeholder="0"
                   value={depositAmount}
                   onChange={(e) => handleAmountChange(e.target.value)}
-                  className="h-16 w-full rounded-2xl border-2 pr-12 text-center text-2xl font-bold focus:border-blue focus:outline-none"
+                  className="focus:border-blue h-16 w-full rounded-2xl border-2 pr-12 text-center text-2xl font-bold focus:outline-none"
                   disabled={isProcessing}
                 />
                 <span className="absolute right-4 top-1/2 -translate-y-1/2 font-medium text-slate-400">
@@ -153,7 +136,7 @@ const Recharge = ({ isOpen, onClose, onSuccess }) => {
                     size="sm"
                     onClick={() => setQuickAmount(amount)}
                     disabled={isProcessing}
-                    className="rounded-xl p-2 text-xs font-medium hover:border-blue hover:bg-blue"
+                    className="hover:border-blue hover:bg-blue rounded-xl p-2 text-xs font-medium"
                   >
                     {formatCurrency(amount)}
                   </Button>
@@ -181,7 +164,7 @@ const Recharge = ({ isOpen, onClose, onSuccess }) => {
                 <hr className="my-2" />
                 <div className="flex justify-between">
                   <span className="font-semibold">Tổng cộng:</span>
-                  <span className="font-bold text-blue">
+                  <span className="text-blue font-bold">
                     {formatCurrency(
                       parseFloat(depositAmount.replace(/[^\d]/g, '')) || 0
                     )}
@@ -196,14 +179,14 @@ const Recharge = ({ isOpen, onClose, onSuccess }) => {
                 variant="outline"
                 onClick={handleClose}
                 disabled={isProcessing}
-                className="h-12 flex-1 rounded-2xl bg-red text-white"
+                className="h-12 flex-1 rounded-2xl bg-red-500 text-white"
               >
                 Hủy
               </Button>
               <Button
                 onClick={handleDeposit}
                 disabled={!depositAmount || isProcessing}
-                className="h-12 flex-1 rounded-2xl bg-gradient-to-r from-blue to-purple-600 text-white hover:from-blue hover:to-purple-700"
+                className="hover:from-blue h-12 flex-1 rounded-2xl bg-gradient-to-r from-blue-500 to-purple-600 text-white hover:to-purple-700"
               >
                 {isProcessing ? (
                   <>

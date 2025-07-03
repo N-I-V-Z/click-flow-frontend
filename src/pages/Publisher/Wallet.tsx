@@ -18,7 +18,6 @@ import {
   Clock,
   DollarSign,
   ChevronLeft,
-  CreditCard,
   Loader2,
   Eye,
   EyeOff,
@@ -244,11 +243,11 @@ const PublisherWallet = () => {
   if (walletLoading || transactionLoading) {
     return (
       <BasePages pageHead="ClickFlow - Ví">
-        <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-slate-50 to-blue">
+        <div className="to-blue flex min-h-screen items-center justify-center bg-gradient-to-br from-slate-50">
           <div className="flex flex-col items-center gap-4">
             <div className="relative">
-              <div className="h-16 w-16 animate-pulse rounded-full border-4 border-blue"></div>
-              <Loader2 className="absolute left-4 top-4 h-8 w-8 animate-spin text-blue" />
+              <div className="border-blue h-16 w-16 animate-pulse rounded-full border-4"></div>
+              <Loader2 className="text-blue absolute left-4 top-4 h-8 w-8 animate-spin" />
             </div>
             <span className="font-medium text-slate-600">
               Đang tải dữ liệu ví...
@@ -263,10 +262,10 @@ const PublisherWallet = () => {
   if (walletError || transactionError) {
     return (
       <BasePages pageHead="ClickFlow - Ví">
-        <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-slate-50 to-blue">
+        <div className="to-blue flex min-h-screen items-center justify-center bg-gradient-to-br from-slate-50">
           <Card className="mx-4 max-w-md border-0 p-8 text-center shadow-xl">
-            <div className="bg-red-100 mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full">
-              <DollarSign className="text-red-600 h-8 w-8" />
+            <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-red-100">
+              <DollarSign className="h-8 w-8 text-red-600" />
             </div>
             <h3 className="mb-2 text-lg font-semibold text-slate-900">
               Có lỗi xảy ra
@@ -288,7 +287,7 @@ const PublisherWallet = () => {
 
   return (
     <BasePages pageHead="ClickFlow - Ví">
-      <div className="via-blue-50 min-h-screen bg-gradient-to-br from-slate-50 to-indigo-50">
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
         {/* Modern Header */}
         <div className="sticky top-0 z-10 border-b border-slate-200/50 bg-white/80 backdrop-blur-sm">
           <div className="container mx-auto px-4">
@@ -322,7 +321,7 @@ const PublisherWallet = () => {
           <div className="mx-auto mb-20 max-w-5xl space-y-8">
             {/* Enhanced Balance Card */}
             <div className="relative">
-              <Card className="overflow-hidden rounded-3xl border-0 bg-gradient-to-br from-blue via-purple-600 to-blue text-white shadow-2xl">
+              <Card className="from-blue to-blue overflow-hidden rounded-3xl border-0 bg-gradient-to-br via-purple-600 text-white shadow-2xl">
                 <div className="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent"></div>
                 <div className="relative p-8">
                   <div className="mb-8 flex items-center justify-between">
@@ -369,15 +368,10 @@ const PublisherWallet = () => {
                     {/* Deposit Button */}
                     <Button
                       onClick={() => setIsDepositDialogOpen(true)}
-                      className="flex h-14 items-center justify-center gap-3 rounded-2xl bg-white font-semibold text-blue shadow-lg hover:bg-white/90"
+                      className="flex h-14 items-center justify-center gap-3 rounded-2xl bg-white font-semibold text-blue-500 shadow-lg hover:bg-white/90"
                     >
                       <Plus className="h-5 w-5" />
                       <span>Nạp tiền</span>
-                    </Button>
-
-                    <Button className="flex h-14 items-center justify-center gap-3 rounded-2xl border border-white/30 bg-white/20 font-semibold backdrop-blur-sm hover:bg-white/30">
-                      <CreditCard className="h-5 w-5" />
-                      <span>Rút tiền</span>
                     </Button>
                   </div>
                 </div>
@@ -488,7 +482,7 @@ const PublisherWallet = () => {
                         {tab.count}
                       </span>
                       {activeTab === tab.key && (
-                        <div className="absolute bottom-0 left-0 right-0 h-0.5 rounded-full bg-blue"></div>
+                        <div className="bg-blue absolute bottom-0 left-0 right-0 h-0.5 rounded-full"></div>
                       )}
                     </button>
                   ))}

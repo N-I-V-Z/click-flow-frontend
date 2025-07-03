@@ -234,16 +234,13 @@ const RegisterAdvertiserPage: React.FC = () => {
                     <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                       {/* Username */}
                       <div>
-                        <label className="mb-2 block text-sm font-medium text-gray-700">
-                          Tên đăng nhập
-                        </label>
                         <div className="relative">
                           <div className="absolute inset-y-0 left-0 flex items-center pl-3">
                             <User className="h-4 w-4 text-gray-400" />
                           </div>
                           <Input
                             className="h-10 rounded-lg border-gray-300 pl-10 text-gray-900 placeholder:text-gray-500 focus:border-purple-500 focus:ring-purple-500"
-                            placeholder="Nhập tên đăng nhập"
+                            placeholder="Tên đăng nhập"
                             value={formAdvertiser.userName}
                             onChange={(e) =>
                               setFormAdvertiser({
@@ -254,7 +251,7 @@ const RegisterAdvertiserPage: React.FC = () => {
                           />
                         </div>
                         {error.userName && (
-                          <p className="text-red-600 mt-1 text-xs">
+                          <p className="mt-1 text-xs text-red-600">
                             {error.userName}
                           </p>
                         )}
@@ -262,16 +259,13 @@ const RegisterAdvertiserPage: React.FC = () => {
 
                       {/* Full Name */}
                       <div>
-                        <label className="mb-2 block text-sm font-medium text-gray-700">
-                          Họ và tên
-                        </label>
                         <div className="relative">
                           <div className="absolute inset-y-0 left-0 flex items-center pl-3">
                             <User className="h-4 w-4 text-gray-400" />
                           </div>
                           <Input
                             className="h-10 rounded-lg border-gray-300 pl-10 text-gray-900 placeholder:text-gray-500 focus:border-purple-500 focus:ring-purple-500"
-                            placeholder="Nhập họ và tên"
+                            placeholder="Họ và tên"
                             value={formAdvertiser.fullName}
                             onChange={(e) =>
                               setFormAdvertiser({
@@ -282,7 +276,7 @@ const RegisterAdvertiserPage: React.FC = () => {
                           />
                         </div>
                         {error.fullName && (
-                          <p className="text-red-600 mt-1 text-xs">
+                          <p className="mt-1 text-xs text-red-600">
                             {error.fullName}
                           </p>
                         )}
@@ -290,9 +284,6 @@ const RegisterAdvertiserPage: React.FC = () => {
 
                       {/* Email */}
                       <div>
-                        <label className="mb-2 block text-sm font-medium text-gray-700">
-                          Email
-                        </label>
                         <div className="relative">
                           <div className="absolute inset-y-0 left-0 flex items-center pl-3">
                             <Mail className="h-4 w-4 text-gray-400" />
@@ -300,7 +291,7 @@ const RegisterAdvertiserPage: React.FC = () => {
                           <Input
                             className="h-10 rounded-lg border-gray-300 pl-10 text-gray-900 placeholder:text-gray-500 focus:border-purple-500 focus:ring-purple-500"
                             type="email"
-                            placeholder="Nhập email"
+                            placeholder="Email"
                             value={formAdvertiser.email}
                             onChange={(e) =>
                               setFormAdvertiser({
@@ -311,7 +302,7 @@ const RegisterAdvertiserPage: React.FC = () => {
                           />
                         </div>
                         {error.email && (
-                          <p className="text-red-600 mt-1 text-xs">
+                          <p className="mt-1 text-xs text-red-600">
                             {error.email}
                           </p>
                         )}
@@ -319,16 +310,13 @@ const RegisterAdvertiserPage: React.FC = () => {
 
                       {/* Phone */}
                       <div>
-                        <label className="mb-2 block text-sm font-medium text-gray-700">
-                          Số điện thoại
-                        </label>
                         <div className="relative">
                           <div className="absolute inset-y-0 left-0 flex items-center pl-3">
                             <Phone className="h-4 w-4 text-gray-400" />
                           </div>
                           <Input
                             className="h-10 rounded-lg border-gray-300 pl-10 text-gray-900 placeholder:text-gray-500 focus:border-purple-500 focus:ring-purple-500"
-                            placeholder="Nhập số điện thoại"
+                            placeholder="Số điện thoại"
                             value={formAdvertiser.phoneNumber}
                             onChange={(e) =>
                               setFormAdvertiser({
@@ -339,7 +327,7 @@ const RegisterAdvertiserPage: React.FC = () => {
                           />
                         </div>
                         {error.phoneNumber && (
-                          <p className="text-red-600 mt-1 text-xs">
+                          <p className="mt-1 text-xs text-red-600">
                             {error.phoneNumber}
                           </p>
                         )}
@@ -347,9 +335,6 @@ const RegisterAdvertiserPage: React.FC = () => {
 
                       {/* Password */}
                       <div>
-                        <label className="mb-2 block text-sm font-medium text-gray-700">
-                          Mật khẩu
-                        </label>
                         <div className="relative">
                           <div className="absolute inset-y-0 left-0 flex items-center pl-3">
                             <Lock className="h-4 w-4 text-gray-400" />
@@ -357,7 +342,7 @@ const RegisterAdvertiserPage: React.FC = () => {
                           <Input
                             className="h-10 rounded-lg border-gray-300 pl-10 pr-10 text-gray-900 placeholder:text-gray-500 focus:border-purple-500 focus:ring-purple-500"
                             type={showPassword ? 'text' : 'password'}
-                            placeholder="Nhập mật khẩu"
+                            placeholder="Mật khẩu"
                             value={formAdvertiser.password}
                             onChange={(e) =>
                               setFormAdvertiser({
@@ -379,7 +364,7 @@ const RegisterAdvertiserPage: React.FC = () => {
                           </button>
                         </div>
                         {error.password && (
-                          <p className="text-red-600 mt-1 text-xs">
+                          <p className="mt-1 text-xs text-red-600">
                             {error.password}
                           </p>
                         )}
@@ -387,9 +372,6 @@ const RegisterAdvertiserPage: React.FC = () => {
 
                       {/* Confirm Password */}
                       <div>
-                        <label className="mb-2 block text-sm font-medium text-gray-700">
-                          Xác nhận mật khẩu
-                        </label>
                         <div className="relative">
                           <div className="absolute inset-y-0 left-0 flex items-center pl-3">
                             <Lock className="h-4 w-4 text-gray-400" />
@@ -406,9 +388,20 @@ const RegisterAdvertiserPage: React.FC = () => {
                               })
                             }
                           />
+                          <button
+                            type="button"
+                            className="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-400 transition-colors hover:text-gray-600"
+                            onClick={() => setShowPassword(!showPassword)}
+                          >
+                            {showPassword ? (
+                              <EyeOff className="h-4 w-4" />
+                            ) : (
+                              <Eye className="h-4 w-4" />
+                            )}
+                          </button>
                         </div>
                         {error.confirmPassword && (
-                          <p className="text-red-600 mt-1 text-xs">
+                          <p className="mt-1 text-xs text-red-600">
                             {error.confirmPassword}
                           </p>
                         )}
@@ -416,16 +409,13 @@ const RegisterAdvertiserPage: React.FC = () => {
 
                       {/* Company Name */}
                       <div>
-                        <label className="mb-2 block text-sm font-medium text-gray-700">
-                          Tên công ty
-                        </label>
                         <div className="relative">
                           <div className="absolute inset-y-0 left-0 flex items-center pl-3">
                             <Building className="h-4 w-4 text-gray-400" />
                           </div>
                           <Input
                             className="h-10 rounded-lg border-gray-300 pl-10 text-gray-900 placeholder:text-gray-500 focus:border-purple-500 focus:ring-purple-500"
-                            placeholder="Nhập tên công ty"
+                            placeholder="Tên công ty"
                             value={formAdvertiser.companyName}
                             onChange={(e) =>
                               setFormAdvertiser({
@@ -436,7 +426,7 @@ const RegisterAdvertiserPage: React.FC = () => {
                           />
                         </div>
                         {error.companyName && (
-                          <p className="text-red-600 mt-1 text-xs">
+                          <p className="mt-1 text-xs text-red-600">
                             {error.companyName}
                           </p>
                         )}
@@ -444,9 +434,6 @@ const RegisterAdvertiserPage: React.FC = () => {
 
                       {/* Website */}
                       <div>
-                        <label className="mb-2 block text-sm font-medium text-gray-700">
-                          Website
-                        </label>
                         <div className="relative">
                           <div className="absolute inset-y-0 left-0 flex items-center pl-3">
                             <Globe className="h-4 w-4 text-gray-400" />
@@ -465,7 +452,7 @@ const RegisterAdvertiserPage: React.FC = () => {
                           />
                         </div>
                         {error.introductionWebsite && (
-                          <p className="text-red-600 mt-1 text-xs">
+                          <p className="mt-1 text-xs text-red-600">
                             {error.introductionWebsite}
                           </p>
                         )}
@@ -493,7 +480,7 @@ const RegisterAdvertiserPage: React.FC = () => {
                           />
                         </div>
                         {error.staffSize && (
-                          <p className="text-red-600 mt-1 text-xs">
+                          <p className="mt-1 text-xs text-red-600">
                             {error.staffSize}
                           </p>
                         )}
@@ -527,7 +514,7 @@ const RegisterAdvertiserPage: React.FC = () => {
                           </select>
                         </div>
                         {error.industry && (
-                          <p className="text-red-600 mt-1 text-xs">
+                          <p className="mt-1 text-xs text-red-600">
                             {error.industry}
                           </p>
                         )}

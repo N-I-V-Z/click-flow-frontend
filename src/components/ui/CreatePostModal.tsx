@@ -138,7 +138,7 @@ const CreatePostModal: React.FC<CreatePostModalProps> = ({
                   className={`flex items-center space-x-3 rounded-xl border px-6 py-3 shadow-lg backdrop-blur-sm ${
                     notification.type === 'success'
                       ? 'border-green-200 bg-green-50/90 text-green-800'
-                      : 'bg-red-50/90 border-red-200 text-red-800'
+                      : 'border-red-200 bg-red-50/90 text-red-800'
                   }`}
                 >
                   <div
@@ -151,7 +151,7 @@ const CreatePostModal: React.FC<CreatePostModalProps> = ({
                     {notification.type === 'success' ? (
                       <FaEdit className="text-xs text-green-600" />
                     ) : (
-                      <FaTimes className="text-red-600 text-xs" />
+                      <FaTimes className="text-xs text-red-600" />
                     )}
                   </div>
                   <span className="text-sm font-medium">

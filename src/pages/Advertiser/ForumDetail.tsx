@@ -382,7 +382,7 @@ const ForumDetail: FC<ForumDetailProps> = ({ post, onBack, updatePost }) => {
                               post.title
                             )
                           }
-                          className="text-red-600 hover:bg-red-50 w-full px-4 py-2 text-left text-sm"
+                          className="w-full px-4 py-2 text-left text-sm text-red-600 hover:bg-red-50"
                         >
                           Xóa
                         </button>
@@ -606,7 +606,7 @@ const ForumDetail: FC<ForumDetailProps> = ({ post, onBack, updatePost }) => {
                                 post.title
                               )
                             }
-                            className="text-red-600 hover:bg-red-50 w-full px-4 py-2 text-left text-sm"
+                            className="w-full px-4 py-2 text-left text-sm text-red-600 hover:bg-red-50"
                           >
                             Xóa
                           </button>
@@ -790,12 +790,12 @@ const ForumDetail: FC<ForumDetailProps> = ({ post, onBack, updatePost }) => {
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
-              className="border-red-200 bg-red-50/90 rounded-3xl border py-8 text-center shadow-xl backdrop-blur-sm"
+              className="rounded-3xl border border-red-200 bg-red-50/90 py-8 text-center shadow-xl backdrop-blur-sm"
             >
-              <div className="text-red-600 mb-2">Có lỗi khi tải bình luận</div>
+              <div className="mb-2 text-red-600">Có lỗi khi tải bình luận</div>
               <button
                 onClick={() => refetchComments()}
-                className="text-red-500 hover:text-red-700 text-sm underline"
+                className="text-sm text-red-500 underline hover:text-red-700"
               >
                 Thử lại
               </button>
@@ -869,7 +869,7 @@ const ForumDetail: FC<ForumDetailProps> = ({ post, onBack, updatePost }) => {
                 </button>
                 <button
                   onClick={handleDeleteConfirm}
-                  className="bg-red-500 hover:bg-red-600 rounded-lg px-4 py-2 text-white"
+                  className="rounded-lg bg-red-500 px-4 py-2 text-white hover:bg-red-600"
                 >
                   Xóa
                 </button>

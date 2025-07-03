@@ -81,13 +81,13 @@ const ChangePassword: React.FC = () => {
 
   return (
     <BasePages pageHead="ClickFlow - Đổi mật khẩu ">
-      <div className="via-blue-50 min-h-screen bg-gradient-to-br from-slate-50 to-indigo-100">
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100">
         <div className="mx-auto max-w-7xl px-24 py-12">
           <div className="grid grid-cols-1 gap-8 lg:grid-cols-3">
             {/* Form đổi mật khẩu */}
             <div className="lg:col-span-2">
               <Card className="overflow-hidden border-0 shadow-xl">
-                <div className="bg-gradient-to-r from-blue to-purple-600 p-6">
+                <div className="bg-gradient-to-r from-blue-500 to-purple-600 p-6">
                   <div className="flex items-center space-x-3">
                     <FaLock className="h-6 w-6 text-white" />
                     <h2 className="text-2xl font-bold text-white">
@@ -171,7 +171,7 @@ const ChangePassword: React.FC = () => {
                         </button>
                       </div>
                       {errors.newPassword && (
-                        <p className="mt-2 flex items-center text-sm text-red">
+                        <p className="text-red mt-2 flex items-center text-sm">
                           <FaTimes className="mr-2 h-4 w-4" />{' '}
                           {errors.newPassword}
                         </p>
@@ -216,7 +216,7 @@ const ChangePassword: React.FC = () => {
                         </button>
                       </div>
                       {errors.confirmPassword && (
-                        <p className="mt-2 flex items-center text-sm text-red">
+                        <p className="text-red mt-2 flex items-center text-sm">
                           <FaTimes className="mr-2 h-4 w-4" />{' '}
                           {errors.confirmPassword}
                         </p>
@@ -299,8 +299,8 @@ const ChangePassword: React.FC = () => {
                     Bảo mật tài khoản
                   </h3>
                   <div className="space-y-4">
-                    <div className="bg-blue-50 border-blue-200 rounded-lg border p-4">
-                      <p className="text-blue-800 text-sm">
+                    <div className="rounded-lg border border-blue-200 bg-blue-50 p-4">
+                      <p className="text-sm text-blue-800">
                         <strong>Lưu ý:</strong> Không chia sẻ mật khẩu với bất
                         kỳ ai và thường xuyên thay đổi mật khẩu để bảo vệ tài
                         khoản của bạn.

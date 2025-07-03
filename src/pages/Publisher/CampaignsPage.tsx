@@ -158,7 +158,7 @@ const CampaignsPage: React.FC = () => {
 
   return (
     <BasePages pageHead="ClickFlow - Danh sách chiến dịch">
-      <div className="bg-gray-100 bg-gradient-to-br from-indigo-200 via-purple-50 to-blue p-6">
+      <div className="to-blue bg-gray-100 bg-gradient-to-br from-indigo-200 via-purple-50 p-6">
         <h1 className="mb-6 text-center text-2xl font-bold text-gray-800">
           Danh sách Chiến dịch
         </h1>
@@ -270,7 +270,7 @@ const CampaignsPage: React.FC = () => {
                 {/* Nút hành động */}
                 <div className="mt-auto w-full">
                   {isLocked ? (
-                    <p className="text-red-500 text-center font-medium">
+                    <p className="text-center font-medium text-red-500">
                       Đã bị khóa
                     </p>
                   ) : hasPublisherStatus ? (

@@ -160,13 +160,13 @@ export default function ResetPasswordPage() {
                   }
                 />
                 {error.email && (
-                  <p className="text-[12px] text-red">{error.email}</p>
+                  <p className="text-red text-[12px]">{error.email}</p>
                 )}
               </div>
 
               <div className="flex flex-col items-center gap-4">
                 <Button
-                  className="w-full bg-yellow text-black"
+                  className="w-full bg-yellow-400 text-white"
                   onClick={handleReset}
                   disabled={isPending}
                 >
@@ -174,19 +174,19 @@ export default function ResetPasswordPage() {
                 </Button>
                 <p className="text-center text-[12px] text-muted-foreground">
                   Đăng ký tài khoản <br />
-                  <a
-                    href="/register?type=advertiser"
+                  <Link
+                    to="/register-advertiser"
                     className="text-[#9B52BF] no-underline"
                   >
                     Advertiser
-                  </a>{' '}
+                  </Link>{' '}
                   hoặc{' '}
-                  <a
-                    href="/register?type=publisher"
+                  <Link
+                    to="/register-publisher"
                     className="text-[#9B52BF] no-underline"
                   >
                     Publisher
-                  </a>
+                  </Link>
                 </p>
               </div>
             </div>
