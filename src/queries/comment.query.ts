@@ -8,7 +8,7 @@ import {
 } from '@/types';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
-const SUB_URL = `api/Comments`;
+const SUB_URL = `/api/Comments`;
 
 /**
  * Hook gọi API lấy danh sách comments theo post ID

@@ -198,7 +198,7 @@ const CommentForm: React.FC<CommentFormProps> = ({
           {showActions && (
             <div className="mt-3 flex items-center justify-between">
               {/* Action icons mới */}
-              <div className="relative flex space-x-4">
+              <div className="relative flex space-x-4 overflow-visible">
                 <motion.button
                   type="button"
                   whileHover={{ scale: 1.2, y: -2 }}
@@ -236,7 +236,10 @@ const CommentForm: React.FC<CommentFormProps> = ({
                 )}
                 {/* GIF Picker Popup */}
                 {showGifPicker && (
-                  <div className="absolute left-0 top-10 z-50">
+                  <div
+                    className="absolute left-0 top-full z-50 overflow-visible"
+                    style={{ marginTop: 4 }} /* đẩy xuống ngay dưới icon */
+                  >
                     <GifPickerComponent onGifSelect={handleGifSelect} />
                   </div>
                 )}

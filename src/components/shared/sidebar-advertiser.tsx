@@ -7,9 +7,10 @@ import {
   LinkOutlined,
   UnorderedListOutlined,
   WechatOutlined,
-  BellOutlined
+  BellOutlined,
+  SnippetsOutlined
 } from '@ant-design/icons';
-import { NavLink } from 'react-router-dom';
+import { NavLink, useLocation } from 'react-router-dom';
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import helpers from '@/helpers';
@@ -66,6 +67,10 @@ const SidebarAdvertiser: React.FC = () => {
       router.push('/login');
     }
   };
+
+  const location = useLocation();
+  const [selectedKey, setSelectedKey] = useState(location.pathname);
+
   return (
     <div
       className="
@@ -79,23 +84,69 @@ const SidebarAdvertiser: React.FC = () => {
       {/* Menu chính */}
       <Menu
         mode="inline"
-        defaultSelectedKeys={['overview']}
+        selectedKeys={[selectedKey]}
         className="flex-grow border-r-0"
+        onClick={(e) => setSelectedKey(e.key)}
       >
-        <Menu.Item key="overview" icon={<HomeOutlined />}>
+        <Menu.Item
+          key="/advertiser/dashboard"
+          icon={<HomeOutlined />}
+          className={`
+            hover:!border-[#9B52BF] hover:bg-white hover:!text-[#9B52BF]
+            ${selectedKey === '/advertiser/dashboard' ? '!bg-[#9B52BF] !text-white' : ''}
+          `}
+        >
           <NavLink to="/advertiser/dashboard">Tổng quan</NavLink>
         </Menu.Item>
-        <Menu.Item key="campaign" icon={<UnorderedListOutlined />}>
+        <Menu.Item
+          key="/advertiser/campaigns"
+          icon={<UnorderedListOutlined />}
+          className={`
+            hover:!border-[#9B52BF] hover:bg-white hover:!text-[#9B52BF]
+            ${selectedKey === '/advertiser/campaigns' ? '!bg-[#9B52BF] !text-white' : ''}
+          `}
+        >
           <NavLink to="/advertiser/campaigns">Chiến dịch</NavLink>
         </Menu.Item>
-        <Menu.Item key="traffic" icon={<LinkOutlined />}>
+        <Menu.Item
+          key="/advertiser/traffics"
+          icon={<LinkOutlined />}
+          className={`
+            hover:!border-[#9B52BF] hover:bg-white hover:!text-[#9B52BF]
+            ${selectedKey === '/advertiser/traffics' ? '!bg-[#9B52BF] !text-white' : ''}
+          `}
+        >
           <NavLink to="/advertiser/traffics">Truy cập</NavLink>
         </Menu.Item>
-        <Menu.Item key="forum" icon={<WechatOutlined />}>
+        <Menu.Item
+          key="/all/forum"
+          icon={<WechatOutlined />}
+          className={`
+            hover:!border-[#9B52BF] hover:bg-white hover:!text-[#9B52BF]
+            ${selectedKey === '/all/forum' ? '!bg-[#9B52BF] !text-white' : ''}
+          `}
+        >
           <NavLink to="/all/forum">Diễn đàn</NavLink>
         </Menu.Item>
-        <Menu.Item key="news" icon={<BellOutlined />}>
+        <Menu.Item
+          key="/all/news"
+          icon={<BellOutlined />}
+          className={`
+            hover:!border-[#9B52BF] hover:bg-white hover:!text-[#9B52BF]
+            ${selectedKey === '/all/news' ? '!bg-[#9B52BF] !text-white' : ''}
+          `}
+        >
           <NavLink to="/all/news">Tin tức</NavLink>
+        </Menu.Item>
+        <Menu.Item
+          key="/all/courses"
+          icon={<SnippetsOutlined />}
+          className={`
+            hover:!border-[#9B52BF] hover:bg-white hover:!text-[#9B52BF]
+            ${selectedKey === '/all/courses' ? '!bg-[#9B52BF] !text-white' : ''}
+          `}
+        >
+          <NavLink to="/all/courses">Khóa học</NavLink>
         </Menu.Item>
       </Menu>
 

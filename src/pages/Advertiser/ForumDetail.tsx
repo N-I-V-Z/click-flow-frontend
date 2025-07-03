@@ -136,14 +136,27 @@ const ForumDetail: FC<ForumDetailProps> = ({ post, onBack, updatePost }) => {
   useEffect(() => {
     if (commentsResponse?.result) {
       let arr: import('@/types').CommentApiResponse[] = [];
-      if (Array.isArray(commentsResponse.result)) arr = commentsResponse.result;
-      else if (Array.isArray(commentsResponse.result.result))
-        arr = commentsResponse.result.result;
-      else arr = [];
+      // Ưu tiên lấy từ datas nếu có (API paging)
+      if (Array.isArray(commentsResponse.result.datas)) {
+        arr = commentsResponse.result.datas;
+      } else if (Array.isArray(commentsResponse.result)) {
+        arr = commentsResponse.result;
+      } else if (
+        typeof commentsResponse.result === 'object' &&
+        commentsResponse.result !== null &&
+        Array.isArray((commentsResponse.result as { result?: unknown }).result)
+      ) {
+        arr = (
+          commentsResponse.result as {
+            result: import('@/types').CommentApiResponse[];
+          }
+        ).result;
+      } else {
+        arr = [];
+      }
       const transformedComments = transformComments(arr);
       setComments(transformedComments);
-      console.log('commentsResponse.result:', arr);
-      console.log('transformedComments:', transformedComments);
+      // ...log nếu cần...
     }
   }, [commentsResponse, transformComments]);
 
@@ -363,7 +376,7 @@ const ForumDetail: FC<ForumDetailProps> = ({ post, onBack, updatePost }) => {
                 onChange={setEditingText}
                 gifUrl={editingGif}
                 onGifChange={setEditingGif}
-                onSubmit={({ text, gifUrl }) => {
+                onSubmit={({ gifUrl }) => {
                   setEditingGif(gifUrl);
                   saveEditedComment(reply.id);
                 }}
@@ -522,7 +535,7 @@ const ForumDetail: FC<ForumDetailProps> = ({ post, onBack, updatePost }) => {
                   onChange={setEditingText}
                   gifUrl={editingGif}
                   onGifChange={setEditingGif}
-                  onSubmit={({ text, gifUrl }) => {
+                  onSubmit={({ gifUrl }) => {
                     setEditingGif(gifUrl);
                     saveEditedComment(c.id);
                   }}

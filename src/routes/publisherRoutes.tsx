@@ -18,7 +18,6 @@ const PublisherProfile = lazy(
   () => import('@/pages/Publisher/PublisherProfile')
 );
 const Wallet = lazy(() => import('@/pages/Publisher/Wallet'));
-const Courses = lazy(() => import('@/pages/Publisher/Course'));
 
 const PublisherRoutes = [
   {
@@ -82,16 +81,8 @@ const PublisherRoutes = [
             <Wallet />
           </RoleRoute>
         )
-      },
-      {
-        path: 'courses',
-        element: (
-          <RoleRoute allowedRoles={['Publisher']}>
-            {' '}
-            <Courses />
-          </RoleRoute>
-        )
       }
+      // Đã chuyển route courses sang adverAndPubRoute, xóa khỏi publisherRoutes
       // Các route con khác nếu có...
     ]
   }

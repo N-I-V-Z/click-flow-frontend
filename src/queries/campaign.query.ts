@@ -10,8 +10,8 @@ import {
 } from '@/types';
 import { useMutation, useQuery } from '@tanstack/react-query';
 
-const SUB_URL = `api/Campaigns`;
-const SUB_URL_IMAGE = `api/Upload`;
+const SUB_URL = `/api/Campaigns`;
+const SUB_URL_IMAGE = `/api/Upload`;
 /**
  * Hook gọi API lấy danh sách Campaigns theo status
  */

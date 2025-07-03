@@ -2,7 +2,7 @@ import BaseRequest from '@/config/axios.config';
 import { ApiResponse, VideoCourseResponse } from '@/types';
 import { useQuery } from '@tanstack/react-query';
 
-const SUB_URL = `api/Videos`;
+const SUB_URL = `/api/Videos`;
 
 export const useGetVideoCourses = (courseId?: number) => {
   return useQuery({
