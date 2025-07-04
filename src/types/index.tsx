@@ -628,7 +628,15 @@ export interface ForumApiResponse {
   statusCode: string;
   isSuccess: boolean;
   message: string;
-  result: ForumPost[]; // Đây phải là array, không phải single object
+  result: {
+    data: ForumPost[]; // đổi từ datas sang data
+    pageIndex: number;
+    totalPages: number;
+    totalItems: number;
+    hasPreviousPage: boolean;
+    hasNextPage: boolean;
+    // ... các trường khác nếu có
+  };
 }
 
 export interface CreateForumPostPayload {
@@ -669,6 +677,7 @@ export interface CommentListResponse {
   isSuccess: boolean;
   message: string;
   result: CommentApiResponse[];
+  datas?: CommentApiResponse[]; // Thêm dòng này để hỗ trợ API paging
 }
 
 // Payload để tạo comment mới
@@ -694,7 +703,7 @@ export interface ExtendedComment extends CommentApiResponse {
 export interface UIComment {
   id: string;
   content: string;
-  createdAt: number;
+  createdAt: string; // changed from number to string for time formatting
   author: string;
   authorRole: string;
   avatarUrl: string;

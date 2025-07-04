@@ -2,7 +2,7 @@ import BaseRequest from '@/config/axios.config';
 import { CreateTransactionAPI, PagingResponse, Transaction } from '@/types';
 import { useQuery, useMutation } from '@tanstack/react-query';
 
-const SUB_URL = `api/Transactions`;
+const SUB_URL = `/api/Transactions`;
 
 /**
  * Hook gọi API lấy danh sách Courses

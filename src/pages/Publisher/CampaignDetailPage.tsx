@@ -287,6 +287,15 @@ const CampaignDetailPage: React.FC = () => {
   return (
     <BasePages pageHead="ClickFlow - Chi tiết chiến dịch">
       <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 p-6">
+        {/* Nút Back về danh sách chiến dịch */}
+        <Button
+          type="default"
+          icon={<LeftOutlined />}
+          onClick={() => navigate('/publisher/campaign?page=1&limit=12')}
+          className="mb-4 flex items-center gap-2 rounded-full border-none bg-white px-4 py-2 text-[#8229B0] shadow hover:bg-purple-50"
+        >
+          Quay lại
+        </Button>
         <motion.div>
           {/* PHẦN TRÊN: Thông tin campaign & Chiến dịch tương tự */}
           <div className="flex flex-col gap-6 rounded-2xl bg-white p-6 shadow-lg md:flex-row">

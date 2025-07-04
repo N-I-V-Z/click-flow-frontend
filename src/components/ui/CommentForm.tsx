@@ -1,26 +1,24 @@
 // File: src/components/ui/CommentForm.tsx
 
-import React, { useRef, useEffect } from 'react';
+import React, { useRef, useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
-import {
-  FaImage,
-  FaRegSmile,
-  FaMapMarkerAlt,
-  FaTimes,
-  FaPaperPlane
-} from 'react-icons/fa';
+import { FaRegSmile, FaTimes, FaPaperPlane } from 'react-icons/fa';
+import GifPickerComponent from './GifPickerComponent';
+import EmojiPickerComponent from './EmojiPickerComponent';
 
 interface CommentFormProps {
   value: string;
   onChange: (value: string) => void;
-  onSubmit: () => void;
+  onSubmit: (data: { text: string; gifUrl: string | null }) => void;
   onCancel?: () => void;
   placeholder?: string;
   replyTo?: string;
   size?: 'sm' | 'md' | 'lg';
   autoFocus?: boolean;
   showActions?: boolean;
-  avatarUrl?: string; // thêm prop avatarUrl
+  avatarUrl?: string;
+  gifUrl?: string | null; // thêm prop gifUrl cho edit mode
+  onGifChange?: (url: string | null) => void; // callback khi chọn/xóa GIF
 }
 
 const CommentForm: React.FC<CommentFormProps> = ({
@@ -33,14 +31,20 @@ const CommentForm: React.FC<CommentFormProps> = ({
   size = 'md',
   autoFocus = false,
   showActions = true,
-  avatarUrl // nhận prop avatarUrl
+  avatarUrl,
+  gifUrl, // nhận prop gifUrl
+  onGifChange // nhận prop onGifChange
 }) => {
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const [showEmojiPicker, setShowEmojiPicker] = useState(false);
+  const [showGifPicker, setShowGifPicker] = useState(false);
+  // Nếu có gifUrl prop (edit mode), ưu tiên dùng, nếu không thì dùng state nội bộ (tạo mới)
+  const [gifPreview, setGifPreview] = useState<string | null>(null);
+  const effectiveGif = gifUrl !== undefined ? gifUrl : gifPreview;
 
   useEffect(() => {
     if (autoFocus && textareaRef.current) {
       textareaRef.current.focus();
-      // Scroll to textarea
       textareaRef.current.scrollIntoView({
         behavior: 'smooth',
         block: 'center'
@@ -49,8 +53,12 @@ const CommentForm: React.FC<CommentFormProps> = ({
   }, [autoFocus]);
 
   const handleSubmit = () => {
-    if (value.trim()) {
-      onSubmit();
+    if (value.trim() || effectiveGif) {
+      onSubmit({ text: value.trim(), gifUrl: effectiveGif });
+      setShowEmojiPicker(false);
+      setShowGifPicker(false);
+      if (!gifUrl && !onGifChange) setGifPreview(null); // chỉ reset nếu là form tạo mới
+      onChange('');
     }
   };
 
@@ -59,6 +67,33 @@ const CommentForm: React.FC<CommentFormProps> = ({
       e.preventDefault();
       handleSubmit();
     }
+  };
+
+  // Chèn text (emoji) vào vị trí con trỏ
+  const insertAtCursor = (text: string) => {
+    const textarea = textareaRef.current;
+    if (!textarea) return;
+    const start = textarea.selectionStart;
+    const end = textarea.selectionEnd;
+    const newValue = value.slice(0, start) + text + value.slice(end);
+    onChange(newValue);
+    setTimeout(() => {
+      textarea.setSelectionRange(start + text.length, start + text.length);
+      textarea.focus();
+    }, 0);
+  };
+
+  // Chèn GIF dạng [GIF]url[/GIF] (chỉ preview, không chèn vào value)
+  const handleGifSelect = (gif: string) => {
+    if (onGifChange) onGifChange(gif);
+    else setGifPreview(gif);
+    setShowGifPicker(false);
+  };
+
+  // Chèn emoji
+  const handleEmojiSelect = (emoji: string) => {
+    insertAtCursor(emoji);
+    // setShowEmojiPicker(false); // Để mở picker sau mỗi lần chọn emoji
   };
 
   const avatarSizes = {
@@ -137,34 +172,77 @@ const CommentForm: React.FC<CommentFormProps> = ({
             whileFocus={{ scale: 1.01 }}
           />
 
+          {/* GIF Preview */}
+          {effectiveGif && (
+            <div className="relative my-2 inline-block">
+              <img
+                src={effectiveGif}
+                alt="GIF preview"
+                style={{ maxHeight: 80, borderRadius: 8 }}
+              />
+              <button
+                type="button"
+                onClick={() =>
+                  onGifChange ? onGifChange(null) : setGifPreview(null)
+                }
+                className="absolute right-1 top-1 flex h-6 w-6 items-center justify-center rounded-full bg-gray-700 bg-opacity-70 text-white transition-colors hover:bg-red-500"
+                style={{ padding: 0, fontSize: 16, lineHeight: 1 }}
+                aria-label="Xóa GIF"
+              >
+                ×
+              </button>
+            </div>
+          )}
+
           {/* Actions */}
           {showActions && (
             <div className="mt-3 flex items-center justify-between">
-              {/* Action icons */}
-              <div className="flex space-x-4">
-                {[
-                  {
-                    icon: FaImage,
-                    color: 'text-green-500 hover:text-green-600'
-                  },
-                  {
-                    icon: FaRegSmile,
-                    color: 'text-yellow-500 hover:text-yellow-600'
-                  },
-                  {
-                    icon: FaMapMarkerAlt,
-                    color: 'text-red-500 hover:text-red-600'
-                  }
-                ].map(({ icon: Icon, color }, index) => (
-                  <motion.button
-                    key={index}
-                    whileHover={{ scale: 1.2, y: -2 }}
-                    whileTap={{ scale: 0.9 }}
-                    className={`transform cursor-pointer transition-all duration-200 ${color}`}
+              {/* Action icons mới */}
+              <div className="relative flex space-x-4 overflow-visible">
+                <motion.button
+                  type="button"
+                  whileHover={{ scale: 1.2, y: -2 }}
+                  whileTap={{ scale: 0.9 }}
+                  className="transform cursor-pointer font-bold text-purple-500 transition-all duration-200 hover:text-purple-700"
+                  onClick={() => {
+                    setShowGifPicker((v) => !v);
+                    setShowEmojiPicker(false);
+                  }}
+                >
+                  <span
+                    className="inline-block rounded border border-purple-200 bg-purple-100 px-2 py-0.5 text-xs font-bold text-purple-700 shadow-sm"
+                    style={{ letterSpacing: 1 }}
                   >
-                    <Icon className="text-lg" />
-                  </motion.button>
-                ))}
+                    GIF
+                  </span>
+                </motion.button>
+                <motion.button
+                  type="button"
+                  whileHover={{ scale: 1.2, y: -2 }}
+                  whileTap={{ scale: 0.9 }}
+                  className="transform cursor-pointer text-yellow-500 transition-all duration-200 hover:text-yellow-600"
+                  onClick={() => {
+                    setShowEmojiPicker((v) => !v);
+                    setShowGifPicker(false);
+                  }}
+                >
+                  <FaRegSmile className="text-lg" />
+                </motion.button>
+                {/* Emoji Picker Popup */}
+                {showEmojiPicker && (
+                  <div className="absolute left-0 top-10 z-50">
+                    <EmojiPickerComponent onEmojiSelect={handleEmojiSelect} />
+                  </div>
+                )}
+                {/* GIF Picker Popup */}
+                {showGifPicker && (
+                  <div
+                    className="absolute left-0 top-full z-50 overflow-visible"
+                    style={{ marginTop: 4 }} /* đẩy xuống ngay dưới icon */
+                  >
+                    <GifPickerComponent onGifSelect={handleGifSelect} />
+                  </div>
+                )}
               </div>
 
               {/* Submit/Cancel buttons */}
@@ -182,17 +260,22 @@ const CommentForm: React.FC<CommentFormProps> = ({
 
                 <motion.button
                   onClick={handleSubmit}
-                  disabled={!value.trim()}
-                  whileHover={{ scale: value.trim() ? 1.05 : 1 }}
-                  whileTap={{ scale: value.trim() ? 0.95 : 1 }}
+                  disabled={!(value.trim() || gifPreview)}
+                  whileHover={{ scale: value.trim() || gifPreview ? 1.05 : 1 }}
+                  whileTap={{ scale: value.trim() || gifPreview ? 0.95 : 1 }}
                   style={{
-                    background: value.trim()
-                      ? 'linear-gradient(90deg,#7e57c2,#ab47bc)'
-                      : '#e0e0e0',
-                    color: value.trim() ? '#fff' : '#bdbdbd',
+                    background:
+                      value.trim() || gifPreview
+                        ? 'linear-gradient(90deg,#7e57c2,#ab47bc)'
+                        : '#e0e0e0',
+                    color: value.trim() || gifPreview ? '#fff' : '#bdbdbd',
                     border: 'none',
-                    boxShadow: value.trim() ? '0 2px 8px #b39ddb80' : 'none',
-                    cursor: value.trim() ? 'pointer' : 'not-allowed',
+                    boxShadow:
+                      value.trim() || gifPreview
+                        ? '0 2px 8px #b39ddb80'
+                        : 'none',
+                    cursor:
+                      value.trim() || gifPreview ? 'pointer' : 'not-allowed',
                     transition: 'all 0.2s'
                   }}
                   className={`flex items-center space-x-2 rounded-lg transition-all duration-200 ${buttonSizes[size]}`}
@@ -212,9 +295,7 @@ const CommentForm: React.FC<CommentFormProps> = ({
             animate={{ opacity: 1 }}
             transition={{ delay: 0.3 }}
             className="mt-2 text-xs text-gray-400"
-          >
-            Nhấn Ctrl + Enter để gửi nhanh
-          </motion.p>
+          ></motion.p>
         </div>
       </div>
     </motion.div>

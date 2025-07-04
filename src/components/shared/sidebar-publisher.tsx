@@ -5,8 +5,10 @@ import {
   UserOutlined,
   LogoutOutlined,
   ReadOutlined,
-  SolutionOutlined,
-  WechatOutlined
+  // SolutionOutlined,
+  SnippetsOutlined,
+  WechatOutlined,
+  BellOutlined
 } from '@ant-design/icons';
 import { NavLink, useLocation } from 'react-router-dom';
 import { ToastContainer } from 'react-toastify';
@@ -107,7 +109,7 @@ const SidebarPublisher: React.FC = () => {
         >
           <NavLink to="/publisher/campaign">Chiến dịch</NavLink>
         </Menu.Item>
-        <Menu.Item
+        {/* <Menu.Item
           key="/publisher/mission"
           icon={<SolutionOutlined />}
           className={`
@@ -116,7 +118,7 @@ const SidebarPublisher: React.FC = () => {
           `}
         >
           <NavLink to="/publisher/mission">Nhiệm vụ</NavLink>
-        </Menu.Item>
+        </Menu.Item> */}
         <Menu.Item
           key="/all/forum"
           icon={<WechatOutlined />}
@@ -129,14 +131,24 @@ const SidebarPublisher: React.FC = () => {
         </Menu.Item>
 
         <Menu.Item
-          key="/publisher/courses"
-          icon={<WechatOutlined />}
+          key="/all/courses"
+          icon={<SnippetsOutlined />}
           className={`
     hover:!border-[#9B52BF] hover:bg-white hover:!text-[#9B52BF]
-    ${selectedKey === '/publisher/courses' ? '!bg-[#9B52BF] !text-white' : ''}
+    ${selectedKey === '/all/courses' ? '!bg-[#9B52BF] !text-white' : ''}
   `}
         >
-          <NavLink to="/publisher/courses">Khóa học</NavLink>
+          <NavLink to="/all/courses">Khóa học</NavLink>
+        </Menu.Item>
+        <Menu.Item
+          key="/all/news"
+          icon={<BellOutlined />}
+          className={`
+    hover:!border-[#9B52BF] hover:bg-white hover:!text-[#9B52BF]
+    ${selectedKey === '/all/news' ? '!bg-[#9B52BF] !text-white' : ''}
+  `}
+        >
+          <NavLink to="/all/news">Tin tức</NavLink>
         </Menu.Item>
       </Menu>
 

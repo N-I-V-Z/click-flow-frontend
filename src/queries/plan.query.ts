@@ -8,7 +8,7 @@ import {
 } from '@/types';
 import { useMutation, useQuery } from '@tanstack/react-query';
 
-const SUB_URL = `api/Plans`;
+const SUB_URL = `/api/Plans`;
 const SUB_URL_UPGRADE_PLAN = 'api/UserPlans';
 
 /**

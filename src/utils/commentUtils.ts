@@ -30,6 +30,23 @@ export const getTotalCommentCount = (comments: Comment[]): number => {
   return total;
 };
 
+// Đếm tổng số comment bao gồm cả replies (UIComment version)
+export const getTotalCommentCountUI = (
+  comments: import('@/types').UIComment[]
+): number => {
+  let total = 0;
+  const countRecursively = (commentList: import('@/types').UIComment[]) => {
+    for (const comment of commentList) {
+      total += 1;
+      if (comment.replies && comment.replies.length > 0) {
+        countRecursively(comment.replies);
+      }
+    }
+  };
+  countRecursively(comments);
+  return total;
+};
+
 /**
  * Format số comment để hiển thị (1K, 1.2K, etc.)
  */
