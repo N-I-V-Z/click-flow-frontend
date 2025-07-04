@@ -72,9 +72,7 @@ export const useGetCurrentPlan = () => {
   return useQuery({
     queryKey: ['get-current-plan'],
     queryFn: async () => {
-      return await BaseRequest.Get<PagingResponse<Plans>>(
-        `${SUB_URL_UPGRADE_PLAN}/current`
-      );
+      return await BaseRequest.Get<UserPlan>(`${SUB_URL_UPGRADE_PLAN}/current`);
     },
     staleTime: 1000 * 60 * 5,
     retry: 3
