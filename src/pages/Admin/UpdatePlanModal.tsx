@@ -47,7 +47,6 @@ const EditPlanModal: React.FC<EditPlanModalProps> = ({
     if (!plan) return;
 
     try {
-      console.log(values);
       await updatePlan(values);
       message.success('Cập nhật gói dịch vụ thành công!');
       form.resetFields();

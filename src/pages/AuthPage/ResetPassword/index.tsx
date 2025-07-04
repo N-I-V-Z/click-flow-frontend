@@ -133,9 +133,9 @@ export default function ResetPasswordPage() {
             </h1>
             <p className="text-center text-sm text-gray-500">
               Để truy cập{' '}
-              <a href="/" className="text-[#9B52BF] no-underline">
+              <Link to="/" className="text-[#9B52BF] no-underline">
                 ClickFlow.vn
-              </a>
+              </Link>
               .
               <Link to="/">
                 <img
