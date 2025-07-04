@@ -160,9 +160,7 @@ const ForumDetail: FC<ForumDetailProps> = ({ post, onBack, updatePost }) => {
     }
   }, [commentsResponse, transformComments]);
 
-  useEffect(() => {
-    console.log('comments state:', comments);
-  }, [comments]);
+  useEffect(() => {}, [comments]);
 
   // Helper để lấy avatar URL từ API data
   const getAvatarUrl = (authorData?: ForumAuthor) => {

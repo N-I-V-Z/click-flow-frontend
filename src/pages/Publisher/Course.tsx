@@ -196,9 +196,9 @@ const CourseDetail = ({
               </p>
             </div>
 
-            <div className="from-blue-50 border-blue-100 rounded-2xl border bg-gradient-to-br to-white p-8">
+            <div className="rounded-2xl border border-blue-100 bg-gradient-to-br from-blue-50 to-white p-8">
               <h3 className="mb-4 flex items-center text-2xl font-bold text-gray-900">
-                <div className="from-blue-500 mr-4 h-8 w-1 rounded-full bg-gradient-to-b to-cyan-500" />
+                <div className="mr-4 h-8 w-1 rounded-full bg-gradient-to-b from-blue-500 to-cyan-500" />
                 Nội dung giáo trình
               </h3>
               <p className="text-lg leading-relaxed text-gray-700">
@@ -303,17 +303,6 @@ const UdemyBody = () => {
   const totalItems = currentApiResponse?.result?.totalItems || 0;
   const postsPerPage = 10;
 
-  // Debug logging
-  console.log('Debug Info:', {
-    activeTab,
-    availableCoursesResponse,
-    joinedCoursesResponse,
-    currentApiResponse,
-    courses: courses.length,
-    isLoading,
-    isError
-  });
-
   const filteredCourses = courses.filter((course: CourseResponse) =>
     course.title.toLowerCase().includes(searchQuery.toLowerCase())
   );
@@ -342,7 +331,6 @@ const UdemyBody = () => {
 
   // Updated handleStartLearning function
   const handleStartLearning = (courseId: number) => {
-    console.log('Starting learning for course:', courseId);
     setSelectedCourseForVideo(courseId);
     setSelectedCourse(null); // Close course detail modal if open
   };
@@ -579,7 +567,7 @@ const UdemyBody = () => {
                   <div className="mx-auto max-w-4xl text-center">
                     <div className="mb-6 flex justify-center">
                       <div className="flex items-center space-x-2 rounded-full border border-white/20 bg-white/10 px-6 py-2 backdrop-blur-sm">
-                        <Sparkles className="text-yellow-400 h-5 w-5" />
+                        <Sparkles className="h-5 w-5 text-yellow-400" />
                         <span className="font-semibold text-white">
                           Học tập không giới hạn
                         </span>
@@ -587,7 +575,7 @@ const UdemyBody = () => {
                     </div>
                     <h1 className="mb-6 text-5xl font-bold leading-tight text-white sm:text-6xl">
                       Nâng cao
-                      <span className="from-yellow-400 to-orange-400 bg-gradient-to-r bg-clip-text text-transparent">
+                      <span className="bg-gradient-to-r from-yellow-400 to-orange-400 bg-clip-text text-transparent">
                         {' '}
                         kỹ năng{' '}
                       </span>
@@ -598,7 +586,7 @@ const UdemyBody = () => {
                       Học mọi lúc, mọi nơi với nội dung được cập nhật liên tục.
                     </p>
                     <div className="flex flex-col justify-center gap-4 sm:flex-row">
-                      <button className="from-yellow-400 to-orange-400 hover:from-yellow-500 hover:to-orange-500 transform rounded-2xl bg-gradient-to-r px-8 py-4 font-bold text-white shadow-lg transition-all duration-200 hover:scale-105 hover:shadow-xl">
+                      <button className="transform rounded-2xl bg-gradient-to-r from-yellow-400 to-orange-400 px-8 py-4 font-bold text-white shadow-lg transition-all duration-200 hover:scale-105 hover:from-yellow-500 hover:to-orange-500 hover:shadow-xl">
                         Bắt đầu học ngay
                       </button>
                       <button className="rounded-2xl border border-white/20 bg-white/10 px-8 py-4 font-semibold text-white backdrop-blur-sm transition-all duration-200 hover:bg-white/20">

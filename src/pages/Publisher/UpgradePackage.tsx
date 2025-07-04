@@ -8,13 +8,7 @@ import { Plans } from '@/types';
 import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 
-interface UpgradePackageProps {
-  setCurrentPlan: (plan: string) => void;
-}
-
-export default function UpgradePackage({
-  setCurrentPlan
-}: UpgradePackageProps) {
+export default function UpgradePackage() {
   const [showUpgradeModal, setShowUpgradeModal] = useState<boolean>(false);
   const [showConfirmModal, setShowConfirmModal] = useState<boolean>(false);
   const [selectedPlan, setSelectedPlan] = useState<Plans | null>(null);
@@ -54,7 +48,6 @@ export default function UpgradePackage({
       await refetchCurrentPlan();
 
       toast.success(`Đã nâng cấp thành công lên gói: ${selectedPlan.name}`);
-      setCurrentPlan(selectedPlan.name.toLowerCase());
       setShowUpgradeModal(false);
       setShowConfirmModal(false);
       setSelectedPlan(null);

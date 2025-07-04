@@ -126,9 +126,9 @@ export default function RenewPasswordPage() {
             </h1>
             <p className="text-center text-sm text-gray-500">
               Để truy cập{' '}
-              <a href="/" className="text-[#9B52BF] no-underline">
+              <Link to="/" className="text-[#9B52BF] no-underline">
                 ClickFlow.vn
-              </a>
+              </Link>
               .
               <Link to="/">
                 <img
@@ -170,7 +170,7 @@ export default function RenewPasswordPage() {
                   </button>
                 </div>
                 {error.newPassword && (
-                  <p className="text-[12px] text-red">{error.newPassword}</p>
+                  <p className="text-red text-[12px]">{error.newPassword}</p>
                 )}
               </div>
 
@@ -203,7 +203,7 @@ export default function RenewPasswordPage() {
                   </button>
                 </div>
                 {error.confirmedNewPassword && (
-                  <p className="text-[12px] text-red">
+                  <p className="text-red text-[12px]">
                     {error.confirmedNewPassword}
                   </p>
                 )}
@@ -211,7 +211,7 @@ export default function RenewPasswordPage() {
 
               <div className="flex flex-col items-center gap-4">
                 <Button
-                  className="w-full bg-yellow text-black"
+                  className="bg-yellow w-full text-black"
                   onClick={handleReset}
                   disabled={isPending || !formReset.token || !formReset.email}
                 >
@@ -229,19 +229,19 @@ export default function RenewPasswordPage() {
 
                 <p className="text-center text-[12px] text-muted-foreground">
                   Đăng ký tài khoản <br />
-                  <a
-                    href="/register?type=advertiser"
+                  <Link
+                    to="/register?type=advertiser"
                     className="text-[#9B52BF] no-underline"
                   >
                     Advertiser
-                  </a>{' '}
+                  </Link>{' '}
                   hoặc{' '}
-                  <a
-                    href="/register?type=publisher"
+                  <Link
+                    to="/register?type=publisher"
                     className="text-[#9B52BF] no-underline"
                   >
                     Publisher
-                  </a>
+                  </Link>
                 </p>
               </div>
             </div>

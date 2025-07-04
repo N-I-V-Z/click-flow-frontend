@@ -1,6 +1,5 @@
 import { motion } from 'framer-motion';
-import { Button } from '@/components/ui/button';
-import { ArrowRight, Zap, Shield, CreditCard, TrendingUp } from 'lucide-react';
+import { Zap, Shield, CreditCard, TrendingUp } from 'lucide-react';
 import RobotCanvas from '@/components/ui/RobotCanvas';
 
 export default function Background() {
@@ -75,7 +74,7 @@ export default function Background() {
           transition={{ duration: 0.6 }}
         >
           <div className="inline-flex items-center rounded-full border border-white/20 bg-white/10 px-4 py-2 text-sm text-purple-200 backdrop-blur-md">
-            <Zap className="mr-2 h-4 w-4 text-yellow" />
+            <Zap className="text-yellow mr-2 h-4 w-4" />
             Platform Affiliate Thế Hệ Mới
           </div>
         </motion.div>
@@ -163,32 +162,12 @@ export default function Background() {
                   Smart Payment
                 </h3>
                 <p className="text-sm leading-relaxed text-slate-300">
-                  Thanh toán tự động qua VNPay, quản lý commission minh bạch với
+                  Thanh toán tự động qua PayOS, quản lý commission minh bạch với
                   lịch sử giao dịch chi tiết.
                 </p>
               </div>
             </div>
           </div>
-        </motion.div>
-
-        {/* CTA Buttons */}
-        <motion.div
-          className="mb-20 mt-12 flex flex-col items-center justify-center gap-4 sm:flex-row"
-          initial={{ opacity: 0, scale: 0.9 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ duration: 0.6, delay: 0.5 }}
-        >
-          <Button className="group relative rounded-full border-0 bg-gradient-to-r from-purple-500 to-pink-500 px-8 py-4 font-semibold text-white shadow-2xl shadow-purple-500/25 transition-all duration-300 hover:scale-105 hover:from-purple-600 hover:to-pink-600 hover:shadow-purple-500/40">
-            Bắt đầu miễn phí
-            <ArrowRight className="ml-2 h-5 w-5 transition-transform group-hover:translate-x-1" />
-          </Button>
-
-          <Button
-            variant="outline"
-            className="rounded-full border-white/20 bg-white/5 px-8 py-4 font-semibold text-white backdrop-blur-md transition-all duration-300 hover:scale-105 hover:bg-white/10"
-          >
-            Xem Demo
-          </Button>
         </motion.div>
       </div>
     </section>

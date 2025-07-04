@@ -3,12 +3,12 @@ import {
   HomeOutlined,
   InfoCircleOutlined,
   SettingOutlined,
-  EnvironmentOutlined,
   PhoneOutlined,
   MailOutlined,
   TikTokOutlined
 } from '@ant-design/icons';
 import FlowerAnimation from './flower-animation';
+import { Link } from 'react-router-dom';
 
 export default function Footer() {
   return (
@@ -25,27 +25,27 @@ export default function Footer() {
                 Click Flow
               </h2>
               <p className="mt-2 text-sm leading-relaxed text-gray-300">
-                Nền tảng số 1 tại Việt Nam, mang đến trải nghiệm tuyệt vời nhất
-                cho người dùng.
+                Nền tảng Affiliate Marketing tại Việt Nam, mang đến trải nghiệm
+                tuyệt vời nhất cho người dùng.
               </p>
             </div>
 
             {/* Social Media */}
             <div className="flex space-x-4">
-              <a
-                href="https://www.facebook.com/profile.php?id=61576613399333"
+              <Link
+                to="https://www.facebook.com/profile.php?id=61576613399333"
                 target="_blank"
                 rel="noopener noreferrer"
               >
                 <FacebookOutlined className="text-xl text-white transition-colors hover:text-purple-400" />
-              </a>
-              <a
-                href="https://www.tiktok.com/@clickflow.affiliate?is_from_webapp=1&sender_device=pc"
+              </Link>
+              <Link
+                to="https://www.tiktok.com/@clickflow.affiliate?is_from_webapp=1&sender_device=pc"
                 target="_blank"
                 rel="noopener noreferrer"
               >
                 <TikTokOutlined className="text-xl text-white transition-colors hover:text-purple-400" />
-              </a>
+              </Link>
             </div>
           </div>
 
@@ -55,17 +55,17 @@ export default function Footer() {
               Liên hệ
             </h3>
             <ul className="space-y-4">
-              <li className="flex items-start space-x-3 transition-transform hover:translate-x-2">
+              {/* <li className="flex items-start space-x-3 transition-transform hover:translate-x-2">
                 <EnvironmentOutlined className="text-lg text-purple-400" />
                 <span className="text-gray-300">
                   123 Đường Võ Văn Ngân, Phường Linh Chiểu
                   <br />
                   Thủ Đức, TP. Hồ Chí Minh
                 </span>
-              </li>
+              </li> */}
               <li className="flex items-center space-x-3 transition-transform hover:translate-x-2">
                 <PhoneOutlined className="text-lg text-purple-400" />
-                <span className="text-gray-300">0123 456 789</span>
+                <span className="text-gray-300">+84 852 279 3879</span>
               </li>
               <li className="flex items-center space-x-3 transition-transform hover:translate-x-2">
                 <MailOutlined className="text-lg text-purple-400" />
@@ -82,25 +82,25 @@ export default function Footer() {
               Liên kết nhanh
             </h3>
             <nav className="space-y-3">
-              <a
-                href="/"
+              <Link
+                to="/"
                 className="flex items-center text-gray-300 transition-all hover:translate-x-2 hover:text-purple-400"
               >
                 <HomeOutlined className="mr-2" /> Trang chủ
-              </a>
+              </Link>
 
-              <a
-                href="/learn-more"
+              <Link
+                to="/learn-more"
                 className="flex items-center text-gray-300 transition-all hover:translate-x-2 hover:text-purple-400"
               >
                 <InfoCircleOutlined className="mr-2" /> Về chúng tôi
-              </a>
-              <a
-                href="/privacy"
+              </Link>
+              <Link
+                to="/privacy"
                 className="flex items-center text-gray-300 transition-all hover:translate-x-2 hover:text-purple-400"
               >
                 <SettingOutlined className="mr-2" /> Chính sách bảo mật
-              </a>
+              </Link>
             </nav>
           </div>
 
