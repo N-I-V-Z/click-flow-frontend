@@ -131,14 +131,14 @@ const SidebarPublisher: React.FC = () => {
         </Menu.Item>
 
         <Menu.Item
-          key="/all/courses"
+          key="/publisher/courses"
           icon={<SnippetsOutlined />}
           className={`
     hover:!border-[#9B52BF] hover:bg-white hover:!text-[#9B52BF]
-    ${selectedKey === '/all/courses' ? '!bg-[#9B52BF] !text-white' : ''}
+    ${selectedKey === '/publisher/courses' ? '!bg-[#9B52BF] !text-white' : ''}
   `}
         >
-          <NavLink to="/all/courses">Khóa học</NavLink>
+          <NavLink to="/publisher/courses">Khóa học</NavLink>
         </Menu.Item>
         <Menu.Item
           key="/all/news"

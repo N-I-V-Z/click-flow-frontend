@@ -7,8 +7,7 @@ import {
   LinkOutlined,
   UnorderedListOutlined,
   WechatOutlined,
-  BellOutlined,
-  SnippetsOutlined
+  BellOutlined
 } from '@ant-design/icons';
 import { NavLink, useLocation } from 'react-router-dom';
 import { ToastContainer } from 'react-toastify';
@@ -137,16 +136,6 @@ const SidebarAdvertiser: React.FC = () => {
           `}
         >
           <NavLink to="/all/news">Tin tức</NavLink>
-        </Menu.Item>
-        <Menu.Item
-          key="/all/courses"
-          icon={<SnippetsOutlined />}
-          className={`
-            hover:!border-[#9B52BF] hover:bg-white hover:!text-[#9B52BF]
-            ${selectedKey === '/all/courses' ? '!bg-[#9B52BF] !text-white' : ''}
-          `}
-        >
-          <NavLink to="/all/courses">Khóa học</NavLink>
         </Menu.Item>
       </Menu>
 

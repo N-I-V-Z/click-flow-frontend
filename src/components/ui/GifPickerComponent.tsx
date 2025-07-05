@@ -100,7 +100,12 @@ const SENSITIVE_KEYWORDS = [
   'virgin',
   'vulva',
   'wank',
-  'xxx'
+  'xxx',
+  'yuri',
+  'yaoi',
+  'hent',
+  'henta',
+  'doggy'
 ];
 
 const GifPickerComponent = ({ onGifSelect }) => {

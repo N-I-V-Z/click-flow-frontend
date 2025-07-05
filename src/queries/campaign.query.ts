@@ -107,7 +107,7 @@ export const useCreateCampaign = () => {
     mutationKey: ['create-campaign'],
     mutationFn: async (model: CreateCampaignPayload) => {
       return await BaseRequest.Post<CampaignApiResponse>(
-        `/${SUB_URL}/create-campaign`,
+        `${SUB_URL}/create-campaign`,
         model
       );
     }
@@ -121,7 +121,7 @@ export const useUploadImage = () => {
       const formData = new FormData();
       formData.append('File', file);
       return await BaseRequest.Post<UploadImageResponse>(
-        `/${SUB_URL_IMAGE}/upload-image`,
+        `${SUB_URL_IMAGE}/upload-image`,
         formData,
         {
           headers: {
@@ -200,7 +200,7 @@ export const useGetSimilarCampaigns = (
       const response = await BaseRequest.Get<
         PagingResponse<CampaignApiResponse>
       >(
-        `/api/Campaigns/get-similar-campaigns/${campaignId}/${pageIndex}/${pageSize}`
+        `${SUB_URL}/get-similar-campaigns/${campaignId}/${pageIndex}/${pageSize}`
       );
       return response;
     },
@@ -225,6 +225,7 @@ export interface IApiCampaign {
   image?: string;
   averageStarRate?: number;
   advertiserId: number;
+  publisherStatus?: string;
   advertiser?: {
     id: number;
     companyName: string;
@@ -245,7 +246,7 @@ export function useGetCampaignByIdd(id?: number) {
     enabled: !!id,
     queryFn: async (): Promise<IApiCampaign> => {
       const response = await BaseRequest.Get(
-        `/api/Campaigns/get-campaign-by-id-for-publisher/${id}`
+        `${SUB_URL}/get-campaign-by-id-for-publisher/${id}`
       );
       return response.result as IApiCampaign;
     },
@@ -257,7 +258,7 @@ export const useRegisterCampaign = () => {
   return useMutation({
     mutationFn: async (payload: { campaignId: number }) => {
       return await BaseRequest.Post<BaseResponse>(
-        '/api/Campaigns/register',
+        `${SUB_URL}/register`,
         payload
       );
     }
@@ -273,7 +274,7 @@ export const useGetCampaignCountByAdvertiser = (
     queryKey: ['campaign-count-by-advertiser', advertiserId, status],
     queryFn: async () => {
       const response = await BaseRequest.Get(
-        `/api/Campaigns/campaigns/count-by-advertiser/${advertiserId}?status=${status}`
+        `${SUB_URL}/campaigns/count-by-advertiser/${advertiserId}?status=${status}`
       );
       return response.result as number;
     },
@@ -290,7 +291,7 @@ export const useGetCampaignParticipationCountByStatusForAdvertiser = (
     queryKey: ['campaign-participations-count', status],
     queryFn: async () => {
       const response = await BaseRequest.Get(
-        `/api/Campaigns/campaign-participations/count-by-status-for-advertiser?campaignParticipationStatus=${status}`
+        `${SUB_URL}/campaign-participations/count-by-status-for-advertiser?campaignParticipationStatus=${status}`
       );
       return response.result as number;
     },
@@ -316,7 +317,7 @@ export const useGetPublisherParticipationByStatusForAdvertiser = (
       return await BaseRequest.Get<
         PagingResponse<CampaignParticipationApiResponse>
       >(
-        `/${SUB_URL}/get-publisher-paticipation-by-status-for-advertiser/${pageIndex}/${pageSize}?campaignParticipationStatus=${campaignParticipationStatus}`
+        `${SUB_URL}/get-publisher-paticipation-by-status-for-advertiser/${pageIndex}/${pageSize}?campaignParticipationStatus=${campaignParticipationStatus}`
       );
     },
     staleTime: 1000 * 60 * 5,
@@ -333,7 +334,7 @@ export const useUpdateParticipationStatus = () => {
     }) => {
       const { publisherId, campaignParticipationId, newStatus } = payload;
       return await BaseRequest.Put(
-        `/api/campaigns/update-status/${publisherId}/${campaignParticipationId}/${newStatus}`,
+        `${SUB_URL}/update-status/${publisherId}/${campaignParticipationId}/${newStatus}`,
         {}
       );
     }

@@ -3,6 +3,7 @@ import {
   BaseResponse,
   CourseResponse,
   CreateCourseFormData,
+  UpdateCourseFormData,
   PagingResponse
 } from '@/types';
 import { useQuery, useMutation } from '@tanstack/react-query';
@@ -66,7 +67,22 @@ export const useCreateCourse = () => {
     mutationKey: ['create-course'],
     mutationFn: async (payload: CreateCourseFormData) => {
       return await BaseRequest.Post<CreateCourseFormData>(
-        `/${SUB_URL}`,
+        `${SUB_URL}`,
+        payload
+      );
+    }
+  });
+};
+
+export const useUpdateCourse = () => {
+  return useMutation({
+    mutationKey: ['update-course'],
+    mutationFn: async ({
+      courseId,
+      ...payload
+    }: { courseId: number } & UpdateCourseFormData) => {
+      return await BaseRequest.Put<UpdateCourseFormData>(
+        `${SUB_URL}/${courseId}`,
         payload
       );
     }
@@ -78,7 +94,7 @@ export const useJoinCourse = () => {
     mutationKey: ['join-course'],
     mutationFn: async (campaignId: number) => {
       return await BaseRequest.Post<BaseResponse>(
-        `/${SUB_URL}/${campaignId}/join`
+        `${SUB_URL}/${campaignId}/join`
       );
     }
   });
@@ -92,5 +108,49 @@ export const useGetVideoCheck = (courseId?: number) => {
     },
     staleTime: 1000 * 60 * 5,
     retry: 3
+  });
+};
+
+export const useDeleteCourse = () => {
+  return useMutation({
+    mutationKey: ['delete-course'],
+    mutationFn: async (courseId: number) => {
+      return await BaseRequest.Delete<boolean>(`${SUB_URL}/${courseId}`);
+    },
+    onSuccess: () => {
+      // Có thể thêm logic invalidate cache ở đây nếu cần
+    }
+  });
+};
+
+export const useCheckCourseRate = (courseId: number) => {
+  return useQuery({
+    queryKey: ['check-course-rate', courseId],
+    queryFn: async () => {
+      return await BaseRequest.Get<boolean>(
+        `${SUB_URL}/${courseId}/rate/check`
+      );
+    },
+    staleTime: 1000 * 60 * 5,
+    retry: 3,
+    enabled: !!courseId
+  });
+};
+
+export const useRateCourse = () => {
+  return useMutation({
+    mutationKey: ['rate-course'],
+    mutationFn: async ({
+      courseId,
+      rate
+    }: {
+      courseId: number;
+      rate: number;
+    }) => {
+      return await BaseRequest.Post<BaseResponse>(
+        `${SUB_URL}/${courseId}/rate`,
+        { rate }
+      );
+    }
   });
 };

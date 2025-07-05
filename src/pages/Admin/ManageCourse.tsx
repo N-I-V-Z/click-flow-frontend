@@ -1,18 +1,26 @@
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo, useEffect, useCallback } from 'react';
 import { Modal, Badge, Rate, Form, Input, InputNumber, message } from 'antd';
 import {
   EyeOutlined,
   EditOutlined,
   DeleteOutlined,
-  PlusOutlined
+  PlusOutlined,
+  VideoCameraOutlined
 } from '@ant-design/icons';
 import { ColumnDef } from '@tanstack/react-table';
+import { useQueryClient } from '@tanstack/react-query';
 import BasePages from '@/components/shared/base-pages';
 import DataTable from '@/components/shared/data-table';
-import { useGetCourseAdmin, useCreateCourse } from '@/queries/course.query';
-import { CourseResponse } from '@/types';
+import {
+  useGetCourseAdmin,
+  useCreateCourse,
+  useDeleteCourse,
+  useUpdateCourse
+} from '@/queries/course.query';
+import { CourseResponse, UpdateCourseFormData } from '@/types';
 import __helpers from '@/helpers';
 import ToastNotification from '@/components/shared/toast-notification';
+import VideoManagement from '@/components/shared/video-management';
 import { toast } from 'react-toastify';
 
 const { TextArea } = Input;
@@ -48,9 +56,14 @@ const ManageCourse: React.FC = () => {
     null
   );
   const [isDeleteModalVisible, setIsDeleteModalVisible] = useState(false);
+  const [isEditModalVisible, setIsEditModalVisible] = useState(false);
+  const [isVideoManagementVisible, setIsVideoManagementVisible] =
+    useState(false);
   const [createForm] = Form.useForm();
+  const [editForm] = Form.useForm();
   const [keyWord, setKeyWord] = useState<string>('');
   const { pageIndex, pageSize } = __helpers.usePaginationParams();
+  const queryClient = useQueryClient();
 
   const {
     data: courses,
@@ -64,6 +77,9 @@ const ManageCourse: React.FC = () => {
   }, [keyWord, refetch]);
 
   const createCourseMutation = useCreateCourse();
+
+  const deleteCourseMutation = useDeleteCourse();
+  const updateCourseMutation = useUpdateCourse();
 
   const handleView = (record: CourseResponse) => {
     setSelectedCourse(record);
@@ -80,15 +96,23 @@ const ManageCourse: React.FC = () => {
     setIsDeleteModalVisible(true);
   };
 
-  const confirmDelete = () => {
-    // if (selectedCourse) {
-    //   // TODO: call delete API, then refetch or remove from dataSource
-    //   setDataSource((prev) =>
-    //     prev.filter((item) => item.id !== selectedCourse.id)
-    //   );
-    // }
-    // setIsDeleteModalVisible(false);
-    // setSelectedCourse(null);
+  const confirmDelete = async () => {
+    if (selectedCourse) {
+      try {
+        await deleteCourseMutation.mutateAsync(selectedCourse.id);
+        toast.success('Xóa khóa học thành công!');
+
+        // Invalidate and refetch courses data
+        queryClient.invalidateQueries({ queryKey: ['get-courses'] });
+        refetch();
+
+        setIsDeleteModalVisible(false);
+        setSelectedCourse(null);
+      } catch (error) {
+        toast.error('Có lỗi xảy ra khi xóa khóa học!');
+        console.error('Delete course error:', error);
+      }
+    }
   };
 
   const cancelDelete = () => {
@@ -118,6 +142,59 @@ const ManageCourse: React.FC = () => {
       message.error('Có lỗi xảy ra khi tạo khóa học. Vui lòng thử lại!');
       console.error('Create course error:', error);
     }
+  };
+
+  // Edit Course Modal handlers
+  const handleEditCourse = useCallback(
+    (record: CourseResponse) => {
+      setSelectedCourse(record);
+      setIsEditModalVisible(true);
+      // Pre-fill the form with current data
+      editForm.setFieldsValue({
+        title: record.title,
+        description: record.description,
+        content: record.content,
+        lessonLearned: record.lessonLearned
+      });
+    },
+    [editForm]
+  );
+
+  const handleEditModalCancel = () => {
+    setIsEditModalVisible(false);
+    setSelectedCourse(null);
+    editForm.resetFields();
+  };
+
+  const handleEditCourseSubmit = async (values: UpdateCourseFormData) => {
+    if (!selectedCourse) return;
+
+    try {
+      await updateCourseMutation.mutateAsync({
+        courseId: selectedCourse.id,
+        ...values
+      });
+      message.success('Cập nhật khóa học thành công!');
+      setIsEditModalVisible(false);
+      setSelectedCourse(null);
+      editForm.resetFields();
+      // Refetch data to update the list
+      refetch();
+    } catch (error) {
+      message.error('Có lỗi xảy ra khi cập nhật khóa học. Vui lòng thử lại!');
+      console.error('Update course error:', error);
+    }
+  };
+
+  // Video Modal handlers
+  const handleManageVideo = (record: CourseResponse) => {
+    setSelectedCourse(record);
+    setIsVideoManagementVisible(true);
+  };
+
+  const handleVideoManagementClose = () => {
+    setIsVideoManagementVisible(false);
+    setSelectedCourse(null);
   };
 
   const columns = useMemo<ColumnDef<CourseResponse>[]>(
@@ -244,13 +321,20 @@ const ManageCourse: React.FC = () => {
             <div className="flex justify-center gap-2">
               <button
                 onClick={() => handleView(record)}
-                className="bg-blue-50 hover:bg-blue-100 rounded-full p-2 text-blue transition-colors duration-200"
+                className="text-blue rounded-full bg-blue-50 p-2 transition-colors duration-200 hover:bg-blue-100"
                 title="Xem chi tiết"
               >
                 <EyeOutlined className="text-sm" />
               </button>
               <button
-                onClick={() => toast(`Chỉnh sửa khóa học #${record.id}`)}
+                onClick={() => handleManageVideo(record)}
+                className="rounded-full bg-purple-50 p-2 text-purple-600 transition-colors duration-200 hover:bg-purple-100"
+                title="Quản lý Video"
+              >
+                <VideoCameraOutlined className="text-sm" />
+              </button>
+              <button
+                onClick={() => handleEditCourse(record)}
                 className="rounded-full p-2 text-amber-600 transition-colors duration-200 hover:bg-amber-100"
                 title="Chỉnh sửa"
               >
@@ -258,7 +342,7 @@ const ManageCourse: React.FC = () => {
               </button>
               <button
                 onClick={() => handleDelete(record)}
-                className="bg-red-50 hover:bg-red-100 rounded-full p-2 text-red transition-colors duration-200"
+                className="text-red rounded-full bg-red-50 p-2 transition-colors duration-200 hover:bg-red-100"
                 title="Xóa khóa học"
               >
                 <DeleteOutlined className="text-sm" />
@@ -266,10 +350,10 @@ const ManageCourse: React.FC = () => {
             </div>
           );
         },
-        size: 140
+        size: 180
       }
     ],
-    []
+    [handleEditCourse]
   );
 
   if (error) {
@@ -277,9 +361,9 @@ const ManageCourse: React.FC = () => {
       <BasePages pageHead="ClickFlow - Quản lý khóa học">
         <div className="flex min-h-screen items-center justify-center bg-gray-50">
           <div className="rounded-lg bg-white p-8 text-center shadow-sm">
-            <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-red">
+            <div className="bg-red mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full">
               <svg
-                className="text-red-600 h-8 w-8"
+                className="h-8 w-8 text-red-600"
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"
@@ -320,7 +404,7 @@ const ManageCourse: React.FC = () => {
                   </h2>
                   <button
                     onClick={handleCreateCourse}
-                    className="hover:bg-blue-700 focus:ring-blue-500 inline-flex items-center rounded-md border border-transparent bg-blue px-4 py-2 text-sm font-medium text-white shadow-sm transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2"
+                    className="inline-flex items-center rounded-md border border-transparent bg-[#8B5CF6] px-4 py-2 text-sm font-medium text-white shadow-sm transition-colors duration-200 hover:bg-[#7C3AED] focus:outline-none focus:ring-2 focus:ring-[#8B5CF6] focus:ring-offset-2"
                   >
                     <PlusOutlined className="mr-2" />
                     Thêm khóa học mới
@@ -501,7 +585,7 @@ const ManageCourse: React.FC = () => {
                   <button
                     type="submit"
                     disabled={createCourseMutation.isPending}
-                    className="inline-flex items-center rounded-md border border-transparent bg-blue px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-blue focus:outline-none focus:ring-2 focus:ring-blue focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                    className="inline-flex items-center rounded-md border border-transparent bg-[#8B5CF6] px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-[#7C3AED] focus:outline-none focus:ring-2 focus:ring-[#8B5CF6] focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
                   >
                     {createCourseMutation.isPending ? (
                       <>
@@ -543,7 +627,7 @@ const ManageCourse: React.FC = () => {
           <Modal
             title={
               <div className="flex items-center gap-3 border-b border-gray-200 pb-4">
-                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-blue">
+                <div className="bg-blue flex h-10 w-10 items-center justify-center rounded-full">
                   <EyeOutlined className="text-blue" />
                 </div>
                 <div>
@@ -647,8 +731,8 @@ const ManageCourse: React.FC = () => {
           <Modal
             title={
               <div className="flex items-center gap-3">
-                <div className="bg-red-100 flex h-10 w-10 items-center justify-center rounded-full">
-                  <DeleteOutlined className="text-red" />
+                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-purple-100">
+                  <DeleteOutlined className="text-[#8B5CF6]" />
                 </div>
                 <div>
                   <h3 className="text-lg font-semibold text-gray-900">
@@ -665,9 +749,10 @@ const ManageCourse: React.FC = () => {
             onCancel={cancelDelete}
             okText="Xóa khóa học"
             cancelText="Hủy bỏ"
+            confirmLoading={deleteCourseMutation.isPending}
             okButtonProps={{
               className:
-                'bg-red hover:bg-red-700 border-red hover:border-red-700',
+                'bg-[#8B5CF6] hover:bg-[#7C3AED] border-[#8B5CF6] hover:border-[#7C3AED]',
               size: 'large'
             }}
             cancelButtonProps={{
@@ -676,11 +761,11 @@ const ManageCourse: React.FC = () => {
             width={500}
           >
             <div className="py-4">
-              <div className="bg-red-50 mb-4 rounded-lg border border-red p-4">
+              <div className="mb-4 rounded-lg border border-[#8B5CF6] bg-purple-50 p-4">
                 <div className="flex">
                   <div className="flex-shrink-0">
                     <svg
-                      className="text-red-400 h-5 w-5"
+                      className="h-5 w-5 text-[#8B5CF6]"
                       viewBox="0 0 20 20"
                       fill="currentColor"
                     >
@@ -692,8 +777,10 @@ const ManageCourse: React.FC = () => {
                     </svg>
                   </div>
                   <div className="ml-3">
-                    <h3 className="text-sm font-medium text-red">Cảnh báo</h3>
-                    <div className="mt-2 text-sm text-red">
+                    <h3 className="text-sm font-medium text-[#8B5CF6]">
+                      Cảnh báo
+                    </h3>
+                    <div className="mt-2 text-sm text-[#7C3AED]">
                       <p>
                         Việc xóa khóa học sẽ không thể hoàn tác và có thể ảnh
                         hưởng đến học viên đã đăng ký.
@@ -712,8 +799,183 @@ const ManageCourse: React.FC = () => {
               </p>
             </div>
           </Modal>
+
+          {/* Edit Course Modal */}
+          <Modal
+            title={
+              <div className="flex items-center gap-3 border-b border-gray-200 pb-4">
+                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-amber-100">
+                  <EditOutlined className="text-amber-600" />
+                </div>
+                <div>
+                  <h3 className="text-lg font-semibold text-gray-900">
+                    Chỉnh sửa khóa học
+                  </h3>
+                  <p className="text-sm text-gray-500">
+                    Cập nhật thông tin khóa học #{selectedCourse?.id}
+                  </p>
+                </div>
+              </div>
+            }
+            open={isEditModalVisible}
+            onCancel={handleEditModalCancel}
+            footer={null}
+            width={800}
+            getContainer={false}
+            className="edit-course-modal"
+            bodyStyle={{
+              maxHeight: '70vh',
+              overflowY: 'auto',
+              padding: 0
+            }}
+            style={{
+              top: 20
+            }}
+          >
+            <div className="px-6 pb-6 pt-6">
+              <Form
+                form={editForm}
+                layout="vertical"
+                onFinish={handleEditCourseSubmit}
+                className="space-y-4"
+              >
+                <Form.Item
+                  name="title"
+                  label={
+                    <span className="text-sm font-medium text-gray-700">
+                      Tiêu đề khóa học
+                    </span>
+                  }
+                  rules={[
+                    {
+                      required: true,
+                      message: 'Vui lòng nhập tiêu đề khóa học!'
+                    }
+                  ]}
+                >
+                  <Input placeholder="Nhập tiêu đề khóa học" className="h-10" />
+                </Form.Item>
+
+                <Form.Item
+                  name="lessonLearned"
+                  label={
+                    <span className="text-sm font-medium text-gray-700">
+                      Bài học thu được
+                    </span>
+                  }
+                  rules={[
+                    {
+                      required: true,
+                      message: 'Vui lòng nhập bài học thu được!'
+                    }
+                  ]}
+                >
+                  <TextArea
+                    placeholder="Mô tả những gì học viên sẽ học được từ khóa học này"
+                    rows={3}
+                  />
+                </Form.Item>
+
+                <Form.Item
+                  name="description"
+                  label={
+                    <span className="text-sm font-medium text-gray-700">
+                      Mô tả khóa học
+                    </span>
+                  }
+                  rules={[
+                    {
+                      required: true,
+                      message: 'Vui lòng nhập mô tả khóa học!'
+                    }
+                  ]}
+                >
+                  <TextArea
+                    placeholder="Mô tả tổng quan về khóa học"
+                    rows={4}
+                  />
+                </Form.Item>
+
+                <Form.Item
+                  name="content"
+                  label={
+                    <span className="text-sm font-medium text-gray-700">
+                      Nội dung khóa học
+                    </span>
+                  }
+                  rules={[
+                    {
+                      required: true,
+                      message: 'Vui lòng nhập nội dung khóa học!'
+                    }
+                  ]}
+                >
+                  <TextArea
+                    placeholder="Nội dung chi tiết của khóa học"
+                    rows={6}
+                  />
+                </Form.Item>
+
+                <div className="sticky bottom-0 flex justify-end gap-3 bg-white pb-2 pt-4">
+                  <button
+                    type="button"
+                    onClick={handleEditModalCancel}
+                    className="rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
+                  >
+                    Hủy bỏ
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={updateCourseMutation.isPending}
+                    className="inline-flex items-center rounded-md border border-transparent bg-amber-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-amber-700 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                  >
+                    {updateCourseMutation.isPending ? (
+                      <>
+                        <svg
+                          className="mr-2 h-4 w-4 animate-spin"
+                          xmlns="http://www.w3.org/2000/svg"
+                          fill="none"
+                          viewBox="0 0 24 24"
+                        >
+                          <circle
+                            className="opacity-25"
+                            cx="12"
+                            cy="12"
+                            r="10"
+                            stroke="currentColor"
+                            strokeWidth="4"
+                          ></circle>
+                          <path
+                            className="opacity-75"
+                            fill="currentColor"
+                            d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                          ></path>
+                        </svg>
+                        Đang cập nhật...
+                      </>
+                    ) : (
+                      <>
+                        <EditOutlined className="mr-2" />
+                        Cập nhật khóa học
+                      </>
+                    )}
+                  </button>
+                </div>
+              </Form>
+            </div>
+          </Modal>
         </div>
       </BasePages>
+
+      {/* Video Management Component */}
+      {isVideoManagementVisible && selectedCourse && (
+        <VideoManagement
+          courseId={selectedCourse.id}
+          courseName={selectedCourse.title}
+          onClose={handleVideoManagementClose}
+        />
+      )}
+
       <ToastNotification />
     </>
   );

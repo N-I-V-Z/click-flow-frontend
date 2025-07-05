@@ -65,7 +65,7 @@ function mapApiCampaignToCampaign(apiCampaign: IApiCampaign): Campaign {
     averageStarRate: apiCampaign.averageStarRate,
     advertiserId: apiCampaign.advertiserId,
     advertiserName: apiCampaign.advertiser?.companyName ?? '',
-    publisherStatus: (apiCampaign as any).publisherStatus
+    publisherStatus: apiCampaign.publisherStatus
   };
 }
 
@@ -286,6 +286,26 @@ const CampaignDetailPage: React.FC = () => {
 
   return (
     <BasePages pageHead="ClickFlow - Chi tiết chiến dịch">
+      <style>
+        {`
+          .purple-tabs .ant-tabs-tab {
+            color: #6B7280 !important;
+          }
+          .purple-tabs .ant-tabs-tab:hover {
+            color: #8B5CF6 !important;
+          }
+          .purple-tabs .ant-tabs-tab.ant-tabs-tab-active {
+            color: #8B5CF6 !important;
+          }
+          .purple-tabs .ant-tabs-ink-bar {
+            background: #8B5CF6 !important;
+          }
+          .purple-tabs .ant-tabs-tab.ant-tabs-tab-active .ant-tabs-tab-btn {
+            color: #8B5CF6 !important;
+            font-weight: 600 !important;
+          }
+        `}
+      </style>
       <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 p-6">
         {/* Nút Back về danh sách chiến dịch */}
         <Button
@@ -392,7 +412,18 @@ const CampaignDetailPage: React.FC = () => {
 
           {/* PHẦN DƯỚI: Tabs mô tả, feedback, etc. */}
           <div className="mb-10 mt-6 rounded-2xl bg-white p-6 shadow-lg">
-            <Tabs defaultActiveKey="information" size="large" tabBarGutter={32}>
+            <Tabs
+              defaultActiveKey="information"
+              size="large"
+              tabBarGutter={32}
+              style={
+                {
+                  '--ant-primary-color': '#8B5CF6',
+                  '--ant-primary-color-hover': '#A855F7'
+                } as React.CSSProperties
+              }
+              className="purple-tabs"
+            >
               <TabPane tab="Information" key="information">
                 <Collapse
                   bordered={false}
@@ -437,7 +468,10 @@ const CampaignDetailPage: React.FC = () => {
               </TabPane>
 
               <TabPane tab="Feedbacks" key="feedbacks">
-                <Feedback campaignId={campaignId} />
+                <Feedback
+                  campaignId={campaignId}
+                  publisherStatus={campaign.publisherStatus}
+                />
               </TabPane>
             </Tabs>
           </div>

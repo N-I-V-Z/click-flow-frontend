@@ -354,6 +354,28 @@ export interface VideoCourseResponse {
   courseId: number;
 }
 
+// Interface cho payload tạo video
+export interface CreateVideoPayload {
+  link: string;
+  title: string;
+  courseId: number;
+}
+
+// Interface cho response tạo video
+export interface CreateVideoResponse {
+  id: number;
+  link: string;
+  title: string;
+  courseId: number;
+  createdAt?: string;
+}
+
+// Interface cho payload update video
+export interface UpdateVideoPayload {
+  link: string;
+  title: string;
+}
+
 export interface Wallet {
   id: number;
   balance: number;
@@ -367,6 +389,7 @@ export interface Transaction {
   balance: number;
   transactionType: TransactionType;
   walletId: number;
+  status: boolean;
 }
 
 export enum TransactionType {
@@ -387,6 +410,13 @@ export interface CreateCourseFormData {
   lessonLearned: string;
   description: string;
   content: string;
+}
+
+export interface UpdateCourseFormData {
+  title: string;
+  lessonLearned: string;
+  content: string;
+  description: string;
 }
 
 export interface BaseResponse {

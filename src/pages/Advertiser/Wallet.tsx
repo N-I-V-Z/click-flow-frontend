@@ -261,11 +261,24 @@ const Wallet: React.FC = () => {
                               <span className="text-sm font-medium text-gray-600">
                                 {display.label}
                               </span>
-                              <span className="text-xs text-gray-400">
-                                {new Date(
-                                  transaction.paymentDate
-                                ).toLocaleDateString('vi-VN')}
-                              </span>
+                              <div className="flex items-center gap-2">
+                                <span className="text-xs text-gray-400">
+                                  {new Date(
+                                    transaction.paymentDate
+                                  ).toLocaleDateString('vi-VN')}
+                                </span>
+                                <span
+                                  className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${
+                                    transaction.status
+                                      ? 'bg-green-100 text-green-800'
+                                      : 'bg-yellow-100 text-yellow-800'
+                                  }`}
+                                >
+                                  {transaction.status
+                                    ? 'Thành công'
+                                    : 'Đang xử lý'}
+                                </span>
+                              </div>
                             </div>
                             <span className={`font-semibold ${display.color}`}>
                               {display.sign}
