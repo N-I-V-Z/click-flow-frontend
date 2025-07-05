@@ -12,201 +12,86 @@ export interface NewsItem {
 export const newsData: NewsItem[] = [
   {
     id: 1,
-    title: 'Startup tham vọng xây dựng mạng blockchain Make in Việt Nam',
+    title:
+      'AnyMind Group thâu tóm Vibula – Đẩy mạnh affiliate marketing tại Việt Nam',
     content:
-      'Startup 1Matrix cho biết sẽ phát triển các dịch vụ công, tài chính, xác thực, truy xuất nguồn gốc trên mạng blockchain của người Việt.',
+      'AnyMind Group công bố mua lại Vibula, agency social & live commerce tại Việt Nam, mở rộng mạng lưới affiliate với hơn 100 creators và tích hợp AI cho livestream thương mại. Đây là một động thái chiến lược nhằm củng cố vị thế của AnyMind trong thị trường affiliate marketing đang phát triển mạnh mẽ tại Việt Nam.',
     image:
-      'https://images.unsplash.com/photo-1639762681485-074b7f938ba0?w=600&h=400&fit=crop',
-    publishedAt: '2025-01-15',
+      'https://anymindgroup.com/wp-content/uploads/2025/04/VIBULA_en-2.jpg',
+    publishedAt: '2025-04-25',
     tag: 'other',
-    url: 'https://example.com/blockchain-startup'
+    url: 'https://anymindgroup.com/news/press-release/vibula-agreement-0425'
   },
   {
     id: 2,
-    title: 'Hướng dẫn tối ưu hóa chiến dịch quảng cáo cho Advertiser',
+    title:
+      'Bức tranh Affiliate Marketing Việt Nam 2025: Xu hướng, thách thức và cơ hội bứt phá',
     content:
-      'Khám phá các chiến lược hiệu quả để tăng ROI và cải thiện hiệu suất quảng cáo trong mạng lưới affiliate marketing. Từ việc phân tích target audience đến tối ưu hóa creative, đây là bí quyết thành công.',
+      'Báo cáo chuyên sâu về ngành affiliate marketing tại Việt Nam, phân tích các xu hướng mới như Social Commerce & Livestream Affiliate, sự lên ngôi của KOC & UGC, cùng với những thách thức về khung pháp lý và cạnh tranh. Bài viết cũng dự báo tiềm năng tăng trưởng đáng kể của ngành trong 3-5 năm tới.',
     image:
-      'https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=600&h=400&fit=crop',
-    publishedAt: '2025-01-14',
-    tag: 'advertiser',
-    url: 'https://example.com/advertiser-guide'
+      'https://shortlink.vn/wp-content/uploads/2025/03/shortlink-vn-597-1140x570.jpg',
+    publishedAt: '2025-03-13',
+    tag: 'other',
+    url: 'https://shortlink.vn/affiliate-marketing-viet-nam-2025-xu-huong-thach-thuc-va-co-hoi-but-pha-14907/'
   },
   {
     id: 3,
-    title: 'Top 10 chiến lược marketing affiliate cho Publisher',
+    title: 'Digital sellers embrace affiliate marketing in Vietnam',
     content:
-      'Cẩm nang chi tiết về cách tối đa hóa thu nhập từ affiliate marketing dành cho các publisher chuyên nghiệp. Những phương pháp đã được chứng minh hiệu quả.',
+      'Bài viết này phân tích sự phát triển mạnh mẽ của affiliate marketing tại Việt Nam như một động lực thúc đẩy tăng trưởng thương mại điện tử. Báo cáo từ Business Research Insight và AccessTrade cũng được đề cập, cho thấy thị trường Việt Nam đạt 700 triệu đến 1 tỷ USD vào năm 2024 và dự kiến sẽ tiếp tục bùng nổ.',
     image:
-      'https://images.unsplash.com/photo-1551434678-e076c223a692?w=600&h=400&fit=crop',
-    publishedAt: '2025-01-13',
-    tag: 'publisher',
-    url: 'https://example.com/publisher-strategies'
+      'https://vir.com.vn/stores/news_dataimages/2025/052025/30/09/digital-sellers-embrace-affiliate-marketing-20250530093620.jpg?rt=20250530093622',
+    publishedAt: '2025-05-30',
+    tag: 'other',
+    url: 'https://vir.com.vn/digital-sellers-embrace-affiliate-marketing-129494.html'
   },
   {
     id: 4,
-    title: 'Xu hướng Affiliate Marketing 2025: Những thay đổi đáng chú ý',
+    title:
+      'Thị trường Affiliate Marketing tăng trưởng “nóng” trên các sàn thương mại điện tử Shopee, TikTok Shop',
     content:
-      'Phân tích các xu hướng mới nhất trong ngành affiliate marketing và cách thích ứng với những thay đổi này để luôn dẫn đầu thị trường.',
+      'Bài phân tích về sự bùng nổ của affiliate marketing trên các sàn thương mại điện tử lớn tại Việt Nam như Shopee và TikTok Shop. Nội dung nhấn mạnh vai trò của KOL/KOC, livestream và short video trong việc thúc đẩy doanh số và tạo ra hệ sinh thái affiliate marketing đa dạng, năng động.',
     image:
-      'https://images.unsplash.com/photo-1553729459-efe14ef6055d?w=600&h=400&fit=crop',
-    publishedAt: '2025-01-12',
-    tag: 'other',
-    url: 'https://example.com/trends-2025'
+      'https://media.vneconomy.vn/w800/images/upload/2025/02/21/tiktok1.jpg',
+    publishedAt: '2025-02-21',
+    tag: 'publisher',
+    url: 'https://vneconomy.vn/techconnect/thi-truong-affiliate-marketing-tang-truong-nong-tren-cac-san-thuong-mai-dien-tu-shopee-tiktok-shop.htm'
   },
   {
     id: 5,
-    title: 'Cách tăng conversion rate cho Advertiser trong Q1 2025',
+    title:
+      'Báo cáo Affiliate Marketing 2025: Toàn cảnh thị trường tiếp thị liên kết',
     content:
-      'Bí quyết để cải thiện tỷ lệ chuyển đổi và tối ưu hóa ngân sách quảng cáo trong quý đầu năm. Các case study thực tế và metrics quan trọng.',
+      'Accesstrade Việt Nam đã chính thức phát hành báo cáo Affiliate Marketing 2025, cung cấp cái nhìn tổng quan sâu sắc về thị trường tiếp thị liên kết tại Việt Nam cùng với các xu hướng toàn cầu nổi bật. Báo cáo này là tài liệu quý giá cho cộng đồng doanh nghiệp để tối đa hóa tiềm năng của affiliate marketing.',
     image:
-      'https://images.unsplash.com/photo-1590479773265-7464e5d48118?w=600&h=400&fit=crop',
-    publishedAt: '2025-01-11',
-    tag: 'advertiser',
-    url: 'https://example.com/conversion-tips'
+      'https://vstatic.vietnam.vn/vietnam/resource/IMAGE/2025/1/18/46ec9fa62bf6435b8bb601d62940abc6',
+    publishedAt: '2025-01-15',
+    tag: 'other',
+    url: 'https://www.vietnam.vn/en/bao-cao-affiliate-marketing-toan-canh-thi-truong-tiep-thi-lien-ket'
   },
   {
     id: 6,
-    title: 'Publisher: Cách xây dựng audience chất lượng cao',
+    title:
+      "Bức tranh toàn cảnh Affiliate 2024 và dự báo xu hướng 2025: Cú 'đánh úp' của Temu vào thị trường Việt Nam",
     content:
-      'Hướng dẫn chi tiết về việc xây dựng và duy trì một cộng đồng người theo dõi chất lượng cao. Từ content strategy đến engagement tactics.',
+      'Bài viết điểm lại các sự kiện nổi bật của affiliate marketing năm 2024 và dự đoán xu hướng quan trọng năm 2025, đặc biệt nhấn mạnh tác động của sự gia nhập thị trường Việt Nam của Temu với các chương trình khuyến mãi và hoa hồng hấp dẫn, gây xôn xao thị trường.',
     image:
-      'https://images.unsplash.com/photo-1557804506-669a67965ba0?w=600&h=400&fit=crop',
-    publishedAt: '2025-01-10',
-    tag: 'publisher',
-    url: 'https://example.com/audience-building'
-  },
-  {
-    id: 7,
-    title: 'AI và Machine Learning trong Affiliate Marketing',
-    content:
-      'Khám phá cách công nghệ AI đang thay đổi bối cảnh affiliate marketing và cơ hội mới cho các nhà tiếp thị trong kỷ nguyên số.',
-    image:
-      'https://images.unsplash.com/photo-1485827404703-89b55fcc595e?w=600&h=400&fit=crop',
-    publishedAt: '2025-01-09',
+      'https://cdn.brvn.vn/editor/2025/01/U67332_xu-huong-affiliate-viet-nam-20_1735792097.png',
+    publishedAt: '2025-01-02',
     tag: 'other',
-    url: 'https://example.com/ai-affiliate'
+    url: 'https://www.brandsvietnam.com/congdong/topic/345451-buc-tranh-toan-canh-affiliate-2024-va-du-bao-xu-huong-2025'
   },
   {
     id: 8,
-    title: 'Phân tích hiệu suất chiến dịch: Tools không thể thiếu',
+    title:
+      'Quy định pháp lý mới về quảng cáo và Affiliate Marketing tại Việt Nam',
     content:
-      'Tổng hợp các công cụ phân tích hiệu suất tốt nhất cho cả advertiser và publisher trong năm 2025. From Google Analytics đến advanced tracking.',
+      'Cập nhật về các thay đổi trong quy định pháp luật liên quan đến quảng cáo trực tuyến và hoạt động affiliate marketing tại Việt Nam, bao gồm các yêu cầu về minh bạch thông tin, bảo vệ dữ liệu người dùng và trách nhiệm của các bên liên quan.',
     image:
-      'https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=600&h=400&fit=crop',
-    publishedAt: '2025-01-08',
-    tag: 'advertiser',
-    url: 'https://example.com/analytics-tools'
-  },
-  {
-    id: 9,
-    title: 'Mobile-first: Tối ưu hóa affiliate cho thiết bị di động',
-    content:
-      'Chiến lược tối ưu hóa affiliate marketing cho thiết bị di động trong thời đại mobile-first. Responsive design và UX optimization.',
-    image:
-      'https://images.unsplash.com/photo-1512941937669-90a1b58e7e9c?w=600&h=400&fit=crop',
-    publishedAt: '2025-01-07',
-    tag: 'publisher',
-    url: 'https://example.com/mobile-optimization'
-  },
-  {
-    id: 10,
-    title: 'Compliance và quy định mới trong Affiliate Marketing',
-    content:
-      'Cập nhật những quy định mới nhất và cách đảm bảo tuân thủ trong hoạt động affiliate marketing. GDPR, CCPA và các luật bảo mật khác.',
-    image:
-      'https://images.unsplash.com/photo-1450101499163-c8848c66ca85?w=600&h=400&fit=crop',
-    publishedAt: '2025-01-06',
+      'https://image.luatvietnam.vn/uploaded//665twebp/images/original/2021/10/06/ha-noi-ban-hanh-moi-33-thu-tuc-linh-vuc-doanh-nghiep_0610120200.jpg',
+    publishedAt: '2025-03-20',
     tag: 'other',
-    url: 'https://example.com/compliance'
-  },
-  {
-    id: 11,
-    title: 'Email Marketing Integration với Affiliate Networks',
-    content:
-      'Cách tích hợp email marketing hiệu quả với affiliate networks để tăng conversion rate và xây dựng relationship dài hạn với customers.',
-    image:
-      'https://images.unsplash.com/photo-1596526131083-e8c633c948d2?w=600&h=400&fit=crop',
-    publishedAt: '2025-01-05',
-    tag: 'advertiser',
-    url: 'https://example.com/email-integration'
-  },
-  {
-    id: 12,
-    title: 'Social Media Strategies cho Publisher năm 2025',
-    content:
-      'Những chiến lược social media mới nhất giúp publisher tăng reach, engagement và ultimately commission từ affiliate programs.',
-    image:
-      'https://images.unsplash.com/photo-1611224923853-80b023f02d71?w=600&h=400&fit=crop',
-    publishedAt: '2025-01-04',
-    tag: 'publisher',
-    url: 'https://example.com/social-strategies'
-  },
-  {
-    id: 13,
-    title: 'Cross-border Affiliate Marketing: Cơ hội toàn cầu',
-    content:
-      'Khám phá tiềm năng của affiliate marketing xuyên biên giới và cách vượt qua những thách thức về văn hóa, ngôn ngữ và pháp lý.',
-    image:
-      'https://images.unsplash.com/photo-1526304640581-d334cdbbf45e?w=600&h=400&fit=crop',
-    publishedAt: '2025-01-03',
-    tag: 'other',
-    url: 'https://example.com/cross-border'
-  },
-  {
-    id: 14,
-    title: 'Influencer Marketing meets Affiliate: Hybrid Strategy',
-    content:
-      'Sự kết hợp giữa influencer marketing và affiliate marketing tạo ra một chiến lược hybrid mạnh mẽ cho cả brand và creator.',
-    image:
-      'https://images.unsplash.com/photo-1611162617474-5b21e879e113?w=600&h=400&fit=crop',
-    publishedAt: '2025-01-02',
-    tag: 'publisher',
-    url: 'https://example.com/influencer-hybrid'
-  },
-  {
-    id: 15,
-    title: 'Blockchain Technology trong Affiliate Tracking',
-    content:
-      'Ứng dụng blockchain technology để tạo ra hệ thống tracking minh bạch, chống gian lận trong affiliate marketing ecosystem.',
-    image:
-      'https://images.unsplash.com/photo-1639322537228-f710d846310a?w=600&h=400&fit=crop',
-    publishedAt: '2025-01-01',
-    tag: 'other',
-    url: 'https://example.com/blockchain-tracking'
-  },
-  {
-    id: 16,
-    title: 'Performance Marketing Metrics: KPIs thời đại mới',
-    content:
-      'Các chỉ số đo lường performance marketing quan trọng nhất mà mọi advertiser cần theo dõi để optimize campaign hiệu quả.',
-    image:
-      'https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=600&h=400&fit=crop',
-    publishedAt: '2024-12-31',
-    tag: 'advertiser',
-    url: 'https://example.com/performance-metrics'
-  },
-  {
-    id: 17,
-    title: 'Content Marketing cho Affiliate Success',
-    content:
-      'Chiến lược content marketing toàn diện giúp publisher xây dựng authority, trust và tăng affiliate revenue một cách bền vững.',
-    image:
-      'https://images.unsplash.com/photo-1552664730-d307ca884978?w=600&h=400&fit=crop',
-    publishedAt: '2024-12-30',
-    tag: 'publisher',
-    url: 'https://example.com/content-strategy'
-  },
-  {
-    id: 18,
-    title: 'Voice Search Optimization cho Affiliate Sites',
-    content:
-      'Tối ưu hóa cho voice search - xu hướng mới trong SEO và cách affiliate sites có thể leverage trend này để tăng traffic.',
-    image:
-      'https://images.unsplash.com/photo-1589254065878-42c9da997008?w=600&h=400&fit=crop',
-    publishedAt: '2024-12-29',
-    tag: 'other',
-    url: 'https://example.com/voice-search'
+    url: 'https://luatvietnam.vn/thuong-mai/quy-dinh-quang-cao-online-2025-567-33333-article.html'
   }
 ];
 
@@ -230,8 +115,6 @@ export const getTagColor = (tag: NewsItem['tag']): string => {
     case 'publisher':
       return 'bg-gradient-to-r from-purple-500 to-indigo-500';
     case 'other':
-      return 'bg-gradient-to-r from-blue to-cyan-500';
-    default:
-      return 'bg-gradient-to-r from-gray-500 to-gray-600';
+      return 'bg-gradient-to-r from-[#3B82F6] to-[#06B6D4]';
   }
 };

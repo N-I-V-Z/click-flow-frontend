@@ -1,16 +1,29 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from '@/routes/hooks';
 import { Card } from '@/components/ui/card';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
-import { Wallet, KeySquare, MapPin, Calendar, User } from 'lucide-react';
+import { Wallet, KeySquare, MapPin, Calendar, User, Edit3 } from 'lucide-react';
 import ChangePassword from '@/components/shared/change-password';
-import { useGetUserDetail } from '@/queries/user.query';
+import {
+  useGetUserDetail,
+  useCreateUpdateUserDetail
+} from '@/queries/user.query';
 import BasePages from '@/components/shared/base-pages';
 import Loading from '@/components/ui/loading';
 import { TokenDecoded } from '@/types';
 import helpers from '@/helpers';
 import __helpers from '@/helpers';
+import {
+  Form,
+  Input,
+  Select,
+  DatePicker,
+  message,
+  Button as AntButton,
+  Modal
+} from 'antd';
+import moment from 'moment';
 
 const decodedToken: TokenDecoded | null = helpers.decodeTokens(
   __helpers.cookie_get('AT')
@@ -20,11 +33,161 @@ const advertiserId =
 
 const AdvertiserProfile = () => {
   const router = useRouter();
+  const [form] = Form.useForm();
+  const [editForm] = Form.useForm();
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [activeSection, setActiveSection] = useState<
     'personal' | 'changePassword'
   >('personal');
-  const { data, isLoading, error } = useGetUserDetail(advertiserId);
+
+  // Add CSS to prevent scroll wheel on DatePicker inputs
+  const datePickerStyle = `
+    .ant-picker-input input {
+      pointer-events: none !important;
+    }
+    .ant-picker-input input:focus {
+      pointer-events: none !important;
+    }
+  `;
+
+  // Inject CSS style
+  if (!document.getElementById('datepicker-no-scroll-style')) {
+    const style = document.createElement('style');
+    style.id = 'datepicker-no-scroll-style';
+    style.textContent = datePickerStyle;
+    document.head.appendChild(style);
+  }
+
+  // Clean up style on unmount
+  useEffect(() => {
+    return () => {
+      const existingStyle = document.getElementById(
+        'datepicker-no-scroll-style'
+      );
+      if (existingStyle) {
+        existingStyle.remove();
+      }
+    };
+  }, []);
+
+  // Fetch user data
+  const { data, isLoading, error, refetch } = useGetUserDetail(advertiserId);
   const user = data?.result;
+
+  // Create/Update user detail mutation
+  const { mutate: createUpdateUserDetail, isPending: isCreating } =
+    useCreateUpdateUserDetail();
+
+  // Check if we need to show the form
+  // Show form when: not loading AND (has error OR no user data)
+  const needsUserDetailForm = !isLoading && (error || !user);
+
+  // Handle form submission
+  const handleFormSubmit = (values: {
+    dateOfBirth: moment.Moment;
+    gender: string;
+    address?: string;
+  }) => {
+    // Generate avatar URL from user's name
+    const userName = decodedToken?.Name || 'User';
+    const avatarURL = `https://ui-avatars.com/api/?name=${encodeURIComponent(userName)}&background=7C3AED&color=ffffff&size=200`;
+
+    const payload = {
+      dateOfBirth: values.dateOfBirth.toDate().toISOString(),
+      gender: values.gender,
+      avatarURL: avatarURL,
+      address: values.address?.trim() || 'Trống'
+    };
+
+    createUpdateUserDetail(payload, {
+      onSuccess: () => {
+        message.success('Thông tin đã được cập nhật thành công!');
+        form.resetFields();
+        // Refetch user data
+        window.location.reload();
+      },
+      onError: () => {
+        message.error('Có lỗi xảy ra khi cập nhật thông tin!');
+      }
+    });
+  };
+
+  // Handle edit modal
+  const handleEditClick = () => {
+    if (!user) return;
+
+    setIsEditModalOpen(true);
+    // Pre-fill form with current user data
+    // Ensure proper date parsing
+    const userDate = user.dateOfBirth ? moment(user.dateOfBirth) : null;
+
+    editForm.setFieldsValue({
+      dateOfBirth: userDate && userDate.isValid() ? userDate : null,
+      gender: user.gender,
+      address: user.address === 'Trống' ? '' : user.address
+    });
+  };
+
+  const handleEditSubmit = (values: {
+    dateOfBirth: moment.Moment;
+    gender: string;
+    address?: string;
+  }) => {
+    // Generate avatar URL from user's name
+    const userName = decodedToken?.Name || 'User';
+    const avatarURL = `https://ui-avatars.com/api/?name=${encodeURIComponent(userName)}&background=7C3AED&color=ffffff&size=200`;
+
+    // Safely convert date to ISO string
+    let dateOfBirthISO: string;
+    try {
+      if (moment.isMoment(values.dateOfBirth) && values.dateOfBirth.isValid()) {
+        dateOfBirthISO = values.dateOfBirth.toDate().toISOString();
+      } else {
+        throw new Error('Invalid date');
+      }
+    } catch (error) {
+      message.error('Ngày sinh không hợp lệ!');
+      return;
+    }
+
+    const payload = {
+      dateOfBirth: dateOfBirthISO,
+      gender: values.gender,
+      avatarURL: avatarURL,
+      address: values.address?.trim() || 'Trống'
+    };
+
+    createUpdateUserDetail(payload, {
+      onSuccess: () => {
+        message.success('Thông tin đã được cập nhật thành công!');
+        setIsEditModalOpen(false);
+        editForm.resetFields();
+        refetch(); // Refetch user data
+      },
+      onError: () => {
+        message.error('Có lỗi xảy ra khi cập nhật thông tin!');
+      }
+    });
+  };
+
+  const getGenderDisplay = (gender: string) => {
+    switch (gender) {
+      case 'Male':
+        return 'Nam';
+      case 'Female':
+        return 'Nữ';
+      case 'Other':
+        return 'Khác';
+      default:
+        return gender;
+    }
+  };
+
+  const handleEditCancel = () => {
+    setIsEditModalOpen(false);
+    editForm.resetFields();
+  };
+
   if (isLoading) {
     return (
       <BasePages pageHead="ClickFlow - Hồ sơ">
@@ -35,25 +198,155 @@ const AdvertiserProfile = () => {
     );
   }
 
-  if (error || !user) {
+  // Show form modal if user detail doesn't exist or has specific error
+  if (needsUserDetailForm && !isLoading) {
     return (
-      <div className="to-blue flex h-screen items-center justify-center bg-gradient-to-br from-slate-50">
-        <Card className="p-8 text-center shadow-xl">
-          <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-red-100">
-            <span className="text-2xl">😕</span>
+      <BasePages pageHead="ClickFlow - Hoàn thành hồ sơ">
+        <div
+          className="flex min-h-screen items-center justify-center pt-32"
+          style={{
+            background: 'linear-gradient(135deg, #F3E8FF 0%, #EDE9FE 100%)'
+          }}
+        >
+          <div className="mx-4 w-full max-w-md rounded-lg bg-white p-8 shadow-lg">
+            <h2
+              className="mb-6 text-center text-2xl font-bold"
+              style={{ color: '#7C3AED' }}
+            >
+              Hoàn thành thông tin cá nhân
+            </h2>
+            <p className="mb-6 text-center text-gray-600">
+              Vui lòng điền đầy đủ thông tin bắt buộc để tiếp tục sử dụng dịch
+              vụ
+            </p>
+
+            <Form
+              form={form}
+              layout="vertical"
+              onFinish={handleFormSubmit}
+              requiredMark={false}
+            >
+              <Form.Item
+                label="Ngày sinh"
+                name="dateOfBirth"
+                rules={[
+                  { required: true, message: 'Vui lòng chọn ngày sinh!' },
+                  {
+                    validator: (_, value) => {
+                      if (!value) {
+                        return Promise.reject('Vui lòng chọn ngày sinh!');
+                      }
+                      if (value.isAfter(moment())) {
+                        return Promise.reject(
+                          'Ngày sinh không thể là ngày trong tương lai!'
+                        );
+                      }
+                      if (value.isBefore(moment().subtract(120, 'years'))) {
+                        return Promise.reject('Ngày sinh không hợp lệ!');
+                      }
+                      return Promise.resolve();
+                    }
+                  }
+                ]}
+              >
+                <DatePicker
+                  className="w-full"
+                  placeholder="Chọn ngày sinh (DD/MM/YYYY)"
+                  format="DD/MM/YYYY"
+                  disabledDate={(current) => {
+                    // Disable dates after today and before 120 years ago
+                    return (
+                      current &&
+                      (current > moment().endOf('day') ||
+                        current < moment().subtract(120, 'years'))
+                    );
+                  }}
+                  showToday={false}
+                />
+              </Form.Item>
+
+              <Form.Item
+                label="Giới tính"
+                name="gender"
+                rules={[
+                  { required: true, message: 'Vui lòng chọn giới tính!' }
+                ]}
+              >
+                <Select placeholder="Chọn giới tính">
+                  <Select.Option value="Male">Nam</Select.Option>
+                  <Select.Option value="Female">Nữ</Select.Option>
+                </Select>
+              </Form.Item>
+
+              <Form.Item label="Địa chỉ" name="address">
+                <Input placeholder="Nhập địa chỉ (để trống nếu không có)" />
+              </Form.Item>
+
+              <Form.Item>
+                <AntButton
+                  type="primary"
+                  htmlType="submit"
+                  className="h-12 w-full border-none text-white"
+                  style={{ backgroundColor: '#7C3AED' }}
+                  loading={isCreating}
+                >
+                  Hoàn thành
+                </AntButton>
+              </Form.Item>
+            </Form>
           </div>
-          <h3 className="mb-2 text-xl font-bold text-gray-800">
-            Không thể tải dữ liệu
-          </h3>
-          <p className="mb-4 text-gray-600">Vui lòng thử lại sau</p>
-          <Button
-            className="bg-blue-600 text-white hover:bg-blue-700"
-            onClick={() => router.reload()}
-          >
-            Thử lại
-          </Button>
-        </Card>
-      </div>
+        </div>
+      </BasePages>
+    );
+  }
+
+  // Show error page only for unexpected errors (not user detail missing)
+  if (error && !needsUserDetailForm && !isLoading) {
+    return (
+      <BasePages pageHead="ClickFlow - Hồ sơ">
+        <div className="flex h-screen items-center justify-center">
+          <Card className="p-8 text-center shadow-xl">
+            <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-red-100">
+              <span className="text-2xl">😕</span>
+            </div>
+            <h3 className="mb-2 text-xl font-bold text-gray-800">
+              Không thể tải dữ liệu
+            </h3>
+            <p className="mb-4 text-gray-600">Vui lòng thử lại sau</p>
+            <Button
+              className="bg-blue-600 text-white hover:bg-blue-700"
+              onClick={() => router.reload()}
+            >
+              Thử lại
+            </Button>
+          </Card>
+        </div>
+      </BasePages>
+    );
+  }
+
+  // Final safety check - should have user data to render profile
+  if (!user) {
+    return (
+      <BasePages pageHead="ClickFlow - Hồ sơ">
+        <div className="flex h-screen items-center justify-center">
+          <Card className="p-8 text-center shadow-xl">
+            <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-red-100">
+              <span className="text-2xl">😕</span>
+            </div>
+            <h3 className="mb-2 text-xl font-bold text-gray-800">
+              Không có dữ liệu người dùng
+            </h3>
+            <p className="mb-4 text-gray-600">Vui lòng thử lại sau</p>
+            <Button
+              className="bg-blue-600 text-white hover:bg-blue-700"
+              onClick={() => window.location.reload()}
+            >
+              Thử lại
+            </Button>
+          </Card>
+        </div>
+      </BasePages>
     );
   }
 
@@ -188,6 +481,13 @@ const AdvertiserProfile = () => {
                         <h2 className="text-2xl font-bold text-white">
                           Thông tin cá nhân
                         </h2>
+                        <Button
+                          className="border-white/30 bg-white/20 text-white hover:bg-white/30"
+                          onClick={handleEditClick}
+                        >
+                          <Edit3 className="mr-2 h-4 w-4" />
+                          Chỉnh sửa
+                        </Button>
                       </div>
                     </div>
 
@@ -211,7 +511,7 @@ const AdvertiserProfile = () => {
                             </label>
                             <div className="mt-2 rounded-xl bg-gray-50 p-4 transition-colors group-hover:bg-blue-50">
                               <p className="text-lg font-semibold text-gray-800 group-hover:text-blue-600">
-                                {user.gender}
+                                {getGenderDisplay(user.gender)}
                               </p>
                             </div>
                           </div>
@@ -264,6 +564,90 @@ const AdvertiserProfile = () => {
             )}
           </div>
         </div>
+
+        {/* Edit Modal */}
+        <Modal
+          title="Chỉnh sửa thông tin cá nhân"
+          open={isEditModalOpen}
+          onCancel={handleEditCancel}
+          footer={null}
+          destroyOnClose
+        >
+          <Form
+            form={editForm}
+            layout="vertical"
+            onFinish={handleEditSubmit}
+            requiredMark={false}
+          >
+            <Form.Item
+              label="Ngày sinh"
+              name="dateOfBirth"
+              rules={[
+                { required: true, message: 'Vui lòng chọn ngày sinh!' },
+                {
+                  validator: (_, value) => {
+                    if (!value) {
+                      return Promise.reject('Vui lòng chọn ngày sinh!');
+                    }
+                    if (value.isAfter(moment())) {
+                      return Promise.reject(
+                        'Ngày sinh không thể là ngày trong tương lai!'
+                      );
+                    }
+                    if (value.isBefore(moment().subtract(120, 'years'))) {
+                      return Promise.reject('Ngày sinh không hợp lệ!');
+                    }
+                    return Promise.resolve();
+                  }
+                }
+              ]}
+            >
+              <DatePicker
+                className="w-full"
+                placeholder="Chọn ngày sinh (DD/MM/YYYY)"
+                format="DD/MM/YYYY"
+                disabledDate={(current) => {
+                  // Disable dates after today and before 120 years ago
+                  return (
+                    current &&
+                    (current > moment().endOf('day') ||
+                      current < moment().subtract(120, 'years'))
+                  );
+                }}
+                showToday={false}
+              />
+            </Form.Item>
+
+            <Form.Item
+              label="Giới tính"
+              name="gender"
+              rules={[{ required: true, message: 'Vui lòng chọn giới tính!' }]}
+            >
+              <Select placeholder="Chọn giới tính">
+                <Select.Option value="Male">Nam</Select.Option>
+                <Select.Option value="Female">Nữ</Select.Option>
+              </Select>
+            </Form.Item>
+
+            <Form.Item label="Địa chỉ" name="address">
+              <Input placeholder="Nhập địa chỉ (để trống nếu không có)" />
+            </Form.Item>
+
+            <Form.Item className="mb-0 flex justify-end">
+              <div className="space-x-2">
+                <AntButton onClick={handleEditCancel}>Hủy</AntButton>
+                <AntButton
+                  type="primary"
+                  htmlType="submit"
+                  style={{ backgroundColor: '#7C3AED' }}
+                  loading={isCreating}
+                >
+                  Cập nhật
+                </AntButton>
+              </div>
+            </Form.Item>
+          </Form>
+        </Modal>
       </div>
     </BasePages>
   );

@@ -21,7 +21,8 @@ import { TrendingUp, TrendingDown, DollarSign, Calendar } from 'lucide-react';
 import BasePages from '@/components/shared/base-pages';
 import {
   useGetPublisherBrowserStats,
-  useGetPublisherDeviceStats
+  useGetPublisherDeviceStats,
+  useGetPublisherRevenueStats
 } from '@/queries/traffic.query';
 import { useGetOwnTransaction } from '@/queries/transaction.query';
 // import __helpers from '@/helpers';
@@ -49,6 +50,11 @@ const PublisherDashboard: React.FC = () => {
   const { data: deviceStatsData, isLoading: deviceStatsLoading } =
     useGetPublisherDeviceStats();
   const devicePlatforms = deviceStatsData?.result || [];
+
+  // Lấy dữ liệu revenue thực tế từ API
+  const { data: revenueStatsData, isLoading: revenueStatsLoading } =
+    useGetPublisherRevenueStats();
+  const revenueData = revenueStatsData?.result || [];
 
   // Lấy dữ liệu giao dịch thực tế từ API
   const { data: transactionData } = useGetOwnTransaction(1, 10);
@@ -94,21 +100,41 @@ const PublisherDashboard: React.FC = () => {
   const currentBalance =
     moneyChartData[moneyChartData.length - 1]?.balance || 0;
 
-  const conversionData = [
-    { name: 'Chiến dịch A', value: 1200000 },
-    { name: 'Chiến dịch B', value: 800000 },
-    { name: 'Chiến dịch C', value: 600000 },
-    { name: 'Chiến dịch D', value: 300000 }
-  ];
+  // Chuyển đổi revenue data thành format cho PieChart
+  const conversionData = revenueData.map((item) => ({
+    name: item.campaignName,
+    value: item.revenue
+  }));
 
-  const COLORS = [
-    '#0088FE',
-    '#00C49F',
-    '#FFBB28',
-    '#FF8042',
-    '#AA66CC',
-    '#F75C03'
-  ];
+  // Tạo màu sắc động dựa trên số lượng campaign (tone màu xanh dương)
+  const generateColors = (count: number) => {
+    const baseColors = [
+      '#0088FE', // Xanh dương chính
+      '#00C49F', // Xanh lá
+      '#FFBB28', // Vàng
+      '#FF8042', // Cam
+      '#8884D8', // Tím
+      '#82CA9D', // Xanh lá nhạt
+      '#FFC658', // Vàng nhạt
+      '#FF7C7C', // Đỏ nhạt
+      '#8DD1E1', // Xanh dương nhạt
+      '#D084D0' // Tím nhạt
+    ];
+
+    if (count <= baseColors.length) {
+      return baseColors.slice(0, count);
+    }
+
+    // Nếu có nhiều hơn 10 campaign, tạo thêm màu
+    const colors = [...baseColors];
+    for (let i = baseColors.length; i < count; i++) {
+      const hue = (i * 137.508) % 360; // Golden angle approximation
+      colors.push(`hsl(${hue}, 70%, 50%)`);
+    }
+    return colors;
+  };
+
+  const COLORS = generateColors(conversionData.length);
 
   // Mã màu 16: #8B5CF6
   // const COLOR_16 = '#8B5CF6';
@@ -246,30 +272,48 @@ const PublisherDashboard: React.FC = () => {
                 Tiền chuyển đổi theo chiến dịch
               </h2>
               <div className="h-[400px] w-full">
-                <ResponsiveContainer width="100%" height="100%">
-                  <PieChart>
-                    <Pie
-                      data={conversionData}
-                      dataKey="value"
-                      nameKey="name"
-                      cx="50%"
-                      cy="50%"
-                      innerRadius={80}
-                      outerRadius={120}
-                      label
-                      paddingAngle={3}
-                    >
-                      {conversionData.map((entry, index) => (
-                        <Cell
-                          key={`cell-${index}`}
-                          fill={COLORS[index % COLORS.length]}
-                        />
-                      ))}
-                    </Pie>
-                    <Tooltip />
-                    <Legend />
-                  </PieChart>
-                </ResponsiveContainer>
+                {revenueStatsLoading ? (
+                  <div className="flex h-full items-center justify-center">
+                    <div className="text-gray-500">Đang tải dữ liệu...</div>
+                  </div>
+                ) : conversionData.length === 0 ? (
+                  <div className="flex h-full items-center justify-center">
+                    <div className="text-gray-500">Chưa có dữ liệu revenue</div>
+                  </div>
+                ) : (
+                  <ResponsiveContainer width="100%" height="100%">
+                    <PieChart>
+                      <Pie
+                        data={conversionData}
+                        dataKey="value"
+                        nameKey="name"
+                        cx="50%"
+                        cy="50%"
+                        innerRadius={80}
+                        outerRadius={120}
+                        label={({ value }) =>
+                          new Intl.NumberFormat('vi-VN').format(value)
+                        }
+                        paddingAngle={3}
+                      >
+                        {conversionData.map((entry, index) => (
+                          <Cell
+                            key={`cell-${index}`}
+                            fill={COLORS[index % COLORS.length]}
+                          />
+                        ))}
+                      </Pie>
+                      <Tooltip
+                        formatter={(value) => [
+                          new Intl.NumberFormat('vi-VN').format(Number(value)) +
+                            ' VNĐ',
+                          'Revenue'
+                        ]}
+                      />
+                      <Legend />
+                    </PieChart>
+                  </ResponsiveContainer>
+                )}
               </div>
             </motion.div>
 

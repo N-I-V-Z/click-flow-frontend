@@ -23,7 +23,7 @@ export const useGetUserDetail = (userId: number | undefined) => {
     },
     enabled: !!userId && !isNaN(userId), // Chỉ chạy khi có userId hợp lệ
     staleTime: 1000 * 60 * 5,
-    retry: 3,
+    retry: false, // Don't retry on error so we can show form immediately
     refetchOnWindowFocus: false
   });
 };
@@ -65,6 +65,29 @@ export const useUpdateUserStatus = () => {
     },
     onError: (error) => {
       console.error('Error updating user status:', error);
+    }
+  });
+};
+export const useCreateUpdateUserDetail = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (payload: {
+      dateOfBirth: string;
+      gender: string;
+      avatarURL: string;
+      address: string;
+    }) => {
+      return await BaseRequest.Post(
+        `${SUB_USER_DETAIL_URL}/create-update-user-detail`,
+        payload
+      );
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['get-user-detail'] });
+    },
+    onError: (error) => {
+      console.error('Error creating/updating user detail:', error);
     }
   });
 };

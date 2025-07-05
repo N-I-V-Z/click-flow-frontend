@@ -1,8 +1,13 @@
-import { useState } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
+import { useState, useEffect } from 'react';
 import BasePages from '@/components/shared/base-pages';
 import PageHead from '@/components/shared/page-head';
 import { useGetAllCourses, useGetAllCoursesJoin } from '@/queries/course.query';
-import { useJoinCourse } from '@/queries/course.query'; // Import the new hook
+import {
+  useJoinCourse,
+  useCheckCourseRate,
+  useRateCourse
+} from '@/queries/course.query'; // Import the new hooks
 import PaginationSection from '@/components/shared/pagination-section';
 import {
   Grid,
@@ -32,28 +37,109 @@ const Toast = ({
   message: string;
   type: 'success' | 'error';
   onClose: () => void;
-}) => (
-  <div
-    className={`fixed right-4 top-4 z-[100] flex items-center space-x-3 rounded-2xl px-6 py-4 shadow-2xl backdrop-blur-sm duration-300 animate-in slide-in-from-top-2 ${
-      type === 'success'
-        ? 'bg-emerald-500/90 text-white'
-        : 'bg-red-500/90 text-white'
-    }`}
-  >
-    {type === 'success' ? (
-      <CheckCircle className="h-5 w-5" />
-    ) : (
-      <AlertCircle className="h-5 w-5" />
-    )}
-    <span className="font-medium">{message}</span>
-    <button
-      onClick={onClose}
-      className="ml-2 text-white/80 transition-colors hover:text-white"
+}) => {
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      onClose();
+    }, 2000);
+
+    return () => clearTimeout(timer);
+  }, [onClose]);
+
+  return (
+    <div
+      className={`fixed right-4 top-4 z-[100] flex items-center space-x-3 rounded-2xl px-6 py-4 shadow-2xl backdrop-blur-sm duration-300 animate-in slide-in-from-top-2 ${
+        type === 'success'
+          ? 'bg-emerald-500/90 text-white'
+          : 'bg-red-500/90 text-white'
+      }`}
     >
-      <X className="h-4 w-4" />
-    </button>
-  </div>
-);
+      {type === 'success' ? (
+        <CheckCircle className="h-5 w-5" />
+      ) : (
+        <AlertCircle className="h-5 w-5" />
+      )}
+      <span className="font-medium">{message}</span>
+      <button
+        onClick={onClose}
+        className="ml-2 text-white/80 transition-colors hover:text-white"
+      >
+        <X className="h-4 w-4" />
+      </button>
+    </div>
+  );
+};
+
+// Confirmation Dialog Component
+const ConfirmDialog = ({
+  isOpen,
+  onConfirm,
+  onCancel,
+  courseName,
+  isLoading
+}: {
+  isOpen: boolean;
+  onConfirm: () => void;
+  onCancel: () => void;
+  courseName: string;
+  isLoading: boolean;
+}) => {
+  if (!isOpen) return null;
+
+  return (
+    <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/70 p-4 backdrop-blur-sm duration-300 animate-in fade-in">
+      <div className="relative w-full max-w-md overflow-hidden rounded-3xl bg-white shadow-2xl duration-300 animate-in slide-in-from-bottom-4">
+        {/* Header */}
+        <div className="bg-gradient-to-r from-purple-600 to-indigo-600 px-6 py-4 text-white">
+          <h3 className="text-xl font-bold">Xác nhận mua khóa học</h3>
+        </div>
+
+        {/* Content */}
+        <div className="p-6">
+          <div className="mb-6 text-center">
+            <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-purple-100">
+              <ShoppingCart className="h-8 w-8 text-purple-600" />
+            </div>
+            <p className="mb-2 text-lg font-semibold text-gray-900">
+              Bạn có chắc chắn muốn mua khóa học này không?
+            </p>
+            <p className="text-sm text-gray-600">
+              <span className="font-medium">"{courseName}"</span>
+            </p>
+            <p className="mt-2 text-xs text-gray-500">
+              Sau khi mua, bạn sẽ có thể truy cập vào toàn bộ nội dung khóa học.
+            </p>
+          </div>
+
+          {/* Action buttons */}
+          <div className="flex space-x-3">
+            <button
+              onClick={onCancel}
+              disabled={isLoading}
+              className="flex-1 rounded-xl border border-gray-300 bg-white px-4 py-3 font-medium text-gray-700 transition-colors hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              Hủy
+            </button>
+            <button
+              onClick={onConfirm}
+              disabled={isLoading}
+              className="flex flex-1 items-center justify-center space-x-2 rounded-xl bg-gradient-to-r from-purple-600 to-indigo-600 px-4 py-3 font-medium text-white transition-all hover:from-purple-700 hover:to-indigo-700 disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              {isLoading ? (
+                <>
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                  <span>Đang xử lý...</span>
+                </>
+              ) : (
+                <span>Xác nhận mua</span>
+              )}
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
 
 const StarRating = ({ rating }: { rating: number }) => (
   <div className="flex items-center space-x-1">
@@ -73,6 +159,229 @@ const StarRating = ({ rating }: { rating: number }) => (
   </div>
 );
 
+// Interactive Star Rating Component for user rating
+const InteractiveStarRating = ({
+  currentRating,
+  onRate,
+  size = 'md',
+  disabled = false
+}: {
+  currentRating: number;
+  onRate: (rating: number) => void;
+  size?: 'sm' | 'md' | 'lg';
+  disabled?: boolean;
+}) => {
+  const [hoverRating, setHoverRating] = useState(0);
+
+  const sizeClasses = {
+    sm: 'h-4 w-4',
+    md: 'h-6 w-6',
+    lg: 'h-8 w-8'
+  };
+
+  const handleMouseEnter = (rating: number) => {
+    if (!disabled) {
+      setHoverRating(rating);
+    }
+  };
+
+  const handleMouseLeave = () => {
+    if (!disabled) {
+      setHoverRating(0);
+    }
+  };
+
+  const handleClick = (rating: number) => {
+    if (!disabled) {
+      onRate(rating);
+    }
+  };
+
+  return (
+    <div className="flex items-center space-x-1">
+      {[1, 2, 3, 4, 5].map((star) => {
+        const isActive = star <= (hoverRating || currentRating);
+        return (
+          <button
+            key={star}
+            type="button"
+            disabled={disabled}
+            className={`transition-all duration-200 ${!disabled ? 'cursor-pointer hover:scale-110' : 'cursor-default'} ${disabled ? 'opacity-50' : ''}`}
+            onMouseEnter={() => handleMouseEnter(star)}
+            onMouseLeave={handleMouseLeave}
+            onClick={() => handleClick(star)}
+          >
+            <Star
+              className={`${sizeClasses[size]} transition-all duration-200 ${
+                isActive
+                  ? 'fill-amber-400 text-amber-400 drop-shadow-sm'
+                  : 'text-gray-300 hover:text-amber-300'
+              }`}
+            />
+          </button>
+        );
+      })}
+    </div>
+  );
+};
+
+// Course Rating Modal Component
+const CourseRatingModal = ({
+  isOpen,
+  onClose,
+  course,
+  onSubmitRating
+}: {
+  isOpen: boolean;
+  onClose: () => void;
+  course: CourseResponse;
+  onSubmitRating: (rating: number) => void;
+}) => {
+  const [selectedRating, setSelectedRating] = useState(0);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const handleSubmit = async () => {
+    if (selectedRating === 0) return;
+
+    setIsSubmitting(true);
+    try {
+      await onSubmitRating(selectedRating);
+      onClose();
+    } catch (error) {
+      console.error('Error submitting rating:', error);
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  if (!isOpen) return null;
+
+  const ratingLabels = {
+    1: 'Rất tệ',
+    2: 'Tệ',
+    3: 'Trung bình',
+    4: 'Tốt',
+    5: 'Xuất sắc'
+  };
+
+  return (
+    <div className="fixed inset-0 z-[70] flex items-center justify-center bg-black/70 p-4 backdrop-blur-sm duration-300 animate-in fade-in">
+      <div className="relative w-full max-w-lg overflow-hidden rounded-3xl bg-white shadow-2xl duration-300 animate-in slide-in-from-bottom-4">
+        {/* Header */}
+        <div className="relative bg-gradient-to-r from-violet-600 via-purple-600 to-indigo-700 px-6 py-6 text-white">
+          <div className="absolute inset-0 bg-gradient-to-r from-violet-700/20 to-indigo-800/20"></div>
+          <div className="relative">
+            <h3 className="text-2xl font-bold">Đánh giá khóa học</h3>
+            <p className="mt-1 text-violet-100">
+              Chia sẻ trải nghiệm học tập của bạn
+            </p>
+          </div>
+          <button
+            onClick={onClose}
+            className="absolute right-4 top-4 flex h-8 w-8 items-center justify-center rounded-full bg-white/20 text-white transition-colors hover:bg-white/30"
+          >
+            <X className="h-4 w-4" />
+          </button>
+        </div>
+
+        {/* Content */}
+        <div className="p-6">
+          <div className="mb-6 text-center">
+            <h4 className="mb-2 line-clamp-2 text-xl font-bold text-gray-900">
+              {course.title}
+            </h4>
+            <p className="text-sm text-gray-600">
+              Bạn cảm thấy khóa học này như thế nào?
+            </p>
+          </div>
+
+          {/* Rating Section */}
+          <div className="mb-6 text-center">
+            <div className="mb-4 flex justify-center">
+              <InteractiveStarRating
+                currentRating={selectedRating}
+                onRate={setSelectedRating}
+                size="lg"
+              />
+            </div>
+
+            {selectedRating > 0 && (
+              <div className="duration-300 animate-in slide-in-from-bottom-2">
+                <p className="text-lg font-semibold text-gray-900">
+                  {ratingLabels[selectedRating as keyof typeof ratingLabels]}
+                </p>
+                <p className="text-sm text-gray-600">
+                  {selectedRating} trên 5 sao
+                </p>
+              </div>
+            )}
+          </div>
+
+          {/* Action buttons */}
+          <div className="flex space-x-3">
+            <button
+              onClick={onClose}
+              disabled={isSubmitting}
+              className="flex-1 rounded-xl border border-gray-300 bg-white px-4 py-3 font-medium text-gray-700 transition-colors hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              Hủy
+            </button>
+            <button
+              onClick={handleSubmit}
+              disabled={selectedRating === 0 || isSubmitting}
+              className="flex flex-1 items-center justify-center space-x-2 rounded-xl bg-gradient-to-r from-violet-600 via-purple-600 to-indigo-600 px-4 py-3 font-medium text-white transition-all hover:from-violet-700 hover:via-purple-700 hover:to-indigo-700 disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:from-violet-600 disabled:hover:via-purple-600 disabled:hover:to-indigo-600"
+            >
+              {isSubmitting ? (
+                <>
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                  <span>Đang gửi...</span>
+                </>
+              ) : (
+                <span>Gửi đánh giá</span>
+              )}
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// Rating Button Component
+const RatingButton = ({
+  course,
+  onOpenRating
+}: {
+  course: CourseResponse;
+  onOpenRating: () => void;
+}) => {
+  const { data: canRate } = useCheckCourseRate(course.id);
+  const shouldShowRating = canRate?.result === true;
+
+  if (!shouldShowRating) {
+    return null;
+  }
+
+  return (
+    <button
+      className="group relative flex transform items-center justify-center rounded-xl bg-gradient-to-r from-violet-500 via-purple-500 to-pink-500 px-3 py-2 font-medium text-white shadow-md transition-all duration-200 hover:scale-105 hover:from-violet-600 hover:via-purple-600 hover:to-pink-600"
+      onClick={(e) => {
+        e.stopPropagation();
+        onOpenRating();
+      }}
+      title="Đánh giá khóa học"
+    >
+      <Star className="h-4 w-4 fill-current" />
+
+      {/* Tooltip */}
+      <div className="pointer-events-none absolute -top-12 left-1/2 z-10 -translate-x-1/2 transform rounded-lg bg-gray-900 px-3 py-1 text-xs text-white opacity-0 transition-opacity group-hover:opacity-100">
+        Đánh giá khóa học
+        <div className="absolute -bottom-1 left-1/2 h-2 w-2 -translate-x-1/2 rotate-45 transform bg-gray-900"></div>
+      </div>
+    </button>
+  );
+};
+
 const formatDate = (dateString: string) => {
   const date = new Date(dateString);
   return date.toLocaleDateString('vi-VN', {
@@ -85,19 +394,19 @@ const formatDate = (dateString: string) => {
 type CourseDetailProps = {
   course: CourseResponse;
   onClose: () => void;
-  onJoinCourse?: (courseId: number) => void;
   onStartLearning?: (courseId: number) => void; // Added this prop
   isJoining?: boolean;
   isJoined?: boolean;
+  onShowConfirmDialog?: (courseId: number, courseName: string) => void;
 };
 
 const CourseDetail = ({
   course,
   onClose,
-  onJoinCourse,
   onStartLearning, // Added this prop
   isJoining = false,
-  isJoined = false
+  isJoined = false,
+  onShowConfirmDialog
 }: CourseDetailProps) => (
   <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4 backdrop-blur-sm duration-300 animate-in fade-in">
     <PageHead title="ClickFlow – Chi tiết khóa học" />
@@ -151,10 +460,14 @@ const CourseDetail = ({
       {/* BODY: chỉ phần này cuộn */}
       <div className="flex-1 overflow-y-auto bg-white p-8">
         {/* Action buttons */}
-        {!isJoined && onJoinCourse && (
+        {!isJoined && onShowConfirmDialog && (
           <div className="mb-8 flex flex-wrap gap-4">
             <button
-              onClick={() => onJoinCourse(course.id)}
+              onClick={() => {
+                if (onShowConfirmDialog) {
+                  onShowConfirmDialog(course.id, course.title);
+                }
+              }}
               disabled={isJoining}
               className="flex transform items-center space-x-2 rounded-2xl bg-gradient-to-r from-purple-600 to-indigo-600 px-8 py-4 font-semibold text-white shadow-lg transition-all duration-200 hover:scale-105 hover:from-purple-700 hover:to-indigo-700 hover:shadow-xl disabled:transform-none disabled:cursor-not-allowed disabled:opacity-50"
             >
@@ -196,9 +509,9 @@ const CourseDetail = ({
               </p>
             </div>
 
-            <div className="from-blue-50 border-blue-100 rounded-2xl border bg-gradient-to-br to-white p-8">
+            <div className="rounded-2xl border border-blue-100 bg-gradient-to-br from-blue-50 to-white p-8">
               <h3 className="mb-4 flex items-center text-2xl font-bold text-gray-900">
-                <div className="from-blue-500 mr-4 h-8 w-1 rounded-full bg-gradient-to-b to-cyan-500" />
+                <div className="mr-4 h-8 w-1 rounded-full bg-gradient-to-b from-blue-500 to-cyan-500" />
                 Nội dung giáo trình
               </h3>
               <p className="text-lg leading-relaxed text-gray-700">
@@ -258,6 +571,7 @@ const CourseDetail = ({
 );
 
 const UdemyBody = () => {
+  const queryClient = useQueryClient();
   const [currentPage, setCurrentPage] = useState<number>(1);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCourse, setSelectedCourse] = useState<CourseResponse | null>(
@@ -274,21 +588,40 @@ const UdemyBody = () => {
     message: string;
     type: 'success' | 'error';
   } | null>(null);
+  const [confirmDialog, setConfirmDialog] = useState<{
+    isOpen: boolean;
+    courseId: number | null;
+    courseName: string;
+  }>({
+    isOpen: false,
+    courseId: null,
+    courseName: ''
+  });
+  const [ratingModal, setRatingModal] = useState<{
+    isOpen: boolean;
+    course: CourseResponse | null;
+  }>({
+    isOpen: false,
+    course: null
+  });
 
   // Separate queries for available and joined courses
   const {
     data: availableCoursesResponse,
     isLoading: isLoadingAvailable,
-    isError: isErrorAvailable
+    isError: isErrorAvailable,
+    refetch: refetchAvailableCourses
   } = useGetAllCourses(currentPage);
 
   const {
     data: joinedCoursesResponse,
     isLoading: isLoadingJoined,
-    isError: isErrorJoined
+    isError: isErrorJoined,
+    refetch: refetchJoinedCourses
   } = useGetAllCoursesJoin(currentPage);
 
   const { mutateAsync: joinCourse, isPending } = useJoinCourse();
+  const { mutateAsync: rateCourse } = useRateCourse();
 
   // Get current data based on active tab
   const currentApiResponse =
@@ -303,17 +636,6 @@ const UdemyBody = () => {
   const totalItems = currentApiResponse?.result?.totalItems || 0;
   const postsPerPage = 10;
 
-  // Debug logging
-  console.log('Debug Info:', {
-    activeTab,
-    availableCoursesResponse,
-    joinedCoursesResponse,
-    currentApiResponse,
-    courses: courses.length,
-    isLoading,
-    isError
-  });
-
   const filteredCourses = courses.filter((course: CourseResponse) =>
     course.title.toLowerCase().includes(searchQuery.toLowerCase())
   );
@@ -325,8 +647,13 @@ const UdemyBody = () => {
         message: 'Đăng ký khóa học thành công! Chúc bạn học tập hiệu quả.',
         type: 'success'
       });
+
       // Close modal after successful purchase
       setSelectedCourse(null);
+
+      // Refresh course data
+      refetchAvailableCourses();
+      refetchJoinedCourses();
     } catch (error) {
       setToast({
         message: 'Có lỗi xảy ra khi đăng ký khóa học. Vui lòng thử lại.',
@@ -337,12 +664,81 @@ const UdemyBody = () => {
 
   const handleQuickJoin = async (e: React.MouseEvent, courseId: number) => {
     e.stopPropagation();
-    await handleJoinCourse(courseId);
+    const course = courses.find((c) => c.id === courseId);
+    if (course) {
+      setConfirmDialog({
+        isOpen: true,
+        courseId: courseId,
+        courseName: course.title
+      });
+    }
+  };
+
+  const handleConfirmPurchase = async () => {
+    if (confirmDialog.courseId) {
+      await handleJoinCourse(confirmDialog.courseId);
+      setConfirmDialog({
+        isOpen: false,
+        courseId: null,
+        courseName: ''
+      });
+    }
+  };
+
+  const handleCancelPurchase = () => {
+    setConfirmDialog({
+      isOpen: false,
+      courseId: null,
+      courseName: ''
+    });
+  };
+
+  const handleOpenRatingModal = (course: CourseResponse) => {
+    setRatingModal({
+      isOpen: true,
+      course: course
+    });
+  };
+
+  const handleCloseRatingModal = () => {
+    setRatingModal({
+      isOpen: false,
+      course: null
+    });
+  };
+
+  const handleSubmitRating = async (rating: number) => {
+    if (ratingModal.course) {
+      try {
+        await rateCourse({
+          courseId: ratingModal.course.id,
+          rate: rating
+        });
+
+        setToast({
+          message: 'Cảm ơn bạn đã đánh giá khóa học!',
+          type: 'success'
+        });
+
+        // Invalidate check rate query để reload trạng thái đánh giá
+        queryClient.invalidateQueries({
+          queryKey: ['check-course-rate', ratingModal.course.id]
+        });
+
+        // Refresh course data to update rating
+        refetchJoinedCourses();
+        refetchAvailableCourses();
+      } catch (error) {
+        setToast({
+          message: 'Có lỗi xảy ra khi gửi đánh giá. Vui lòng thử lại.',
+          type: 'error'
+        });
+      }
+    }
   };
 
   // Updated handleStartLearning function
   const handleStartLearning = (courseId: number) => {
-    console.log('Starting learning for course:', courseId);
     setSelectedCourseForVideo(courseId);
     setSelectedCourse(null); // Close course detail modal if open
   };
@@ -351,95 +747,110 @@ const UdemyBody = () => {
     setSelectedCourseForVideo(null);
   };
 
-  // Reset to page 1 when switching tabs
+  // Reset to page 1 when switching tabs and refetch data
   const handleTabChange = (tab: 'available' | 'joined') => {
     setActiveTab(tab);
     setCurrentPage(1);
     setSearchQuery('');
+
+    // Refetch data based on the selected tab
+    if (tab === 'joined') {
+      refetchJoinedCourses();
+    } else {
+      refetchAvailableCourses();
+    }
   };
 
   const renderCourseCard = (
     course: CourseResponse,
     isJoined: boolean = false
-  ) => (
-    <div
-      key={course.id}
-      className="group relative flex transform cursor-pointer flex-col overflow-hidden rounded-3xl border border-gray-100 bg-white shadow-sm transition-all duration-300 hover:-translate-y-2 hover:border-purple-200 hover:shadow-xl"
-      onClick={() => setSelectedCourse(course)}
-      role="button"
-      tabIndex={0}
-      onKeyDown={(e) => {
-        if (e.key === 'Enter' || e.key === ' ') {
-          setSelectedCourse(course);
-        }
-      }}
-    >
-      {/* Course Image Placeholder */}
-      <div className="relative h-48 overflow-hidden bg-gradient-to-br from-purple-400 via-pink-400 to-indigo-500">
-        <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent" />
-        <div className="absolute right-4 top-4 flex space-x-2">
-          <div className="rounded-full bg-white/90 px-3 py-1 text-sm font-semibold text-purple-700 backdrop-blur-sm">
-            #{course.id}
-          </div>
-          {isJoined && (
-            <div className="rounded-full bg-emerald-500/90 px-3 py-1 text-sm font-semibold text-white backdrop-blur-sm">
-              <CheckCircle className="h-3 w-3" />
+  ) => {
+    return (
+      <div
+        key={course.id}
+        className="group relative flex transform cursor-pointer flex-col overflow-hidden rounded-3xl border border-gray-100 bg-white shadow-sm transition-all duration-300 hover:-translate-y-2 hover:border-purple-200 hover:shadow-xl"
+        onClick={() => setSelectedCourse(course)}
+        role="button"
+        tabIndex={0}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter' || e.key === ' ') {
+            setSelectedCourse(course);
+          }
+        }}
+      >
+        {/* Course Image Placeholder */}
+        <div className="relative h-48 overflow-hidden bg-gradient-to-br from-purple-400 via-pink-400 to-indigo-500">
+          <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent" />
+          <div className="absolute right-4 top-4 flex space-x-2">
+            <div className="rounded-full bg-white/90 px-3 py-1 text-sm font-semibold text-purple-700 backdrop-blur-sm">
+              #{course.id}
             </div>
-          )}
+            {isJoined && (
+              <div className="rounded-full bg-emerald-500/90 px-3 py-1 text-sm font-semibold text-white backdrop-blur-sm">
+                <CheckCircle className="h-3 w-3" />
+              </div>
+            )}
+          </div>
+          <div className="absolute bottom-4 left-4 right-4">
+            <div className="flex items-center text-sm text-white/90">
+              <Clock className="mr-1 h-4 w-4" />
+              <span>{formatDate(course.createAt)}</span>
+            </div>
+          </div>
         </div>
-        <div className="absolute bottom-4 left-4 right-4">
-          <div className="flex items-center text-sm text-white/90">
-            <Clock className="mr-1 h-4 w-4" />
-            <span>{formatDate(course.createAt)}</span>
+
+        <div className="flex flex-1 flex-col p-6">
+          <h3 className="mb-2 line-clamp-2 h-12 text-lg font-bold text-gray-900 transition-colors group-hover:text-purple-700">
+            {course.title}
+          </h3>
+
+          <div className="mb-3 flex items-center">
+            <StarRating rating={course.avgRate} />
+          </div>
+
+          <p className="mb-4 line-clamp-2 h-10 text-sm text-gray-600">
+            {course.description}
+          </p>
+
+          <div className="mt-auto flex items-center justify-between">
+            <span className="ml-1 text-lg font-bold text-purple-600">
+              {course.price.toLocaleString()}₫
+            </span>
+            {isJoined ? (
+              <div className="flex space-x-2">
+                <button
+                  className="flex transform items-center space-x-1 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 px-3 py-2 font-medium text-white shadow-md transition-all duration-200 hover:scale-105 hover:from-emerald-700 hover:to-teal-700"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleStartLearning(course.id);
+                  }}
+                >
+                  <Play className="h-4 w-4" />
+                  <span>Học</span>
+                </button>
+                <RatingButton
+                  course={course}
+                  onOpenRating={() => handleOpenRatingModal(course)}
+                />
+              </div>
+            ) : (
+              <button
+                className="flex transform items-center space-x-1 rounded-xl bg-gradient-to-r from-purple-600 to-indigo-600 px-4 py-2 font-medium text-white shadow-md transition-all duration-200 hover:scale-105 hover:from-purple-700 hover:to-indigo-700 disabled:transform-none disabled:cursor-not-allowed disabled:opacity-50"
+                onClick={(e) => handleQuickJoin(e, course.id)}
+                disabled={isPending}
+              >
+                {isPending ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  <span>Mua ngay</span>
+                )}
+              </button>
+            )}
           </div>
         </div>
       </div>
-
-      <div className="flex flex-1 flex-col p-6">
-        <h3 className="mb-2 line-clamp-2 h-12 text-lg font-bold text-gray-900 transition-colors group-hover:text-purple-700">
-          {course.title}
-        </h3>
-
-        <div className="mb-3 flex items-center">
-          <StarRating rating={course.avgRate} />
-        </div>
-
-        <p className="mb-4 line-clamp-2 h-10 text-sm text-gray-600">
-          {course.description}
-        </p>
-
-        <div className="mt-auto flex items-center justify-between">
-          <span className="ml-1 text-lg font-bold text-purple-600">
-            {course.price.toLocaleString()}₫
-          </span>
-          {isJoined ? (
-            <button
-              className="flex transform items-center space-x-1 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 px-4 py-2 font-medium text-white shadow-md transition-all duration-200 hover:scale-105 hover:from-emerald-700 hover:to-teal-700"
-              onClick={(e) => {
-                e.stopPropagation();
-                handleStartLearning(course.id);
-              }}
-            >
-              <Play className="h-4 w-4" />
-              <span>Học ngay</span>
-            </button>
-          ) : (
-            <button
-              className="flex transform items-center space-x-1 rounded-xl bg-gradient-to-r from-purple-600 to-indigo-600 px-4 py-2 font-medium text-white shadow-md transition-all duration-200 hover:scale-105 hover:from-purple-700 hover:to-indigo-700 disabled:transform-none disabled:cursor-not-allowed disabled:opacity-50"
-              onClick={(e) => handleQuickJoin(e, course.id)}
-              disabled={isPending}
-            >
-              {isPending ? (
-                <Loader2 className="h-4 w-4 animate-spin" />
-              ) : (
-                <span>Mua ngay</span>
-              )}
-            </button>
-          )}
-        </div>
-      </div>
-    </div>
-  );
+    );
+  };
 
   const renderCourseList = (
     course: CourseResponse,
@@ -507,16 +918,22 @@ const UdemyBody = () => {
               {course.price.toLocaleString()}₫
             </span>
             {isJoined ? (
-              <button
-                className="flex transform items-center space-x-2 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 px-6 py-3 font-medium text-white shadow-md transition-all duration-200 hover:scale-105 hover:from-emerald-700 hover:to-teal-700"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  handleStartLearning(course.id);
-                }}
-              >
-                <Play className="h-5 w-5" />
-                <span>Học ngay</span>
-              </button>
+              <div className="flex space-x-3">
+                <button
+                  className="flex transform items-center space-x-2 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 px-6 py-3 font-medium text-white shadow-md transition-all duration-200 hover:scale-105 hover:from-emerald-700 hover:to-teal-700"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleStartLearning(course.id);
+                  }}
+                >
+                  <Play className="h-5 w-5" />
+                  <span>Học ngay</span>
+                </button>
+                <RatingButton
+                  course={course}
+                  onOpenRating={() => handleOpenRatingModal(course)}
+                />
+              </div>
             ) : (
               <button
                 className="flex transform items-center space-x-2 rounded-xl bg-gradient-to-r from-purple-600 to-indigo-600 px-6 py-3 font-medium text-white shadow-md transition-all duration-200 hover:scale-105 hover:from-purple-700 hover:to-indigo-700 disabled:transform-none disabled:cursor-not-allowed disabled:opacity-50"
@@ -579,7 +996,7 @@ const UdemyBody = () => {
                   <div className="mx-auto max-w-4xl text-center">
                     <div className="mb-6 flex justify-center">
                       <div className="flex items-center space-x-2 rounded-full border border-white/20 bg-white/10 px-6 py-2 backdrop-blur-sm">
-                        <Sparkles className="text-yellow-400 h-5 w-5" />
+                        <Sparkles className="h-5 w-5 text-yellow-400" />
                         <span className="font-semibold text-white">
                           Học tập không giới hạn
                         </span>
@@ -587,7 +1004,7 @@ const UdemyBody = () => {
                     </div>
                     <h1 className="mb-6 text-5xl font-bold leading-tight text-white sm:text-6xl">
                       Nâng cao
-                      <span className="from-yellow-400 to-orange-400 bg-gradient-to-r bg-clip-text text-transparent">
+                      <span className="bg-gradient-to-r from-yellow-400 to-orange-400 bg-clip-text text-transparent">
                         {' '}
                         kỹ năng{' '}
                       </span>
@@ -598,7 +1015,7 @@ const UdemyBody = () => {
                       Học mọi lúc, mọi nơi với nội dung được cập nhật liên tục.
                     </p>
                     <div className="flex flex-col justify-center gap-4 sm:flex-row">
-                      <button className="from-yellow-400 to-orange-400 hover:from-yellow-500 hover:to-orange-500 transform rounded-2xl bg-gradient-to-r px-8 py-4 font-bold text-white shadow-lg transition-all duration-200 hover:scale-105 hover:shadow-xl">
+                      <button className="transform rounded-2xl bg-gradient-to-r from-yellow-400 to-orange-400 px-8 py-4 font-bold text-white shadow-lg transition-all duration-200 hover:scale-105 hover:from-yellow-500 hover:to-orange-500 hover:shadow-xl">
                         Bắt đầu học ngay
                       </button>
                       <button className="rounded-2xl border border-white/20 bg-white/10 px-8 py-4 font-semibold text-white backdrop-blur-sm transition-all duration-200 hover:bg-white/20">
@@ -759,14 +1176,41 @@ const UdemyBody = () => {
                 <CourseDetail
                   course={selectedCourse}
                   onClose={() => setSelectedCourse(null)}
-                  onJoinCourse={
-                    activeTab === 'available' ? handleJoinCourse : undefined
+                  onShowConfirmDialog={
+                    activeTab === 'available'
+                      ? (courseId: number, courseName: string) => {
+                          setConfirmDialog({
+                            isOpen: true,
+                            courseId: courseId,
+                            courseName: courseName
+                          });
+                        }
+                      : undefined
                   }
                   onStartLearning={
                     activeTab === 'joined' ? handleStartLearning : undefined
                   }
                   isJoining={isPending}
                   isJoined={activeTab === 'joined'}
+                />
+              )}
+
+              {/* Confirmation Dialog */}
+              <ConfirmDialog
+                isOpen={confirmDialog.isOpen}
+                onConfirm={handleConfirmPurchase}
+                onCancel={handleCancelPurchase}
+                courseName={confirmDialog.courseName}
+                isLoading={isPending}
+              />
+
+              {/* Rating Modal */}
+              {ratingModal.course && (
+                <CourseRatingModal
+                  isOpen={ratingModal.isOpen}
+                  onClose={handleCloseRatingModal}
+                  course={ratingModal.course}
+                  onSubmitRating={handleSubmitRating}
                 />
               )}
             </>

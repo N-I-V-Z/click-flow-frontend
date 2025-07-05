@@ -156,7 +156,7 @@ const NewsSection: React.FC = () => {
   }, []);
 
   return (
-    <div className="relative min-h-screen">
+    <div className="relative mb-20 min-h-screen pb-20 ">
       {/* New Modern Background */}
       <div className="absolute inset-0 overflow-hidden rounded-lg bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900">
         {/* Simple Pattern */}
@@ -172,7 +172,7 @@ const NewsSection: React.FC = () => {
           style={{ animationDelay: '2s' }}
         ></div>
         <div
-          className="absolute left-1/2 top-1/2 h-32 w-32 -translate-x-1/2 -translate-y-1/2 transform animate-pulse rounded-full bg-blue blur-2xl filter"
+          className="bg-blue absolute left-1/2 top-1/2 h-32 w-32 -translate-x-1/2 -translate-y-1/2 transform animate-pulse rounded-full blur-2xl filter"
           style={{ animationDelay: '4s' }}
         ></div>
       </div>
@@ -182,7 +182,7 @@ const NewsSection: React.FC = () => {
         <div className="relative mt-12">
           <div className="text-center">
             <div className="mb-3 flex items-center justify-center">
-              <SparklesIcon className="animate-spin-slow text-yellow-400 mr-2 h-12 w-12" />
+              <SparklesIcon className="animate-spin-slow mr-2 h-12 w-12 text-yellow-400" />
               <div className="relative mb-8 text-center">
                 <div className="relative">
                   <div className="mb-3 flex items-center justify-center">
@@ -193,7 +193,7 @@ const NewsSection: React.FC = () => {
                   </div>
                 </div>
               </div>
-              <SparklesIcon className="animate-spin-slow text-yellow-400 ml-2 h-12 w-12" />
+              <SparklesIcon className="animate-spin-slow ml-2 h-12 w-12 text-yellow-400" />
             </div>
           </div>
         </div>
@@ -210,7 +210,7 @@ const NewsSection: React.FC = () => {
               }`}
             >
               {/* Subtle Glowing Border */}
-              <div className="to-blue-500 absolute -inset-0.5 rounded-2xl bg-gradient-to-r from-purple-500 via-pink-500 opacity-60 blur-sm transition duration-300 group-hover:opacity-100"></div>
+              <div className="absolute -inset-0.5 rounded-2xl bg-gradient-to-r from-purple-500 via-pink-500 to-blue-500 opacity-60 blur-sm transition duration-300 group-hover:opacity-100"></div>
 
               <div className="relative overflow-hidden rounded-2xl bg-white/95 shadow-xl backdrop-blur-sm">
                 <div className="relative overflow-hidden">
@@ -235,7 +235,7 @@ const NewsSection: React.FC = () => {
 
                   {/* Simple Hot Badge */}
                   <div className="absolute right-4 top-4">
-                    <div className="from-orange-500 to-red-500 rounded-lg bg-gradient-to-r px-2 py-1 text-xs font-bold text-white shadow-lg">
+                    <div className="rounded-lg bg-gradient-to-r from-orange-500 to-red-500 px-2 py-1 text-xs font-bold text-white shadow-lg">
                       🔥 HOT
                     </div>
                   </div>
@@ -450,7 +450,6 @@ const NewsSection: React.FC = () => {
           </div>
         </div>
       </div>
-      <br />
     </div>
   );
 };

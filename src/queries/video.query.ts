@@ -1,6 +1,12 @@
 import BaseRequest from '@/config/axios.config';
-import { ApiResponse, VideoCourseResponse } from '@/types';
-import { useQuery } from '@tanstack/react-query';
+import {
+  ApiResponse,
+  VideoCourseResponse,
+  CreateVideoPayload,
+  CreateVideoResponse,
+  UpdateVideoPayload
+} from '@/types';
+import { useQuery, useMutation } from '@tanstack/react-query';
 
 const SUB_URL = `/api/Videos`;
 
@@ -14,5 +20,38 @@ export const useGetVideoCourses = (courseId?: number) => {
     },
     staleTime: 1000 * 60 * 5,
     retry: 3
+  });
+};
+
+export const useCreateVideo = () => {
+  return useMutation({
+    mutationKey: ['create-video'],
+    mutationFn: async (payload: CreateVideoPayload) => {
+      return await BaseRequest.Post<CreateVideoResponse>(`${SUB_URL}`, payload);
+    }
+  });
+};
+
+export const useUpdateVideo = () => {
+  return useMutation({
+    mutationKey: ['update-video'],
+    mutationFn: async ({
+      videoId,
+      ...payload
+    }: { videoId: number } & UpdateVideoPayload) => {
+      return await BaseRequest.Put<UpdateVideoPayload>(
+        `${SUB_URL}/${videoId}`,
+        payload
+      );
+    }
+  });
+};
+
+export const useDeleteVideo = () => {
+  return useMutation({
+    mutationKey: ['delete-video'],
+    mutationFn: async (videoId: number) => {
+      return await BaseRequest.Delete(`${SUB_URL}/${videoId}`);
+    }
   });
 };

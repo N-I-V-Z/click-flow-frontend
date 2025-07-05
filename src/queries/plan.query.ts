@@ -9,7 +9,7 @@ import {
 import { useMutation, useQuery } from '@tanstack/react-query';
 
 const SUB_URL = `/api/Plans`;
-const SUB_URL_UPGRADE_PLAN = 'api/UserPlans';
+const SUB_URL_UPGRADE_PLAN = '/api/UserPlans';
 
 /**
  * Hook gọi API lấy danh sách Campaigns theo status
@@ -35,7 +35,7 @@ export const useCreatePlan = () => {
   return useMutation({
     mutationKey: ['create-plan'],
     mutationFn: async (model: PlanRequest) => {
-      return await BaseRequest.Post<Plans>(`/${SUB_URL}`, model);
+      return await BaseRequest.Post<Plans>(`${SUB_URL}`, model);
     }
   });
 };

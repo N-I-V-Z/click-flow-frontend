@@ -61,7 +61,7 @@ export function useGetPublisherTraffic(
     queryFn: async () => {
       const campaignParam = campaignId ? `&CampaignId=${campaignId}` : '';
       return await BaseRequest.Get<PagingResponse<TrafficApiResponse>>(
-        `/api/Traffics/publisher?PageIndex=${pageIndex}&PageSize=${pageSize}${campaignParam}`
+        `${SUB_URL}/publisher?PageIndex=${pageIndex}&PageSize=${pageSize}${campaignParam}`
       );
     },
     staleTime: 1000 * 60 * 5,
@@ -81,7 +81,7 @@ export const useGetPublisherBrowserStats = () => {
     queryKey: ['publisher-browser-stats'],
     queryFn: async () => {
       return await BaseRequest.Get<PublisherBrowserStat[]>(
-        '/api/Traffics/publishers/statistics/browsers'
+        `${SUB_URL}/publishers/statistics/browsers`
       );
     },
     staleTime: 1000 * 60 * 5,
@@ -100,7 +100,26 @@ export const useGetPublisherDeviceStats = () => {
     queryKey: ['publisher-device-stats'],
     queryFn: async () => {
       return await BaseRequest.Get<PublisherDeviceStat[]>(
-        '/api/Traffics/publishers/statistics/devices'
+        `${SUB_URL}/publishers/statistics/devices`
+      );
+    },
+    staleTime: 1000 * 60 * 5,
+    retry: 3
+  });
+};
+
+// Thống kê revenue cho publisher
+export interface PublisherRevenueStat {
+  campaignName: string;
+  revenue: number;
+}
+
+export const useGetPublisherRevenueStats = () => {
+  return useQuery({
+    queryKey: ['publisher-revenue-stats'],
+    queryFn: async () => {
+      return await BaseRequest.Get<PublisherRevenueStat[]>(
+        `${SUB_URL}/publisher/revenue`
       );
     },
     staleTime: 1000 * 60 * 5,

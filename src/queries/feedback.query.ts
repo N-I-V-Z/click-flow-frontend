@@ -53,10 +53,29 @@ export const useUpdateFeedback = () => {
     }) => {
       // Gọi PUT /api/feedbacks/update-feedback với payload
       const response = await BaseRequest.Put(
-        '/api/feedbacks/update-feedback',
+        `${SUB_URL}/update-feedback`,
         payload
       );
       return response;
     }
+  });
+};
+export const useCheckUserFeedback = (campaignId: number) => {
+  return useQuery<boolean>({
+    queryKey: ['check-user-feedback', campaignId],
+    enabled: !!campaignId,
+    queryFn: async (): Promise<boolean> => {
+      const response: ApiResponse<boolean> = await BaseRequest.Get(
+        `${SUB_URL}/check-feedback/${campaignId}`
+      );
+
+      if (!response.isSuccess) {
+        throw new Error(response.message || 'Error checking feedback status');
+      }
+
+      return response.result ?? false;
+    },
+    staleTime: 1000 * 60 * 2, // 2 minutes cache
+    retry: 2
   });
 };
