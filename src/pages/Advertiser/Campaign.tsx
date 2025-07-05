@@ -233,7 +233,7 @@ const AdvertiserCampaigns = () => {
     {
       accessorKey: 'status',
       header: () => (
-        <div className="text-center font-semibold text-gray-700">
+        <div className="ml-6 text-center font-semibold text-gray-700">
           TRẠNG THÁI
         </div>
       ),
@@ -247,7 +247,9 @@ const AdvertiserCampaigns = () => {
     {
       accessorKey: 'budget',
       header: () => (
-        <div className="text-right font-semibold text-gray-700">NGÂN SÁCH</div>
+        <div className="ml-6 text-center font-semibold text-gray-700">
+          NGÂN SÁCH
+        </div>
       ),
       cell: ({ row }) => {
         const budget = row.original?.budget;
@@ -269,7 +271,7 @@ const AdvertiserCampaigns = () => {
     {
       id: 'actions',
       header: () => (
-        <div className="ml-8 text-center font-semibold text-gray-700">
+        <div className="ml-6 text-center font-semibold text-gray-700">
           THAO TÁC
         </div>
       ),
@@ -280,7 +282,7 @@ const AdvertiserCampaigns = () => {
               setSelectedProject(row.original);
               setIsViewOpen(true);
             }}
-            className="bg-blue-50 hover:bg-blue-100 rounded-full p-2 text-blue transition-colors duration-200"
+            className="rounded-full bg-blue-50 p-2 text-blue-500 transition-colors duration-200 hover:bg-blue-100"
             title="Xem chi tiết"
           >
             <Eye className="text-sm" size={16} />
@@ -290,7 +292,7 @@ const AdvertiserCampaigns = () => {
               setSelectedProject(row.original);
               setIsEditOpen(true);
             }}
-            className="bg-yellow-50 hover:bg-yellow-100 rounded-full p-2 text-yellow transition-colors duration-200"
+            className="rounded-full bg-yellow-50 p-2 text-yellow-500 transition-colors duration-200 hover:bg-yellow-100"
             title="Chỉnh sửa"
           >
             <Pencil className="text-sm" size={16} />
@@ -300,7 +302,7 @@ const AdvertiserCampaigns = () => {
               setSelectedProject(row.original);
               setIsDeleteOpen(true);
             }}
-            className="bg-red-50 hover:bg-red-100 rounded-full p-2 text-red transition-colors duration-200"
+            className="rounded-full bg-red-50 p-2 text-red-500 transition-colors duration-200 hover:bg-red-100"
             title="Xóa chiến dịch"
           >
             <Trash2 className="text-sm" size={16} />
@@ -334,9 +336,9 @@ const AdvertiserCampaigns = () => {
       <BasePages pageHead="ClickFlow - Danh sách chiến dịch">
         <div className="flex min-h-screen items-center justify-center bg-gray-50">
           <div className="rounded-lg bg-white p-8 text-center shadow-sm">
-            <div className="bg-red-100 mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full">
+            <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-red-100">
               <svg
-                className="text-red-600 h-8 w-8"
+                className="h-8 w-8 text-red-600"
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"
@@ -390,7 +392,7 @@ const AdvertiserCampaigns = () => {
                         e.target.value as AdvertiserCampaignStatus
                       )
                     }
-                    className="focus:border-blue-500 focus:ring-blue-500 rounded border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-1"
+                    className="rounded border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
                   >
                     {statusOptions.map((x) => (
                       <option key={x.name} value={x.name}>
@@ -434,7 +436,7 @@ const AdvertiserCampaigns = () => {
           <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
             <div className="relative -top-4 max-h-[85vh] w-full max-w-2xl rounded-lg bg-white shadow-xl">
               {/* Header */}
-              <div className="from-blue-600 bg-gradient-to-r to-purple-600 px-6 py-4">
+              <div className="bg-gradient-to-r from-blue-400 to-purple-600 px-6 py-4">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center space-x-3">
                     <div className="flex h-8 w-8 items-center justify-center rounded-full bg-white/20">
@@ -449,19 +451,13 @@ const AdvertiserCampaigns = () => {
                       </p>
                     </div>
                   </div>
-                  <button
-                    onClick={() => setIsViewOpen(false)}
-                    className="flex h-8 w-8 items-center justify-center rounded-full bg-white/20 text-black hover:bg-white/30"
-                  >
-                    ×
-                  </button>
                 </div>
               </div>
 
               {/* Content */}
               <div className="max-h-[60vh] p-6">
                 {/* Campaign Image & Basic Info */}
-                <div className="mb-6 rounded-lg bg-gradient-to-r from-gray-50 to-white p-4">
+                <div className="mt-5 rounded-lg bg-gradient-to-r from-gray-50 to-white p-4">
                   <div className="-mt-10 flex items-start space-x-4 ">
                     <div className="h-32 w-40 flex-shrink-0 overflow-hidden rounded-lg border border-gray-200 bg-gray-100 ">
                       {selectedProject.image ? (
@@ -494,8 +490,8 @@ const AdvertiserCampaigns = () => {
 
                 {/* Details Grid */}
                 <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-                  <div className="border-blue-500 bg-blue-50 rounded-lg border-l-4 p-4">
-                    <label className="text-blue-600 text-xs font-medium uppercase tracking-wide">
+                  <div className="rounded-lg border-l-4 border-blue-500 bg-blue-50 p-4">
+                    <label className="text-xs font-medium uppercase tracking-wide text-blue-600">
                       NHÀ QUẢNG CÁO
                     </label>
                     <p className="mt-1 text-sm font-semibold text-gray-800">
@@ -518,8 +514,8 @@ const AdvertiserCampaigns = () => {
                     </p>
                   </div>
 
-                  <div className="border-orange-500 bg-orange-50 rounded-lg border-l-4 p-4">
-                    <label className="text-orange-600 text-xs font-medium uppercase tracking-wide">
+                  <div className="rounded-lg border-l-4 border-orange-500 bg-orange-50 p-4">
+                    <label className="text-xs font-medium uppercase tracking-wide text-orange-600">
                       NGÀY BẮT ĐẦU
                     </label>
                     <p className="mt-1 text-sm font-semibold text-gray-800">
@@ -527,8 +523,8 @@ const AdvertiserCampaigns = () => {
                     </p>
                   </div>
 
-                  <div className="border-red-500 bg-red-50 rounded-lg border-l-4 p-4">
-                    <label className="text-red-600 text-xs font-medium uppercase tracking-wide">
+                  <div className="rounded-lg border-l-4 border-red-500 bg-red-50 p-4">
+                    <label className="text-xs font-medium uppercase tracking-wide text-red-600">
                       NGÀY KẾT THÚC
                     </label>
                     <p className="mt-1 text-sm font-semibold text-gray-800">

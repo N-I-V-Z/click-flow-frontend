@@ -25,7 +25,6 @@ export const useGetCommentsByPostId = (
       const response = await BaseRequest.Get<CommentListResponse>(
         `${SUB_URL}/get-comment-by-post-id/${postId}/${pageIndex}/${pageSize}`
       );
-
       return response;
     },
     staleTime: 1000 * 60 * 2, // Cache 2 minutes

@@ -265,7 +265,7 @@ const AttractivePublisherParticipationRequest: React.FC = () => {
             <div className="flex justify-center gap-2">
               <button
                 onClick={() => item?.campaign && openModal(item.campaign)}
-                className="bg-blue-50 hover:bg-blue-100 rounded-full p-2 text-blue transition-colors duration-200"
+                className="rounded-full bg-blue-50 p-2 text-blue-500 transition-colors duration-200 hover:bg-blue-100"
                 title="Xem chi tiết"
               >
                 <EyeOutlined className="text-sm" />
@@ -279,7 +279,7 @@ const AttractivePublisherParticipationRequest: React.FC = () => {
               </button>
               <button
                 onClick={() => handleReject(item)}
-                className="bg-red-50 hover:bg-red-100 rounded-full p-2 text-red transition-colors duration-200"
+                className="rounded-full bg-red-50 p-2 text-red-500 transition-colors duration-200 hover:bg-red-100"
                 title="Từ chối yêu cầu"
               >
                 <CloseOutlined className="text-sm" />
@@ -298,9 +298,9 @@ const AttractivePublisherParticipationRequest: React.FC = () => {
       <BasePages pageHead="ClickFlow - Yêu cầu tham gia Publisher">
         <div className="flex min-h-screen items-center justify-center bg-gray-50">
           <div className="rounded-lg bg-white p-8 text-center shadow-sm">
-            <div className="bg-red-100 mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full">
+            <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-red-100">
               <svg
-                className="text-red-600 h-8 w-8"
+                className="h-8 w-8 text-red-600"
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"
@@ -540,7 +540,7 @@ const AttractivePublisherParticipationRequest: React.FC = () => {
                                     selectedCampaign.originURL || ''
                                   )
                                 }
-                                className="text-blue-600 hover:text-blue-800 text-xs"
+                                className="text-xs text-blue-600 hover:text-blue-800"
                               >
                                 Copy
                               </button>

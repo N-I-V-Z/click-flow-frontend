@@ -499,7 +499,7 @@ const CreateCampaignModal: React.FC<CreateCampaignModalProps> = ({
 
           <Form.Item style={{ marginTop: 16, textAlign: 'center' }}>
             <Space>
-              <Button type="primary" htmlType="submit" className="bg-blue">
+              <Button type="primary" htmlType="submit" className="bg-blue-500">
                 Tạo chiến dịch
               </Button>
               <Button onClick={handleCancel}>Hủy</Button>
