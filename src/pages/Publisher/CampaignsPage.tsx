@@ -88,23 +88,15 @@ const CampaignsPage: React.FC = () => {
     const urlPage = parseInt(searchParams.get('page') || '1', 10);
     const urlLimit = parseInt(searchParams.get('limit') || '12', 10);
 
-    console.log('URL State Sync Effect triggered:', { urlPage, urlLimit });
-
     // Use functional updates to prevent dependency issues
     setCurrentPage((prevPage) => {
       const shouldUpdate = urlPage !== prevPage && urlPage >= 1;
-      if (shouldUpdate) {
-        console.log('Updating currentPage from URL:', prevPage, '->', urlPage);
-      }
       return shouldUpdate ? urlPage : prevPage;
     });
 
     setPageSize((prevSize) => {
       const shouldUpdate =
         urlLimit !== prevSize && [8, 12, 16, 24].includes(urlLimit);
-      if (shouldUpdate) {
-        console.log('Updating pageSize from URL:', prevSize, '->', urlLimit);
-      }
       return shouldUpdate ? urlLimit : prevSize;
     });
   }, [searchParams]);
@@ -804,20 +796,9 @@ const CampaignsPage: React.FC = () => {
                   value={pageSize}
                   onChange={(e) => {
                     const newPageSize = Number(e.target.value);
-                    console.log(
-                      'PageSize changing from',
-                      pageSize,
-                      'to',
-                      newPageSize
-                    );
-                    console.log('Current page before change:', currentPage);
-                    console.log('Total campaigns:', campaigns.length);
-
                     setPageSize(newPageSize);
                     // Reset to page 1 when changing page size to avoid confusion
                     setCurrentPage(1);
-
-                    console.log('Set page to 1');
                   }}
                   className="rounded-lg border-2 border-gray-300 bg-white px-3 py-2 font-semibold text-gray-700 transition-all duration-200 focus:border-purple-500 focus:outline-none focus:ring-2 focus:ring-purple-500"
                 >
