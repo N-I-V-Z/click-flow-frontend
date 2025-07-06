@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { ChatUI } from './components/ChatUI';
 import { useCreateConversation } from '@/queries/conversation.query';
 import { ConversationApiResponse, MessageType } from '@/types';
@@ -16,6 +16,12 @@ const ChatBubble = () => {
   >(undefined);
   const [isInitializing, setIsInitializing] = useState(false);
 
+  // Pusher refs để maintain connection
+  const pusherRef = useRef<Pusher | null>(null);
+  const channelRef = useRef<ReturnType<Pusher['subscribe']> | null>(null);
+  const backupIntervalRef = useRef<NodeJS.Timeout | null>(null);
+  const reconnectTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
   const { mutateAsync: createConversation } = useCreateConversation();
   const { mutateAsync: sendMessage } = useSendMessage();
   const {
@@ -26,17 +32,28 @@ const ChatBubble = () => {
 
   const adminId = 1;
 
+  // Initialize conversation
   useEffect(() => {
     const initializeConversation = async () => {
       if (isInitializing || conversationData) return;
 
       setIsInitializing(true);
       try {
+        console.log('[BUBBLE] Initializing conversation with admin...');
         const response = await createConversation({ targetUserId: adminId });
-        setConversationData(response.result);
-        await refetchMessages();
+
+        if (response?.result) {
+          setConversationData(response.result);
+          console.log('[BUBBLE] Conversation created:', response.result.id);
+          await refetchMessages();
+        } else {
+          console.error(
+            '[BUBBLE] Invalid response from createConversation:',
+            response
+          );
+        }
       } catch (error) {
-        console.error('Error initializing conversation:', error);
+        console.error('[BUBBLE] Error initializing conversation:', error);
       } finally {
         setIsInitializing(false);
       }
@@ -53,37 +70,148 @@ const ChatBubble = () => {
     isInitializing
   ]);
 
+  // Pusher realtime setup
   useEffect(() => {
-    if (!conversationData?.id) return;
+    if (!conversationData?.id) {
+      console.log('[BUBBLE] No conversation ID, skipping Pusher setup');
+      return;
+    }
 
-    const pusher = new Pusher(import.meta.env.VITE_PUSHER_KEY || '', {
-      cluster: import.meta.env.VITE_PUSHER_CLUSTER,
-      authEndpoint: `${import.meta.env.VITE_API_URL}/api/Pusher/auth`,
-      auth: {
-        headers: {
-          Authorization: `Bearer ${__helpers.cookie_get('AT')}`
-        }
-      }
-    });
-
-    const channel = pusher.subscribe(
-      `private-conversation-${conversationData.id}`
+    console.log(
+      '[BUBBLE] Setting up Pusher for conversation:',
+      conversationData.id
     );
 
-    channel.bind('new-message', () => {
+    // Initialize Pusher if not exists
+    if (!pusherRef.current) {
+      const authToken = __helpers.cookie_get('AT');
+      console.log('[BUBBLE] Creating new Pusher instance...');
+      console.log('[BUBBLE] Auth token exists:', !!authToken);
+      console.log('[BUBBLE] Pusher config:', {
+        key: import.meta.env.VITE_PUSHER_KEY,
+        cluster: import.meta.env.VITE_PUSHER_CLUSTER,
+        authEndpoint: `${import.meta.env.VITE_API_URL}/api/Pusher/auth`
+      });
+
+      pusherRef.current = new Pusher(import.meta.env.VITE_PUSHER_KEY || '', {
+        cluster: import.meta.env.VITE_PUSHER_CLUSTER,
+        authEndpoint: `${import.meta.env.VITE_API_URL}/api/Pusher/auth`,
+        auth: {
+          headers: {
+            Authorization: `Bearer ${authToken}`
+          }
+        }
+      });
+
+      // Connection event listeners
+      pusherRef.current.connection.bind('connected', () => {
+        console.log('[BUBBLE] Pusher connected successfully');
+      });
+
+      pusherRef.current.connection.bind('error', (error: unknown) => {
+        console.error('[BUBBLE] Pusher connection error:', error);
+
+        // Retry connection after 3 seconds
+        reconnectTimeoutRef.current = setTimeout(() => {
+          console.log('[BUBBLE] Attempting to reconnect Pusher...');
+          if (pusherRef.current) {
+            pusherRef.current.disconnect();
+            pusherRef.current = null;
+          }
+          // Force re-trigger this useEffect by updating state
+          if (conversationData) {
+            setConversationData({ ...conversationData });
+          }
+        }, 3000);
+      });
+    }
+
+    const channelName = `private-conversation-${conversationData.id}`;
+    console.log('[BUBBLE] Subscribing to channel:', channelName);
+
+    // Unsubscribe from previous channel if exists
+    if (channelRef.current) {
+      console.log('[BUBBLE] Unsubscribing from previous channel...');
+      channelRef.current.unbind_all();
+      pusherRef.current?.unsubscribe(channelRef.current.name);
+    }
+
+    // Subscribe to channel
+    channelRef.current = pusherRef.current.subscribe(channelName);
+
+    // Subscription events
+    channelRef.current.bind('pusher:subscription_succeeded', () => {
+      console.log('[BUBBLE] Successfully subscribed to channel:', channelName);
+    });
+
+    channelRef.current.bind('pusher:subscription_error', (error: unknown) => {
+      console.error('[BUBBLE] Subscription error:', error);
+    });
+
+    // Message events
+    channelRef.current.bind(
+      'new-message',
+      (data: { conversationId: number }) => {
+        if (data.conversationId === conversationData.id) {
+          refetchMessages();
+        }
+      }
+    );
+
+    channelRef.current.bind('messages-read', () => {
       refetchMessages();
     });
 
-    channel.bind('messages-read', () => {
-      refetchMessages();
-    });
+    // Backup auto-refresh mỗi 10 giây
+    if (backupIntervalRef.current) {
+      clearInterval(backupIntervalRef.current);
+    }
 
+    backupIntervalRef.current = setInterval(() => {
+      refetchMessages();
+    }, 10000);
+
+    // Cleanup function
     return () => {
-      channel.unbind_all();
-      channel.unsubscribe();
-      pusher.disconnect();
+      if (channelRef.current) {
+        console.log('[BUBBLE] Unsubscribing from channel:', channelName);
+        channelRef.current.unbind_all();
+        pusherRef.current?.unsubscribe(channelName);
+        channelRef.current = null;
+      }
+
+      if (backupIntervalRef.current) {
+        clearInterval(backupIntervalRef.current);
+        backupIntervalRef.current = null;
+      }
+
+      if (reconnectTimeoutRef.current) {
+        clearTimeout(reconnectTimeoutRef.current);
+        reconnectTimeoutRef.current = null;
+      }
     };
-  }, [conversationData?.id, refetchMessages]);
+  }, [conversationData, refetchMessages]);
+
+  // Cleanup Pusher on unmount
+  useEffect(() => {
+    return () => {
+      if (pusherRef.current) {
+        console.log('[BUBBLE] Disconnecting Pusher...');
+        pusherRef.current.disconnect();
+        pusherRef.current = null;
+      }
+
+      if (backupIntervalRef.current) {
+        clearInterval(backupIntervalRef.current);
+        backupIntervalRef.current = null;
+      }
+
+      if (reconnectTimeoutRef.current) {
+        clearTimeout(reconnectTimeoutRef.current);
+        reconnectTimeoutRef.current = null;
+      }
+    };
+  }, []);
 
   const handleSend = async (text: string) => {
     if (!conversationData || !text.trim()) return;
@@ -98,7 +226,7 @@ const ChatBubble = () => {
 
       await refetchMessages();
     } catch (error) {
-      console.error('Error sending message:', error);
+      console.error('[BUBBLE] Error sending message:', error);
     }
   };
 

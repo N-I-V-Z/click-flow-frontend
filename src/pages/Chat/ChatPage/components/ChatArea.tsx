@@ -61,7 +61,10 @@ const ChatArea: React.FC<ChatAreaProps> = ({
         ref={messagesContainerRef}
         className="flex-1 overflow-y-auto p-6 pb-28"
       >
-        <MessageGroup messages={messages || []} currentUserId={currentUserId} />
+        <MessageGroup
+          messages={Array.isArray(messages) ? messages : []}
+          currentUserId={currentUserId}
+        />
         <div ref={messagesEndRef} />
       </div>
 

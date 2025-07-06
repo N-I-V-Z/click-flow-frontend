@@ -11,7 +11,7 @@ const RegisterChoice = () => {
       {/* Animated Background Elements */}
       <div className="absolute inset-0">
         <div className="absolute left-1/4 top-0 h-96 w-96 animate-pulse rounded-full bg-purple-500/10 blur-3xl" />
-        <div className="bg-blue-500/10 absolute bottom-0 right-1/4 h-80 w-80 animate-pulse rounded-full blur-3xl delay-1000" />
+        <div className="absolute bottom-0 right-1/4 h-80 w-80 animate-pulse rounded-full bg-blue-500/10 blur-3xl delay-1000" />
         <div className="delay-2000 absolute left-0 top-1/2 h-64 w-64 animate-pulse rounded-full bg-pink-500/10 blur-3xl" />
       </div>
 
@@ -38,14 +38,14 @@ const RegisterChoice = () => {
           </motion.div>
 
           <motion.h1
-            className="to-blue-200 mb-6 bg-gradient-to-r from-white via-purple-200 bg-clip-text text-5xl font-bold text-transparent md:text-6xl lg:text-7xl"
+            className="mb-6 bg-gradient-to-r from-white via-purple-200 to-blue-200 bg-clip-text text-5xl font-bold text-transparent md:text-6xl lg:text-7xl"
             initial={{ scale: 0.95 }}
             animate={{ scale: 1 }}
             transition={{ duration: 0.5, delay: 0.2 }}
           >
             Chọn vai trò
             <br />
-            <span className="to-blue-400 bg-gradient-to-r from-purple-400 via-pink-400 bg-clip-text text-transparent">
+            <span className="bg-gradient-to-r from-purple-400 via-pink-400 to-blue-400 bg-clip-text text-transparent">
               phù hợp với bạn
             </span>
           </motion.h1>
@@ -228,7 +228,7 @@ const RegisterChoice = () => {
 
                 <motion.button
                   onClick={() => router.push('/register-advertiser')}
-                  className="group/btn relative w-full overflow-hidden rounded-2xl bg-gradient-to-r from-purple-600 to-pink-600 px-8 py-4 font-semibold text-white shadow-lg transition-all duration-300 hover:shadow-purple-500/25"
+                  className="group/btn relative w-full overflow-hidden rounded-2xl bg-gradient-to-r from-purple-500 to-pink-500 px-8 py-4 font-semibold text-white shadow-lg shadow-purple-500/25 transition-all duration-300 hover:shadow-purple-500/40"
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
                 >
@@ -248,7 +248,7 @@ const RegisterChoice = () => {
                       />
                     </svg>
                   </span>
-                  <div className="absolute inset-0 bg-gradient-to-r from-purple-700 to-pink-700 opacity-0 transition-opacity duration-300 group-hover/btn:opacity-100" />
+                  <div className="absolute inset-0 bg-gradient-to-r from-purple-600 to-pink-600 opacity-0 transition-opacity duration-300 group-hover/btn:opacity-100" />
                 </motion.button>
               </div>
             </motion.div>
@@ -260,17 +260,17 @@ const RegisterChoice = () => {
               transition={{ type: 'spring', stiffness: 300, damping: 30 }}
             >
               {/* Card Glow Effect */}
-              <div className="from-blue-500/20 absolute -inset-1 rounded-3xl bg-gradient-to-r via-cyan-500/20 to-blue opacity-0 blur-xl transition-all duration-500 group-hover:opacity-100" />
+              <div className="to-blue absolute -inset-1 rounded-3xl bg-gradient-to-r from-blue-500/20 via-cyan-500/20 opacity-0 blur-xl transition-all duration-500 group-hover:opacity-100" />
 
-              <div className="hover:border-blue-400/30 hover:shadow-blue-500/10 relative overflow-hidden rounded-3xl border border-white/10 bg-gradient-to-br from-white/5 via-white/10 to-white/5 p-8 backdrop-blur-xl transition-all duration-300 hover:shadow-2xl">
+              <div className="relative overflow-hidden rounded-3xl border border-white/10 bg-gradient-to-br from-white/5 via-white/10 to-white/5 p-8 backdrop-blur-xl transition-all duration-300 hover:border-blue-400/30 hover:shadow-2xl hover:shadow-blue-500/10">
                 {/* Decorative Elements */}
-                <div className="from-blue-500/10 absolute right-4 top-4 h-20 w-20 rounded-full bg-gradient-to-br to-cyan-500/10 blur-2xl" />
-                <div className="from-blue-400/5 absolute bottom-4 left-4 h-16 w-16 rounded-full bg-gradient-to-br to-cyan-400/5 blur-xl" />
+                <div className="absolute right-4 top-4 h-20 w-20 rounded-full bg-gradient-to-br from-blue-500/10 to-cyan-500/10 blur-2xl" />
+                <div className="absolute bottom-4 left-4 h-16 w-16 rounded-full bg-gradient-to-br from-blue-400/5 to-cyan-400/5 blur-xl" />
 
                 {/* Card Header */}
                 <div className="relative mb-8">
                   <div className="mb-6 flex items-center">
-                    <div className="from-blue-500 shadow-blue-500/25 mr-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br to-cyan-500 shadow-lg">
+                    <div className="mr-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-blue-500 to-cyan-500 shadow-lg shadow-blue-500/25">
                       <svg
                         className="h-8 w-8 text-white"
                         fill="none"
@@ -290,7 +290,7 @@ const RegisterChoice = () => {
                         Publisher
                       </h2>
                       <div className="mt-1 flex items-center gap-2">
-                        <span className="rounded-full bg-blue px-2 py-1 text-xs font-medium text-white">
+                        <span className="bg-blue rounded-full px-2 py-1 text-xs font-medium text-white">
                           Cá nhân
                         </span>
                       </div>
@@ -306,7 +306,7 @@ const RegisterChoice = () => {
                 {/* Features Grid */}
                 <div className="mb-8 grid gap-4 sm:grid-cols-2">
                   <div className="flex items-start gap-3 rounded-xl border border-white/10 bg-white/5 p-4">
-                    <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-lg bg-blue">
+                    <div className="bg-blue flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-lg">
                       <svg
                         className="h-5 w-5 text-white"
                         fill="none"
@@ -332,7 +332,7 @@ const RegisterChoice = () => {
                   </div>
 
                   <div className="flex items-start gap-3 rounded-xl border border-white/10 bg-white/5 p-4">
-                    <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-lg bg-blue">
+                    <div className="bg-blue flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-lg">
                       <svg
                         className="h-5 w-5 text-white"
                         fill="none"
@@ -358,7 +358,7 @@ const RegisterChoice = () => {
                   </div>
 
                   <div className="flex items-start gap-3 rounded-xl border border-white/10 bg-white/5 p-4">
-                    <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-lg bg-blue">
+                    <div className="bg-blue flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-lg">
                       <svg
                         className="h-5 w-5 text-white"
                         fill="none"
@@ -384,7 +384,7 @@ const RegisterChoice = () => {
                   </div>
 
                   <div className="flex items-start gap-3 rounded-xl border border-white/10 bg-white/5 p-4">
-                    <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-lg bg-blue">
+                    <div className="bg-blue flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-lg">
                       <svg
                         className="h-5 w-5 text-white"
                         fill="none"
@@ -412,7 +412,7 @@ const RegisterChoice = () => {
 
                 <motion.button
                   onClick={() => router.push('/login')}
-                  className="group/btn hover:shadow-blue-500/25 relative mt-4 w-full overflow-hidden rounded-2xl bg-gradient-to-r from-blue to-cyan-600 px-8 py-4 font-semibold text-white shadow-lg transition-all duration-300"
+                  className="group/btn relative mt-4 w-full overflow-hidden rounded-2xl bg-gradient-to-r from-blue-500 to-cyan-500 px-8 py-4 font-semibold text-white shadow-lg shadow-blue-500/25 transition-all duration-300 hover:shadow-blue-500/40"
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
                 >
@@ -432,7 +432,7 @@ const RegisterChoice = () => {
                       />
                     </svg>
                   </span>
-                  <div className="from-blue-700 absolute inset-0 bg-gradient-to-r to-cyan-700 opacity-0 transition-opacity duration-300 group-hover/btn:opacity-100" />
+                  <div className="absolute inset-0 bg-gradient-to-r from-blue-600 to-cyan-600 opacity-0 transition-opacity duration-300 group-hover/btn:opacity-100" />
                 </motion.button>
               </div>
             </motion.div>
@@ -453,7 +453,7 @@ const RegisterChoice = () => {
             <p className="mx-auto max-w-2xl text-lg leading-relaxed text-gray-300">
               Hơn <span className="font-bold text-purple-400">10,000+</span> đối
               tác tin cậy đã chọn nền tảng của chúng tôi để
-              <span className="bg-gradient-to-r from-purple-400 to-blue bg-clip-text font-semibold text-transparent">
+              <span className="to-blue bg-gradient-to-r from-purple-400 bg-clip-text font-semibold text-transparent">
                 {' '}
                 xây dựng thu nhập bền vững{' '}
               </span>
@@ -466,7 +466,7 @@ const RegisterChoice = () => {
                 <span>Miễn phí tham gia</span>
               </div>
               <div className="flex items-center gap-2">
-                <div className="h-2 w-2 rounded-full bg-blue"></div>
+                <div className="bg-blue h-2 w-2 rounded-full"></div>
                 <span>Hỗ trợ tận tình</span>
               </div>
               <div className="flex items-center gap-2">
