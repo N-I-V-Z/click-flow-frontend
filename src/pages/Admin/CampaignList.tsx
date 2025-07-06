@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Modal, message } from 'antd';
+import { Modal } from 'antd';
+import { showToast } from '@/utils/toastUtils';
 import {
   EyeOutlined,
   CloseCircleOutlined,
@@ -69,7 +70,7 @@ const CampaignList: React.FC = () => {
         status: newStatus
       });
 
-      message.success(
+      showToast.success(
         actionType === 'pause'
           ? 'Đã tạm dừng chiến dịch thành công!'
           : 'Đã kích hoạt lại chiến dịch thành công!'
@@ -78,7 +79,7 @@ const CampaignList: React.FC = () => {
       // Refresh data
       refetch();
     } catch (error) {
-      message.error('Có lỗi xảy ra khi cập nhật trạng thái chiến dịch!');
+      showToast.error('Có lỗi xảy ra khi cập nhật trạng thái chiến dịch!');
       console.error('Error updating campaign status:', error);
     } finally {
       setIsModalVisible(false);

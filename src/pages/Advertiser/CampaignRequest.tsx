@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useState, useCallback } from 'react';
-import { Modal, Badge, message } from 'antd';
+import { Modal, Badge } from 'antd';
+import { showToast } from '@/utils/toastUtils';
 import { EyeOutlined, CheckOutlined, CloseOutlined } from '@ant-design/icons';
 import DataTable from '@/components/shared/data-table';
 import BasePages from '@/components/shared/base-pages';
@@ -96,10 +97,10 @@ const AttractivePublisherParticipationRequest: React.FC = () => {
           campaignParticipationId: item.id,
           newStatus: 'Participated'
         });
-        message.success('Đã duyệt yêu cầu tham gia thành công!');
+        showToast.success('Đã duyệt yêu cầu tham gia thành công!');
         refetch();
       } catch (error) {
-        message.error('Có lỗi xảy ra khi duyệt yêu cầu!');
+        showToast.error('Có lỗi xảy ra khi duyệt yêu cầu!');
         console.error('Accept participation error:', error);
       }
     },
@@ -114,10 +115,10 @@ const AttractivePublisherParticipationRequest: React.FC = () => {
           campaignParticipationId: item.id,
           newStatus: 'Rejected'
         });
-        message.success('Đã từ chối yêu cầu thành công!');
+        showToast.success('Đã từ chối yêu cầu thành công!');
         refetch();
       } catch (error) {
-        message.error('Có lỗi xảy ra khi từ chối yêu cầu!');
+        showToast.error('Có lỗi xảy ra khi từ chối yêu cầu!');
         console.error('Reject participation error:', error);
       }
     },

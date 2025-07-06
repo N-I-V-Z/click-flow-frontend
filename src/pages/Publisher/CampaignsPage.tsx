@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { Form, Select, Button, Modal, message, Rate } from 'antd';
+import { Form, Select, Button, Modal, Rate } from 'antd';
+import { showToast } from '@/utils/toastUtils';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { TokenDecoded, CampaignApiResponse } from '@/types';
 import {
@@ -132,12 +133,12 @@ const CampaignsPage: React.FC = () => {
         { campaignId: selectedCampaignId },
         {
           onSuccess: () => {
-            message.success('Đăng ký thành công!');
+            showToast.success('Đăng ký thành công!');
             // Sau khi đăng ký thành công, làm mới danh sách campaigns
             refetchCampaigns();
           },
           onError: () => {
-            message.error('Đăng ký thất bại!');
+            showToast.error('Đăng ký thất bại!');
           }
         }
       );
@@ -580,10 +581,12 @@ const CampaignsPage: React.FC = () => {
                                   navigator.clipboard
                                     .writeText(link)
                                     .then(() => {
-                                      message.success('Copy link thành công!');
+                                      showToast.success(
+                                        'Copy link thành công!'
+                                      );
                                     })
                                     .catch(() => {
-                                      message.error('Copy link thất bại!');
+                                      showToast.error('Copy link thất bại!');
                                     });
                                 }}
                               >

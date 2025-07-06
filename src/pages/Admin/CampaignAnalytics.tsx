@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { Layout, Row, Col, Card, Table, message, DatePicker } from 'antd';
+import { Layout, Row, Col, Card, Table, DatePicker } from 'antd';
+import { showToast } from '@/utils/toastUtils';
 import type { ColumnsType } from 'antd/es/table';
 import {
   LineChart,
@@ -124,7 +125,7 @@ const CampaignAnalytics: React.FC<Props> = ({
     const diffHours = end.diff(start, 'hour');
 
     if (diffHours > 24) {
-      message.error('Mỗi lần chỉ xem tối đa 24 giờ.');
+      showToast.error('Mỗi lần chỉ xem tối đa 24 giờ.');
       setChartData(initialClickData);
       return;
     }
@@ -163,10 +164,10 @@ const CampaignAnalytics: React.FC<Props> = ({
             <Col xs={24} sm={8}>
               <Card className="h-full bg-[#fee2e2] shadow">
                 <div className="flex h-full flex-col justify-center">
-                  <span className="text-red-700 font-medium">
+                  <span className="font-medium text-red-700">
                     Tổng số click
                   </span>
-                  <span className="text-red-700 mt-2 text-4xl font-extrabold">
+                  <span className="mt-2 text-4xl font-extrabold text-red-700">
                     {totalClick}
                   </span>
                 </div>
@@ -176,10 +177,10 @@ const CampaignAnalytics: React.FC<Props> = ({
             <Col xs={24} sm={8}>
               <Card className="h-full bg-[#fef9c3] shadow">
                 <div className="flex h-full flex-col justify-center">
-                  <span className="text-yellow-700 font-medium">
+                  <span className="font-medium text-yellow-700">
                     Click không hợp lệ
                   </span>
-                  <span className="text-yellow-700 mt-2 text-4xl font-extrabold">
+                  <span className="mt-2 text-4xl font-extrabold text-yellow-700">
                     {invalidClick}
                   </span>
                 </div>

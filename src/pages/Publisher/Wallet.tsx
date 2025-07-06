@@ -20,6 +20,7 @@ import {
   SelectTrigger,
   SelectValue
 } from '@/components/ui/select';
+import { Combobox, type ComboboxOption } from '@/components/ui/combobox';
 import {
   Wallet,
   Plus,
@@ -34,7 +35,9 @@ import {
   MoreHorizontal,
   ChevronRight,
   CreditCard,
-  Edit3
+  Edit3,
+  AlertCircle,
+  CheckCircle
 } from 'lucide-react';
 import {
   DoubleArrowLeftIcon,
@@ -42,20 +45,29 @@ import {
 } from '@radix-ui/react-icons';
 import BasePages from '@/components/shared/base-pages';
 import { useGetOwnWallet, useUpdateBankInfo } from '@/queries/wallet.query';
-import { useGetOwnTransaction } from '@/queries/transaction.query';
+import {
+  useGetOwnTransaction,
+  useCreateNewTransaction
+} from '@/queries/transaction.query';
+import { useGetBanks, Bank } from '@/queries/bank.query';
 import { TransactionType } from '@/types';
 import Recharge from './Recharge';
+import { toast } from 'react-toastify';
+import ToastNotification from '@/components/shared/toast-notification';
 
 const PublisherWallet = () => {
   const router = useRouter();
   const [searchParams, setSearchParams] = useSearchParams();
   const [activeTab, setActiveTab] = useState('all');
-  const [showBalance, setShowBalance] = useState(true);
+  const [showBalance, setShowBalance] = useState(false);
   const [isDepositDialogOpen, setIsDepositDialogOpen] = useState(false);
   const [isBankInfoDialogOpen, setIsBankInfoDialogOpen] = useState(false);
+  const [isWithdrawDialogOpen, setIsWithdrawDialogOpen] = useState(false);
+  const [withdrawAmount, setWithdrawAmount] = useState('');
   const [bankFormData, setBankFormData] = useState({
     bankCode: '',
-    bankName: ''
+    bankName: '',
+    selectedBank: null as Bank | null
   });
 
   const pageSizeOptions = [10, 20, 30, 40, 50];
@@ -101,9 +113,20 @@ const PublisherWallet = () => {
     refetch: refetchTransactions
   } = useGetOwnTransaction(currentPage, pageSize);
 
+  // Banks API call
+  const {
+    data: banksData,
+    isLoading: banksLoading,
+    error: banksError
+  } = useGetBanks();
+
   // Bank info update mutation
   const { mutate: updateBankInfo, isPending: isUpdatingBank } =
     useUpdateBankInfo();
+
+  // Withdraw mutation
+  const { mutate: createWithdrawTransaction, isPending: isWithdrawing } =
+    useCreateNewTransaction();
 
   // Handle successful deposit
   const handleDepositSuccess = async () => {
@@ -114,9 +137,21 @@ const PublisherWallet = () => {
   // Handle bank info dialog
   const handleOpenBankDialog = () => {
     if (walletData?.result) {
+      // Find selected bank if exists
+      let selectedBank: Bank | null = null;
+      if (walletData.result.bankCode && banksData?.data) {
+        selectedBank =
+          banksData.data.find(
+            (bank) =>
+              bank.code === walletData.result!.bankCode ||
+              bank.bin === walletData.result!.bankCode
+          ) || null;
+      }
+
       setBankFormData({
         bankCode: walletData.result.bankCode || '',
-        bankName: walletData.result.bankName || ''
+        bankName: walletData.result.bankName || '',
+        selectedBank: selectedBank
       });
     }
     setIsBankInfoDialogOpen(true);
@@ -125,25 +160,126 @@ const PublisherWallet = () => {
   const handleBankInfoSubmit = () => {
     if (!walletData?.result?.id) return;
 
+    // Use selected bank info if available, otherwise use manual input
+    const bankData = bankFormData.selectedBank
+      ? {
+          bankCode: bankFormData.bankCode, // Account number
+          bankName: `${bankFormData.selectedBank.shortName} - ${bankFormData.selectedBank.name}`
+        }
+      : {
+          bankCode: bankFormData.bankCode,
+          bankName: bankFormData.bankName
+        };
+
     updateBankInfo(
       {
         walletId: walletData.result.id,
-        bankData: {
-          bankCode: bankFormData.bankCode,
-          bankName: bankFormData.bankName
-        }
+        bankData: bankData
       },
       {
         onSuccess: () => {
           setIsBankInfoDialogOpen(false);
-          // Toast notification có thể thêm ở đây
+          toast.success('Cập nhật thông tin ngân hàng thành công!');
+          refetchWallet(); // Refresh wallet data
         },
         onError: (error) => {
           console.error('Update bank info failed:', error);
-          // Error handling có thể thêm ở đây
+          toast.error('Cập nhật thông tin ngân hàng thất bại!');
         }
       }
     );
+  };
+
+  // Handle withdraw dialog
+  const handleOpenWithdrawDialog = () => {
+    if (!walletData?.result) {
+      toast.error('Không thể lấy thông tin ví!');
+      return;
+    }
+    setWithdrawAmount('');
+    setIsWithdrawDialogOpen(true);
+  };
+
+  const handleWithdrawSubmit = () => {
+    if (!walletData?.result) {
+      toast.error('Không thể lấy thông tin ví!');
+      return;
+    }
+
+    const amount = parseFloat(withdrawAmount);
+    const currentBalance = walletData.result.balance;
+
+    // Validation
+    if (isNaN(amount) || amount <= 0) {
+      toast.error('Vui lòng nhập số tiền hợp lệ!');
+      return;
+    }
+
+    if (amount < 10000) {
+      toast.error('Số tiền rút tối thiểu là 10.000 VNĐ!');
+      return;
+    }
+
+    if (amount > 2000000) {
+      toast.error('Số tiền rút tối đa là 2.000.000 VNĐ!');
+      return;
+    }
+
+    if (amount > currentBalance) {
+      toast.error(
+        `Số dư không đủ để thực hiện giao dịch! Số dư hiện tại: ${currentBalance.toLocaleString().replace(/,/g, '.')} VNĐ`
+      );
+      return;
+    }
+
+    const payload = {
+      amount: amount,
+      transactionType: 'Withdraw'
+    };
+
+    createWithdrawTransaction(payload, {
+      onSuccess: () => {
+        toast.success('Yêu cầu rút tiền đã được gửi thành công!');
+        setIsWithdrawDialogOpen(false);
+        setWithdrawAmount('');
+        // Refresh data
+        handleDepositSuccess();
+      },
+      onError: (error: unknown) => {
+        // Extract error message properly (same logic as Recharge.tsx)
+        let errorMessage = 'Có lỗi xảy ra khi rút tiền!';
+
+        if (error) {
+          if (typeof error === 'string') {
+            errorMessage = error;
+          } else if (error && typeof error === 'object') {
+            const errorObj = error as Record<string, unknown>;
+
+            // Check for nested response.data.message (typical axios error)
+            if (errorObj.response && typeof errorObj.response === 'object') {
+              const response = errorObj.response as Record<string, unknown>;
+              if (response.data && typeof response.data === 'object') {
+                const data = response.data as Record<string, unknown>;
+                if (typeof data.message === 'string') {
+                  errorMessage = data.message;
+                }
+              }
+            }
+            // Check for direct message property
+            else if (typeof errorObj.message === 'string') {
+              errorMessage = errorObj.message;
+            }
+          }
+        }
+
+        toast.error(`Rút tiền thất bại: ${errorMessage}`);
+      }
+    });
+  };
+
+  const handleWithdrawCancel = () => {
+    setIsWithdrawDialogOpen(false);
+    setWithdrawAmount('');
   };
 
   // Format currency
@@ -361,6 +497,23 @@ const PublisherWallet = () => {
     );
   }
 
+  // Get bank info for display
+  const getBankDisplayInfo = () => {
+    if (!walletData?.result?.bankCode || !banksData?.data) return null;
+
+    // Try to find bank by various matching criteria
+    const bank = banksData.data.find(
+      (bank) =>
+        bank.code === walletData.result!.bankCode ||
+        bank.bin === walletData.result!.bankCode ||
+        walletData.result!.bankName?.includes(bank.shortName) ||
+        walletData.result!.bankName?.includes(bank.name)
+    );
+
+    return bank;
+  };
+
+  const bankDisplayInfo = getBankDisplayInfo();
   const currentBalance = walletData?.result?.balance || 0;
   const lastUpdate = new Date().toLocaleString('vi-VN');
 
@@ -460,13 +613,13 @@ const PublisherWallet = () => {
                       <span>Nạp tiền</span>
                     </Button>
 
-                    {/* Bank Info Button */}
+                    {/* Withdraw Button */}
                     <Button
-                      onClick={handleOpenBankDialog}
+                      onClick={handleOpenWithdrawDialog}
                       className="flex h-14 items-center justify-center gap-3 rounded-2xl bg-white/20 font-semibold text-white backdrop-blur-sm hover:bg-white/30"
                     >
-                      <CreditCard className="h-5 w-5" />
-                      <span>Ngân hàng</span>
+                      <DollarSign className="h-5 w-5" />
+                      <span>Rút tiền</span>
                     </Button>
                   </div>
 
@@ -478,7 +631,8 @@ const PublisherWallet = () => {
                         background:
                           'linear-gradient(135deg, #4C1D95 0%, #5B21B6 25%, #6D28D9 50%, #7C3AED 75%, #8B5CF6 100%)',
                         borderColor: '#A855F7',
-                        boxShadow: '0 12px 40px rgba(139, 92, 246, 0.4)'
+                        boxShadow: '0 12px 40px rgba(139, 92, 246, 0.4)',
+                        animation: 'metallic-glow 4s ease-in-out infinite'
                       }}
                     >
                       {/* Harmonized Diamond Pattern Background */}
@@ -580,13 +734,25 @@ const PublisherWallet = () => {
                         </svg>
                       </div>
 
-                      {/* Purple-Gold Metallic Shine Effects */}
-                      <div className="absolute inset-0 bg-gradient-to-br from-white/15 via-transparent to-purple-300/10"></div>
-                      <div className="absolute left-0 top-0 h-3 w-full bg-gradient-to-r from-transparent via-white/25 to-transparent"></div>
-                      <div className="absolute bottom-0 right-0 h-32 w-32 rounded-full bg-gradient-to-tl from-purple-400/15 to-transparent blur-xl"></div>
+                      {/* Enhanced Purple Metallic Shine Effects */}
+                      <div className="absolute inset-0 bg-gradient-to-br from-white/20 via-purple-200/5 to-indigo-300/10"></div>
 
-                      {/* Luxury Brand Strip - Purple themed */}
-                      <div className="absolute right-4 top-2 h-1 w-20 rounded-full bg-gradient-to-r from-purple-300 to-purple-500 opacity-70"></div>
+                      {/* Main metallic shine sweep */}
+                      <div className="absolute left-0 top-0 h-full w-full -translate-x-full -skew-x-12 transform animate-[shine_3s_ease-in-out_infinite] bg-gradient-to-r from-transparent via-white/30 to-transparent"></div>
+
+                      {/* Top edge light */}
+                      <div className="absolute left-0 top-0 h-2 w-full bg-gradient-to-r from-transparent via-white/40 to-transparent"></div>
+
+                      {/* Corner highlights */}
+                      <div className="absolute left-0 top-0 h-16 w-16 rounded-full bg-gradient-to-br from-white/25 to-transparent blur-lg"></div>
+                      <div className="absolute bottom-0 right-0 h-20 w-20 rounded-full bg-gradient-to-tl from-purple-400/20 to-transparent blur-xl"></div>
+
+                      {/* Metallic reflection strips */}
+                      <div className="absolute left-0 top-1/4 h-px w-full bg-gradient-to-r from-transparent via-white/50 to-transparent"></div>
+                      <div className="absolute left-0 top-3/4 h-px w-full bg-gradient-to-r from-transparent via-purple-300/40 to-transparent"></div>
+
+                      {/* Luxury Brand Strip - Enhanced Purple themed */}
+                      <div className="absolute right-4 top-2 h-1.5 w-24 rounded-full bg-gradient-to-r from-purple-200 via-white to-purple-400 opacity-80 shadow-lg"></div>
 
                       <div className="relative flex items-center justify-between">
                         <div className="flex-1">
@@ -603,30 +769,77 @@ const PublisherWallet = () => {
                           {walletData.result.bankCode &&
                           walletData.result.bankName ? (
                             <div className="mt-2">
-                              <p
-                                className="mb-2 text-xl font-bold tracking-wide"
-                                style={{
-                                  color: '#FFFFFF',
-                                  textShadow: '0 2px 4px rgba(0,0,0,0.7)'
-                                }}
-                              >
-                                {walletData.result.bankName}
-                              </p>
-                              <p
-                                className="font-mono text-lg font-bold tracking-widest"
-                                style={{
-                                  color: '#E5E7EB',
-                                  textShadow:
-                                    '0 0 10px rgba(229, 231, 235, 0.6), 0 2px 4px rgba(0,0,0,0.5)',
-                                  background:
-                                    'linear-gradient(45deg, #F3F4F6, #E5E7EB, #D1D5DB)',
-                                  WebkitBackgroundClip: 'text',
-                                  WebkitTextFillColor: 'transparent',
-                                  backgroundClip: 'text'
-                                }}
-                              >
-                                {walletData.result.bankCode}
-                              </p>
+                              <div className="mb-2 flex items-center gap-4">
+                                {bankDisplayInfo && (
+                                  <div
+                                    className="relative flex h-14 w-14 items-center justify-center overflow-hidden rounded-xl border shadow-xl"
+                                    style={{
+                                      background:
+                                        'linear-gradient(135deg, #FFFFFF 0%, #F8FAFC 25%, #E2E8F0 50%, #CBD5E1 75%, #94A3B8 100%)',
+                                      borderColor: '#E2E8F0',
+                                      boxShadow:
+                                        '0 8px 25px rgba(255, 255, 255, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.6)'
+                                    }}
+                                  >
+                                    {/* Enhanced metallic shine effect for logo container */}
+                                    <div className="absolute inset-0 bg-gradient-to-br from-white/50 via-transparent to-purple-200/30"></div>
+                                    <div className="absolute left-0 top-0 h-0.5 w-full bg-gradient-to-r from-transparent via-white/70 to-transparent"></div>
+                                    <div className="absolute left-0 top-0 h-6 w-6 rounded-full bg-gradient-to-br from-white/40 to-transparent blur-sm"></div>
+
+                                    {/* Metallic pulse animation on logo background */}
+                                    <div
+                                      className="absolute inset-0 -skew-x-12 transform bg-gradient-to-r from-transparent via-white/20 to-transparent"
+                                      style={{
+                                        animation:
+                                          'metallic-pulse 2s ease-in-out infinite'
+                                      }}
+                                    ></div>
+
+                                    <img
+                                      src={bankDisplayInfo.logo}
+                                      alt={bankDisplayInfo.shortName}
+                                      className="relative z-10 h-10 w-10 object-contain drop-shadow-lg filter"
+                                      onError={(e) => {
+                                        e.currentTarget.style.display = 'none';
+                                      }}
+                                    />
+                                  </div>
+                                )}
+                                <div className="flex-1">
+                                  <p
+                                    className="text-xl font-bold tracking-wide"
+                                    style={{
+                                      color: '#FFFFFF',
+                                      textShadow: '0 2px 4px rgba(0,0,0,0.7)',
+                                      background:
+                                        'linear-gradient(135deg, #FFFFFF 0%, #E0E7FF 50%, #C7D2FE 100%)',
+                                      WebkitBackgroundClip: 'text',
+                                      WebkitTextFillColor: 'transparent',
+                                      backgroundClip: 'text'
+                                    }}
+                                  >
+                                    {bankDisplayInfo
+                                      ? bankDisplayInfo.shortName
+                                      : walletData.result.bankName}
+                                  </p>
+                                  <p
+                                    className="mt-1 font-mono text-lg font-bold tracking-widest"
+                                    style={{
+                                      textShadow:
+                                        '0 0 15px rgba(232, 121, 249, 0.8), 0 2px 4px rgba(0,0,0,0.7)',
+                                      background:
+                                        'linear-gradient(135deg, #F7FAFC 0%, #E0E7FF 25%, #DDD6FE 50%, #E879F9 75%, #F3E8FF 100%)',
+                                      WebkitBackgroundClip: 'text',
+                                      WebkitTextFillColor: 'transparent',
+                                      backgroundClip: 'text',
+                                      filter:
+                                        'drop-shadow(0 0 8px rgba(232, 121, 249, 0.6))'
+                                    }}
+                                  >
+                                    STK: {walletData.result.bankCode}
+                                  </p>
+                                </div>
+                              </div>
                             </div>
                           ) : (
                             <p
@@ -683,25 +896,38 @@ const PublisherWallet = () => {
                 }}
               >
                 <div className="flex items-center justify-between">
-                  <div>
-                    <p
-                      className="mb-1 font-medium"
-                      style={{ color: '#047857' }}
-                    >
-                      Tổng tiền vào
-                    </p>
+                  <div className="flex-1">
+                    <div className="mb-1 flex items-center justify-between">
+                      <p className="font-medium" style={{ color: '#047857' }}>
+                        Tổng tiền vào
+                      </p>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="h-8 w-8 rounded-xl p-2 hover:bg-green-100"
+                        onClick={() => setShowBalance(!showBalance)}
+                      >
+                        {showBalance ? (
+                          <Eye className="h-4 w-4 text-green-600" />
+                        ) : (
+                          <EyeOff className="h-4 w-4 text-green-600" />
+                        )}
+                      </Button>
+                    </div>
                     <p
                       className="text-3xl font-bold"
                       style={{ color: '#064E3B' }}
                     >
-                      {formatCurrency(totals.totalIn)}
+                      {showBalance
+                        ? formatCurrency(totals.totalIn)
+                        : '••••••••'}
                     </p>
                     <p className="mt-1 text-sm" style={{ color: '#059669' }}>
                       ↗ So với tháng trước
                     </p>
                   </div>
                   <div
-                    className="rounded-2xl p-4"
+                    className="ml-4 rounded-2xl p-4"
                     style={{ backgroundColor: '#10B981' }}
                   >
                     <TrendingUp className="h-8 w-8 text-white" />
@@ -717,25 +943,38 @@ const PublisherWallet = () => {
                 }}
               >
                 <div className="flex items-center justify-between">
-                  <div>
-                    <p
-                      className="mb-1 font-medium"
-                      style={{ color: '#BE123C' }}
-                    >
-                      Tổng tiền ra
-                    </p>
+                  <div className="flex-1">
+                    <div className="mb-1 flex items-center justify-between">
+                      <p className="font-medium" style={{ color: '#BE123C' }}>
+                        Tổng tiền ra
+                      </p>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="h-8 w-8 rounded-xl p-2 hover:bg-red-100"
+                        onClick={() => setShowBalance(!showBalance)}
+                      >
+                        {showBalance ? (
+                          <Eye className="h-4 w-4 text-red-600" />
+                        ) : (
+                          <EyeOff className="h-4 w-4 text-red-600" />
+                        )}
+                      </Button>
+                    </div>
                     <p
                       className="text-3xl font-bold"
                       style={{ color: '#881337' }}
                     >
-                      {formatCurrency(totals.totalOut)}
+                      {showBalance
+                        ? formatCurrency(totals.totalOut)
+                        : '••••••••'}
                     </p>
                     <p className="mt-1 text-sm" style={{ color: '#E11D48' }}>
                       ↘ Chi tiêu tháng này
                     </p>
                   </div>
                   <div
-                    className="rounded-2xl p-4"
+                    className="ml-4 rounded-2xl p-4"
                     style={{ backgroundColor: '#EF4444' }}
                   >
                     <TrendingDown className="h-8 w-8 text-white" />
@@ -996,51 +1235,446 @@ const PublisherWallet = () => {
           onSuccess={handleDepositSuccess}
         />
 
+        {/* Withdraw Modal */}
+        <Dialog
+          open={isWithdrawDialogOpen}
+          onOpenChange={setIsWithdrawDialogOpen}
+        >
+          <DialogContent className="overflow-hidden p-0 sm:max-w-[480px]">
+            {/* Header với gradient đẹp */}
+            <div
+              className="relative overflow-hidden px-6 py-6 text-white"
+              style={{
+                background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)'
+              }}
+            >
+              {/* Custom close button */}
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  setIsWithdrawDialogOpen(false);
+                }}
+                className="absolute right-4 top-4 z-50 cursor-pointer rounded-full bg-white/10 p-2 backdrop-blur-sm transition-all duration-200 hover:bg-white/20"
+                style={{ zIndex: 9999 }}
+              >
+                <svg
+                  className="h-4 w-4 text-white"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M6 18L18 6M6 6l12 12"
+                  />
+                </svg>
+              </button>
+
+              {/* Background pattern */}
+              <div className="absolute inset-0 opacity-10">
+                <svg
+                  width="100%"
+                  height="100%"
+                  viewBox="0 0 100 100"
+                  preserveAspectRatio="none"
+                >
+                  <path
+                    d="M0,0 Q50,20 100,0 L100,100 L0,100 Z"
+                    fill="white"
+                    opacity="0.1"
+                  />
+                  <circle cx="80" cy="20" r="10" fill="white" opacity="0.05" />
+                  <circle cx="20" cy="80" r="8" fill="white" opacity="0.05" />
+                </svg>
+              </div>
+
+              <div className="relative">
+                <DialogTitle className="mb-1 flex items-center gap-3 text-xl font-bold">
+                  <div className="rounded-xl bg-white/20 p-2 backdrop-blur-sm">
+                    <DollarSign className="h-5 w-5" />
+                  </div>
+                  Rút tiền về ví
+                </DialogTitle>
+                <DialogDescription className="text-white/80">
+                  Rút tiền từ ví ClickFlow về tài khoản ngân hàng của bạn
+                </DialogDescription>
+              </div>
+            </div>
+
+            <div className="space-y-4 px-6 py-4">
+              {/* Số tiền input */}
+              <div className="space-y-2">
+                <Label className="text-sm font-semibold text-gray-800">
+                  Số tiền
+                </Label>
+                <div className="relative">
+                  <Input
+                    type="text"
+                    placeholder="0"
+                    value={
+                      withdrawAmount
+                        ? parseInt(withdrawAmount)
+                            .toLocaleString()
+                            .replace(/,/g, '.')
+                        : ''
+                    }
+                    onChange={(e) => {
+                      // Chỉ cho phép số và dấu chấm, loại bỏ tất cả ký tự khác
+                      const value = e.target.value.replace(/[^\d]/g, '');
+                      setWithdrawAmount(value);
+                    }}
+                    className="h-12 rounded-xl border-2 pl-4 pr-16 text-center text-xl font-bold text-gray-800 focus:border-purple-500"
+                  />
+                  <span className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-sm font-medium text-gray-500">
+                    VND
+                  </span>
+                </div>
+
+                <div className="mt-2 flex justify-between text-xs text-gray-500">
+                  <span>Tối thiểu: 10.000 VND</span>
+                  <span>Tối đa: 2.000.000 VND</span>
+                </div>
+              </div>
+
+              {/* Chọn nhanh số tiền */}
+              <div className="space-y-2">
+                <Label className="text-sm font-semibold text-gray-800">
+                  Chọn nhanh
+                </Label>
+                <div className="grid grid-cols-3 gap-2">
+                  {[50000, 100000, 200000, 500000, 1000000, 2000000].map(
+                    (amount) => (
+                      <Button
+                        key={amount}
+                        variant="outline"
+                        className="h-9 rounded-lg border text-xs transition-all hover:border-purple-500 hover:bg-purple-50"
+                        onClick={() => setWithdrawAmount(amount.toString())}
+                        disabled={
+                          !walletData?.result?.balance ||
+                          walletData.result.balance < amount
+                        }
+                      >
+                        {amount.toLocaleString().replace(/,/g, '.')}
+                      </Button>
+                    )
+                  )}
+                </div>
+              </div>
+
+              {/* Thông tin số dư và ngân hàng gộp lại */}
+              {walletData?.result && (
+                <div className="space-y-2">
+                  <div className="rounded-lg bg-gray-50 p-3">
+                    <div className="flex items-center justify-between text-sm">
+                      <span className="text-gray-600">Số dư hiện tại:</span>
+                      <span className="font-bold text-purple-600">
+                        {walletData.result.balance
+                          .toLocaleString()
+                          .replace(/,/g, '.')}{' '}
+                        VND
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Bank Info Display */}
+                  {walletData.result.bankCode && walletData.result.bankName ? (
+                    <div className="rounded-lg border border-purple-200 bg-gradient-to-r from-blue-50 to-purple-50 p-3">
+                      <div className="flex items-center gap-3">
+                        {bankDisplayInfo ? (
+                          <div className="flex items-center gap-2">
+                            <div
+                              className="relative flex h-10 w-10 items-center justify-center overflow-hidden rounded-lg border border-gray-200 bg-white shadow-lg"
+                              style={{
+                                background:
+                                  'linear-gradient(135deg, #FFFFFF 0%, #F8FAFC 50%, #E2E8F0 100%)',
+                                boxShadow:
+                                  '0 4px 15px rgba(0, 0, 0, 0.1), inset 0 1px 0 rgba(255, 255, 255, 0.8)'
+                              }}
+                            >
+                              {/* Metallic shine for modal logo */}
+                              <div className="absolute inset-0 bg-gradient-to-br from-white/30 via-transparent to-purple-100/20"></div>
+                              <div className="absolute left-0 top-0 h-px w-full bg-gradient-to-r from-transparent via-white/60 to-transparent"></div>
+
+                              <img
+                                src={bankDisplayInfo.logo}
+                                alt={bankDisplayInfo.shortName}
+                                className="relative z-10 h-6 w-6 object-contain drop-shadow-sm filter"
+                                onError={(e) => {
+                                  e.currentTarget.style.display = 'none';
+                                }}
+                              />
+                            </div>
+                            <div className="rounded-lg bg-purple-100 p-1.5">
+                              <CreditCard className="h-4 w-4 text-purple-600" />
+                            </div>
+                          </div>
+                        ) : (
+                          <div className="rounded-lg bg-purple-100 p-1.5">
+                            <CreditCard className="h-4 w-4 text-purple-600" />
+                          </div>
+                        )}
+                        <div className="flex-1">
+                          <p className="text-xs font-medium text-gray-700">
+                            Chuyển về:{' '}
+                            {bankDisplayInfo
+                              ? bankDisplayInfo.shortName
+                              : walletData.result.bankName}
+                          </p>
+                          <p className="font-mono text-xs text-gray-600">
+                            STK: {walletData.result.bankCode}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="rounded-lg border border-red-200 bg-red-50 p-3">
+                      <div className="flex items-center gap-2">
+                        <div className="rounded-lg bg-red-100 p-1.5">
+                          <AlertCircle className="h-4 w-4 text-red-600" />
+                        </div>
+                        <div className="flex-1">
+                          <p className="mb-1 text-xs text-red-600">
+                            ⚠️ Chưa cập nhật thông tin ngân hàng
+                          </p>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="h-7 border-red-200 text-xs text-red-600 hover:bg-red-50"
+                            onClick={() => {
+                              setIsWithdrawDialogOpen(false);
+                              handleOpenBankDialog();
+                            }}
+                          >
+                            Cập nhật ngay
+                          </Button>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+
+            {/* Footer buttons */}
+            <div className="flex gap-3 px-6 pb-4">
+              <Button
+                variant="outline"
+                onClick={handleWithdrawCancel}
+                className="h-10 flex-1 rounded-xl border font-medium"
+              >
+                Hủy
+              </Button>
+              <Button
+                onClick={handleWithdrawSubmit}
+                disabled={
+                  isWithdrawing ||
+                  !withdrawAmount ||
+                  !walletData?.result?.bankCode ||
+                  !walletData?.result?.bankName
+                }
+                className="h-10 flex-1 rounded-xl bg-gradient-to-r from-purple-600 to-blue-600 font-medium text-white transition-all hover:from-purple-700 hover:to-blue-700"
+              >
+                {isWithdrawing ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Đang xử lý...
+                  </>
+                ) : (
+                  <>
+                    <CheckCircle className="mr-2 h-4 w-4" />
+                    Xác nhận rút tiền
+                  </>
+                )}
+              </Button>
+            </div>
+          </DialogContent>
+        </Dialog>
+
         {/* Bank Info Modal */}
         <Dialog
           open={isBankInfoDialogOpen}
           onOpenChange={setIsBankInfoDialogOpen}
         >
-          <DialogContent className="sm:max-w-[425px]">
-            <DialogHeader>
+          <DialogContent className="sm:max-w-[500px]">
+            <DialogHeader className="relative">
+              {/* Custom close button */}
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  setIsBankInfoDialogOpen(false);
+                }}
+                className="absolute right-0 top-0 z-50 cursor-pointer rounded-full p-2 transition-all duration-200 hover:bg-gray-100"
+                style={{ zIndex: 9999 }}
+              >
+                <svg
+                  className="h-4 w-4 text-gray-500"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M6 18L18 6M6 6l12 12"
+                  />
+                </svg>
+              </button>
+
               <DialogTitle className="flex items-center gap-2">
                 <CreditCard className="h-5 w-5" style={{ color: '#8B5CF6' }} />
                 Cập nhật thông tin ngân hàng
               </DialogTitle>
               <DialogDescription>
-                Cập nhật thông tin tài khoản ngân hàng để nhận thanh toán.
+                Chọn ngân hàng và nhập số tài khoản để nhận thanh toán.
               </DialogDescription>
             </DialogHeader>
+
             <div className="grid gap-4 py-4">
+              {/* Bank Selection */}
               <div className="grid gap-2">
-                <Label htmlFor="bankName">Tên ngân hàng</Label>
-                <Input
-                  id="bankName"
-                  placeholder="Ví dụ: Vietcombank"
-                  value={bankFormData.bankName}
-                  onChange={(e) =>
-                    setBankFormData((prev) => ({
-                      ...prev,
-                      bankName: e.target.value
-                    }))
-                  }
-                />
+                <Label htmlFor="bankSelect">Chọn ngân hàng</Label>
+                {banksLoading ? (
+                  <div className="flex h-10 items-center justify-center rounded-lg border bg-gray-50">
+                    <Loader2 className="h-4 w-4 animate-spin text-gray-500" />
+                    <span className="ml-2 text-sm text-gray-500">
+                      Đang tải danh sách ngân hàng...
+                    </span>
+                  </div>
+                ) : banksError ? (
+                  <div className="flex h-10 items-center justify-center rounded-lg border border-red-200 bg-red-50">
+                    <AlertCircle className="h-4 w-4 text-red-500" />
+                    <span className="ml-2 text-sm text-red-600">
+                      Không thể tải danh sách ngân hàng
+                    </span>
+                  </div>
+                ) : (
+                  <Combobox
+                    value={bankFormData.selectedBank?.code || ''}
+                    onValueChange={(value) => {
+                      const selectedBank = banksData?.data?.find(
+                        (bank) => bank.code === value
+                      );
+                      setBankFormData((prev) => ({
+                        ...prev,
+                        selectedBank: selectedBank || null
+                      }));
+                    }}
+                    placeholder="Chọn ngân hàng..."
+                    searchPlaceholder="Tìm kiếm ngân hàng..."
+                    emptyText="Không tìm thấy ngân hàng phù hợp."
+                    options={
+                      banksData?.data
+                        ?.filter((bank) => bank.isTransfer === 1) // Only show banks that support transfer
+                        ?.sort((a, b) => a.shortName.localeCompare(b.shortName))
+                        ?.map(
+                          (bank): ComboboxOption => ({
+                            value: bank.code,
+                            label: `${bank.shortName} - ${bank.name}`,
+                            searchText: `${bank.shortName} ${bank.name} ${bank.code}`,
+                            customTriggerDisplay: (
+                              <div className="flex items-center gap-3">
+                                <img
+                                  src={bank.logo}
+                                  alt={bank.shortName}
+                                  className="h-6 w-6 object-contain"
+                                  onError={(e) => {
+                                    e.currentTarget.style.display = 'none';
+                                  }}
+                                />
+                                <span className="font-medium">
+                                  {bank.shortName}
+                                </span>
+                                <span className="truncate text-sm text-gray-500">
+                                  {bank.name}
+                                </span>
+                              </div>
+                            ),
+                            customDisplay: (
+                              <div className="flex w-full items-center gap-3">
+                                <img
+                                  src={bank.logo}
+                                  alt={bank.shortName}
+                                  className="h-6 w-6 flex-shrink-0 object-contain"
+                                  onError={(e) => {
+                                    e.currentTarget.style.display = 'none';
+                                  }}
+                                />
+                                <div className="flex min-w-0 flex-1 flex-col">
+                                  <span className="text-sm font-medium">
+                                    {bank.shortName}
+                                  </span>
+                                  <span className="truncate text-xs text-gray-500">
+                                    {bank.name}
+                                  </span>
+                                </div>
+                              </div>
+                            )
+                          })
+                        ) || []
+                    }
+                  />
+                )}
               </div>
+
+              {/* Account Number */}
               <div className="grid gap-2">
                 <Label htmlFor="bankCode">Số tài khoản</Label>
                 <Input
                   id="bankCode"
                   placeholder="Nhập số tài khoản ngân hàng"
                   value={bankFormData.bankCode}
-                  onChange={(e) =>
+                  onChange={(e) => {
+                    // Only allow numbers
+                    const value = e.target.value.replace(/\D/g, '');
                     setBankFormData((prev) => ({
                       ...prev,
-                      bankCode: e.target.value
-                    }))
-                  }
+                      bankCode: value
+                    }));
+                  }}
+                  className="font-mono"
                 />
               </div>
+
+              {/* Preview */}
+              {bankFormData.selectedBank && bankFormData.bankCode && (
+                <div className="rounded-lg border border-purple-200 bg-gradient-to-r from-purple-50 to-blue-50 p-4">
+                  <div className="flex items-center gap-3">
+                    <div className="rounded-lg bg-purple-100 p-2">
+                      <CreditCard className="h-5 w-5 text-purple-600" />
+                    </div>
+                    <div className="flex-1">
+                      <p className="mb-1 text-sm font-medium text-gray-800">
+                        Xem trước thông tin
+                      </p>
+                      <div className="mb-1 flex items-center gap-2">
+                        <img
+                          src={bankFormData.selectedBank.logo}
+                          alt={bankFormData.selectedBank.shortName}
+                          className="h-4 w-4 object-contain"
+                          onError={(e) => {
+                            e.currentTarget.style.display = 'none';
+                          }}
+                        />
+                        <span className="text-sm font-medium text-purple-700">
+                          {bankFormData.selectedBank.shortName}
+                        </span>
+                      </div>
+                      <p className="font-mono text-xs text-gray-600">
+                        STK: {bankFormData.bankCode}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
+
             <DialogFooter>
               <Button
                 type="button"
@@ -1055,7 +1689,7 @@ const PublisherWallet = () => {
                 disabled={
                   isUpdatingBank ||
                   !bankFormData.bankCode.trim() ||
-                  !bankFormData.bankName.trim()
+                  !bankFormData.selectedBank
                 }
                 className="hover:opacity-90"
                 style={{
@@ -1085,6 +1719,7 @@ const PublisherWallet = () => {
             </DialogFooter>
           </DialogContent>
         </Dialog>
+        <ToastNotification />
       </div>
     </BasePages>
   );

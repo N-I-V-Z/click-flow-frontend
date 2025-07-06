@@ -1,5 +1,6 @@
 import React, { useState, useMemo } from 'react';
-import { Modal, notification } from 'antd';
+import { Modal } from 'antd';
+import { showToast } from '@/utils/toastUtils';
 import {
   CheckCircleOutlined,
   CloseCircleOutlined,
@@ -63,18 +64,16 @@ const CampaignRequest: React.FC = () => {
         { id: selectedCampaign.id, status: newStatus },
         {
           onSuccess: () => {
-            notification.success({
-              message: 'Cập nhật thành công',
-              description: `Chiến dịch "${selectedCampaign.name}" đã được cập nhật thành "${newStatus}".`
-            });
+            showToast.success(
+              `Chiến dịch "${selectedCampaign.name}" đã được cập nhật thành "${newStatus}".`
+            );
             refetch();
           },
           onError: (err: Error) => {
             console.error(err);
-            notification.error({
-              message: 'Cập nhật thất bại',
-              description: `Không thể cập nhật trạng thái của "${selectedCampaign.name}".`
-            });
+            showToast.error(
+              `Không thể cập nhật trạng thái của "${selectedCampaign.name}".`
+            );
           }
         }
       );

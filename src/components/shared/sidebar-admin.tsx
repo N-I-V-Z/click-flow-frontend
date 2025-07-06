@@ -8,7 +8,8 @@ import {
   OrderedListOutlined,
   PullRequestOutlined,
   MessageOutlined,
-  GiftOutlined
+  GiftOutlined,
+  DollarCircleOutlined
 } from '@ant-design/icons';
 
 import { NavLink, useLocation } from 'react-router-dom';
@@ -150,16 +151,35 @@ const SidebarAdmin: React.FC = () => {
           <NavLink to="/admin/managepublisher">Nhà tiếp thị</NavLink>
         </Menu.Item>
 
-        {/* <Menu.Item
-          key="/admin/managereport"
-          icon={<FileTextOutlined />}
-          className={`
-            hover:!border-[#9B52BF] hover:bg-white hover:!text-[#9B52BF]
-            ${selectedKey === '/admin/managereport' ? '!bg-[#9B52BF] !text-white' : ''}
-          `}
+        <SubMenu
+          key="withdraw-transactions"
+          icon={<DollarCircleOutlined />}
+          title="Giao dịch rút tiền"
+          className="hover:!border-[#9B52BF] hover:bg-white hover:!text-[#9B52BF]"
         >
-          <NavLink to="/admin/managereport">Báo cáo</NavLink>
-        </Menu.Item> */}
+          <Menu.Item
+            key="/admin/withdraw-transactions/pending"
+            className={`
+              hover:!border-[#9B52BF] hover:bg-white hover:!text-[#9B52BF]
+              ${selectedKey === '/admin/withdraw-transactions/pending' || selectedKey.includes('/admin/withdraw-transactions/pending') ? '!bg-[#9B52BF] !text-white' : ''}
+            `}
+          >
+            <NavLink to="/admin/withdraw-transactions/pending">
+              Chưa duyệt
+            </NavLink>
+          </Menu.Item>
+          <Menu.Item
+            key="/admin/withdraw-transactions/approved"
+            className={`
+              hover:!border-[#9B52BF] hover:bg-white hover:!text-[#9B52BF]
+              ${selectedKey === '/admin/withdraw-transactions/approved' || selectedKey.includes('/admin/withdraw-transactions/approved') ? '!bg-[#9B52BF] !text-white' : ''}
+            `}
+          >
+            <NavLink to="/admin/withdraw-transactions/approved">
+              Đã duyệt
+            </NavLink>
+          </Menu.Item>
+        </SubMenu>
 
         <Menu.Item
           key="/admin/support"

@@ -1,5 +1,6 @@
 import React, { useEffect } from 'react';
-import { Modal, Form, Input, InputNumber, message } from 'antd';
+import { Modal, Form, Input, InputNumber } from 'antd';
+import { showToast } from '@/utils/toastUtils';
 import { EditOutlined } from '@ant-design/icons';
 import { useUpdatePlan } from '@/queries/plan.query';
 import { Plans } from '@/types';
@@ -48,12 +49,12 @@ const EditPlanModal: React.FC<EditPlanModalProps> = ({
 
     try {
       await updatePlan(values);
-      message.success('Cập nhật gói dịch vụ thành công!');
+      showToast.success('Cập nhật gói dịch vụ thành công!');
       form.resetFields();
       onClose();
       onSuccess?.();
     } catch (error) {
-      message.error(
+      showToast.error(
         'Có lỗi xảy ra khi cập nhật gói dịch vụ. Vui lòng thử lại!'
       );
       console.error('Update plan error:', error);

@@ -1,5 +1,6 @@
 import React, { useState, useMemo, useEffect, useCallback } from 'react';
-import { Modal, Badge, Rate, Form, Input, InputNumber, message } from 'antd';
+import { Modal, Badge, Rate, Form, Input, InputNumber } from 'antd';
+import { showToast } from '@/utils/toastUtils';
 import {
   EyeOutlined,
   EditOutlined,
@@ -133,13 +134,13 @@ const ManageCourse: React.FC = () => {
   const handleCreateCourseSubmit = async (values: CreateCourseFormData) => {
     try {
       await createCourseMutation.mutateAsync(values);
-      message.success('Tạo khóa học thành công!');
+      showToast.success('Tạo khóa học thành công!');
       setIsCreateModalVisible(false);
       createForm.resetFields();
       // Refetch data to update the list
       refetch();
     } catch (error) {
-      message.error('Có lỗi xảy ra khi tạo khóa học. Vui lòng thử lại!');
+      showToast.error('Có lỗi xảy ra khi tạo khóa học. Vui lòng thử lại!');
       console.error('Create course error:', error);
     }
   };
@@ -174,14 +175,14 @@ const ManageCourse: React.FC = () => {
         courseId: selectedCourse.id,
         ...values
       });
-      message.success('Cập nhật khóa học thành công!');
+      showToast.success('Cập nhật khóa học thành công!');
       setIsEditModalVisible(false);
       setSelectedCourse(null);
       editForm.resetFields();
       // Refetch data to update the list
       refetch();
     } catch (error) {
-      message.error('Có lỗi xảy ra khi cập nhật khóa học. Vui lòng thử lại!');
+      showToast.error('Có lỗi xảy ra khi cập nhật khóa học. Vui lòng thử lại!');
       console.error('Update course error:', error);
     }
   };

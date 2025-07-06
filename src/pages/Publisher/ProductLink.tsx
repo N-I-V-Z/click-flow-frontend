@@ -1,14 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import {
-  Button,
-  Input,
-  Card,
-  message,
-  Spin,
-  Typography,
-  Space,
-  Divider
-} from 'antd';
+import { Button, Input, Card, Spin, Typography, Space, Divider } from 'antd';
+import { showToast } from '@/utils/toastUtils';
 import { CopyOutlined, QrcodeOutlined, LinkOutlined } from '@ant-design/icons';
 import { motion } from 'framer-motion';
 import helpers from '@/helpers';
@@ -94,16 +86,16 @@ const ProductLink: React.FC<ProductLinkProps> = ({ campaignId, originUrl }) => {
     navigator.clipboard
       .writeText(link)
       .then(() => {
-        message.success(`Copy ${type} thành công!`);
+        showToast.success(`Copy ${type} thành công!`);
       })
       .catch(() => {
-        message.error(`Copy ${type} thất bại!`);
+        showToast.error(`Copy ${type} thất bại!`);
       });
   };
 
   // Hàm xử lý click vào QR code
   const handleQRClick = () => {
-    message.info('💡 Tip: Nhấn chuột phải vào QR code để lưu hình ảnh!', 3);
+    showToast.info('💡 Tip: Nhấn chuột phải vào QR code để lưu hình ảnh!');
   };
 
   // Hàm tạo QR code với chất lượng cao
@@ -113,10 +105,10 @@ const ProductLink: React.FC<ProductLinkProps> = ({ campaignId, originUrl }) => {
       // Sử dụng API QR Code với chất lượng cao và error correction
       const qrApiUrl = `https://api.qrserver.com/v1/create-qr-code/?size=400x400&format=png&ecc=M&data=${encodeURIComponent(link)}`;
       setQrCodeUrl(qrApiUrl);
-      message.success('Tạo QR code thành công!');
+      showToast.success('Tạo QR code thành công!');
     } catch (error) {
       console.error('QR generation error:', error);
-      message.error('Tạo QR code thất bại!');
+      showToast.error('Tạo QR code thất bại!');
     } finally {
       setIsGeneratingQR(false);
     }
@@ -245,12 +237,12 @@ const ProductLink: React.FC<ProductLinkProps> = ({ campaignId, originUrl }) => {
       )}
 
       {/* Instructions */}
-      <Card className="from-blue-50 border-blue-200 bg-gradient-to-r to-indigo-50">
-        <Title level={5} className="text-blue-800 !mb-3">
+      <Card className="border-blue-200 bg-gradient-to-r from-blue-50 to-indigo-50">
+        <Title level={5} className="!mb-3 text-blue-800">
           <QrcodeOutlined className="mr-2" />
           Hướng dẫn sử dụng
         </Title>
-        <div className="text-blue-700 space-y-2 text-sm">
+        <div className="space-y-2 text-sm text-blue-700">
           <div>
             • <strong>Link sản phẩm:</strong> Sử dụng để theo dõi chính xác
             nguồn traffic

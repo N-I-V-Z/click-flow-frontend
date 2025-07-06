@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { Modal, message } from 'antd';
+import { Modal } from 'antd';
+import { showToast } from '@/utils/toastUtils';
 import {
   EyeOutlined,
   CloseCircleOutlined,
@@ -116,11 +117,11 @@ const PublisherList: React.FC = () => {
           )
         );
 
-        message.success(
+        showToast.success(
           `${newBlockedStatus ? 'Khóa' : 'Mở khóa'} nhà tiếp thị thành công!`
         );
       } catch (error) {
-        message.error('Có lỗi xảy ra khi cập nhật trạng thái!');
+        showToast.error('Có lỗi xảy ra khi cập nhật trạng thái!');
       }
     }
     setIsLockModalVisible(false);

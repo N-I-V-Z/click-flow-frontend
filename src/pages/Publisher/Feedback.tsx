@@ -9,7 +9,8 @@ import { IFeedback } from '@/types/index';
 import { TokenDecoded } from '@/types';
 import helpers from '@/helpers';
 import __helpers from '@/helpers';
-import { message, Spin } from 'antd';
+import { Spin } from 'antd';
+import { showToast } from '@/utils/toastUtils';
 import { motion } from 'framer-motion';
 
 const decodedToken: TokenDecoded | null = helpers.decodeTokens(
@@ -323,7 +324,7 @@ const Feedback: React.FC<{
   // Handlers
   const handleSubmitReview = async () => {
     if (newRating === 0 || !newContent.trim()) {
-      message.warning('Vui lòng chọn số sao và nhập nội dung đánh giá!');
+      showToast.warning('Vui lòng chọn số sao và nhập nội dung đánh giá!');
       return;
     }
     try {
@@ -335,15 +336,15 @@ const Feedback: React.FC<{
       await refetch();
       await refetchCheck();
       closeModal();
-      message.success('Đánh giá của bạn đã được gửi thành công!');
+      showToast.success('Đánh giá của bạn đã được gửi thành công!');
     } catch (err) {
-      message.error(`Tạo feedback thất bại: ${(err as Error).message}`);
+      showToast.error(`Tạo feedback thất bại: ${(err as Error).message}`);
     }
   };
 
   const handleUpdateFeedback = async () => {
     if (!editingFeedbackId || editingStarRate === 0 || !editingContent.trim()) {
-      message.warning('Vui lòng điền đầy đủ thông tin!');
+      showToast.warning('Vui lòng điền đầy đủ thông tin!');
       return;
     }
     try {
@@ -354,9 +355,9 @@ const Feedback: React.FC<{
       });
       await refetch();
       closeEditModal();
-      message.success('Cập nhật đánh giá thành công!');
+      showToast.success('Cập nhật đánh giá thành công!');
     } catch (err) {
-      message.error(`Cập nhật thất bại: ${(err as Error).message}`);
+      showToast.error(`Cập nhật thất bại: ${(err as Error).message}`);
     }
   };
 

@@ -39,19 +39,34 @@ export const useCreateTransaction = () => {
 };
 
 /**
- * Hook gọi API lấy tất cả transactions với keyword search (dành cho admin)
+ * Hook gọi API lấy tất cả transactions (dành cho admin)
  */
 export const useGetAllTransactions = (
   pageIndex: number = 1,
   pageSize: number = 10,
-  keyword?: string
+  keyword?: string,
+  status?: boolean,
+  transactionType?: string
 ) => {
   return useQuery({
-    queryKey: ['get-all-transactions', pageIndex, pageSize, keyword],
+    queryKey: [
+      'get-all-transactions',
+      pageIndex,
+      pageSize,
+      keyword,
+      status,
+      transactionType
+    ],
     queryFn: async () => {
       let url = `${SUB_URL}?PageIndex=${pageIndex}&PageSize=${pageSize}`;
       if (keyword) {
         url += `&Keyword=${keyword}`;
+      }
+      if (status !== undefined) {
+        url += `&Status=${status}`;
+      }
+      if (transactionType) {
+        url += `&TransactionType=${transactionType}`;
       }
       return await BaseRequest.Get<PagingResponse<Transaction>>(url);
     },
@@ -68,6 +83,20 @@ export const useCreateNewTransaction = () => {
     mutationKey: ['create-new-transaction'],
     mutationFn: async (model: { amount: number; transactionType: string }) => {
       return await BaseRequest.Post<Transaction>(`${SUB_URL}`, model);
+    }
+  });
+};
+
+/**
+ * Hook gọi API cập nhật trạng thái giao dịch (dành cho admin)
+ */
+export const useUpdateTransactionStatus = () => {
+  return useMutation({
+    mutationKey: ['update-transaction-status'],
+    mutationFn: async ({ id, status }: { id: number; status: boolean }) => {
+      return await BaseRequest.Put<Transaction>(`${SUB_URL}/${id}/status`, {
+        status
+      });
     }
   });
 };
