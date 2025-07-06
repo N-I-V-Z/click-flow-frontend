@@ -1,5 +1,6 @@
 import BasePages from '@/components/shared/base-pages';
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 import {
   LineChart,
   Line,
@@ -13,8 +14,12 @@ import {
   Bar
 } from 'recharts';
 import { useGetOwnWallet } from '@/queries/wallet.query';
+import { useGetCampaignCountByStatus } from '@/queries/campaign.query';
+import { useGetCourseAdmin } from '@/queries/course.query';
 
 const AdminDashboard: React.FC = () => {
+  const navigate = useNavigate();
+
   // Dữ liệu giả lập cho LineChart (doanh thu theo tháng)
   const revenueData = [
     { month: 'Th1', revenue: 150 },
@@ -35,9 +40,49 @@ const AdminDashboard: React.FC = () => {
   const { data: walletData, isLoading: walletLoading } = useGetOwnWallet();
   const balance = walletData?.result?.balance ?? 0;
 
+  // Lấy số lượng chiến dịch đang hoạt động
+  const { data: activeCampaignData, isLoading: campaignLoading } =
+    useGetCampaignCountByStatus('Activing');
+  const activeCampaignCount = activeCampaignData?.result ?? 0;
+
+  // Lấy tổng số khóa học
+  const { data: courseData, isLoading: courseLoading } = useGetCourseAdmin(
+    1,
+    10
+  );
+  const totalCourses = courseData?.result?.totalItems ?? 0;
+
+  // Handlers for quick access buttons
+  const handleQuickAccess = (
+    targetPath: string,
+    dropdownKey?: string,
+    isCreateAction?: boolean
+  ) => {
+    // Nếu cần mở dropdown, set localStorage trước khi navigate
+    if (dropdownKey) {
+      localStorage.setItem('admin-sidebar-open-dropdown', dropdownKey);
+    } else {
+      localStorage.removeItem('admin-sidebar-open-dropdown');
+    }
+
+    // Xử lý các tác vụ tạo mới
+    if (isCreateAction) {
+      if (targetPath === '/admin/course') {
+        // Trigger tạo khóa học mới - có thể mở modal hoặc navigate đến form tạo
+        localStorage.setItem('admin-trigger-create-course', 'true');
+      } else if (targetPath === '/admin/plan') {
+        // Trigger tạo gói mới - có thể mở modal hoặc navigate đến form tạo
+        localStorage.setItem('admin-trigger-create-plan', 'true');
+      }
+    }
+
+    // Navigate đến trang đích
+    navigate(targetPath);
+  };
+
   return (
     <BasePages pageHead="ClickFlow - Dashboard">
-      <div className="mb-10 p-4">
+      <div className="w-full px-6 py-8">
         {/* 4 ô thống kê (canh đều) */}
         <div className="mb-6 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
           {/* Doanh thu tháng này */}
@@ -48,10 +93,12 @@ const AdminDashboard: React.FC = () => {
             <p>Doanh thu tháng này</p>
           </div>
 
-          {/* Số chiến dịch trong tháng qua */}
+          {/* Khóa học đang hoạt động */}
           <div className="rounded bg-[#F6B93B] p-4 text-center text-white">
-            <h2 className="text-2xl font-bold">88</h2>
-            <p>Số chiến dịch trong tháng qua</p>
+            <h2 className="text-2xl font-bold">
+              {courseLoading ? '...' : totalCourses}
+            </h2>
+            <p>Khóa học đang hoạt động</p>
           </div>
 
           {/* Tổng số report chưa xử lý */}
@@ -60,10 +107,12 @@ const AdminDashboard: React.FC = () => {
             <p>Tổng số report chưa xử lý</p>
           </div>
 
-          {/* Chiến dịch mới */}
+          {/* Chiến dịch đang hoạt động */}
           <div className="rounded bg-[#1959AD] p-4 text-center text-white">
-            <h2 className="text-2xl font-bold">38</h2>
-            <p>Chiến dịch mới</p>
+            <h2 className="text-2xl font-bold">
+              {campaignLoading ? '...' : activeCampaignCount}
+            </h2>
+            <p>Chiến dịch đang hoạt động</p>
           </div>
         </div>
 
@@ -74,17 +123,36 @@ const AdminDashboard: React.FC = () => {
 
         {/* 4 nút truy cập nhanh (canh đều) */}
         <div className="mb-6 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          <button className="rounded bg-purple-600 px-4 py-2 text-white hover:bg-purple-700">
-            Thêm mới chiến dịch
+          <button
+            onClick={() =>
+              handleQuickAccess('/admin/campaignrequest', 'campaign')
+            }
+            className="transform rounded-lg bg-gradient-to-r from-purple-600 to-pink-600 px-4 py-3 font-medium text-white shadow-lg transition-all duration-300 hover:scale-105 hover:from-purple-700 hover:to-pink-700"
+          >
+            Yêu cầu chiến dịch
           </button>
-          <button className="rounded bg-purple-600 px-4 py-2 text-white hover:bg-purple-700">
-            Chiến dịch gần hết hạn
+          <button
+            onClick={() =>
+              handleQuickAccess(
+                '/admin/withdraw-transactions/pending',
+                'withdraw-transactions'
+              )
+            }
+            className="transform rounded-lg bg-gradient-to-r from-purple-600 to-pink-600 px-4 py-3 font-medium text-white shadow-lg transition-all duration-300 hover:scale-105 hover:from-purple-700 hover:to-pink-700"
+          >
+            Duyệt giao dịch rút tiền
           </button>
-          <button className="rounded bg-purple-600 px-4 py-2 text-white hover:bg-purple-700">
-            Danh sách chiến dịch
+          <button
+            onClick={() => handleQuickAccess('/admin/course', undefined, true)}
+            className="transform rounded-lg bg-gradient-to-r from-purple-600 to-pink-600 px-4 py-3 font-medium text-white shadow-lg transition-all duration-300 hover:scale-105 hover:from-purple-700 hover:to-pink-700"
+          >
+            Tạo khóa học mới
           </button>
-          <button className="rounded bg-purple-600 px-4 py-2 text-white hover:bg-purple-700">
-            Báo cáo
+          <button
+            onClick={() => handleQuickAccess('/admin/plan', undefined, true)}
+            className="transform rounded-lg bg-gradient-to-r from-purple-600 to-pink-600 px-4 py-3 font-medium text-white shadow-lg transition-all duration-300 hover:scale-105 hover:from-purple-700 hover:to-pink-700"
+          >
+            Tạo gói mới
           </button>
         </div>
 

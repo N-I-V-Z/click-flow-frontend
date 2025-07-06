@@ -156,7 +156,7 @@ const CampaignAnalytics: React.FC<Props> = ({
   return (
     <Layout style={{ backgroundColor: '#f5f5f5' }}>
       <Content className="p-4 md:p-6">
-        <div className="mx-auto max-w-7xl">
+        <div className="w-full px-6">
           <h2 className="mb-6 text-2xl font-bold">Thống kê Traffic</h2>
 
           {/* 3 ô thống kê (đỏ, vàng, xanh lá) */}

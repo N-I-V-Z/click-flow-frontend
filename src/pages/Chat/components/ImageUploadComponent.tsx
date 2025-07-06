@@ -122,7 +122,6 @@ const ImageUpload: React.FC<ImageUploadProps> = ({
       await onSendFile(selectedImage);
       handleCloseModal();
     } catch (error) {
-      console.error('Error uploading image:', error);
       setUploadError('Không thể gửi hình ảnh. Vui lòng thử lại.');
     } finally {
       setIsUploading(false);
@@ -204,7 +203,7 @@ const ImageUpload: React.FC<ImageUploadProps> = ({
 
           {/* Error Message */}
           {uploadError && (
-            <div className="bg-red-50 flex items-center gap-2 rounded-lg border border-red p-3 text-sm text-red">
+            <div className="border-red text-red flex items-center gap-2 rounded-lg border bg-red-50 p-3 text-sm">
               <AlertCircle size={16} />
               <span>{uploadError}</span>
             </div>
@@ -223,7 +222,7 @@ const ImageUpload: React.FC<ImageUploadProps> = ({
             <Button
               onClick={handleSendImage}
               disabled={isUploading || !selectedImage}
-              className="flex-1 bg-gradient-to-r from-blue to-blue hover:from-blue hover:to-blue"
+              className="from-blue to-blue hover:from-blue hover:to-blue flex-1 bg-gradient-to-r"
             >
               {isUploading ? (
                 <Loader2 size={16} className="mr-2 animate-spin" />
@@ -241,15 +240,15 @@ const ImageUpload: React.FC<ImageUploadProps> = ({
   // Drag Overlay Component
   const DragOverlay = () => (
     <div
-      className="bg-blue-500/20 fixed inset-0 z-[9998] flex items-center justify-center"
+      className="fixed inset-0 z-[9998] flex items-center justify-center bg-blue-500/20"
       style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0 }}
       onDragOver={handleDragOver}
       onDragLeave={handleDragLeave}
       onDrop={handleDrop}
     >
-      <div className="rounded-lg border-2 border-dashed border-blue bg-white p-8 shadow-lg">
+      <div className="border-blue rounded-lg border-2 border-dashed bg-white p-8 shadow-lg">
         <div className="text-center">
-          <Upload size={48} className="mx-auto mb-4 text-blue" />
+          <Upload size={48} className="text-blue mx-auto mb-4" />
           <p className="text-gray text-lg font-semibold">
             Thả hình ảnh vào đây
           </p>

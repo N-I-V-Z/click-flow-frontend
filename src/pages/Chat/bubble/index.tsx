@@ -45,13 +45,10 @@ const ChatBubble = () => {
           setConversationData(response.result);
           await refetchMessages();
         } else {
-          console.error(
-            '[BUBBLE] Invalid response from createConversation:',
-            response
-          );
+          // Invalid response from createConversation
         }
       } catch (error) {
-        console.error('[BUBBLE] Error initializing conversation:', error);
+        // Error initializing conversation
       } finally {
         setIsInitializing(false);
       }
@@ -94,9 +91,7 @@ const ChatBubble = () => {
         // Connected successfully
       });
 
-      pusherRef.current.connection.bind('error', (error: unknown) => {
-        console.error('[BUBBLE] Pusher connection error:', error);
-
+      pusherRef.current.connection.bind('error', () => {
         // Retry connection after 3 seconds
         reconnectTimeoutRef.current = setTimeout(() => {
           if (pusherRef.current) {
@@ -127,8 +122,8 @@ const ChatBubble = () => {
       // Successfully subscribed
     });
 
-    channelRef.current.bind('pusher:subscription_error', (error: unknown) => {
-      console.error('[BUBBLE] Subscription error:', error);
+    channelRef.current.bind('pusher:subscription_error', () => {
+      // Subscription error handling
     });
 
     // Message events
@@ -207,27 +202,22 @@ const ChatBubble = () => {
 
       await refetchMessages();
     } catch (error) {
-      console.error('[BUBBLE] Error sending message:', error);
+      // Error sending message
     }
   };
 
   const handleSendFile = async (file: File) => {
     if (!conversationData) return;
 
-    try {
-      await sendMessage({
-        conversationId: conversationData.id,
-        type: file.type.startsWith('image/')
-          ? MessageType.Image
-          : MessageType.Voice,
-        file: file
-      });
+    await sendMessage({
+      conversationId: conversationData.id,
+      type: file.type.startsWith('image/')
+        ? MessageType.Image
+        : MessageType.Voice,
+      file: file
+    });
 
-      await refetchMessages();
-    } catch (error) {
-      console.error('Error uploading file:', error);
-      throw error;
-    }
+    await refetchMessages();
   };
 
   const handleToggleChat = (isOpen: boolean) => {

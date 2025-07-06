@@ -140,7 +140,7 @@ const ChatPage: React.FC = () => {
           await maskAsRead({ conversationId: selectedConversation.id });
           await refetchConversations(); // Update conversation list
         } catch (error) {
-          console.error('Error marking messages as read:', error);
+          // Error handling without console
         }
       };
 
@@ -172,10 +172,7 @@ const ChatPage: React.FC = () => {
       if (pusherRef.current?.connection.state === 'connected') {
         // Connection is healthy
       } else {
-        console.warn(
-          'Pusher connection issue:',
-          pusherRef.current?.connection.state
-        );
+        // Connection issue detected
       }
     }, 30000); // Check every 30 seconds
 
@@ -226,8 +223,8 @@ const ChatPage: React.FC = () => {
         // Connected successfully
       });
 
-      pusherRef.current.connection.bind('error', (error: unknown) => {
-        console.error('Pusher connection error:', error);
+      pusherRef.current.connection.bind('error', () => {
+        // Error handling without console
       });
     }
 
@@ -247,12 +244,8 @@ const ChatPage: React.FC = () => {
           // Successfully subscribed
         });
 
-        channel.bind('pusher:subscription_error', (error: unknown) => {
-          console.error(
-            '[ADMIN] Subscription error for channel:',
-            channelName,
-            error
-          );
+        channel.bind('pusher:subscription_error', () => {
+          // Subscription error handling
         });
 
         channel.bind('new-message', () => {
@@ -326,7 +319,7 @@ const ChatPage: React.FC = () => {
 
       setTimeout(() => scrollToBottom('smooth'), 200);
     } catch (error) {
-      console.error('[ADMIN] Error sending message:', error);
+      // Error handling without console
       // Restore message if sending failed
       setMessage(message);
     } finally {
@@ -352,9 +345,6 @@ const ChatPage: React.FC = () => {
       await Promise.all([refetchMessages(), refetchConversations()]);
 
       setTimeout(() => scrollToBottom('smooth'), 200);
-    } catch (error) {
-      console.error('Error uploading file:', error);
-      throw error;
     } finally {
       setIsSending(false);
     }

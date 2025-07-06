@@ -1,15 +1,17 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { toast, ToastContainer } from 'react-toastify';
-import 'react-toastify/dist/ReactToastify.css';
-import UpgradePackage from '@/pages/Publisher/UpgradePackage';
+import { toast } from 'react-toastify';
 import { logoURLAd } from '@/constants/data';
 export default function HeaderAd() {
   const [isLogoutOpen, setIsLogoutOpen] = useState<boolean>(false);
   const handleLogout = (): void => {
     toast.success('Đăng xuất thành công!', {
-      position: 'top-right',
-      autoClose: 3000
+      toastId: 'logout-success',
+      autoClose: 3000,
+      closeOnClick: true,
+      pauseOnHover: false,
+      pauseOnFocusLoss: false,
+      draggable: false
     });
 
     setIsLogoutOpen(false);
@@ -31,8 +33,7 @@ export default function HeaderAd() {
         </div>
 
         <div className="flex items-center gap-4">
-          {/* Upgrade Package Button */}
-          <UpgradePackage />
+          {/* Navigation items for Advertiser can be added here */}
         </div>
       </nav>
 
@@ -59,20 +60,6 @@ export default function HeaderAd() {
           </div>
         </div>
       )}
-
-      {/* Nơi hiển thị các toast */}
-      <ToastContainer
-        position="top-center"
-        autoClose={5000}
-        hideProgressBar={false}
-        newestOnTop={false}
-        closeOnClick={false}
-        rtl={false}
-        pauseOnFocusLoss
-        draggable
-        pauseOnHover
-        theme="colored"
-      />
     </>
   );
 }

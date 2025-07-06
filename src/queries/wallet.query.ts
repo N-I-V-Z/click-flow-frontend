@@ -2,6 +2,9 @@ import BaseRequest from '@/config/axios.config';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 
 // Type cho Wallet trả về
+
+const SUB_URL = `/api/Wallets`;
+
 export interface WalletApiResult {
   id: number;
   balance: number;
@@ -20,7 +23,7 @@ export const useGetOwnWallet = () => {
   return useQuery({
     queryKey: ['get-own-wallet'],
     queryFn: async () => {
-      return await BaseRequest.Get<WalletApiResult>('/api/Wallets/own');
+      return await BaseRequest.Get<WalletApiResult>(`${SUB_URL}/own`);
     },
     staleTime: 1000 * 60 * 5,
     retry: 3
@@ -38,7 +41,7 @@ export const useUpdateBankInfo = () => {
       walletId: number;
       bankData: UpdateBankInfoRequest;
     }) => {
-      return await BaseRequest.Put(`/api/Wallets/${walletId}`, bankData);
+      return await BaseRequest.Put(`${SUB_URL}/${walletId}`, bankData);
     },
     onSuccess: () => {
       // Invalidate và refetch wallet data sau khi cập nhật thành công

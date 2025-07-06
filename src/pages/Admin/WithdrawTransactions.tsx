@@ -314,18 +314,25 @@ const WithdrawTransactions: React.FC<WithdrawTransactionsProps> = ({
             </div>
 
             <div className="overflow-x-auto">
-              <Table>
+              <Table className="w-full table-fixed">
                 <TableHeader>
                   <TableRow className="bg-gray-50">
-                    <TableHead className="font-semibold">Mã GD</TableHead>
-                    <TableHead className="font-semibold">Số tiền</TableHead>
-                    <TableHead className="font-semibold">Ngày tạo</TableHead>
-                    <TableHead className="font-semibold">
+                    <TableHead className="w-[12%] font-semibold">
+                      Mã GD
+                    </TableHead>
+                    <TableHead className="w-[18%] font-semibold">
+                      Số tiền
+                    </TableHead>
+                    <TableHead className="w-[18%] font-semibold">
+                      Ngày tạo
+                    </TableHead>
+                    <TableHead className="w-[18%] font-semibold">
                       Số dư sau GD
                     </TableHead>
-                    <TableHead className="font-semibold">Trạng thái</TableHead>
-                    <TableHead className="font-semibold">Wallet ID</TableHead>
-                    <TableHead className="min-w-[200px] font-semibold">
+                    <TableHead className="w-[14%] font-semibold">
+                      Trạng thái
+                    </TableHead>
+                    <TableHead className="w-[20%] font-semibold">
                       Thao tác
                     </TableHead>
                   </TableRow>
@@ -333,7 +340,7 @@ const WithdrawTransactions: React.FC<WithdrawTransactionsProps> = ({
                 <TableBody>
                   {isLoading ? (
                     <TableRow>
-                      <TableCell colSpan={7} className="py-8 text-center">
+                      <TableCell colSpan={6} className="py-8 text-center">
                         <div className="flex items-center justify-center">
                           <RefreshCw className="mr-2 h-4 w-4 animate-spin" />
                           Đang tải dữ liệu...
@@ -342,7 +349,7 @@ const WithdrawTransactions: React.FC<WithdrawTransactionsProps> = ({
                     </TableRow>
                   ) : withdrawTransactions.length === 0 ? (
                     <TableRow>
-                      <TableCell colSpan={7} className="py-8 text-center">
+                      <TableCell colSpan={6} className="py-8 text-center">
                         <div className="flex flex-col items-center text-gray-500">
                           <DollarSign className="mb-2 h-12 w-12" />
                           <p>Không có giao dịch rút tiền nào</p>
@@ -375,9 +382,6 @@ const WithdrawTransactions: React.FC<WithdrawTransactionsProps> = ({
                         </TableCell>
                         <TableCell>
                           {getStatusBadge(transaction.status)}
-                        </TableCell>
-                        <TableCell className="font-mono text-sm">
-                          {transaction.walletId}
                         </TableCell>
                         <TableCell className="min-w-[200px]">
                           <div className="flex items-center gap-2">

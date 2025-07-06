@@ -24,25 +24,42 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({
     decodedToken?.Id !== undefined && msg?.senderId === Number(decodedToken.Id);
 
   const formatTime = (timestamp: string | Date) => {
-    const date = new Date(timestamp);
-    return date.toLocaleTimeString('vi-VN', {
-      hour: '2-digit',
-      minute: '2-digit'
-    });
+    try {
+      const date = new Date(timestamp);
+      if (isNaN(date.getTime())) {
+        return '--:--';
+      }
+      return date.toLocaleTimeString('vi-VN', {
+        hour: '2-digit',
+        minute: '2-digit',
+        timeZone: 'Asia/Ho_Chi_Minh'
+      });
+    } catch (error) {
+      return '--:--';
+    }
   };
 
   const formatDate = (timestamp: string | Date) => {
-    const date = new Date(timestamp);
-    const today = new Date();
-    const yesterday = new Date(today);
-    yesterday.setDate(yesterday.getDate() - 1);
+    try {
+      const date = new Date(timestamp);
+      if (isNaN(date.getTime())) {
+        return 'Không xác định';
+      }
+      const today = new Date();
+      const yesterday = new Date(today);
+      yesterday.setDate(yesterday.getDate() - 1);
 
-    if (date.toDateString() === today.toDateString()) {
-      return 'Hôm nay';
-    } else if (date.toDateString() === yesterday.toDateString()) {
-      return 'Hôm qua';
-    } else {
-      return date.toLocaleDateString('vi-VN');
+      if (date.toDateString() === today.toDateString()) {
+        return 'Hôm nay';
+      } else if (date.toDateString() === yesterday.toDateString()) {
+        return 'Hôm qua';
+      } else {
+        return date.toLocaleDateString('vi-VN', {
+          timeZone: 'Asia/Ho_Chi_Minh'
+        });
+      }
+    } catch (error) {
+      return 'Không xác định';
     }
   };
 
@@ -81,7 +98,7 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({
             <div
               className={`relative rounded-2xl px-4 py-3 shadow-sm transition-all duration-200 hover:shadow-md ${
                 isSender
-                  ? 'rounded-br-md bg-white bg-gradient-to-br from-blue to-blue text-gray-800'
+                  ? 'rounded-br-md bg-gradient-to-br from-purple-600 to-pink-600 text-white'
                   : 'rounded-bl-md border border-gray-200 bg-white text-gray-800'
               }`}
             >
@@ -129,7 +146,7 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({
               {isSender && (
                 <span className="ml-1">
                   {msg.isRead ? (
-                    <CheckCheck size={12} className="text-blue" />
+                    <CheckCheck size={12} className="text-purple-500" />
                   ) : (
                     <Check size={12} className="text-gray-400" />
                   )}
@@ -139,7 +156,7 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({
           </div>
 
           {isSender && (
-            <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-blue to-indigo-500">
+            <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-purple-600 to-pink-600">
               <User size={16} className="text-white" />
             </div>
           )}

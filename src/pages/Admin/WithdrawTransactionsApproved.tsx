@@ -328,36 +328,36 @@ const WithdrawTransactionsApproved: React.FC = () => {
 
         {/* Transaction Detail Modal */}
         <Dialog open={isDetailModalOpen} onOpenChange={setIsDetailModalOpen}>
-          <DialogContent className="max-h-[90vh] max-w-4xl overflow-y-auto">
-            <DialogHeader className="border-b border-gray-100 pb-6">
-              <DialogTitle className="flex items-center gap-3 text-2xl">
-                <div className="rounded-xl bg-gradient-to-r from-green-500 to-emerald-500 p-3">
-                  <CheckCircle className="h-6 w-6 text-white" />
+          <DialogContent className="max-h-[85vh] max-w-2xl overflow-y-auto">
+            <DialogHeader className="border-b border-gray-100 pb-4">
+              <DialogTitle className="flex items-center gap-3 text-xl">
+                <div className="rounded-lg bg-gradient-to-r from-green-500 to-emerald-500 p-2">
+                  <CheckCircle className="h-5 w-5 text-white" />
                 </div>
                 <div>
                   <span className="text-gray-900">
                     Chi tiết giao dịch đã duyệt
                   </span>
                   <div className="mt-1 text-sm font-normal text-gray-500">
-                    Mã giao dịch: #{selectedTransaction?.id} • Đã hoàn thành
+                    Mã: #{selectedTransaction?.id} • Đã hoàn thành
                   </div>
                 </div>
               </DialogTitle>
             </DialogHeader>
 
             {selectedTransaction && (
-              <div className="space-y-8 py-6">
-                {/* Status Card - Approved Theme */}
-                <div className="rounded-xl border border-green-200 bg-gradient-to-r from-green-50 to-emerald-50 p-6">
+              <div className="space-y-6 py-4">
+                {/* Status Card - Compact */}
+                <div className="rounded-lg border border-green-200 bg-gradient-to-r from-green-50 to-emerald-50 p-4">
                   <div className="flex items-center justify-between">
                     <div>
-                      <h3 className="mb-2 text-lg font-semibold text-gray-800">
+                      <h3 className="mb-1 text-base font-semibold text-gray-800">
                         Trạng thái giao dịch
                       </h3>
                       <div className="flex items-center gap-3">
                         {getStatusBadge(selectedTransaction.status)}
-                        <span className="text-sm font-medium text-green-600">
-                          ✅ Giao dịch đã hoàn thành thành công
+                        <span className="text-xs font-medium text-green-600">
+                          ✅ Giao dịch đã hoàn thành
                         </span>
                       </div>
                     </div>

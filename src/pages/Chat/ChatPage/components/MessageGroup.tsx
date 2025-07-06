@@ -34,10 +34,10 @@ const MessageGroup: React.FC<MessageGroupProps> = ({
       }
       return date.toLocaleTimeString('vi-VN', {
         hour: '2-digit',
-        minute: '2-digit'
+        minute: '2-digit',
+        timeZone: 'Asia/Ho_Chi_Minh'
       });
     } catch (error) {
-      console.warn('Invalid timestamp:', timestamp, error);
       return '--:--';
     }
   };
@@ -58,10 +58,11 @@ const MessageGroup: React.FC<MessageGroupProps> = ({
       } else if (date.toDateString() === yesterday.toDateString()) {
         return 'Hôm qua';
       } else {
-        return date.toLocaleDateString('vi-VN');
+        return date.toLocaleDateString('vi-VN', {
+          timeZone: 'Asia/Ho_Chi_Minh'
+        });
       }
     } catch (error) {
-      console.warn('Invalid date string:', dateString, error);
       return 'Ngày không xác định';
     }
   };
@@ -98,7 +99,7 @@ const MessageGroup: React.FC<MessageGroupProps> = ({
         }
         grouped[dateKey].push(msg);
       } catch (error) {
-        console.warn('Invalid sentAt date:', msg.sentAt, error);
+        // Invalid date, skip this message
       }
     });
 

@@ -8,11 +8,11 @@ const ToastNotification = () => {
       autoClose={5000}
       hideProgressBar={false}
       newestOnTop={false}
-      closeOnClick={false}
+      closeOnClick={true}
       rtl={false}
-      pauseOnFocusLoss
+      pauseOnFocusLoss={false}
       draggable
-      pauseOnHover
+      pauseOnHover={false}
       theme="colored"
     />
   );

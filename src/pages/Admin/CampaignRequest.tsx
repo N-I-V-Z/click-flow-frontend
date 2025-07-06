@@ -233,7 +233,7 @@ const CampaignRequest: React.FC = () => {
   return (
     <BasePages pageHead="ClickFlow - Yêu cầu chiến dịch">
       <div className="min-h-screen p-6" style={{ backgroundColor: '#f9fafb' }}>
-        <div className="mx-auto max-w-7xl">
+        <div className="w-full">
           {/* Header */}
           <div className="mb-6">
             <h1

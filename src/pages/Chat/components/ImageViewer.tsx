@@ -25,14 +25,10 @@ export const ImageViewer: React.FC<ImageViewerProps> = ({
       }
       return date.toLocaleTimeString('vi-VN', {
         hour: '2-digit',
-        minute: '2-digit'
+        minute: '2-digit',
+        timeZone: 'Asia/Ho_Chi_Minh'
       });
     } catch (error) {
-      console.warn(
-        'Invalid timestamp in ImageViewer formatTime:',
-        timestamp,
-        error
-      );
       return '--:--';
     }
   };
@@ -53,14 +49,11 @@ export const ImageViewer: React.FC<ImageViewerProps> = ({
       } else if (date.toDateString() === yesterday.toDateString()) {
         return 'Hôm qua';
       } else {
-        return date.toLocaleDateString('vi-VN');
+        return date.toLocaleDateString('vi-VN', {
+          timeZone: 'Asia/Ho_Chi_Minh'
+        });
       }
     } catch (error) {
-      console.warn(
-        'Invalid timestamp in ImageViewer formatDate:',
-        timestamp,
-        error
-      );
       return 'Ngày không xác định';
     }
   };

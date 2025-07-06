@@ -202,7 +202,7 @@ export const ChatUI: React.FC<ChatUIProps> = ({
       setInput('');
       setShowEmojiPicker(false);
     } catch (error) {
-      console.error('Error sending message:', error);
+      // Error sending message
     } finally {
       setIsSending(false);
     }
@@ -214,7 +214,7 @@ export const ChatUI: React.FC<ChatUIProps> = ({
       setCopiedMessageId(messageId);
       setTimeout(() => setCopiedMessageId(null), 2000);
     } catch (error) {
-      console.error('Failed to copy message:', error);
+      // Failed to copy message
     }
   };
 

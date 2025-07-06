@@ -10,11 +10,11 @@ const ToastNotification: React.FC = () => {
       autoClose={3000}
       hideProgressBar={false}
       newestOnTop={false}
-      closeOnClick
+      closeOnClick={true}
       rtl={false}
-      pauseOnFocusLoss
+      pauseOnFocusLoss={false}
       draggable
-      pauseOnHover
+      pauseOnHover={false}
       theme="light"
       style={{
         zIndex: 9999
