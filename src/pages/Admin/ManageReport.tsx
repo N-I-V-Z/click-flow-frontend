@@ -129,7 +129,7 @@ export default function ReportTable() {
   if (isLoading) {
     return (
       <BasePages pageHead="ClickFlow - Quản lý báo cáo">
-        <div className="p-4">
+        <div className="w-full px-6 py-8">
           <Loading />
         </div>
       </BasePages>
@@ -138,7 +138,9 @@ export default function ReportTable() {
   if (error) {
     return (
       <BasePages pageHead="ClickFlow - Quản lý báo cáo">
-        <div className="p-4">Đã có lỗi xảy ra khi tải dữ liệu báo cáo!</div>
+        <div className="w-full px-6 py-8">
+          Đã có lỗi xảy ra khi tải dữ liệu báo cáo!
+        </div>
       </BasePages>
     );
   }
@@ -158,7 +160,7 @@ export default function ReportTable() {
 
   return (
     <BasePages pageHead="ClickFlow - Quản lý báo cáo">
-      <div className="mb-10 p-4">
+      <div className="w-full px-6 py-8">
         <h2 className="mb-4 text-xl font-semibold">Quản lý báo cáo</h2>
         <div className="mb-4 flex items-center gap-2">
           <Input

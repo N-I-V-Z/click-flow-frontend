@@ -270,7 +270,7 @@ const CampaignList: React.FC = () => {
   return (
     <BasePages pageHead="ClickFlow - Danh sách chiến dịch">
       <div className="min-h-screen p-6" style={{ backgroundColor: '#f9fafb' }}>
-        <div className="mx-auto max-w-7xl">
+        <div className="w-full">
           {/* Data Table */}
           <div
             className="rounded-lg shadow-sm"

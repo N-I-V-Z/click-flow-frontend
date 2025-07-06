@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Menu, Modal, Button } from 'antd';
 import {
   HomeOutlined,
@@ -9,7 +9,9 @@ import {
   PullRequestOutlined,
   MessageOutlined,
   GiftOutlined,
-  DollarCircleOutlined
+  DollarCircleOutlined,
+  ClockCircleOutlined,
+  CheckCircleOutlined
 } from '@ant-design/icons';
 
 import { NavLink, useLocation } from 'react-router-dom';
@@ -28,6 +30,40 @@ const SidebarAdmin: React.FC = () => {
   const location = useLocation();
   const [selectedKey, setSelectedKey] = useState(location.pathname);
   const [isModalVisible, setIsModalVisible] = useState(false);
+  const [openKeys, setOpenKeys] = useState<string[]>([]);
+
+  // Initialize and sync sidebar state with current route
+  useEffect(() => {
+    const shouldOpenDropdown = localStorage.getItem(
+      'admin-sidebar-open-dropdown'
+    );
+
+    // Update selected key to match current location
+    setSelectedKey(location.pathname);
+
+    // Auto-open dropdowns based on current path or localStorage signal
+    const newOpenKeys: string[] = [];
+
+    if (location.pathname.includes('/admin/withdraw-transactions/')) {
+      newOpenKeys.push('withdraw-transactions');
+    }
+
+    if (location.pathname.includes('/admin/campaign')) {
+      newOpenKeys.push('campaign');
+    }
+
+    // Add dropdown from localStorage signal
+    if (shouldOpenDropdown && !newOpenKeys.includes(shouldOpenDropdown)) {
+      newOpenKeys.push(shouldOpenDropdown);
+    }
+
+    setOpenKeys(newOpenKeys);
+
+    // Clean up localStorage
+    if (shouldOpenDropdown) {
+      localStorage.removeItem('admin-sidebar-open-dropdown');
+    }
+  }, [location.pathname]);
 
   const showLogoutModal = () => {
     setIsModalVisible(true);
@@ -87,6 +123,8 @@ const SidebarAdmin: React.FC = () => {
       <Menu
         mode="inline"
         selectedKeys={[selectedKey]}
+        openKeys={openKeys}
+        onOpenChange={setOpenKeys}
         onClick={(e) => setSelectedKey(e.key)}
         className="flex-grow border-r-0"
       >
@@ -159,6 +197,7 @@ const SidebarAdmin: React.FC = () => {
         >
           <Menu.Item
             key="/admin/withdraw-transactions/pending"
+            icon={<ClockCircleOutlined />}
             className={`
               hover:!border-[#9B52BF] hover:bg-white hover:!text-[#9B52BF]
               ${selectedKey === '/admin/withdraw-transactions/pending' || selectedKey.includes('/admin/withdraw-transactions/pending') ? '!bg-[#9B52BF] !text-white' : ''}
@@ -170,6 +209,7 @@ const SidebarAdmin: React.FC = () => {
           </Menu.Item>
           <Menu.Item
             key="/admin/withdraw-transactions/approved"
+            icon={<CheckCircleOutlined />}
             className={`
               hover:!border-[#9B52BF] hover:bg-white hover:!text-[#9B52BF]
               ${selectedKey === '/admin/withdraw-transactions/approved' || selectedKey.includes('/admin/withdraw-transactions/approved') ? '!bg-[#9B52BF] !text-white' : ''}

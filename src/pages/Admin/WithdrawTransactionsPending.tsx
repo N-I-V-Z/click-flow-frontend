@@ -189,7 +189,7 @@ const WithdrawTransactionsPending: React.FC = () => {
   return (
     <BasePages pageHead="ClickFlow - Giao dịch rút tiền chưa duyệt">
       <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100">
-        <div className="container mx-auto px-4 py-8">
+        <div className="w-full px-6 py-8">
           <div className="mb-8">
             <div className="mb-2 flex items-center gap-3">
               <div className="rounded-lg bg-yellow-100 p-2">
@@ -231,18 +231,25 @@ const WithdrawTransactionsPending: React.FC = () => {
             </div>
 
             <div className="overflow-x-auto">
-              <Table>
+              <Table className="w-full table-fixed">
                 <TableHeader>
                   <TableRow className="bg-gray-50">
-                    <TableHead className="font-semibold">Mã GD</TableHead>
-                    <TableHead className="font-semibold">Số tiền</TableHead>
-                    <TableHead className="font-semibold">Ngày tạo</TableHead>
-                    <TableHead className="font-semibold">
+                    <TableHead className="w-[12%] font-semibold">
+                      Mã GD
+                    </TableHead>
+                    <TableHead className="w-[18%] font-semibold">
+                      Số tiền
+                    </TableHead>
+                    <TableHead className="w-[18%] font-semibold">
+                      Ngày tạo
+                    </TableHead>
+                    <TableHead className="w-[18%] font-semibold">
                       Số dư sau GD
                     </TableHead>
-                    <TableHead className="font-semibold">Trạng thái</TableHead>
-                    <TableHead className="font-semibold">Wallet ID</TableHead>
-                    <TableHead className="min-w-[200px] font-semibold">
+                    <TableHead className="w-[14%] font-semibold">
+                      Trạng thái
+                    </TableHead>
+                    <TableHead className="w-[20%] font-semibold">
                       Thao tác
                     </TableHead>
                   </TableRow>
@@ -250,7 +257,7 @@ const WithdrawTransactionsPending: React.FC = () => {
                 <TableBody>
                   {isLoading ? (
                     <TableRow>
-                      <TableCell colSpan={7} className="py-8 text-center">
+                      <TableCell colSpan={6} className="py-8 text-center">
                         <div className="flex items-center justify-center">
                           <RefreshCw className="mr-2 h-4 w-4 animate-spin" />
                           Đang tải dữ liệu...
@@ -259,7 +266,7 @@ const WithdrawTransactionsPending: React.FC = () => {
                     </TableRow>
                   ) : withdrawTransactions.length === 0 ? (
                     <TableRow>
-                      <TableCell colSpan={7} className="py-8 text-center">
+                      <TableCell colSpan={6} className="py-8 text-center">
                         <div className="flex flex-col items-center text-gray-500">
                           <Clock className="mb-2 h-12 w-12" />
                           <p>Không có giao dịch rút tiền nào đang chờ duyệt</p>
@@ -292,9 +299,6 @@ const WithdrawTransactionsPending: React.FC = () => {
                         </TableCell>
                         <TableCell>
                           {getStatusBadge(transaction.status)}
-                        </TableCell>
-                        <TableCell className="font-mono text-sm">
-                          {transaction.walletId}
                         </TableCell>
                         <TableCell className="min-w-[200px]">
                           <div className="flex items-center gap-2">
@@ -397,30 +401,30 @@ const WithdrawTransactionsPending: React.FC = () => {
 
         {/* Transaction Detail Modal */}
         <Dialog open={isDetailModalOpen} onOpenChange={setIsDetailModalOpen}>
-          <DialogContent className="max-h-[90vh] max-w-4xl overflow-y-auto">
-            <DialogHeader className="border-b border-gray-100 pb-6">
-              <DialogTitle className="flex items-center gap-3 text-2xl">
-                <div className="rounded-xl bg-gradient-to-r from-yellow-500 to-orange-500 p-3">
-                  <Clock className="h-6 w-6 text-white" />
+          <DialogContent className="max-h-[85vh] max-w-2xl overflow-y-auto">
+            <DialogHeader className="border-b border-gray-100 pb-4">
+              <DialogTitle className="flex items-center gap-3 text-xl">
+                <div className="rounded-lg bg-gradient-to-r from-yellow-500 to-orange-500 p-2">
+                  <Clock className="h-5 w-5 text-white" />
                 </div>
                 <div>
                   <span className="text-gray-900">
                     Chi tiết giao dịch chưa duyệt
                   </span>
                   <div className="mt-1 text-sm font-normal text-gray-500">
-                    Mã giao dịch: #{selectedTransaction?.id} • Đang chờ xử lý
+                    Mã: #{selectedTransaction?.id} • Đang chờ xử lý
                   </div>
                 </div>
               </DialogTitle>
             </DialogHeader>
 
             {selectedTransaction && (
-              <div className="space-y-8 py-6">
-                {/* Status Card - Pending Theme */}
-                <div className="rounded-xl border border-yellow-200 bg-gradient-to-r from-yellow-50 to-orange-50 p-6">
+              <div className="space-y-6 py-4">
+                {/* Status Card - Compact */}
+                <div className="rounded-lg border border-yellow-200 bg-gradient-to-r from-yellow-50 to-orange-50 p-4">
                   <div className="flex items-center justify-between">
                     <div>
-                      <h3 className="mb-2 text-lg font-semibold text-gray-800">
+                      <h3 className="mb-1 text-base font-semibold text-gray-800">
                         Trạng thái giao dịch
                       </h3>
                       <div className="flex items-center gap-3">
@@ -435,7 +439,7 @@ const WithdrawTransactionsPending: React.FC = () => {
                         Loại giao dịch
                       </div>
                       <div className="mt-1">
-                        <span className="inline-flex items-center rounded-full border border-red-200 bg-red-100 px-3 py-1 text-sm font-medium text-red-800">
+                        <span className="inline-flex items-center rounded-full border border-red-200 bg-red-100 px-2 py-1 text-xs font-medium text-red-800">
                           {selectedTransaction.transactionType}
                         </span>
                       </div>
@@ -443,58 +447,37 @@ const WithdrawTransactionsPending: React.FC = () => {
                   </div>
                 </div>
 
-                {/* Financial Info */}
-                <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
-                  <div className="rounded-xl border border-red-200 bg-gradient-to-br from-red-50 to-pink-50 p-6">
-                    <div className="mb-4 flex items-center gap-3">
-                      <div className="rounded-lg bg-red-500 p-2">
-                        <DollarSign className="h-5 w-5 text-white" />
-                      </div>
-                      <div>
-                        <h4 className="font-semibold text-gray-800">
-                          Số tiền yêu cầu rút
-                        </h4>
-                        <p className="text-sm text-red-600">
-                          Đang chờ được duyệt
-                        </p>
-                      </div>
+                {/* Amount Info - Single Card */}
+                <div className="rounded-lg border border-red-200 bg-gradient-to-br from-red-50 to-pink-50 p-4">
+                  <div className="flex items-center gap-3">
+                    <div className="rounded-lg bg-red-500 p-2">
+                      <DollarSign className="h-4 w-4 text-white" />
                     </div>
-                    <div className="text-3xl font-bold text-red-600">
+                    <div className="flex-1">
+                      <h4 className="font-semibold text-gray-800">
+                        Số tiền yêu cầu rút
+                      </h4>
+                      <p className="text-sm text-red-600">
+                        Đang chờ được duyệt
+                      </p>
+                    </div>
+                    <div className="text-2xl font-bold text-red-600">
                       -{formatCurrency(selectedTransaction.amount)}
-                    </div>
-                  </div>
-
-                  <div className="rounded-xl border border-green-200 bg-gradient-to-br from-green-50 to-emerald-50 p-6">
-                    <div className="mb-4 flex items-center gap-3">
-                      <div className="rounded-lg bg-green-500 p-2">
-                        <DollarSign className="h-5 w-5 text-white" />
-                      </div>
-                      <div>
-                        <h4 className="font-semibold text-gray-800">
-                          Số dư sau giao dịch
-                        </h4>
-                        <p className="text-sm text-green-600">
-                          Nếu giao dịch được duyệt
-                        </p>
-                      </div>
-                    </div>
-                    <div className="text-3xl font-bold text-green-600">
-                      {formatCurrency(selectedTransaction.balance)}
                     </div>
                   </div>
                 </div>
 
                 {/* Transaction Details */}
-                <div className="overflow-hidden rounded-xl border border-gray-200 bg-white">
-                  <div className="border-b border-gray-200 bg-gradient-to-r from-yellow-50 to-orange-50 px-6 py-4">
-                    <h3 className="text-lg font-semibold text-gray-800">
+                <div className="overflow-hidden rounded-lg border border-gray-200 bg-white">
+                  <div className="border-b border-gray-200 bg-gradient-to-r from-yellow-50 to-orange-50 px-4 py-3">
+                    <h3 className="text-base font-semibold text-gray-800">
                       Thông tin chi tiết
                     </h3>
                   </div>
-                  <div className="p-6">
-                    <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
-                      <div className="space-y-4">
-                        <div className="flex items-center gap-3 rounded-lg border border-yellow-200 bg-yellow-50 p-4">
+                  <div className="p-4">
+                    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                      <div className="space-y-3">
+                        <div className="flex items-center gap-3 rounded-lg border border-yellow-200 bg-yellow-50 p-3">
                           <div className="rounded-full bg-yellow-500 p-2">
                             <svg
                               className="h-4 w-4 text-white"
@@ -511,50 +494,18 @@ const WithdrawTransactionsPending: React.FC = () => {
                             </svg>
                           </div>
                           <div>
-                            <label className="text-sm font-medium text-gray-500">
+                            <label className="text-xs font-medium text-gray-500">
                               Mã giao dịch
                             </label>
-                            <p className="font-mono text-lg font-bold text-gray-900">
+                            <p className="font-mono text-sm font-bold text-gray-900">
                               #{selectedTransaction.id}
-                            </p>
-                          </div>
-                        </div>
-
-                        <div className="flex items-center gap-3 rounded-lg border border-purple-200 bg-purple-50 p-4">
-                          <div className="rounded-full bg-purple-500 p-2">
-                            <svg
-                              className="h-4 w-4 text-white"
-                              fill="none"
-                              stroke="currentColor"
-                              viewBox="0 0 24 24"
-                            >
-                              <path
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                                strokeWidth={2}
-                                d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
-                              />
-                              <path
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                                strokeWidth={2}
-                                d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
-                              />
-                            </svg>
-                          </div>
-                          <div>
-                            <label className="text-sm font-medium text-gray-500">
-                              Wallet ID
-                            </label>
-                            <p className="font-mono text-lg font-bold text-purple-600">
-                              {selectedTransaction.walletId}
                             </p>
                           </div>
                         </div>
                       </div>
 
-                      <div className="space-y-4">
-                        <div className="flex items-center gap-3 rounded-lg border border-orange-200 bg-orange-50 p-4">
+                      <div className="space-y-3">
+                        <div className="flex items-center gap-3 rounded-lg border border-orange-200 bg-orange-50 p-3">
                           <div className="rounded-full bg-orange-500 p-2">
                             <svg
                               className="h-4 w-4 text-white"
@@ -571,10 +522,10 @@ const WithdrawTransactionsPending: React.FC = () => {
                             </svg>
                           </div>
                           <div>
-                            <label className="text-sm font-medium text-gray-500">
+                            <label className="text-xs font-medium text-gray-500">
                               Ngày tạo
                             </label>
-                            <p className="text-lg font-bold text-gray-900">
+                            <p className="text-sm font-bold text-gray-900">
                               {formatDate(selectedTransaction.paymentDate)}
                             </p>
                           </div>
@@ -611,11 +562,11 @@ const WithdrawTransactionsPending: React.FC = () => {
                 </div>
 
                 {/* Action Required Banner */}
-                <div className="rounded-xl border border-amber-200 bg-gradient-to-r from-amber-50 to-yellow-50 p-6">
+                <div className="rounded-lg border border-amber-200 bg-gradient-to-r from-amber-50 to-yellow-50 p-4">
                   <div className="flex items-center gap-3">
                     <div className="rounded-full bg-amber-500 p-2">
                       <svg
-                        className="h-5 w-5 text-white"
+                        className="h-4 w-4 text-white"
                         fill="none"
                         stroke="currentColor"
                         viewBox="0 0 24 24"
@@ -632,9 +583,8 @@ const WithdrawTransactionsPending: React.FC = () => {
                       <h4 className="font-semibold text-amber-800">
                         Cần hành động
                       </h4>
-                      <p className="mt-1 text-sm text-amber-700">
-                        Giao dịch này đang chờ được duyệt. Vui lòng xem xét và
-                        xác nhận để hoàn tất giao dịch.
+                      <p className="text-xs text-amber-700">
+                        Giao dịch đang chờ duyệt, cần xem xét để hoàn tất.
                       </p>
                     </div>
                   </div>
@@ -642,17 +592,17 @@ const WithdrawTransactionsPending: React.FC = () => {
               </div>
             )}
 
-            <DialogFooter className="border-t border-gray-100 pt-6">
+            <DialogFooter className="border-t border-gray-100 pt-4">
               <div className="flex w-full items-center justify-between">
-                <div className="text-sm text-gray-500">
-                  Thông tin được cập nhật lần cuối:{' '}
-                  {new Date().toLocaleString('vi-VN')}
+                <div className="text-xs text-gray-400">
+                  Cập nhật: {new Date().toLocaleString('vi-VN')}
                 </div>
-                <div className="flex gap-3">
+                <div className="flex gap-2">
                   <Button
                     variant="outline"
                     onClick={() => setIsDetailModalOpen(false)}
                     className="border-gray-300 hover:bg-gray-50"
+                    size="sm"
                   >
                     Đóng
                   </Button>
@@ -663,6 +613,7 @@ const WithdrawTransactionsPending: React.FC = () => {
                         handleConfirmTransaction(selectedTransaction);
                       }}
                       className="bg-gradient-to-r from-green-500 to-green-600 text-white shadow-lg hover:from-green-600 hover:to-green-700"
+                      size="sm"
                     >
                       <CheckCircle className="mr-2 h-4 w-4" />
                       Duyệt ngay

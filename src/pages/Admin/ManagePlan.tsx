@@ -48,6 +48,15 @@ const ManagePlansPage: React.FC = () => {
     refetch();
   }, [refetch]);
 
+  // Listen for create plan trigger from dashboard
+  useEffect(() => {
+    const createPlanTrigger = localStorage.getItem('admin-trigger-create-plan');
+    if (createPlanTrigger === 'true') {
+      setIsCreateModalVisible(true);
+      localStorage.removeItem('admin-trigger-create-plan');
+    }
+  }, []);
+
   const handleView = (record: Plans) => {
     setSelectedPlan(record);
     setIsViewModalVisible(true);
@@ -333,7 +342,7 @@ const ManagePlansPage: React.FC = () => {
     <>
       <BasePages pageHead="ClickFlow - Quản lý gói dịch vụ">
         <div className="min-h-screen bg-gray-50">
-          <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
+          <div className="w-full px-6 py-8">
             <div className="rounded-lg border border-gray-200 bg-white shadow-sm">
               <div className="border-b border-gray-200 px-6 py-4">
                 <div className="flex items-center justify-between">

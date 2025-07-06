@@ -5,8 +5,7 @@ import {
   useGetPlan
 } from '@/queries/plan.query';
 import { Plans } from '@/types';
-import { toast, ToastContainer } from 'react-toastify';
-import 'react-toastify/dist/ReactToastify.css';
+import { toast } from 'react-toastify';
 import __helpers from '@/helpers';
 
 export default function UpgradePackage() {
@@ -57,12 +56,28 @@ export default function UpgradePackage() {
       await assignPlan({ planId: selectedPlan.id });
       await refetchCurrentPlan();
 
-      toast.success(`Đã nâng cấp thành công lên gói: ${selectedPlan.name}`);
+      // Toast với cấu hình cụ thể để đảm bảo tự động tắt
+      toast.success(`Đã nâng cấp thành công lên gói: ${selectedPlan.name}`, {
+        toastId: `upgrade-success-${selectedPlan.id}`,
+        autoClose: 3000,
+        closeOnClick: true,
+        pauseOnHover: false,
+        pauseOnFocusLoss: false,
+        draggable: false
+      });
+
       setShowUpgradeModal(false);
       setShowConfirmModal(false);
       setSelectedPlan(null);
     } catch (error) {
-      toast.error('Có lỗi xảy ra khi nâng cấp gói. Vui lòng thử lại!');
+      toast.error('Có lỗi xảy ra khi nâng cấp gói. Vui lòng thử lại!', {
+        toastId: 'upgrade-error',
+        autoClose: 3000,
+        closeOnClick: true,
+        pauseOnHover: false,
+        pauseOnFocusLoss: false,
+        draggable: false
+      });
       console.error('Error upgrading plan:', error);
     }
   };
@@ -348,20 +363,6 @@ export default function UpgradePackage() {
           </div>
         </div>
       )}
-
-      {/* Toast Container */}
-      <ToastContainer
-        position="top-right"
-        autoClose={3000}
-        hideProgressBar={false}
-        newestOnTop={false}
-        closeOnClick
-        rtl={false}
-        pauseOnFocusLoss
-        draggable
-        pauseOnHover
-        theme="light"
-      />
     </>
   );
 }

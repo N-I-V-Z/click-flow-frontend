@@ -158,7 +158,7 @@ export default function DataTable<TData, TValue>({
       <ScrollArea
         className={`h-[calc(${heightTable}-220px)] rounded-md border md:h-[calc(${heightTable}-80px)]`}
       >
-        <Table className="relative">
+        <Table className="relative w-full table-fixed">
           <TableHeader>
             {table.getHeaderGroups().map((headerGroup) => (
               <TableRow key={headerGroup.id}>

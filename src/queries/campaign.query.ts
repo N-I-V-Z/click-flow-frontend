@@ -376,3 +376,16 @@ export const useGetPublishersInCampaign = (
     retry: 3
   });
 };
+
+export const useGetCampaignCountByStatus = (statuses: string) => {
+  return useQuery({
+    queryKey: ['get-campaign-count-by-status', statuses],
+    queryFn: async () => {
+      return await BaseRequest.Get<number>(
+        `${SUB_URL}/campaigns/count-by-statuses?statuses=${statuses}`
+      );
+    },
+    staleTime: 1000 * 60 * 5,
+    retry: 3
+  });
+};

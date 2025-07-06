@@ -71,7 +71,7 @@ const CampaignDetail: React.FC = () => {
     return (
       <BasePages pageHead="ClickFlow - Chi tiết chiến dịch">
         <div className="p-6">
-          <div className="text-red-600 text-center">
+          <div className="text-center text-red-600">
             Đã có lỗi xảy ra khi tải chi tiết chiến dịch!
           </div>
         </div>
@@ -103,13 +103,13 @@ const CampaignDetail: React.FC = () => {
         .animate-pulse-soft { animation: pulse-soft 2s infinite; }
         .animate-slide-up { animation: slide-up 0.5s ease-out; }
       `}</style>
-      <div className="to-blue-50 animate-slide-up min-h-screen bg-gradient-to-br from-gray-50 p-6">
-        <div className="mx-auto max-w-7xl">
+      <div className="animate-slide-up min-h-screen bg-gradient-to-br from-gray-50 to-blue-50 p-6">
+        <div className="w-full px-6">
           {/* Header */}
           <div className="mb-6 flex items-center justify-between">
             <button
               onClick={handleBack}
-              className="hover:bg-blue-50 hover:text-blue-600 flex transform items-center gap-2 rounded-lg bg-white px-4 py-2 text-gray-600 shadow-sm transition-all duration-200 hover:-translate-x-1 hover:shadow-md"
+              className="flex transform items-center gap-2 rounded-lg bg-white px-4 py-2 text-gray-600 shadow-sm transition-all duration-200 hover:-translate-x-1 hover:bg-blue-50 hover:text-blue-600 hover:shadow-md"
             >
               <ArrowLeft
                 size={20}
@@ -117,7 +117,7 @@ const CampaignDetail: React.FC = () => {
               />
               Quay lại
             </button>
-            <h1 className="hover:text-blue-600 text-2xl font-bold text-gray-900 transition-colors duration-200">
+            <h1 className="text-2xl font-bold text-gray-900 transition-colors duration-200 hover:text-blue-600">
               Chi tiết chiến dịch
             </h1>
           </div>
@@ -129,7 +129,7 @@ const CampaignDetail: React.FC = () => {
               <div className="transform rounded-xl bg-white p-6 shadow-lg transition-all duration-300 hover:-translate-y-1 hover:shadow-xl">
                 <div className="mb-4 flex items-start justify-between">
                   <div className="flex-1">
-                    <h2 className="hover:text-blue-600 mb-2 text-2xl font-bold text-gray-900 transition-colors duration-200">
+                    <h2 className="mb-2 text-2xl font-bold text-gray-900 transition-colors duration-200 hover:text-blue-600">
                       {campaign.name}
                     </h2>
                     <div className="mb-3 flex items-center gap-3">
@@ -139,8 +139,8 @@ const CampaignDetail: React.FC = () => {
                         {campaign.status}
                       </span>
                       {campaign.averageStarRate && (
-                        <div className="bg-yellow-50 hover:bg-yellow-100 flex items-center gap-1 rounded-full px-2 py-1 transition-colors duration-200">
-                          <Star className="text-yellow-400 animate-pulse-soft h-4 w-4 fill-current" />
+                        <div className="flex items-center gap-1 rounded-full bg-yellow-50 px-2 py-1 transition-colors duration-200 hover:bg-yellow-100">
+                          <Star className="animate-pulse-soft h-4 w-4 fill-current text-yellow-400" />
                           <span className="text-sm font-medium">
                             {campaign.averageStarRate.toFixed(1)}
                           </span>
@@ -148,21 +148,21 @@ const CampaignDetail: React.FC = () => {
                       )}
                     </div>
                     {/* Thêm thời gian chiến dịch */}
-                    <div className="bg-blue-50 border-blue-400 hover:bg-blue-100 rounded-lg border-l-4 p-3 transition-colors duration-200">
-                      <div className="text-blue-700 flex items-center gap-2 text-sm">
+                    <div className="rounded-lg border-l-4 border-blue-400 bg-blue-50 p-3 transition-colors duration-200 hover:bg-blue-100">
+                      <div className="flex items-center gap-2 text-sm text-blue-700">
                         <Calendar className="h-4 w-4" />
                         <span className="font-medium">Thời gian:</span>
                       </div>
-                      <div className="text-blue-600 mt-1 text-sm">
+                      <div className="mt-1 text-sm text-blue-600">
                         <span className="font-medium">
                           {formatDate(campaign.startDate)}
                         </span>
-                        <span className="text-blue-400 mx-2">→</span>
+                        <span className="mx-2 text-blue-400">→</span>
                         <span className="font-medium">
                           {formatDate(campaign.endDate)}
                         </span>
                       </div>
-                      <div className="text-blue-500 mt-1 text-xs">
+                      <div className="mt-1 text-xs text-blue-500">
                         {(() => {
                           const start = new Date(campaign.startDate);
                           const end = new Date(campaign.endDate);
@@ -188,7 +188,7 @@ const CampaignDetail: React.FC = () => {
 
                 <div className="space-y-4">
                   <div className="group">
-                    <h3 className="group-hover:text-blue-600 mb-2 text-lg font-semibold text-gray-900 transition-colors duration-200">
+                    <h3 className="mb-2 text-lg font-semibold text-gray-900 transition-colors duration-200 group-hover:text-blue-600">
                       Mô tả
                     </h3>
                     <p className="rounded-lg bg-gray-50 p-4 leading-relaxed text-gray-700 transition-colors duration-200 hover:bg-gray-100">
@@ -197,14 +197,14 @@ const CampaignDetail: React.FC = () => {
                   </div>
 
                   <div className="group">
-                    <h3 className="group-hover:text-blue-600 mb-2 text-lg font-semibold text-gray-900 transition-colors duration-200">
+                    <h3 className="mb-2 text-lg font-semibold text-gray-900 transition-colors duration-200 group-hover:text-blue-600">
                       Liên kết gốc
                     </h3>
                     <a
                       href={campaign.originURL}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="text-blue-600 hover:text-blue-800 bg-blue-50 hover:bg-blue-100 inline-flex transform items-center gap-2 rounded-lg px-3 py-2 transition-all duration-200 hover:scale-105"
+                      className="inline-flex transform items-center gap-2 rounded-lg bg-blue-50 px-3 py-2 text-blue-600 transition-all duration-200 hover:scale-105 hover:bg-blue-100 hover:text-blue-800"
                     >
                       <Globe size={16} className="animate-spin-slow" />
                       {campaign.originURL}
@@ -215,19 +215,19 @@ const CampaignDetail: React.FC = () => {
 
               {/* Campaign Details */}
               <div className="grid gap-4 md:grid-cols-2">
-                <div className="border-blue-400 transform rounded-xl border-l-4 bg-white p-6 shadow-lg transition-all duration-300 hover:-translate-y-1 hover:shadow-xl">
+                <div className="transform rounded-xl border-l-4 border-blue-400 bg-white p-6 shadow-lg transition-all duration-300 hover:-translate-y-1 hover:shadow-xl">
                   <div className="mb-4 flex items-center gap-3">
-                    <div className="bg-blue-100 hover:bg-blue-200 rounded-full p-2 transition-colors duration-200">
-                      <DollarSign className="text-blue-600 animate-bounce-gentle h-5 w-5" />
+                    <div className="rounded-full bg-blue-100 p-2 transition-colors duration-200 hover:bg-blue-200">
+                      <DollarSign className="animate-bounce-gentle h-5 w-5 text-blue-600" />
                     </div>
-                    <h3 className="hover:text-blue-600 text-lg font-semibold text-gray-900 transition-colors duration-200">
+                    <h3 className="text-lg font-semibold text-gray-900 transition-colors duration-200 hover:text-blue-600">
                       Ngân sách
                     </h3>
                   </div>
                   <div className="space-y-3">
-                    <div className="bg-blue-50 hover:bg-blue-100 rounded-lg p-3 transition-colors duration-200">
-                      <p className="text-blue-600 text-sm">Tổng ngân sách</p>
-                      <p className="text-blue-900 text-xl font-bold transition-transform duration-200 hover:scale-105">
+                    <div className="rounded-lg bg-blue-50 p-3 transition-colors duration-200 hover:bg-blue-100">
+                      <p className="text-sm text-blue-600">Tổng ngân sách</p>
+                      <p className="text-xl font-bold text-blue-900 transition-transform duration-200 hover:scale-105">
                         {formatCurrency(campaign.budget)}
                       </p>
                     </div>
@@ -253,11 +253,11 @@ const CampaignDetail: React.FC = () => {
                   </div>
                   <div className="space-y-3">
                     {campaign.commission && (
-                      <div className="bg-orange-50 hover:bg-orange-100 rounded-lg p-3 transition-colors duration-200">
-                        <p className="text-orange-600 text-sm">
+                      <div className="rounded-lg bg-orange-50 p-3 transition-colors duration-200 hover:bg-orange-100">
+                        <p className="text-sm text-orange-600">
                           Hoa hồng cố định
                         </p>
-                        <p className="text-orange-900 text-xl font-bold transition-transform duration-200 hover:scale-105">
+                        <p className="text-xl font-bold text-orange-900 transition-transform duration-200 hover:scale-105">
                           {formatCurrency(campaign.commission)}
                         </p>
                       </div>
@@ -314,16 +314,16 @@ const CampaignDetail: React.FC = () => {
 
               {/* Advertiser Info */}
               {campaign.advertiser && (
-                <div className="border-orange-400 transform rounded-xl border-l-4 bg-white p-6 shadow-lg transition-all duration-300 hover:-translate-y-1 hover:shadow-xl">
-                  <h3 className="hover:text-orange-600 mb-4 text-lg font-semibold text-gray-900 transition-colors duration-200">
+                <div className="transform rounded-xl border-l-4 border-orange-400 bg-white p-6 shadow-lg transition-all duration-300 hover:-translate-y-1 hover:shadow-xl">
+                  <h3 className="mb-4 text-lg font-semibold text-gray-900 transition-colors duration-200 hover:text-orange-600">
                     Thông tin nhà quảng cáo
                   </h3>
                   <div className="space-y-4">
-                    <div className="bg-orange-50 hover:bg-orange-100 group rounded-lg p-3 transition-colors duration-200">
-                      <p className="text-orange-600 group-hover:text-orange-700 text-sm">
+                    <div className="group rounded-lg bg-orange-50 p-3 transition-colors duration-200 hover:bg-orange-100">
+                      <p className="text-sm text-orange-600 group-hover:text-orange-700">
                         Tên công ty
                       </p>
-                      <p className="text-orange-900 text-base font-medium transition-transform duration-200 group-hover:scale-105">
+                      <p className="text-base font-medium text-orange-900 transition-transform duration-200 group-hover:scale-105">
                         {campaign.advertiser.companyName}
                       </p>
                     </div>

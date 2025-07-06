@@ -50,7 +50,6 @@ const ChatSidebar: React.FC<ChatSidebarProps> = ({
         return date.toLocaleDateString('vi-VN');
       }
     } catch (error) {
-      console.warn('Invalid timestamp in formatDate:', timestamp, error);
       return 'Ngày không xác định';
     }
   };
@@ -63,10 +62,10 @@ const ChatSidebar: React.FC<ChatSidebarProps> = ({
       }
       return date.toLocaleTimeString('vi-VN', {
         hour: '2-digit',
-        minute: '2-digit'
+        minute: '2-digit',
+        timeZone: 'Asia/Ho_Chi_Minh'
       });
     } catch (error) {
-      console.warn('Invalid timestamp in formatTime:', timestamp, error);
       return '--:--';
     }
   };

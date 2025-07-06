@@ -222,7 +222,7 @@ const PublisherList: React.FC = () => {
   if (isLoading) {
     return (
       <BasePages pageHead="ClickFlow - Nhà tiếp thị ">
-        <div className="p-4">
+        <div className="w-full px-6 py-8">
           <Loading />
         </div>
       </BasePages>
@@ -232,14 +232,16 @@ const PublisherList: React.FC = () => {
   if (error) {
     return (
       <BasePages pageHead="ClickFlow - Nhà tiếp thị ">
-        <div className="p-4">Đã có lỗi xảy ra khi tải dữ liệu!</div>
+        <div className="w-full px-6 py-8">
+          Đã có lỗi xảy ra khi tải dữ liệu!
+        </div>
       </BasePages>
     );
   }
 
   return (
     <BasePages pageHead="ClickFlow - Nhà tiếp thị ">
-      <div className="mb-10 p-4">
+      <div className="w-full px-6 py-8">
         <h2 className="mb-4 text-xl font-semibold">Nhà tiếp thị</h2>
 
         <DataTable
