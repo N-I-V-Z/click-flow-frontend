@@ -1,5 +1,6 @@
 import React from 'react';
-import { Button, Rate, Tabs, Collapse, Modal, message } from 'antd';
+import { Button, Rate, Tabs, Collapse, Modal } from 'antd';
+import { showToast } from '@/utils/toastUtils';
 import { motion } from 'framer-motion';
 import Slider from 'react-slick';
 import { LeftOutlined, RightOutlined, LockOutlined } from '@ant-design/icons';
@@ -183,12 +184,12 @@ const CampaignDetailPage: React.FC = () => {
           { campaignId },
           {
             onSuccess: () => {
-              message.success('Đăng ký thành công!');
+              showToast.success('Đăng ký thành công!');
               // Gọi lại API để lấy dữ liệu mới (publisherStatus có thể đổi thành "Pending")
               refetch();
             },
             onError: () => {
-              message.error('Đăng ký thất bại!');
+              showToast.error('Đăng ký thất bại!');
             }
           }
         );
@@ -216,10 +217,10 @@ const CampaignDetailPage: React.FC = () => {
     navigator.clipboard
       .writeText(link)
       .then(() => {
-        message.success('Copy link thành công!');
+        showToast.success('Copy link thành công!');
       })
       .catch(() => {
-        message.error('Copy link thất bại!');
+        showToast.error('Copy link thất bại!');
       });
   };
 

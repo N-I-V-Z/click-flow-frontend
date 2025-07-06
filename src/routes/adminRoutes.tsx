@@ -18,6 +18,9 @@ const AdminCampaignDetail = lazy(() => import('@/pages/Admin/CampaignDetail'));
 const AdminManageReport = lazy(() => import('@/pages/Admin/ManageReport'));
 const Support = lazy(() => import('@/pages/Chat/ChatPage'));
 const ManageCourse = lazy(() => import('@/pages/Admin/ManageCourse'));
+const WithdrawTransactions = lazy(
+  () => import('@/pages/Admin/WithdrawTransactions')
+);
 
 const adminRoutes = [
   {
@@ -82,6 +85,22 @@ const adminRoutes = [
           <RoleRoute allowedRoles={['Admin']}>
             {' '}
             <AdminManageReport />{' '}
+          </RoleRoute>
+        )
+      },
+      {
+        path: 'withdraw-transactions/pending',
+        element: (
+          <RoleRoute allowedRoles={['Admin']}>
+            <WithdrawTransactions status="pending" />
+          </RoleRoute>
+        )
+      },
+      {
+        path: 'withdraw-transactions/approved',
+        element: (
+          <RoleRoute allowedRoles={['Admin']}>
+            <WithdrawTransactions status="approved" />
           </RoleRoute>
         )
       },

@@ -13,11 +13,28 @@ const Recharge = ({ isOpen, onClose, onSuccess }) => {
   const { mutateAsync: createTracsaction } = useCreateTransaction();
 
   // Predefined deposit amounts (VND)
-  const quickAmounts = [50000, 100000, 200000, 500000, 1000000, 2000000];
+  const quickAmounts = [2000, 10000, 50000, 100000, 500000, 1000000];
 
   // Handle deposit submission
   const handleDeposit = async () => {
     const amount = parseFloat(depositAmount.replace(/[^\d]/g, ''));
+
+    // Validation trước khi gọi API
+    if (isNaN(amount) || amount <= 0) {
+      toast.error('Vui lòng nhập số tiền hợp lệ!');
+      return;
+    }
+
+    if (amount < 2000) {
+      toast.error('Số tiền nạp tối thiểu là 2.000 VNĐ!');
+      return;
+    }
+
+    if (amount > 50000000) {
+      toast.error('Số tiền nạp tối đa là 50.000.000 VNĐ!');
+      return;
+    }
+
     setIsProcessing(true);
 
     try {
@@ -36,9 +53,48 @@ const Recharge = ({ isOpen, onClose, onSuccess }) => {
       if (onSuccess) {
         onSuccess();
       }
-    } catch (error) {
+    } catch (error: unknown) {
       console.error('Deposit error:', error);
-      toast.error(`Nạp tiền thất bại: ${error || 'Vui lòng thử lại sau'}`);
+
+      // Extract error message properly
+      let errorMessage = 'Vui lòng thử lại sau';
+
+      if (error) {
+        // Try to extract message from different error formats
+        if (typeof error === 'string') {
+          errorMessage = error;
+        } else if (error && typeof error === 'object') {
+          // Check for axios error format
+          const errorObj = error as Record<string, unknown>;
+
+          // Check for nested response.data.message (typical axios error)
+          if (errorObj.response && typeof errorObj.response === 'object') {
+            const response = errorObj.response as Record<string, unknown>;
+            if (response.data && typeof response.data === 'object') {
+              const data = response.data as Record<string, unknown>;
+              if (typeof data.message === 'string') {
+                errorMessage = data.message;
+              }
+            }
+          }
+          // Check for direct message property
+          else if (typeof errorObj.message === 'string') {
+            errorMessage = errorObj.message;
+          }
+          // Fallback to toString if available and not [object Object]
+          else if (
+            errorObj.toString &&
+            typeof errorObj.toString === 'function'
+          ) {
+            const errorStr = errorObj.toString();
+            if (errorStr !== '[object Object]') {
+              errorMessage = errorStr;
+            }
+          }
+        }
+      }
+
+      toast.error(`Nạp tiền thất bại: ${errorMessage}`);
     } finally {
       setIsProcessing(false);
     }
@@ -118,8 +174,8 @@ const Recharge = ({ isOpen, onClose, onSuccess }) => {
                 </span>
               </div>
               <div className="flex justify-between text-xs text-slate-500">
-                <span>Tối thiểu: 10,000 VND</span>
-                <span>Tối đa: 50,000,000 VND</span>
+                <span>Tối thiểu: 2.000 VND</span>
+                <span>Tối đa: 50.000.000 VND</span>
               </div>
             </div>
 

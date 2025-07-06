@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+import UpgradePackage from '@/pages/Publisher/UpgradePackage';
 import { logoURLAd } from '@/constants/data';
 export default function HeaderAd() {
   const [isLogoutOpen, setIsLogoutOpen] = useState<boolean>(false);
@@ -27,6 +28,11 @@ export default function HeaderAd() {
               className="h-[80px] w-[120px] rounded-lg"
             />
           </Link>
+        </div>
+
+        <div className="flex items-center gap-4">
+          {/* Upgrade Package Button */}
+          <UpgradePackage />
         </div>
       </nav>
 

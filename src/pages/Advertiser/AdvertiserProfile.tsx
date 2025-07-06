@@ -1,29 +1,30 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useRouter } from '@/routes/hooks';
 import { Card } from '@/components/ui/card';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
-import { Wallet, KeySquare, MapPin, Calendar, User, Edit3 } from 'lucide-react';
+import {
+  Wallet,
+  KeySquare,
+  MapPin,
+  Calendar,
+  User,
+  Edit3,
+  Camera
+} from 'lucide-react';
 import ChangePassword from '@/components/shared/change-password';
 import {
   useGetUserDetail,
   useCreateUpdateUserDetail
 } from '@/queries/user.query';
+import { useUploadImage } from '@/queries/campaign.query';
 import BasePages from '@/components/shared/base-pages';
 import Loading from '@/components/ui/loading';
-import { TokenDecoded } from '@/types';
+import { TokenDecoded, ApiResponse, UploadImageResponse } from '@/types';
 import helpers from '@/helpers';
 import __helpers from '@/helpers';
-import {
-  Form,
-  Input,
-  Select,
-  DatePicker,
-  message,
-  Button as AntButton,
-  Modal
-} from 'antd';
-import moment from 'moment';
+import { Form, Input, Select, Button as AntButton, Modal } from 'antd';
+import { toast } from 'react-toastify';
 
 const decodedToken: TokenDecoded | null = helpers.decodeTokens(
   __helpers.cookie_get('AT')
@@ -36,43 +37,17 @@ const AdvertiserProfile = () => {
   const [form] = Form.useForm();
   const [editForm] = Form.useForm();
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [isUploadingAvatar, setIsUploadingAvatar] = useState(false);
   const [activeSection, setActiveSection] = useState<
     'personal' | 'changePassword'
   >('personal');
 
-  // Add CSS to prevent scroll wheel on DatePicker inputs
-  const datePickerStyle = `
-    .ant-picker-input input {
-      pointer-events: none !important;
-    }
-    .ant-picker-input input:focus {
-      pointer-events: none !important;
-    }
-  `;
-
-  // Inject CSS style
-  if (!document.getElementById('datepicker-no-scroll-style')) {
-    const style = document.createElement('style');
-    style.id = 'datepicker-no-scroll-style';
-    style.textContent = datePickerStyle;
-    document.head.appendChild(style);
-  }
-
-  // Clean up style on unmount
-  useEffect(() => {
-    return () => {
-      const existingStyle = document.getElementById(
-        'datepicker-no-scroll-style'
-      );
-      if (existingStyle) {
-        existingStyle.remove();
-      }
-    };
-  }, []);
-
   // Fetch user data
   const { data, isLoading, error, refetch } = useGetUserDetail(advertiserId);
   const user = data?.result;
+
+  // Upload image mutation
+  const { mutate: uploadImageMutation } = useUploadImage();
 
   // Create/Update user detail mutation
   const { mutate: createUpdateUserDetail, isPending: isCreating } =
@@ -82,9 +57,23 @@ const AdvertiserProfile = () => {
   // Show form when: not loading AND (has error OR no user data)
   const needsUserDetailForm = !isLoading && (error || !user);
 
+  // Convert Vietnamese gender to English
+  const convertGenderToEnglish = (gender: string) => {
+    switch (gender) {
+      case 'Nam':
+        return 'Male';
+      case 'Nữ':
+        return 'Female';
+      case 'Khác':
+        return 'Other';
+      default:
+        return gender; // Return as-is if already in English
+    }
+  };
+
   // Handle form submission
   const handleFormSubmit = (values: {
-    dateOfBirth: moment.Moment;
+    dateOfBirth: string;
     gender: string;
     address?: string;
   }) => {
@@ -92,24 +81,113 @@ const AdvertiserProfile = () => {
     const userName = decodedToken?.Name || 'User';
     const avatarURL = `https://ui-avatars.com/api/?name=${encodeURIComponent(userName)}&background=7C3AED&color=ffffff&size=200`;
 
+    // Convert date string to ISO format
+    const dateOfBirthISO = new Date(values.dateOfBirth).toISOString();
+
     const payload = {
-      dateOfBirth: values.dateOfBirth.toDate().toISOString(),
-      gender: values.gender,
+      dateOfBirth: dateOfBirthISO,
+      gender: convertGenderToEnglish(values.gender),
       avatarURL: avatarURL,
       address: values.address?.trim() || 'Trống'
     };
 
     createUpdateUserDetail(payload, {
       onSuccess: () => {
-        message.success('Thông tin đã được cập nhật thành công!');
+        toast.success('Thông tin đã được cập nhật thành công!', {
+          autoClose: 3000
+        });
         form.resetFields();
         // Refetch user data
         window.location.reload();
       },
       onError: () => {
-        message.error('Có lỗi xảy ra khi cập nhật thông tin!');
+        toast.error('Có lỗi xảy ra khi cập nhật thông tin!', {
+          autoClose: 3000
+        });
       }
     });
+  };
+
+  // Handle direct avatar upload without modal
+  const handleAvatarChange = (file: File) => {
+    setIsUploadingAvatar(true);
+
+    uploadImageMutation(file, {
+      onSuccess: (uploadRes: ApiResponse<UploadImageResponse>) => {
+        const avatarURL = uploadRes?.result?.url || '';
+
+        if (!avatarURL) {
+          toast.error('Upload ảnh thất bại!');
+          setIsUploadingAvatar(false);
+          return;
+        }
+
+        // Automatically update profile with new avatar using existing user data
+        const payload = {
+          dateOfBirth: user?.dateOfBirth
+            ? new Date(user.dateOfBirth).toISOString()
+            : new Date().toISOString(),
+          gender: convertGenderToEnglish(user?.gender || 'Male'), // Convert to English if needed
+          avatarURL: avatarURL, // Only change the avatar URL
+          address: user?.address || 'Trống'
+        };
+
+        createUpdateUserDetail(payload, {
+          onSuccess: () => {
+            toast.success('Cập nhật avatar thành công!');
+            setIsUploadingAvatar(false);
+            refetch(); // Refresh user data
+          },
+          onError: () => {
+            toast.error('Có lỗi xảy ra khi cập nhật avatar!');
+            setIsUploadingAvatar(false);
+          }
+        });
+      },
+      onError: (err) => {
+        console.error('Lỗi khi upload ảnh:', err);
+        toast.error('Lỗi khi upload ảnh!');
+        setIsUploadingAvatar(false);
+      }
+    });
+  };
+
+  // Handle file input change
+  const handleFileInputChange = (
+    event: React.ChangeEvent<HTMLInputElement>
+  ) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      // Validate file type
+      if (!file.type.startsWith('image/')) {
+        toast.error('Vui lòng chọn file ảnh!');
+        return;
+      }
+
+      // Validate file size (max 5MB)
+      if (file.size > 5 * 1024 * 1024) {
+        toast.error('File ảnh không được vượt quá 5MB!');
+        return;
+      }
+
+      handleAvatarChange(file);
+    }
+    // Reset input value to allow selecting the same file again
+    event.target.value = '';
+  };
+
+  // Convert English gender to Vietnamese for display
+  const convertGenderToVietnamese = (gender: string) => {
+    switch (gender) {
+      case 'Male':
+        return 'Nam';
+      case 'Female':
+        return 'Nữ';
+      case 'Other':
+        return 'Khác';
+      default:
+        return gender;
+    }
   };
 
   // Handle edit modal
@@ -118,18 +196,26 @@ const AdvertiserProfile = () => {
 
     setIsEditModalOpen(true);
     // Pre-fill form with current user data
-    // Ensure proper date parsing
-    const userDate = user.dateOfBirth ? moment(user.dateOfBirth) : null;
+    // Convert date to YYYY-MM-DD format for HTML date input, avoiding timezone issues
+    let userDate = '';
+    if (user.dateOfBirth) {
+      const date = new Date(user.dateOfBirth);
+      // Use local date components to avoid timezone offset issues
+      const year = date.getFullYear();
+      const month = String(date.getMonth() + 1).padStart(2, '0');
+      const day = String(date.getDate()).padStart(2, '0');
+      userDate = `${year}-${month}-${day}`;
+    }
 
     editForm.setFieldsValue({
-      dateOfBirth: userDate && userDate.isValid() ? userDate : null,
-      gender: user.gender,
+      dateOfBirth: userDate,
+      gender: convertGenderToVietnamese(user.gender),
       address: user.address === 'Trống' ? '' : user.address
     });
   };
 
   const handleEditSubmit = (values: {
-    dateOfBirth: moment.Moment;
+    dateOfBirth: string;
     gender: string;
     address?: string;
   }) => {
@@ -137,35 +223,42 @@ const AdvertiserProfile = () => {
     const userName = decodedToken?.Name || 'User';
     const avatarURL = `https://ui-avatars.com/api/?name=${encodeURIComponent(userName)}&background=7C3AED&color=ffffff&size=200`;
 
-    // Safely convert date to ISO string
+    // Convert date string to ISO format
     let dateOfBirthISO: string;
     try {
-      if (moment.isMoment(values.dateOfBirth) && values.dateOfBirth.isValid()) {
-        dateOfBirthISO = values.dateOfBirth.toDate().toISOString();
+      if (values.dateOfBirth) {
+        dateOfBirthISO = new Date(values.dateOfBirth).toISOString();
       } else {
         throw new Error('Invalid date');
       }
     } catch (error) {
-      message.error('Ngày sinh không hợp lệ!');
+      toast.error('Ngày sinh không hợp lệ!', {
+        autoClose: 3000
+      });
       return;
     }
 
+    // Use existing avatar URL instead of generating new one
     const payload = {
       dateOfBirth: dateOfBirthISO,
-      gender: values.gender,
-      avatarURL: avatarURL,
+      gender: convertGenderToEnglish(values.gender),
+      avatarURL: user?.avatarURL || avatarURL, // Keep existing avatar or use generated one
       address: values.address?.trim() || 'Trống'
     };
 
     createUpdateUserDetail(payload, {
       onSuccess: () => {
-        message.success('Thông tin đã được cập nhật thành công!');
+        toast.success('Thông tin đã được cập nhật thành công!', {
+          autoClose: 3000
+        });
         setIsEditModalOpen(false);
         editForm.resetFields();
         refetch(); // Refetch user data
       },
       onError: () => {
-        message.error('Có lỗi xảy ra khi cập nhật thông tin!');
+        toast.error('Có lỗi xảy ra khi cập nhật thông tin!', {
+          autoClose: 3000
+        });
       }
     });
   };
@@ -230,38 +323,19 @@ const AdvertiserProfile = () => {
                 label="Ngày sinh"
                 name="dateOfBirth"
                 rules={[
-                  { required: true, message: 'Vui lòng chọn ngày sinh!' },
-                  {
-                    validator: (_, value) => {
-                      if (!value) {
-                        return Promise.reject('Vui lòng chọn ngày sinh!');
-                      }
-                      if (value.isAfter(moment())) {
-                        return Promise.reject(
-                          'Ngày sinh không thể là ngày trong tương lai!'
-                        );
-                      }
-                      if (value.isBefore(moment().subtract(120, 'years'))) {
-                        return Promise.reject('Ngày sinh không hợp lệ!');
-                      }
-                      return Promise.resolve();
-                    }
-                  }
+                  { required: true, message: 'Vui lòng chọn ngày sinh!' }
                 ]}
               >
-                <DatePicker
+                <Input
+                  type="date"
                   className="w-full"
-                  placeholder="Chọn ngày sinh (DD/MM/YYYY)"
-                  format="DD/MM/YYYY"
-                  disabledDate={(current) => {
-                    // Disable dates after today and before 120 years ago
-                    return (
-                      current &&
-                      (current > moment().endOf('day') ||
-                        current < moment().subtract(120, 'years'))
-                    );
-                  }}
-                  showToday={false}
+                  placeholder="Chọn ngày sinh"
+                  max={new Date().toISOString().split('T')[0]} // Today
+                  min={
+                    new Date(new Date().getFullYear() - 120, 0, 1)
+                      .toISOString()
+                      .split('T')[0]
+                  } // 120 years ago
                 />
               </Form.Item>
 
@@ -273,8 +347,8 @@ const AdvertiserProfile = () => {
                 ]}
               >
                 <Select placeholder="Chọn giới tính">
-                  <Select.Option value="Male">Nam</Select.Option>
-                  <Select.Option value="Female">Nữ</Select.Option>
+                  <Select.Option value="Nam">Nam</Select.Option>
+                  <Select.Option value="Nữ">Nữ</Select.Option>
                 </Select>
               </Form.Item>
 
@@ -388,6 +462,35 @@ const AdvertiserProfile = () => {
                     {user.fullName?.charAt(0) ?? 'U'}
                   </AvatarFallback>
                 </Avatar>
+
+                {/* Hidden file input */}
+                <input
+                  type="file"
+                  id="avatar-upload"
+                  accept="image/*"
+                  style={{ display: 'none' }}
+                  onChange={handleFileInputChange}
+                  disabled={isUploadingAvatar}
+                />
+
+                {/* Camera button for avatar change */}
+                <button
+                  className="absolute -bottom-1 -right-1 flex h-8 w-8 items-center justify-center rounded-full bg-white shadow-lg transition-colors hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50"
+                  style={{ border: '2px solid #7C3AED' }}
+                  onClick={() =>
+                    document.getElementById('avatar-upload')?.click()
+                  }
+                  title={
+                    isUploadingAvatar ? 'Đang upload...' : 'Thay đổi avatar'
+                  }
+                  disabled={isUploadingAvatar}
+                >
+                  {isUploadingAvatar ? (
+                    <div className="h-4 w-4 animate-spin rounded-full border-2 border-gray-300 border-t-purple-600"></div>
+                  ) : (
+                    <Camera className="h-4 w-4" style={{ color: '#7C3AED' }} />
+                  )}
+                </button>
               </div>
 
               <div className="flex-1 text-center md:text-left">
@@ -525,12 +628,7 @@ const AdvertiserProfile = () => {
                             <div className="mt-2 rounded-xl bg-gray-50 p-4 transition-colors group-hover:bg-blue-50">
                               <p className="text-lg font-semibold text-gray-800 group-hover:text-blue-600">
                                 {new Date(user.dateOfBirth).toLocaleDateString(
-                                  'vi-VN',
-                                  {
-                                    year: 'numeric',
-                                    month: 'long',
-                                    day: 'numeric'
-                                  }
+                                  'vi-VN'
                                 )}
                               </p>
                             </div>
@@ -582,39 +680,18 @@ const AdvertiserProfile = () => {
             <Form.Item
               label="Ngày sinh"
               name="dateOfBirth"
-              rules={[
-                { required: true, message: 'Vui lòng chọn ngày sinh!' },
-                {
-                  validator: (_, value) => {
-                    if (!value) {
-                      return Promise.reject('Vui lòng chọn ngày sinh!');
-                    }
-                    if (value.isAfter(moment())) {
-                      return Promise.reject(
-                        'Ngày sinh không thể là ngày trong tương lai!'
-                      );
-                    }
-                    if (value.isBefore(moment().subtract(120, 'years'))) {
-                      return Promise.reject('Ngày sinh không hợp lệ!');
-                    }
-                    return Promise.resolve();
-                  }
-                }
-              ]}
+              rules={[{ required: true, message: 'Vui lòng chọn ngày sinh!' }]}
             >
-              <DatePicker
+              <Input
+                type="date"
                 className="w-full"
-                placeholder="Chọn ngày sinh (DD/MM/YYYY)"
-                format="DD/MM/YYYY"
-                disabledDate={(current) => {
-                  // Disable dates after today and before 120 years ago
-                  return (
-                    current &&
-                    (current > moment().endOf('day') ||
-                      current < moment().subtract(120, 'years'))
-                  );
-                }}
-                showToday={false}
+                placeholder="Chọn ngày sinh"
+                max={new Date().toISOString().split('T')[0]} // Today
+                min={
+                  new Date(new Date().getFullYear() - 120, 0, 1)
+                    .toISOString()
+                    .split('T')[0]
+                } // 120 years ago
               />
             </Form.Item>
 
@@ -624,8 +701,8 @@ const AdvertiserProfile = () => {
               rules={[{ required: true, message: 'Vui lòng chọn giới tính!' }]}
             >
               <Select placeholder="Chọn giới tính">
-                <Select.Option value="Male">Nam</Select.Option>
-                <Select.Option value="Female">Nữ</Select.Option>
+                <Select.Option value="Nam">Nam</Select.Option>
+                <Select.Option value="Nữ">Nữ</Select.Option>
               </Select>
             </Form.Item>
 

@@ -1,5 +1,6 @@
 import { useState, useEffect, useMemo } from 'react';
-import { Button, Tag, Input, message } from 'antd';
+import { Button, Tag, Input } from 'antd';
+import { showToast } from '@/utils/toastUtils';
 import { EyeOutlined, EditOutlined } from '@ant-design/icons';
 import { ColumnDef } from '@tanstack/react-table';
 import DataTable from '@/components/shared/data-table';
@@ -151,7 +152,7 @@ export default function ReportTable() {
           : r
       )
     );
-    message.success(`Đã gửi phản hồi: ${response}`);
+    showToast.success(`Đã gửi phản hồi: ${response}`);
     setResponseOpen(false);
   };
 

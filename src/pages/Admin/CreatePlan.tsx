@@ -1,5 +1,6 @@
 import React from 'react';
-import { Modal, Form, Input, InputNumber, message } from 'antd';
+import { Modal, Form, Input, InputNumber } from 'antd';
+import { showToast } from '@/utils/toastUtils';
 import { PlusOutlined } from '@ant-design/icons';
 import { useCreatePlan } from '@/queries/plan.query';
 import { PlanRequest } from '@/types';
@@ -28,12 +29,12 @@ const CreatePlanModal: React.FC<CreatePlanModalProps> = ({
   const handleSubmit = async (values: PlanRequest) => {
     try {
       await createPlanMutation.mutateAsync(values);
-      message.success('Tạo gói dịch vụ thành công!');
+      showToast.success('Tạo gói dịch vụ thành công!');
       form.resetFields();
       onClose();
       onSuccess?.();
     } catch (error) {
-      message.error('Có lỗi xảy ra khi tạo gói dịch vụ. Vui lòng thử lại!');
+      showToast.error('Có lỗi xảy ra khi tạo gói dịch vụ. Vui lòng thử lại!');
       console.error('Create plan error:', error);
     }
   };

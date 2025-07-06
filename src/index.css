@@ -84,3 +84,42 @@
 * {
   font-family: 'Lexend', sans-serif;
 }
+
+/* Metallic shine animation for bank cards */
+@keyframes shine {
+  0% {
+    transform: translateX(-100%) skewX(-12deg);
+    opacity: 0;
+  }
+  50% {
+    opacity: 1;
+  }
+  100% {
+    transform: translateX(300%) skewX(-12deg);
+    opacity: 0;
+  }
+}
+
+/* Additional metallic glow animation */
+@keyframes metallic-glow {
+  0%,
+  100% {
+    box-shadow: 0 12px 40px rgba(139, 92, 246, 0.4);
+  }
+  50% {
+    box-shadow:
+      0 12px 40px rgba(139, 92, 246, 0.6),
+      0 0 30px rgba(168, 85, 247, 0.3);
+  }
+}
+
+/* Pulsing metallic effect */
+@keyframes metallic-pulse {
+  0%,
+  100% {
+    opacity: 0.8;
+  }
+  50% {
+    opacity: 1;
+  }
+}
