@@ -7,6 +7,7 @@ import {
 import { Plans } from '@/types';
 import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+import __helpers from '@/helpers';
 
 export default function UpgradePackage() {
   const [showUpgradeModal, setShowUpgradeModal] = useState<boolean>(false);
@@ -29,6 +30,15 @@ export default function UpgradePackage() {
 
   // Mutation để assign plan
   const { mutateAsync: assignPlan, isPending } = useAssignPlan();
+
+  // Check user role - chỉ hiển thị cho Publisher và Advertiser
+  const decodedToken = __helpers.decodeTokens(__helpers.cookie_get('AT'));
+  const userRole = decodedToken?.Role;
+
+  // Không hiển thị component nếu user là Admin
+  if (userRole === 'Admin') {
+    return null;
+  }
 
   // Xác định currentPlanId: nếu API không trả về thì mặc định free (id=1)
   const currentUserPlan = currentPlanData?.result;

@@ -39,12 +39,10 @@ const ChatBubble = () => {
 
       setIsInitializing(true);
       try {
-        console.log('[BUBBLE] Initializing conversation with admin...');
         const response = await createConversation({ targetUserId: adminId });
 
         if (response?.result) {
           setConversationData(response.result);
-          console.log('[BUBBLE] Conversation created:', response.result.id);
           await refetchMessages();
         } else {
           console.error(
@@ -73,29 +71,17 @@ const ChatBubble = () => {
   // Pusher realtime setup
   useEffect(() => {
     if (!conversationData?.id) {
-      console.log('[BUBBLE] No conversation ID, skipping Pusher setup');
       return;
     }
-
-    console.log(
-      '[BUBBLE] Setting up Pusher for conversation:',
-      conversationData.id
-    );
 
     // Initialize Pusher if not exists
     if (!pusherRef.current) {
       const authToken = __helpers.cookie_get('AT');
-      console.log('[BUBBLE] Creating new Pusher instance...');
-      console.log('[BUBBLE] Auth token exists:', !!authToken);
-      console.log('[BUBBLE] Pusher config:', {
-        key: import.meta.env.VITE_PUSHER_KEY,
-        cluster: import.meta.env.VITE_PUSHER_CLUSTER,
-        authEndpoint: `${import.meta.env.VITE_API_URL}/api/Pusher/auth`
-      });
 
       pusherRef.current = new Pusher(import.meta.env.VITE_PUSHER_KEY || '', {
         cluster: import.meta.env.VITE_PUSHER_CLUSTER,
-        authEndpoint: `${import.meta.env.VITE_API_URL}/api/Pusher/auth`,
+        // authEndpoint: `${import.meta.env.VITE_API_URL}/api/Pusher/auth`,
+        authEndpoint: `/api/Pusher/auth`,
         auth: {
           headers: {
             Authorization: `Bearer ${authToken}`
@@ -105,7 +91,7 @@ const ChatBubble = () => {
 
       // Connection event listeners
       pusherRef.current.connection.bind('connected', () => {
-        console.log('[BUBBLE] Pusher connected successfully');
+        // Connected successfully
       });
 
       pusherRef.current.connection.bind('error', (error: unknown) => {
@@ -113,7 +99,6 @@ const ChatBubble = () => {
 
         // Retry connection after 3 seconds
         reconnectTimeoutRef.current = setTimeout(() => {
-          console.log('[BUBBLE] Attempting to reconnect Pusher...');
           if (pusherRef.current) {
             pusherRef.current.disconnect();
             pusherRef.current = null;
@@ -127,11 +112,9 @@ const ChatBubble = () => {
     }
 
     const channelName = `private-conversation-${conversationData.id}`;
-    console.log('[BUBBLE] Subscribing to channel:', channelName);
 
     // Unsubscribe from previous channel if exists
     if (channelRef.current) {
-      console.log('[BUBBLE] Unsubscribing from previous channel...');
       channelRef.current.unbind_all();
       pusherRef.current?.unsubscribe(channelRef.current.name);
     }
@@ -141,7 +124,7 @@ const ChatBubble = () => {
 
     // Subscription events
     channelRef.current.bind('pusher:subscription_succeeded', () => {
-      console.log('[BUBBLE] Successfully subscribed to channel:', channelName);
+      // Successfully subscribed
     });
 
     channelRef.current.bind('pusher:subscription_error', (error: unknown) => {
@@ -174,7 +157,6 @@ const ChatBubble = () => {
     // Cleanup function
     return () => {
       if (channelRef.current) {
-        console.log('[BUBBLE] Unsubscribing from channel:', channelName);
         channelRef.current.unbind_all();
         pusherRef.current?.unsubscribe(channelName);
         channelRef.current = null;
@@ -196,7 +178,6 @@ const ChatBubble = () => {
   useEffect(() => {
     return () => {
       if (pusherRef.current) {
-        console.log('[BUBBLE] Disconnecting Pusher...');
         pusherRef.current.disconnect();
         pusherRef.current = null;
       }

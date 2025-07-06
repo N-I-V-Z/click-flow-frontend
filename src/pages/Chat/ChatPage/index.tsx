@@ -170,7 +170,7 @@ const ChatPage: React.FC = () => {
   useEffect(() => {
     const pingInterval = setInterval(() => {
       if (pusherRef.current?.connection.state === 'connected') {
-        console.log('Pusher connection is healthy');
+        // Connection is healthy
       } else {
         console.warn(
           'Pusher connection issue:',
@@ -210,10 +210,10 @@ const ChatPage: React.FC = () => {
 
     // Initialize Pusher instance nếu chưa có
     if (!pusherRef.current) {
-      console.log('Initializing Pusher connection...');
       pusherRef.current = new Pusher(import.meta.env.VITE_PUSHER_KEY || '', {
         cluster: import.meta.env.VITE_PUSHER_CLUSTER,
-        authEndpoint: `${import.meta.env.VITE_API_URL}/api/Pusher/auth`,
+        // authEndpoint: `${import.meta.env.VITE_API_URL}/api/Pusher/auth`,
+        authEndpoint: `/api/Pusher/auth`,
         auth: {
           headers: {
             Authorization: `Bearer ${__helpers.cookie_get('AT')}`
@@ -223,7 +223,7 @@ const ChatPage: React.FC = () => {
 
       // Add connection state logging
       pusherRef.current.connection.bind('connected', () => {
-        console.log('Pusher connected successfully');
+        // Connected successfully
       });
 
       pusherRef.current.connection.bind('error', (error: unknown) => {
@@ -244,10 +244,7 @@ const ChatPage: React.FC = () => {
         const channel = pusher.subscribe(channelName);
 
         channel.bind('pusher:subscription_succeeded', () => {
-          console.log(
-            '[ADMIN] Successfully subscribed to channel:',
-            channelName
-          );
+          // Successfully subscribed
         });
 
         channel.bind('pusher:subscription_error', (error: unknown) => {
@@ -270,7 +267,6 @@ const ChatPage: React.FC = () => {
         });
 
         channel.bind('messages-read', () => {
-          console.log('Messages read event for conversation:', conversation.id);
           // Cập nhật conversation list khi có tin nhắn được đánh dấu là đã đọc
           refetchConversations();
 

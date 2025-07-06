@@ -1,7 +1,7 @@
 import React from 'react';
 import { Outlet } from 'react-router-dom';
 import { Layout } from 'antd';
-import HeaderAd from '@/components/shared/header-advertiser';
+import HeaderAdmin from '@/components/shared/header-admin';
 import SidebarAdmin from '@/components/shared/sidebar-admin';
 
 const { Content, Footer } = Layout;
@@ -9,7 +9,7 @@ const { Content, Footer } = Layout;
 const AdminLayout: React.FC = () => {
   return (
     <Layout className="h-screen bg-white">
-      <HeaderAd />
+      <HeaderAdmin />
       <div className="fixed left-0 top-[64px]">
         <SidebarAdmin />
       </div>
