@@ -11,6 +11,11 @@ const MessageGroup: React.FC<MessageGroupProps> = ({
   messages,
   currentUserId
 }) => {
+  // Kiểm tra và làm sạch dữ liệu messages
+  const safeMessages = Array.isArray(messages)
+    ? messages.filter((msg) => msg && typeof msg === 'object')
+    : [];
+
   const [imageViewerState, setImageViewerState] = useState<{
     isOpen: boolean;
     imageUrl: string;
@@ -21,25 +26,43 @@ const MessageGroup: React.FC<MessageGroupProps> = ({
   });
 
   const formatTime = (timestamp: string | Date) => {
-    const date = new Date(timestamp);
-    return date.toLocaleTimeString('vi-VN', {
-      hour: '2-digit',
-      minute: '2-digit'
-    });
+    try {
+      const date = new Date(timestamp);
+      // Kiểm tra xem date có hợp lệ không
+      if (isNaN(date.getTime())) {
+        return '--:--';
+      }
+      return date.toLocaleTimeString('vi-VN', {
+        hour: '2-digit',
+        minute: '2-digit'
+      });
+    } catch (error) {
+      console.warn('Invalid timestamp:', timestamp, error);
+      return '--:--';
+    }
   };
 
   const formatDateHeader = (dateString: string) => {
-    const date = new Date(dateString);
-    const today = new Date();
-    const yesterday = new Date(today);
-    yesterday.setDate(yesterday.getDate() - 1);
+    try {
+      const date = new Date(dateString);
+      if (isNaN(date.getTime())) {
+        return 'Ngày không xác định';
+      }
 
-    if (date.toDateString() === today.toDateString()) {
-      return 'Hôm nay';
-    } else if (date.toDateString() === yesterday.toDateString()) {
-      return 'Hôm qua';
-    } else {
-      return date.toLocaleDateString('vi-VN');
+      const today = new Date();
+      const yesterday = new Date(today);
+      yesterday.setDate(yesterday.getDate() - 1);
+
+      if (date.toDateString() === today.toDateString()) {
+        return 'Hôm nay';
+      } else if (date.toDateString() === yesterday.toDateString()) {
+        return 'Hôm qua';
+      } else {
+        return date.toLocaleDateString('vi-VN');
+      }
+    } catch (error) {
+      console.warn('Invalid date string:', dateString, error);
+      return 'Ngày không xác định';
     }
   };
 
@@ -60,16 +83,23 @@ const MessageGroup: React.FC<MessageGroupProps> = ({
 
   // Logic nhóm tin nhắn theo ngày
   const groupMessagesByDate = (messages: MessageApiResponse[]) => {
-    if (!messages) return [];
+    if (!messages || !Array.isArray(messages)) return [];
 
     const grouped: { [key: string]: MessageApiResponse[] } = {};
 
     messages.forEach((msg) => {
-      const dateKey = new Date(msg.sentAt).toDateString();
-      if (!grouped[dateKey]) {
-        grouped[dateKey] = [];
+      // Kiểm tra msg và sentAt có tồn tại không
+      if (!msg || !msg.sentAt) return;
+
+      try {
+        const dateKey = new Date(msg.sentAt).toDateString();
+        if (!grouped[dateKey]) {
+          grouped[dateKey] = [];
+        }
+        grouped[dateKey].push(msg);
+      } catch (error) {
+        console.warn('Invalid sentAt date:', msg.sentAt, error);
       }
-      grouped[dateKey].push(msg);
     });
 
     return Object.entries(grouped).map(([dateKey, msgs]) => ({
@@ -78,7 +108,7 @@ const MessageGroup: React.FC<MessageGroupProps> = ({
     }));
   };
 
-  const groupedMessages = groupMessagesByDate(messages || []);
+  const groupedMessages = groupMessagesByDate(safeMessages || []);
 
   return (
     <>
@@ -94,50 +124,57 @@ const MessageGroup: React.FC<MessageGroupProps> = ({
 
             {/* Tin nhắn trong ngày */}
             <div className="space-y-4">
-              {group.messages.map((msg) => {
-                const isSender =
-                  currentUserId !== undefined &&
-                  msg?.senderId === currentUserId;
-                return (
-                  <div
-                    key={msg.id}
-                    className={`flex ${isSender ? 'justify-end' : 'justify-start'}`}
-                  >
+              {group.messages
+                .map((msg) => {
+                  // Kiểm tra msg có tồn tại và có các thuộc tính cần thiết
+                  if (!msg || !msg.id || !msg.sentAt) {
+                    return null;
+                  }
+
+                  const isSender =
+                    currentUserId !== undefined &&
+                    msg?.senderId === currentUserId;
+                  return (
                     <div
-                      className={`max-w-xs rounded-2xl px-4 py-3 shadow-sm lg:max-w-md ${
-                        isSender
-                          ? 'bg-gradient-to-r from-purple-500 to-indigo-500 text-white'
-                          : 'border border-gray-200 bg-white text-gray-900'
-                      }`}
+                      key={msg.id}
+                      className={`flex ${isSender ? 'justify-end' : 'justify-start'}`}
                     >
-                      {msg?.type === MessageType.Image && msg?.fileUrl && (
-                        <div className="space-y-2">
-                          <img
-                            src={msg.fileUrl}
-                            alt="Shared image"
-                            className="max-w-full cursor-pointer rounded-lg transition-opacity hover:opacity-90"
-                            loading="lazy"
-                            title="Click để xem ảnh lớn"
-                            onClick={() =>
-                              handleImageClick(msg.fileUrl!, msg.sentAt)
-                            }
-                          />
-                        </div>
-                      )}
-                      {msg?.text && (
-                        <p className="text-sm leading-relaxed">{msg.text}</p>
-                      )}
-                      <p
-                        className={`mt-2 text-xs ${
-                          isSender ? 'text-purple-100' : 'text-gray-500'
+                      <div
+                        className={`max-w-xs rounded-2xl px-4 py-3 shadow-sm lg:max-w-md ${
+                          isSender
+                            ? 'bg-gradient-to-r from-purple-500 to-indigo-500 text-white'
+                            : 'border border-gray-200 bg-white text-gray-900'
                         }`}
                       >
-                        {formatTime(msg?.sentAt)}
-                      </p>
+                        {msg?.type === MessageType.Image && msg?.fileUrl && (
+                          <div className="space-y-2">
+                            <img
+                              src={msg.fileUrl}
+                              alt="Shared image"
+                              className="max-w-full cursor-pointer rounded-lg transition-opacity hover:opacity-90"
+                              loading="lazy"
+                              title="Click để xem ảnh lớn"
+                              onClick={() =>
+                                handleImageClick(msg.fileUrl!, msg.sentAt)
+                              }
+                            />
+                          </div>
+                        )}
+                        {msg?.text && (
+                          <p className="text-sm leading-relaxed">{msg.text}</p>
+                        )}
+                        <p
+                          className={`mt-2 text-xs ${
+                            isSender ? 'text-purple-100' : 'text-gray-500'
+                          }`}
+                        >
+                          {formatTime(msg?.sentAt)}
+                        </p>
+                      </div>
                     </div>
-                  </div>
-                );
-              })}
+                  );
+                })
+                .filter(Boolean)}
             </div>
           </div>
         ))}

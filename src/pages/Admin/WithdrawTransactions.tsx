@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -76,6 +76,11 @@ const WithdrawTransactions: React.FC<WithdrawTransactionsProps> = ({
   const { mutate: updateTransactionStatus, isPending: isUpdating } =
     useUpdateTransactionStatus();
 
+  // Auto refresh when component mounts or when propStatus changes
+  useEffect(() => {
+    refetch();
+  }, [propStatus, refetch]);
+
   // Get transactions directly from API (already filtered by server)
   const withdrawTransactions = transactionData?.result?.datas || [];
 
@@ -84,9 +89,6 @@ const WithdrawTransactions: React.FC<WithdrawTransactionsProps> = ({
   const totalItems = transactionData?.result?.totalItems || 0;
   const hasNextPage = transactionData?.result?.hasNextPage || false;
   const hasPreviousPage = transactionData?.result?.hasPreviousPage || false;
-
-  // Get stats for all withdraw transactions
-  const allWithdrawTransactions = withdrawTransactions;
 
   const handleRefresh = () => {
     refetch();
@@ -234,57 +236,6 @@ const WithdrawTransactions: React.FC<WithdrawTransactionsProps> = ({
                 <p className="text-gray-600">{getPageDescription()}</p>
               </div>
             </div>
-          </div>
-
-          {/* Stats Cards */}
-          <div className="mb-8 grid grid-cols-1 gap-6 md:grid-cols-3">
-            <Card className="border-0 bg-white p-6 shadow-lg">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-gray-600">
-                    Tổng giao dịch
-                  </p>
-                  <p className="text-2xl font-bold text-gray-900">
-                    {allWithdrawTransactions.length}
-                  </p>
-                </div>
-                <div className="rounded-full bg-blue-100 p-3">
-                  <DollarSign className="h-6 w-6 text-blue-600" />
-                </div>
-              </div>
-            </Card>
-
-            <Card className="border-0 bg-white p-6 shadow-lg">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-gray-600">
-                    Đang xử lý
-                  </p>
-                  <p className="text-2xl font-bold text-yellow-600">
-                    {allWithdrawTransactions.filter((t) => !t.status).length}
-                  </p>
-                </div>
-                <div className="rounded-full bg-yellow-100 p-3">
-                  <Clock className="h-6 w-6 text-yellow-600" />
-                </div>
-              </div>
-            </Card>
-
-            <Card className="border-0 bg-white p-6 shadow-lg">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-gray-600">
-                    Thành công
-                  </p>
-                  <p className="text-2xl font-bold text-green-600">
-                    {allWithdrawTransactions.filter((t) => t.status).length}
-                  </p>
-                </div>
-                <div className="rounded-full bg-green-100 p-3">
-                  <CheckCircle className="h-6 w-6 text-green-600" />
-                </div>
-              </div>
-            </Card>
           </div>
 
           {/* Filters - Only show if no specific status prop */}
@@ -531,104 +482,251 @@ const WithdrawTransactions: React.FC<WithdrawTransactionsProps> = ({
 
         {/* Transaction Detail Modal */}
         <Dialog open={isDetailModalOpen} onOpenChange={setIsDetailModalOpen}>
-          <DialogContent className="max-w-2xl">
-            <DialogHeader>
-              <DialogTitle className="flex items-center gap-2">
-                <DollarSign className="h-5 w-5 text-indigo-600" />
-                Chi tiết giao dịch rút tiền
+          <DialogContent className="max-h-[90vh] max-w-4xl overflow-y-auto">
+            <DialogHeader className="border-b border-gray-100 pb-6">
+              <DialogTitle className="flex items-center gap-3 text-2xl">
+                <div className="rounded-xl bg-gradient-to-r from-blue-500 to-indigo-500 p-3">
+                  <DollarSign className="h-6 w-6 text-white" />
+                </div>
+                <div>
+                  <span className="text-gray-900">
+                    Chi tiết giao dịch rút tiền
+                  </span>
+                  <div className="mt-1 text-sm font-normal text-gray-500">
+                    Mã giao dịch: #{selectedTransaction?.id}
+                  </div>
+                </div>
               </DialogTitle>
-              <DialogDescription>
-                Thông tin chi tiết về giao dịch #{selectedTransaction?.id}
-              </DialogDescription>
             </DialogHeader>
 
             {selectedTransaction && (
-              <div className="grid gap-6">
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-1">
-                    <label className="text-sm font-medium text-gray-500">
-                      Mã giao dịch
-                    </label>
-                    <p className="font-mono text-lg">
-                      #{selectedTransaction.id}
-                    </p>
-                  </div>
-                  <div className="space-y-1">
-                    <label className="text-sm font-medium text-gray-500">
-                      Trạng thái
-                    </label>
-                    <div>{getStatusBadge(selectedTransaction.status)}</div>
+              <div className="space-y-8 py-6">
+                {/* Status Card */}
+                <div className="rounded-xl border border-gray-200 bg-gradient-to-r from-gray-50 to-blue-50 p-6">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <h3 className="mb-2 text-lg font-semibold text-gray-800">
+                        Trạng thái giao dịch
+                      </h3>
+                      <div className="flex items-center gap-3">
+                        {getStatusBadge(selectedTransaction.status)}
+                        <span className="text-sm text-gray-600">
+                          {selectedTransaction.status
+                            ? 'Đã xử lý'
+                            : 'Đang chờ xử lý'}
+                        </span>
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      <div className="text-sm text-gray-500">
+                        Loại giao dịch
+                      </div>
+                      <div className="mt-1">
+                        <span className="inline-flex items-center rounded-full border border-red-200 bg-red-100 px-3 py-1 text-sm font-medium text-red-800">
+                          {selectedTransaction.transactionType}
+                        </span>
+                      </div>
+                    </div>
                   </div>
                 </div>
 
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-1">
-                    <label className="text-sm font-medium text-gray-500">
-                      Số tiền rút
-                    </label>
-                    <p className="text-2xl font-bold text-red-600">
+                {/* Financial Info */}
+                <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+                  <div className="rounded-xl border border-red-200 bg-gradient-to-br from-red-50 to-pink-50 p-6">
+                    <div className="mb-4 flex items-center gap-3">
+                      <div className="rounded-lg bg-red-500 p-2">
+                        <DollarSign className="h-5 w-5 text-white" />
+                      </div>
+                      <div>
+                        <h4 className="font-semibold text-gray-800">
+                          Số tiền rút
+                        </h4>
+                        <p className="text-sm text-red-600">
+                          Số tiền được yêu cầu rút
+                        </p>
+                      </div>
+                    </div>
+                    <div className="text-3xl font-bold text-red-600">
                       -{formatCurrency(selectedTransaction.amount)}
-                    </p>
+                    </div>
                   </div>
-                  <div className="space-y-1">
-                    <label className="text-sm font-medium text-gray-500">
-                      Số dư sau giao dịch
-                    </label>
-                    <p className="text-xl font-semibold">
+
+                  <div className="rounded-xl border border-green-200 bg-gradient-to-br from-green-50 to-emerald-50 p-6">
+                    <div className="mb-4 flex items-center gap-3">
+                      <div className="rounded-lg bg-green-500 p-2">
+                        <DollarSign className="h-5 w-5 text-white" />
+                      </div>
+                      <div>
+                        <h4 className="font-semibold text-gray-800">
+                          Số dư sau giao dịch
+                        </h4>
+                        <p className="text-sm text-green-600">
+                          Số dư còn lại trong ví
+                        </p>
+                      </div>
+                    </div>
+                    <div className="text-3xl font-bold text-green-600">
                       {formatCurrency(selectedTransaction.balance)}
-                    </p>
+                    </div>
                   </div>
                 </div>
 
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-1">
-                    <label className="text-sm font-medium text-gray-500">
-                      Ngày tạo
-                    </label>
-                    <p className="font-medium">
-                      {formatDate(selectedTransaction.paymentDate)}
-                    </p>
+                {/* Transaction Details */}
+                <div className="overflow-hidden rounded-xl border border-gray-200 bg-white">
+                  <div className="border-b border-gray-200 bg-gradient-to-r from-blue-50 to-indigo-50 px-6 py-4">
+                    <h3 className="text-lg font-semibold text-gray-800">
+                      Thông tin chi tiết
+                    </h3>
                   </div>
-                  <div className="space-y-1">
-                    <label className="text-sm font-medium text-gray-500">
-                      Wallet ID
-                    </label>
-                    <p className="font-mono">{selectedTransaction.walletId}</p>
-                  </div>
-                </div>
+                  <div className="p-6">
+                    <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+                      <div className="space-y-4">
+                        <div className="flex items-center gap-3 rounded-lg bg-gray-50 p-4">
+                          <div className="rounded-full bg-blue-100 p-2">
+                            <svg
+                              className="h-4 w-4 text-blue-600"
+                              fill="none"
+                              stroke="currentColor"
+                              viewBox="0 0 24 24"
+                            >
+                              <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth={2}
+                                d="M7 20l4-16m2 16l4-16M6 9h14M4 15h14"
+                              />
+                            </svg>
+                          </div>
+                          <div>
+                            <label className="text-sm font-medium text-gray-500">
+                              Mã giao dịch
+                            </label>
+                            <p className="font-mono text-lg font-bold text-gray-900">
+                              #{selectedTransaction.id}
+                            </p>
+                          </div>
+                        </div>
 
-                <div className="space-y-1">
-                  <label className="text-sm font-medium text-gray-500">
-                    Loại giao dịch
-                  </label>
-                  <div className="flex items-center gap-2">
-                    <Badge className="border-red-200 bg-red-100 text-red-800">
-                      {selectedTransaction.transactionType}
-                    </Badge>
+                        <div className="flex items-center gap-3 rounded-lg bg-gray-50 p-4">
+                          <div className="rounded-full bg-purple-100 p-2">
+                            <svg
+                              className="h-4 w-4 text-purple-600"
+                              fill="none"
+                              stroke="currentColor"
+                              viewBox="0 0 24 24"
+                            >
+                              <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth={2}
+                                d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+                              />
+                              <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth={2}
+                                d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
+                              />
+                            </svg>
+                          </div>
+                          <div>
+                            <label className="text-sm font-medium text-gray-500">
+                              Wallet ID
+                            </label>
+                            <p className="font-mono text-lg font-bold text-purple-600">
+                              {selectedTransaction.walletId}
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="space-y-4">
+                        <div className="flex items-center gap-3 rounded-lg bg-gray-50 p-4">
+                          <div className="rounded-full bg-orange-100 p-2">
+                            <svg
+                              className="h-4 w-4 text-orange-600"
+                              fill="none"
+                              stroke="currentColor"
+                              viewBox="0 0 24 24"
+                            >
+                              <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth={2}
+                                d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
+                              />
+                            </svg>
+                          </div>
+                          <div>
+                            <label className="text-sm font-medium text-gray-500">
+                              Ngày tạo
+                            </label>
+                            <p className="text-lg font-bold text-gray-900">
+                              {formatDate(selectedTransaction.paymentDate)}
+                            </p>
+                          </div>
+                        </div>
+
+                        <div className="flex items-center gap-3 rounded-lg bg-gray-50 p-4">
+                          <div className="rounded-full bg-indigo-100 p-2">
+                            <svg
+                              className="h-4 w-4 text-indigo-600"
+                              fill="none"
+                              stroke="currentColor"
+                              viewBox="0 0 24 24"
+                            >
+                              <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth={2}
+                                d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                              />
+                            </svg>
+                          </div>
+                          <div>
+                            <label className="text-sm font-medium text-gray-500">
+                              ID hệ thống
+                            </label>
+                            <p className="font-mono text-sm text-gray-600">
+                              TXN-{selectedTransaction.id}-WD
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
                   </div>
                 </div>
               </div>
             )}
 
-            <DialogFooter>
-              <Button
-                variant="outline"
-                onClick={() => setIsDetailModalOpen(false)}
-              >
-                Đóng
-              </Button>
-              {selectedTransaction && !selectedTransaction.status && (
-                <Button
-                  onClick={() => {
-                    setIsDetailModalOpen(false);
-                    handleConfirmTransaction(selectedTransaction);
-                  }}
-                  className="bg-green-600 text-white hover:bg-green-700"
-                >
-                  <CheckCircle className="mr-1 h-4 w-4" />
-                  Xác nhận giao dịch
-                </Button>
-              )}
+            <DialogFooter className="border-t border-gray-100 pt-6">
+              <div className="flex w-full items-center justify-between">
+                <div className="text-sm text-gray-500">
+                  Thông tin được cập nhật lần cuối:{' '}
+                  {new Date().toLocaleString('vi-VN')}
+                </div>
+                <div className="flex gap-3">
+                  <Button
+                    variant="outline"
+                    onClick={() => setIsDetailModalOpen(false)}
+                    className="border-gray-300 hover:bg-gray-50"
+                  >
+                    Đóng
+                  </Button>
+                  {selectedTransaction && !selectedTransaction.status && (
+                    <Button
+                      onClick={() => {
+                        setIsDetailModalOpen(false);
+                        handleConfirmTransaction(selectedTransaction);
+                      }}
+                      className="bg-gradient-to-r from-green-500 to-green-600 text-white shadow-lg hover:from-green-600 hover:to-green-700"
+                    >
+                      <CheckCircle className="mr-2 h-4 w-4" />
+                      Duyệt giao dịch
+                    </Button>
+                  )}
+                </div>
+              </div>
             </DialogFooter>
           </DialogContent>
         </Dialog>

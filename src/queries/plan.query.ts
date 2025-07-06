@@ -61,7 +61,7 @@ export const useAssignPlan = () => {
     mutationKey: ['assign-plan'],
     mutationFn: async (payload: PlanAssign) => {
       return await BaseRequest.Post<UserPlan>(
-        `/${SUB_URL_UPGRADE_PLAN}/assign`,
+        `${SUB_URL_UPGRADE_PLAN}/assign`,
         payload
       );
     }

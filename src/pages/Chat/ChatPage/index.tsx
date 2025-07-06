@@ -27,6 +27,7 @@ const ChatPage: React.FC = () => {
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const [showScrollButton, setShowScrollButton] = useState(false);
   const [hasNewMessages, setHasNewMessages] = useState(false);
+  const [isSending, setIsSending] = useState(false);
 
   // Queries
   const { data: conversations, refetch: refetchConversations } =
@@ -42,6 +43,7 @@ const ChatPage: React.FC = () => {
   const lastMessageCountRef = useRef(0);
   const pusherRef = useRef<Pusher | null>(null);
   const subscribedChannelsRef = useRef<Set<string>>(new Set());
+  const conversationRefreshIntervalRef = useRef<NodeJS.Timeout | null>(null);
 
   // Helper functions
   const scrollToBottom = (behavior: 'smooth' | 'auto' = 'smooth') => {
@@ -130,12 +132,85 @@ const ChatPage: React.FC = () => {
     lastMessageCountRef.current = currentMessageCount;
   }, [messages?.result]);
 
+  // Mark messages as read when selecting a conversation
+  useEffect(() => {
+    if (selectedConversation?.id && selectedConversation.unreadCount > 0) {
+      const markAsRead = async () => {
+        try {
+          await maskAsRead({ conversationId: selectedConversation.id });
+          await refetchConversations(); // Update conversation list
+        } catch (error) {
+          console.error('Error marking messages as read:', error);
+        }
+      };
+
+      // Delay marking as read to ensure user actually views the conversation
+      const timer = setTimeout(markAsRead, 1000);
+      return () => clearTimeout(timer);
+    }
+  }, [
+    selectedConversation?.id,
+    selectedConversation?.unreadCount,
+    maskAsRead,
+    refetchConversations
+  ]);
+
+  // Auto-refresh messages để backup cho Pusher
+  useEffect(() => {
+    if (!selectedConversation?.id) return;
+
+    const interval = setInterval(() => {
+      refetchMessages();
+    }, 5000); // Refresh mỗi 5 giây
+
+    return () => clearInterval(interval);
+  }, [selectedConversation?.id, refetchMessages]);
+
+  // Keep Pusher connection alive
+  useEffect(() => {
+    const pingInterval = setInterval(() => {
+      if (pusherRef.current?.connection.state === 'connected') {
+        console.log('Pusher connection is healthy');
+      } else {
+        console.warn(
+          'Pusher connection issue:',
+          pusherRef.current?.connection.state
+        );
+      }
+    }, 30000); // Check every 30 seconds
+
+    return () => clearInterval(pingInterval);
+  }, []);
+
+  // Auto-refresh conversations để phát hiện conversations mới từ bubble chat
+  useEffect(() => {
+    conversationRefreshIntervalRef.current = setInterval(() => {
+      refetchConversations();
+    }, 15000); // Refresh every 15 seconds
+
+    return () => {
+      if (conversationRefreshIntervalRef.current) {
+        clearInterval(conversationRefreshIntervalRef.current);
+        conversationRefreshIntervalRef.current = null;
+      }
+    };
+  }, [refetchConversations]);
+
   // Global Pusher setup - lắng nghe tất cả conversations
   useEffect(() => {
-    if (!conversations?.result || conversations.result.length === 0) return;
+    if (
+      !conversations?.result ||
+      !Array.isArray(conversations.result) ||
+      conversations.result.length === 0
+    )
+      return;
+
+    // Copy ref values at the start of effect
+    const currentSubscribedChannels = subscribedChannelsRef.current;
 
     // Initialize Pusher instance nếu chưa có
     if (!pusherRef.current) {
+      console.log('Initializing Pusher connection...');
       pusherRef.current = new Pusher(import.meta.env.VITE_PUSHER_KEY || '', {
         cluster: import.meta.env.VITE_PUSHER_CLUSTER,
         authEndpoint: `${import.meta.env.VITE_API_URL}/api/Pusher/auth`,
@@ -145,22 +220,49 @@ const ChatPage: React.FC = () => {
           }
         }
       });
+
+      // Add connection state logging
+      pusherRef.current.connection.bind('connected', () => {
+        console.log('Pusher connected successfully');
+      });
+
+      pusherRef.current.connection.bind('error', (error: unknown) => {
+        console.error('Pusher connection error:', error);
+      });
     }
 
     const pusher = pusherRef.current;
 
     // Subscribe to all conversations
     conversations.result.forEach((conversation) => {
+      if (!conversation || !conversation.id) return;
+
       const channelName = `private-conversation-${conversation.id}`;
 
       // Chỉ subscribe nếu chưa subscribe channel này
-      if (!subscribedChannelsRef.current.has(channelName)) {
+      if (!currentSubscribedChannels.has(channelName)) {
         const channel = pusher.subscribe(channelName);
 
-        channel.bind('new-message', (data: any) => {
+        channel.bind('pusher:subscription_succeeded', () => {
+          console.log(
+            '[ADMIN] Successfully subscribed to channel:',
+            channelName
+          );
+        });
+
+        channel.bind('pusher:subscription_error', (error: unknown) => {
+          console.error(
+            '[ADMIN] Subscription error for channel:',
+            channelName,
+            error
+          );
+        });
+
+        channel.bind('new-message', () => {
           // Nếu tin nhắn mới từ conversation đang active
           if (conversation.id === selectedConversation?.id) {
             refetchMessages();
+            setTimeout(() => scrollToBottom('smooth'), 100);
           }
 
           // Luôn refetch conversations để cập nhật unread count và last message
@@ -168,6 +270,7 @@ const ChatPage: React.FC = () => {
         });
 
         channel.bind('messages-read', () => {
+          console.log('Messages read event for conversation:', conversation.id);
           // Cập nhật conversation list khi có tin nhắn được đánh dấu là đã đọc
           refetchConversations();
 
@@ -177,7 +280,7 @@ const ChatPage: React.FC = () => {
           }
         });
 
-        subscribedChannelsRef.current.add(channelName);
+        currentSubscribedChannels.add(channelName);
       }
     });
 
@@ -185,7 +288,7 @@ const ChatPage: React.FC = () => {
     return () => {
       if (pusherRef.current) {
         // Unsubscribe from all channels when component unmounts
-        subscribedChannelsRef.current.forEach((channelName) => {
+        currentSubscribedChannels.forEach((channelName) => {
           const channel = pusherRef.current?.channel(channelName);
           if (channel) {
             channel.unbind_all();
@@ -195,7 +298,7 @@ const ChatPage: React.FC = () => {
 
         pusherRef.current.disconnect();
         pusherRef.current = null;
-        subscribedChannelsRef.current.clear();
+        currentSubscribedChannels.clear();
       }
     };
   }, [
@@ -207,30 +310,40 @@ const ChatPage: React.FC = () => {
 
   // Handlers
   const handleSendMessage = async () => {
-    if (!selectedConversation || !message.trim()) return;
+    if (!selectedConversation || !message.trim() || isSending) return;
 
     try {
+      const currentMessage = message;
+      setMessage(''); // Clear input immediately for better UX
+      setShowEmojiPicker(false);
+      setIsSending(true);
+
       await sendMessage({
         conversationId: selectedConversation.id,
-        text: message,
+        text: currentMessage,
         type: MessageType.Text,
         file: undefined
       });
 
-      setMessage('');
-      setShowEmojiPicker(false);
+      // Immediately refetch messages to show the new message
+      await Promise.all([refetchMessages(), refetchConversations()]);
 
-      setTimeout(() => scrollToBottom('smooth'), 100);
-      await refetchMessages();
+      setTimeout(() => scrollToBottom('smooth'), 200);
     } catch (error) {
-      console.error('Error sending message:', error);
+      console.error('[ADMIN] Error sending message:', error);
+      // Restore message if sending failed
+      setMessage(message);
+    } finally {
+      setIsSending(false);
     }
   };
 
   const handleSendFile = async (file: File) => {
-    if (!selectedConversation) return;
+    if (!selectedConversation || isSending) return;
 
     try {
+      setIsSending(true);
+
       await sendMessage({
         conversationId: selectedConversation.id,
         type: file.type.startsWith('image/')
@@ -239,11 +352,15 @@ const ChatPage: React.FC = () => {
         file: file
       });
 
-      setTimeout(() => scrollToBottom('smooth'), 100);
-      await refetchMessages();
+      // Immediately refetch messages and conversations
+      await Promise.all([refetchMessages(), refetchConversations()]);
+
+      setTimeout(() => scrollToBottom('smooth'), 200);
     } catch (error) {
       console.error('Error uploading file:', error);
       throw error;
+    } finally {
+      setIsSending(false);
     }
   };
 
@@ -282,7 +399,9 @@ const ChatPage: React.FC = () => {
       <ChatArea
         selectedConversation={selectedConversation}
         messages={messages?.result}
-        currentUserId={decodedToken?.Id ? Number(decodedToken.Id) : undefined}
+        currentUserId={
+          decodedToken && decodedToken.Id ? Number(decodedToken.Id) : undefined
+        }
         message={message}
         onMessageChange={setMessage}
         onSendMessage={handleSendMessage}

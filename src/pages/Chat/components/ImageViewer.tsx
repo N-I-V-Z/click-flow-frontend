@@ -18,25 +18,50 @@ export const ImageViewer: React.FC<ImageViewerProps> = ({
   onClose
 }) => {
   const formatTime = (timestamp: string | Date) => {
-    const date = new Date(timestamp);
-    return date.toLocaleTimeString('vi-VN', {
-      hour: '2-digit',
-      minute: '2-digit'
-    });
+    try {
+      const date = new Date(timestamp);
+      if (isNaN(date.getTime())) {
+        return '--:--';
+      }
+      return date.toLocaleTimeString('vi-VN', {
+        hour: '2-digit',
+        minute: '2-digit'
+      });
+    } catch (error) {
+      console.warn(
+        'Invalid timestamp in ImageViewer formatTime:',
+        timestamp,
+        error
+      );
+      return '--:--';
+    }
   };
 
   const formatDate = (timestamp: string | Date) => {
-    const date = new Date(timestamp);
-    const today = new Date();
-    const yesterday = new Date(today);
-    yesterday.setDate(yesterday.getDate() - 1);
+    try {
+      const date = new Date(timestamp);
+      if (isNaN(date.getTime())) {
+        return 'Ngày không xác định';
+      }
 
-    if (date.toDateString() === today.toDateString()) {
-      return 'Hôm nay';
-    } else if (date.toDateString() === yesterday.toDateString()) {
-      return 'Hôm qua';
-    } else {
-      return date.toLocaleDateString('vi-VN');
+      const today = new Date();
+      const yesterday = new Date(today);
+      yesterday.setDate(yesterday.getDate() - 1);
+
+      if (date.toDateString() === today.toDateString()) {
+        return 'Hôm nay';
+      } else if (date.toDateString() === yesterday.toDateString()) {
+        return 'Hôm qua';
+      } else {
+        return date.toLocaleDateString('vi-VN');
+      }
+    } catch (error) {
+      console.warn(
+        'Invalid timestamp in ImageViewer formatDate:',
+        timestamp,
+        error
+      );
+      return 'Ngày không xác định';
     }
   };
 
@@ -46,13 +71,13 @@ export const ImageViewer: React.FC<ImageViewerProps> = ({
     }
   };
 
-  const handleKeyDown = (e: KeyboardEvent) => {
-    if (e.key === 'Escape') {
-      onClose();
-    }
-  };
-
   React.useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        onClose();
+      }
+    };
+
     if (isOpen) {
       document.addEventListener('keydown', handleKeyDown);
       // Prevent body scroll when modal is open
@@ -63,7 +88,7 @@ export const ImageViewer: React.FC<ImageViewerProps> = ({
       document.removeEventListener('keydown', handleKeyDown);
       document.body.style.overflow = 'unset';
     };
-  }, [isOpen]);
+  }, [isOpen, onClose]);
 
   if (!isOpen) return null;
 
