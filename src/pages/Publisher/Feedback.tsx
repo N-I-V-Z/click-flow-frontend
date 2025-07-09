@@ -22,8 +22,18 @@ const PUBLISHER_ID =
 /** Tính phân bố sao */
 function computeStarDistribution(feedbacks: IFeedback[]) {
   const distribution = [0, 0, 0, 0, 0];
+
+  // Kiểm tra an toàn: đảm bảo feedbacks là array
+  if (!Array.isArray(feedbacks)) {
+    console.warn(
+      'computeStarDistribution: feedbacks is not an array',
+      feedbacks
+    );
+    return distribution;
+  }
+
   feedbacks.forEach((fb) => {
-    if (fb.starRate >= 1 && fb.starRate <= 5) {
+    if (fb && fb.starRate >= 1 && fb.starRate <= 5) {
       distribution[fb.starRate - 1]++;
     }
   });
@@ -251,7 +261,10 @@ const Feedback: React.FC<{
   campaignId: number;
   publisherStatus?: string;
 }> = ({ campaignId, publisherStatus }) => {
-  // Queries
+  // Debug props
+  console.log('🔍 Feedback Component - Campaign ID:', campaignId);
+
+  // Queries - LUÔN gọi hooks trước
   const {
     data: feedbacks = [],
     isLoading,
@@ -287,30 +300,71 @@ const Feedback: React.FC<{
   const [currentPage, setCurrentPage] = useState<number>(1);
   const itemsPerPage = 5;
 
+  // Validation campaignId - SAU hooks
+  if (!campaignId || campaignId <= 0) {
+    console.error('❌ Invalid campaignId:', campaignId);
+    return (
+      <div className="py-16 text-center">
+        <div className="mb-2 text-lg font-medium text-red-500">
+          ID chiến dịch không hợp lệ
+        </div>
+        <p className="text-gray-600">Campaign ID: {campaignId}</p>
+      </div>
+    );
+  }
+
   const isError = !!error;
-  const totalFeedback = feedbacks.length;
+
+  // Đảm bảo feedbacks luôn là array
+  const safeFeedbacks = Array.isArray(feedbacks) ? feedbacks : [];
+  const totalFeedback = safeFeedbacks.length;
   const avgRating = totalFeedback
-    ? feedbacks.reduce((sum, fb) => sum + fb.starRate, 0) / totalFeedback
+    ? safeFeedbacks.reduce((sum, fb) => sum + (fb?.starRate || 0), 0) /
+      totalFeedback
     : 0;
 
-  const distribution = computeStarDistribution(feedbacks);
+  const distribution = computeStarDistribution(safeFeedbacks);
   const starPercentages = distribution.map((count) =>
     totalFeedback > 0 ? Math.round((count / totalFeedback) * 100) : 0
   );
 
   // Filter and sort feedbacks
-  let displayedFeedbacks = [...feedbacks];
+  let displayedFeedbacks = [...safeFeedbacks];
   if (starFilter > 0) {
     displayedFeedbacks = displayedFeedbacks.filter(
       (fb) => fb.starRate === starFilter
     );
   }
 
-  displayedFeedbacks.sort((a, b) => {
-    const dateA = new Date(a.timestamp).getTime();
-    const dateB = new Date(b.timestamp).getTime();
-    return sortOption === 'newest' ? dateB - dateA : dateA - dateB;
-  });
+  // Sort với error handling
+  try {
+    displayedFeedbacks.sort((a, b) => {
+      // Kiểm tra timestamp có tồn tại không
+      if (!a.timestamp || !b.timestamp) {
+        console.warn('Missing timestamp:', { a: a.timestamp, b: b.timestamp });
+        return 0;
+      }
+
+      const dateA = new Date(a.timestamp).getTime();
+      const dateB = new Date(b.timestamp).getTime();
+
+      // Kiểm tra date có valid không
+      if (isNaN(dateA) || isNaN(dateB)) {
+        console.warn('Invalid date:', {
+          aTimestamp: a.timestamp,
+          bTimestamp: b.timestamp,
+          dateA,
+          dateB
+        });
+        return 0;
+      }
+
+      return sortOption === 'newest' ? dateB - dateA : dateA - dateB;
+    });
+  } catch (sortError) {
+    console.error('Sort error:', sortError);
+    console.log('Sample feedback data:', safeFeedbacks.slice(0, 2));
+  }
 
   // Pagination
   const totalPages = Math.ceil(displayedFeedbacks.length / itemsPerPage);
@@ -415,6 +469,31 @@ const Feedback: React.FC<{
           Có lỗi xảy ra khi tải đánh giá
         </div>
         <p className="text-gray-600">{(error as Error).message}</p>
+        <button
+          onClick={() => refetch()}
+          className="mt-4 rounded-lg bg-purple-600 px-4 py-2 text-white hover:bg-purple-700"
+        >
+          Thử lại
+        </button>
+      </div>
+    );
+  }
+
+  // Kiểm tra thêm nếu dữ liệu không hợp lệ
+  if (!isLoading && !isError && !Array.isArray(feedbacks)) {
+    console.error('Feedbacks data is not an array:', feedbacks);
+    return (
+      <div className="py-16 text-center">
+        <div className="mb-2 text-lg font-medium text-yellow-600">
+          Dữ liệu đánh giá không hợp lệ
+        </div>
+        <p className="text-gray-600">Vui lòng thử lại sau</p>
+        <button
+          onClick={() => refetch()}
+          className="mt-4 rounded-lg bg-purple-600 px-4 py-2 text-white hover:bg-purple-700"
+        >
+          Tải lại
+        </button>
       </div>
     );
   }
@@ -425,9 +504,11 @@ const Feedback: React.FC<{
         {/* Statistics Section */}
         <div className="lg:col-span-1">
           <div className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
-            <h2 className="mb-6 text-xl font-semibold text-gray-900">
-              Thống kê đánh giá
-            </h2>
+            <div className="mb-4 flex items-center justify-between">
+              <h2 className="text-xl font-semibold text-gray-900">
+                Thống kê đánh giá
+              </h2>
+            </div>
 
             {totalFeedback > 0 ? (
               <div className="space-y-6">

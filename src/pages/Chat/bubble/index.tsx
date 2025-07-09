@@ -126,11 +126,12 @@ const ChatBubble = () => {
       // Subscription error handling
     });
 
-    // Message events
+    // Message events với optimistic update
     channelRef.current.bind(
       'new-message',
       (data: { conversationId: number }) => {
         if (data.conversationId === conversationData.id) {
+          // Refetch ngay lập tức
           refetchMessages();
         }
       }
@@ -140,14 +141,14 @@ const ChatBubble = () => {
       refetchMessages();
     });
 
-    // Backup auto-refresh mỗi 10 giây
+    // Backup auto-refresh mỗi 3 giây (nhanh hơn)
     if (backupIntervalRef.current) {
       clearInterval(backupIntervalRef.current);
     }
 
     backupIntervalRef.current = setInterval(() => {
       refetchMessages();
-    }, 10000);
+    }, 3000);
 
     // Cleanup function
     return () => {
@@ -193,6 +194,7 @@ const ChatBubble = () => {
     if (!conversationData || !text.trim()) return;
 
     try {
+      // Gửi tin nhắn
       await sendMessage({
         conversationId: conversationData.id,
         text: text,
@@ -200,7 +202,10 @@ const ChatBubble = () => {
         file: undefined
       });
 
-      await refetchMessages();
+      // Refetch ngay lập tức sau khi gửi
+      setTimeout(() => {
+        refetchMessages();
+      }, 100);
     } catch (error) {
       // Error sending message
     }
@@ -217,7 +222,10 @@ const ChatBubble = () => {
       file: file
     });
 
-    await refetchMessages();
+    // Refetch ngay lập tức sau khi gửi file
+    setTimeout(() => {
+      refetchMessages();
+    }, 100);
   };
 
   const handleToggleChat = (isOpen: boolean) => {

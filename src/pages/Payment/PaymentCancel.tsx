@@ -1,42 +1,78 @@
 import React from 'react';
-import { XCircle, ArrowLeft, Phone, Mail } from 'lucide-react';
+import {
+  XCircle,
+  ArrowLeft,
+  Phone,
+  Mail,
+  Shield,
+  Zap,
+  Trophy
+} from 'lucide-react';
 import { useSearchParams } from 'react-router-dom';
 import BasePages from '@/components/shared/base-pages';
+import { useRouter } from '@/routes/hooks';
+import __helpers from '@/helpers';
 
 const PayOSFailurePage: React.FC = () => {
   const [urlParams] = useSearchParams();
+  const router = useRouter();
+  const decodedToken = __helpers.decodeTokens(__helpers.cookie_get('AT'));
+  const userRole = decodedToken?.Role;
+
   const getOrderCodeFromURL = (): string => {
     return urlParams.get('orderCode') || '';
   };
 
   const goBack = (): void => {
-    window.history.back();
+    // Redirect based on user role
+    if (userRole === 'Advertiser') {
+      router.push('/advertiser/dashboard');
+    } else if (userRole === 'Publisher') {
+      router.push('/publisher/dashboard');
+    } else {
+      router.push('/'); // fallback to home
+    }
+  };
+
+  const getDashboardText = (): string => {
+    if (userRole === 'Advertiser') {
+      return 'Trang chủ';
+    } else if (userRole === 'Publisher') {
+      return 'Trang chủ';
+    }
+    return 'Trang chủ';
   };
 
   return (
     <BasePages pageHead="Thanh toán thất bại">
-      <div className="from-red-50 top-0 flex items-center justify-center bg-gradient-to-br via-orange to-yellow p-6">
+      <div className="via-orange to-yellow top-0 flex items-center justify-center bg-gradient-to-br from-red-50 p-6">
         <div className="relative w-full max-w-md overflow-hidden rounded-xl bg-white p-6 shadow-xl">
           <button
             onClick={goBack}
             className="flex items-center justify-center gap-1.5 rounded-lg bg-gray-100 px-3 py-2.5 text-sm font-semibold text-gray-700 transition-all duration-200 hover:bg-gray-200"
           >
             <ArrowLeft className="h-3.5 w-3.5" />
-            Quay lại
+            {getDashboardText()}
           </button>
 
           {/* Background decoration */}
-          <div className="absolute right-0 top-0 h-24 w-24 -translate-y-12 translate-x-12 rounded-full bg-gradient-to-br from-red to-pink-100 opacity-50"></div>
-          <div className="absolute bottom-0 left-0 h-20 w-20 -translate-x-10 translate-y-10 rounded-full bg-gradient-to-tr from-orange to-yellow opacity-50"></div>
+          <div className="from-red absolute right-0 top-0 h-24 w-24 -translate-y-12 translate-x-12 rounded-full bg-gradient-to-br to-pink-100 opacity-50"></div>
+          <div className="from-orange to-yellow absolute bottom-0 left-0 h-20 w-20 -translate-x-10 translate-y-10 rounded-full bg-gradient-to-tr opacity-50"></div>
 
           <div className="relative z-10 mt-2">
             {/* Failure Icon */}
             <div className="mb-5 flex justify-center">
               <div className="relative">
-                <div className="flex h-16 w-16 animate-pulse items-center justify-center rounded-full bg-red">
+                <div
+                  className="flex h-16 w-16 animate-pulse items-center justify-center rounded-full"
+                  style={{ backgroundColor: '#ef4444' }}
+                >
                   <XCircle className="h-8 w-8 text-white" />
                 </div>
-                <div className="bg-red-500 absolute inset-0 h-16 w-16 animate-ping rounded-full opacity-25"></div>
+                <div
+                  className="absolute inset-0 h-16 w-16 animate-ping rounded-full opacity-25"
+                  style={{ backgroundColor: '#ef4444' }}
+                ></div>
               </div>
             </div>
 
@@ -72,9 +108,18 @@ const PayOSFailurePage: React.FC = () => {
                 Nền tảng thanh toán an toàn và đáng tin cậy
               </p>
               <div className="mt-2 flex items-center justify-center gap-3 text-xs text-gray-400">
-                <span>🔒 Bảo mật SSL</span>
-                <span>⚡ Xử lý nhanh</span>
-                <span>🏆 Uy tín cao</span>
+                <span className="flex items-center gap-1">
+                  <Shield className="h-3 w-3" />
+                  Bảo mật SSL
+                </span>
+                <span className="flex items-center gap-1">
+                  <Zap className="h-3 w-3" />
+                  Xử lý nhanh
+                </span>
+                <span className="flex items-center gap-1">
+                  <Trophy className="h-3 w-3" />
+                  Uy tín cao
+                </span>
               </div>
             </div>
             {/* Support Section */}
@@ -88,8 +133,13 @@ const PayOSFailurePage: React.FC = () => {
                 </p>
               </div>
             </div>
-            <div className="mt-5 grid grid-cols-2 gap-2">
-              <button className="hover:bg-blue-100 flex items-center justify-center gap-1.5 rounded-md bg-blue px-3 py-2 text-xs font-medium text-white transition-colors">
+            <div className="mt-5 grid grid-cols-1 gap-2 sm:grid-cols-2">
+              <button
+                className="flex items-center justify-center gap-1.5 rounded-md px-3 py-2 text-xs font-medium text-white transition-colors hover:opacity-90"
+                style={{
+                  backgroundColor: '#3b82f6'
+                }}
+              >
                 <Mail className="h-3.5 w-3.5" />
                 clickflow.connect@gmail.com
               </button>

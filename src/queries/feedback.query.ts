@@ -11,21 +11,40 @@ export const useGetFeedbacksByCampaign = (
 ) => {
   return useQuery<IFeedback[]>({
     queryKey: ['get-feedbacks-by-campaign', campaignId, pageIndex, pageSize],
-    enabled: !!campaignId,
+    enabled: !!campaignId && campaignId > 0,
     queryFn: async (): Promise<IFeedback[]> => {
-      const response: ApiResponse<IFeedback[]> = await BaseRequest.Get(
-        `${SUB_URL}/get-feedbacks-by-campaign/${campaignId}/${pageIndex}/${pageSize}`
-      );
+      try {
+        const url = `${SUB_URL}/get-feedbacks-by-campaign/${campaignId}/${pageIndex}/${pageSize}`;
 
-      if (!response.isSuccess) {
-        throw new Error(response.message || 'Error fetching feedbacks');
+        const response: ApiResponse<{
+          pageIndex: number;
+          totalPages: number;
+          totalItems: number;
+          hasPreviousPage: boolean;
+          hasNextPage: boolean;
+          datas: IFeedback[];
+        }> = await BaseRequest.Get(url);
+
+        if (!response.isSuccess) {
+          throw new Error(response.message || 'Error fetching feedbacks');
+        }
+
+        // Extract feedbacks from pagination response
+        const feedbacks = response.result?.datas || [];
+
+        if (!Array.isArray(feedbacks)) {
+          return [];
+        }
+
+        return feedbacks;
+      } catch (error) {
+        console.error('Error fetching feedbacks:', error);
+        throw error;
       }
-
-      // Đảm bảo return type chính xác
-      return response.result ?? [];
     },
     staleTime: 1000 * 60 * 5,
-    retry: 3
+    retry: 3,
+    retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000)
   });
 };
 export const useCreateFeedback = () => {

@@ -6,6 +6,7 @@ import adminRoutes from './adminRoutes';
 import NotFound from '@/pages/NotFound';
 import LinkRoutes from './linkRoutes';
 import adverAndPubRoutes from './adverAndPubRoute';
+import paymentRoutes from './paymentRoutes';
 
 export default function AppRouter() {
   const routes = useRoutes([
@@ -14,6 +15,7 @@ export default function AppRouter() {
     ...publisherRoutes,
     ...adminRoutes,
     ...adverAndPubRoutes,
+    ...paymentRoutes, // Add payment routes for direct callbacks
     ...LinkRoutes,
     { path: '/404', element: <NotFound /> },
     { path: '*', element: <Navigate to="/404" replace /> }

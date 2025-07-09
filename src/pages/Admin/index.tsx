@@ -16,27 +16,13 @@ import {
 import { useGetOwnWallet } from '@/queries/wallet.query';
 import { useGetCampaignCountByStatus } from '@/queries/campaign.query';
 import { useGetCourseAdmin } from '@/queries/course.query';
+import { useGetUsersByRole } from '@/queries/user.query';
+import { useGetAllTransactions } from '@/queries/transaction.query';
 
 const AdminDashboard: React.FC = () => {
   const navigate = useNavigate();
 
-  // Dữ liệu giả lập cho LineChart (doanh thu theo tháng)
-  const revenueData = [
-    { month: 'Th1', revenue: 150 },
-    { month: 'Th2', revenue: 200 },
-    { month: 'Th3', revenue: 250 },
-    { month: 'Th4', revenue: 180 },
-    { month: 'Th5', revenue: 300 },
-    { month: 'Th6', revenue: 400 }
-  ];
-
-  // Dữ liệu cho BarChart (Publisher vs Advertiser)
-  const participationData = [
-    { name: 'Publisher', count: 1200 },
-    { name: 'Advertiser', count: 500 }
-  ];
-
-  // Lấy số dư ví
+  // Lấy số dư ví admin
   const { data: walletData, isLoading: walletLoading } = useGetOwnWallet();
   const balance = walletData?.result?.balance ?? 0;
 
@@ -51,6 +37,61 @@ const AdminDashboard: React.FC = () => {
     10
   );
   const totalCourses = courseData?.result?.totalItems ?? 0;
+
+  // Lấy số lượng Publisher và Advertiser
+  const { data: publisherData, isLoading: publisherLoading } =
+    useGetUsersByRole('Publisher', 1, 100);
+  const publisherCount = publisherData?.result?.totalItems ?? 0;
+
+  const { data: advertiserData, isLoading: advertiserLoading } =
+    useGetUsersByRole('Advertiser', 1, 100);
+  const advertiserCount = advertiserData?.result?.totalItems ?? 0;
+
+  // Lấy dữ liệu giao dịch để tạo biểu đồ doanh thu
+  const { data: transactionData, isLoading: transactionLoading } =
+    useGetAllTransactions(1, 100);
+
+  // Tạo dữ liệu doanh thu từ giao dịch thực tế
+  const revenueData = React.useMemo(() => {
+    if (!transactionData?.result?.datas) {
+      // Fallback data if no real data
+      return [
+        { month: 'Th1', revenue: 150 },
+        { month: 'Th2', revenue: 200 },
+        { month: 'Th3', revenue: 250 },
+        { month: 'Th4', revenue: 180 },
+        { month: 'Th5', revenue: 300 },
+        { month: 'Th6', revenue: 400 }
+      ];
+    }
+
+    // Group transactions by month
+    const monthlyRevenue = {};
+    transactionData.result.datas.forEach((transaction) => {
+      const date = new Date(transaction.paymentDate);
+      const monthKey = `Th${date.getMonth() + 1}`;
+
+      if (!monthlyRevenue[monthKey]) {
+        monthlyRevenue[monthKey] = 0;
+      }
+
+      // Only count Deposit transactions as revenue
+      if (transaction.transactionType === 'Deposit') {
+        monthlyRevenue[monthKey] += transaction.amount / 1000000; // Convert to millions
+      }
+    });
+
+    return Object.entries(monthlyRevenue).map(([month, revenue]) => ({
+      month,
+      revenue: Number((revenue as number).toFixed(2))
+    }));
+  }, [transactionData]);
+
+  // Dữ liệu thống kê Publisher vs Advertiser (thực tế từ API)
+  const participationData = [
+    { name: 'Publisher', count: publisherCount },
+    { name: 'Advertiser', count: advertiserCount }
+  ];
 
   // Handlers for quick access buttons
   const handleQuickAccess = (
@@ -82,7 +123,7 @@ const AdminDashboard: React.FC = () => {
 
   return (
     <BasePages pageHead="ClickFlow - Dashboard">
-      <div className="w-full px-6 py-8">
+      <div className="mb-10 w-full px-6 py-8">
         {/* 4 ô thống kê (canh đều) */}
         <div className="mb-6 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
           {/* Doanh thu tháng này */}
@@ -101,10 +142,14 @@ const AdminDashboard: React.FC = () => {
             <p>Khóa học đang hoạt động</p>
           </div>
 
-          {/* Tổng số report chưa xử lý */}
+          {/* Tổng người dùng */}
           <div className="rounded bg-[#E45959] p-4 text-center text-white">
-            <h2 className="text-2xl font-bold">44</h2>
-            <p>Tổng số report chưa xử lý</p>
+            <h2 className="text-2xl font-bold">
+              {publisherLoading || advertiserLoading
+                ? '...'
+                : publisherCount + advertiserCount}
+            </h2>
+            <p>Tổng người dùng</p>
           </div>
 
           {/* Chiến dịch đang hoạt động */}
@@ -164,26 +209,38 @@ const AdminDashboard: React.FC = () => {
           {/* BIỂU ĐỒ 1: LineChart (Doanh thu theo tháng) */}
           <div className="h-72 w-full rounded bg-white p-2 shadow">
             <h3 className="mb-2 text-center font-semibold">
-              Doanh thu theo tháng (triệu)
+              Doanh thu theo tháng (triệu VNĐ)
             </h3>
-            <ResponsiveContainer width="100%" height="100%">
-              <LineChart
-                data={revenueData}
-                margin={{ top: 10, right: 30, left: 0, bottom: 0 }}
-              >
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="month" />
-                <YAxis />
-                <Tooltip />
-                <Legend />
-                <Line
-                  type="monotone"
-                  dataKey="revenue"
-                  stroke="#8884d8"
-                  strokeWidth={2}
-                />
-              </LineChart>
-            </ResponsiveContainer>
+            {transactionLoading ? (
+              <div className="flex h-60 items-center justify-center">
+                <div className="text-gray-500">Đang tải dữ liệu...</div>
+              </div>
+            ) : (
+              <ResponsiveContainer width="100%" height="100%">
+                <LineChart
+                  data={revenueData}
+                  margin={{ top: 10, right: 30, left: 0, bottom: 0 }}
+                >
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis dataKey="month" />
+                  <YAxis />
+                  <Tooltip
+                    formatter={(value: number) => [
+                      `${value} triệu VNĐ`,
+                      'Doanh thu'
+                    ]}
+                  />
+                  <Legend />
+                  <Line
+                    type="monotone"
+                    dataKey="revenue"
+                    stroke="#8884d8"
+                    strokeWidth={2}
+                    name="Doanh thu"
+                  />
+                </LineChart>
+              </ResponsiveContainer>
+            )}
           </div>
 
           {/* BIỂU ĐỒ 2: BarChart (Publisher vs Advertiser) */}
@@ -191,19 +248,30 @@ const AdminDashboard: React.FC = () => {
             <h3 className="mb-2 text-center font-semibold">
               Lượng Publisher và Advertiser tham gia
             </h3>
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart
-                data={participationData}
-                margin={{ top: 10, right: 30, left: 0, bottom: 0 }}
-              >
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="name" />
-                <YAxis />
-                <Tooltip />
-                <Legend />
-                <Bar dataKey="count" fill="#82ca9d" />
-              </BarChart>
-            </ResponsiveContainer>
+            {publisherLoading || advertiserLoading ? (
+              <div className="flex h-60 items-center justify-center">
+                <div className="text-gray-500">Đang tải dữ liệu...</div>
+              </div>
+            ) : (
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart
+                  data={participationData}
+                  margin={{ top: 10, right: 30, left: 0, bottom: 0 }}
+                >
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis dataKey="name" />
+                  <YAxis />
+                  <Tooltip
+                    formatter={(value: number) => [
+                      `${value} người`,
+                      'Số lượng'
+                    ]}
+                  />
+                  <Legend />
+                  <Bar dataKey="count" fill="#82ca9d" name="Số lượng" />
+                </BarChart>
+              </ResponsiveContainer>
+            )}
           </div>
         </div>
       </div>

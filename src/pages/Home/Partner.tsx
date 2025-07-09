@@ -2,33 +2,29 @@ import { motion } from 'framer-motion';
 
 const partners = [
   {
-    name: 'Sendo.vn',
-    src: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQeERbH1RnP4ywu49tpMfK7AXyrktCvZbG7Zw&s'
+    name: 'CarePaws',
+    src: 'https://carepaws.site/icon/Logo.svg',
+    url: 'https://carepaws.site/'
   },
   {
-    name: 'NguyenKim',
-    src: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSaLwuwEqRRxi64apf7lhwXKkIBdAUiGlZNug&s'
+    name: 'PerHue',
+    src: 'https://dab1495bad907479e27a58dabd624c7c.cdn.bubble.io/cdn-cgi/image/w=48,h=48,f=auto,dpr=1.25,fit=contain/f1744563648784x113727199759603440/logo-icon-main.png',
+    url: 'https://perhue.io.vn/'
   },
   {
-    name: 'Atadi.vn',
-    src: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRv7v6mIqjediuT1WiVw-gFIlNRsEJaHp8wmQ&s'
-  },
-
-  {
-    name: 'Atadi.vn',
-    src: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRv7v6mIqjediuT1WiVw-gFIlNRsEJaHp8wmQ&s'
+    name: 'CodeGrow',
+    src: 'https://scontent.fsgn5-10.fna.fbcdn.net/v/t39.30808-1/500267341_122099064008885619_6219018770397838645_n.jpg?stp=cp6_dst-jpg_s200x200_tt6&_nc_cat=110&ccb=1-7&_nc_sid=2d3e12&_nc_eui2=AeEacWcg1fFLc9R5V-IDw5s07xY3hLGqPefvFjeEsao951fvP98HuyYUfNEb-QAG9GfnUCKL9TOpHuodoqSQCuqX&_nc_ohc=QBPp6ps4cCEQ7kNvwE0Zuro&_nc_oc=Adnmu7sZea0TwzhGqfuoZw4HB5jO3Ds-FD5KXIFWIfCMo2m48KaC1-WO-kcME9wzyYc&_nc_zt=24&_nc_ht=scontent.fsgn5-10.fna&_nc_gid=xyzHX2zv2sxUT3P7Cr94YA&oh=00_AfRiSS4Oou0jQTHOn6naDxYhgMgnpFP5t5FMeQ6Ng9CcNw&oe=68740B75',
+    url: 'https://codegrow.vercel.app/'
   },
   {
-    name: 'FPT Shop',
-    src: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSyq19Le_afh7wCEdKcniMZHMPbcTQsEviMHA&s'
+    name: 'Artline',
+    src: 'https://scontent.fsgn5-14.fna.fbcdn.net/v/t39.30808-1/502375120_122124079940838750_6658613640590130202_n.jpg?stp=dst-jpg_s200x200_tt6&_nc_cat=101&ccb=1-7&_nc_sid=2d3e12&_nc_eui2=AeHPCPx14plMDO-xRAYsBdNmF8ib38TQhVoXyJvfxNCFWgqa6olkacQCB3R0F04Zks8JfzNIWn8bz4CtDG2odizD&_nc_ohc=TGirzxap7ugQ7kNvwHXiXK8&_nc_oc=AdmnW5pFdi4yyAbyDdqZeiRjMU63bQWM3CCPfStoC5Qwz0m1vEG0Yjt7MJ0jT0BD8qs&_nc_zt=24&_nc_ht=scontent.fsgn5-14.fna&_nc_gid=bIC14BWbr-is1OkA6Tpp9g&oh=00_AfQYj3txQaR5EOl36v6dyd39HkTCe7xwd6FO4y6ww319Zw&oe=68742D0D',
+    url: 'https://artline-creative.com/'
   },
   {
-    name: 'Shoppee',
-    src: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQ9Ana0g1Cq4lEK6kjWFYJFaBtCEQJ51iCmUg&s'
-  },
-  {
-    name: 'Lazada',
-    src: 'https://image.sggp.org.vn/w1000/Uploaded/2025/yfsgf/2019_06_20/3_BIXQ.png.webp'
+    name: 'E-Bridge',
+    src: 'https://ebridge.vn/_next/image?url=%2Fimages%2Flogo.png&w=1920&q=75',
+    url: 'https://ebridge.vn/'
   }
 ];
 
@@ -94,7 +90,7 @@ const Partner = () => {
 
         {/* Partners Grid */}
         <motion.div
-          className="grid grid-cols-2 gap-8 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-7"
+          className="grid grid-cols-2 gap-8 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ duration: 1, delay: 0.6 }}
@@ -111,7 +107,13 @@ const Partner = () => {
                 ease: 'easeOut'
               }}
             >
-              <div className="relative rounded-3xl border border-white/10 bg-white/5 p-8 backdrop-blur-xl transition-all duration-500 group-hover:border-violet-500/30 group-hover:bg-white/10 group-hover:shadow-2xl group-hover:shadow-violet-500/10">
+              <div
+                className="relative cursor-pointer rounded-3xl border border-white/10 bg-white/5 p-8 backdrop-blur-xl transition-all duration-500 group-hover:border-violet-500/30 group-hover:bg-white/10 group-hover:shadow-2xl group-hover:shadow-violet-500/10"
+                onClick={() =>
+                  window.open(partner.url, '_blank', 'noopener,noreferrer')
+                }
+                title={`Truy cập ${partner.name}`}
+              >
                 {/* Hover Glow Effect */}
                 <div className="absolute inset-0 rounded-3xl bg-gradient-to-r from-violet-500/0 to-cyan-500/0 transition-all duration-500 group-hover:from-violet-500/5 group-hover:to-cyan-500/5"></div>
 
@@ -159,11 +161,11 @@ const Partner = () => {
           transition={{ duration: 0.8, delay: 1.2 }}
         >
           <div className="rounded-2xl border border-white/10 bg-white/5 p-6 backdrop-blur-sm">
-            <div className="mb-2 text-3xl font-bold text-white">7+</div>
+            <div className="mb-2 text-3xl font-bold text-white">5+</div>
             <div className="text-sm text-slate-400">Đối Tác</div>
           </div>
           <div className="rounded-2xl border border-white/10 bg-white/5 p-6 backdrop-blur-sm">
-            <div className="mb-2 text-3xl font-bold text-white">100K+</div>
+            <div className="mb-2 text-3xl font-bold text-white">20+</div>
             <div className="text-sm text-slate-400">Khách Hàng</div>
           </div>
           <div className="rounded-2xl border border-white/10 bg-white/5 p-6 backdrop-blur-sm">

@@ -8,8 +8,6 @@ const AllCommonLayout = lazy(
 );
 const Forum = lazy(() => import('@/pages/Advertiser/Forum'));
 const News = lazy(() => import('@/pages/Advertiser/NewsSection'));
-const PaymentSuccess = lazy(() => import('@/pages/Payment/PaymentSuccess'));
-const PaymentCancel = lazy(() => import('@/pages/Payment/PaymentCancel'));
 const ForumDetailPage = lazy(
   () => import('@/pages/Advertiser/ForumDetailPage')
 );
@@ -42,22 +40,6 @@ const adverAndPubRoutes = [
         element: (
           <RoleRoute allowedRoles={['Advertiser', 'Publisher']}>
             <News />
-          </RoleRoute>
-        )
-      },
-      {
-        path: 'payment-success',
-        element: (
-          <RoleRoute allowedRoles={['Advertiser', 'Publisher']}>
-            <PaymentSuccess />
-          </RoleRoute>
-        )
-      },
-      {
-        path: 'payment-cancel',
-        element: (
-          <RoleRoute allowedRoles={['Advertiser', 'Publisher']}>
-            <PaymentCancel />
           </RoleRoute>
         )
       },

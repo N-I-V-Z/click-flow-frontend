@@ -25,6 +25,7 @@ import {
   useGetPublisherRevenueStats
 } from '@/queries/traffic.query';
 import { useGetOwnTransaction } from '@/queries/transaction.query';
+import { useGetOwnWallet } from '@/queries/wallet.query';
 // import __helpers from '@/helpers';
 // import helpers from '@/helpers';
 
@@ -59,6 +60,9 @@ const PublisherDashboard: React.FC = () => {
   // Lấy dữ liệu giao dịch thực tế từ API
   const { data: transactionData } = useGetOwnTransaction(1, 10);
   const transactions = transactionData?.result?.datas || [];
+
+  // Lấy thống kê tổng quan từ các API
+  const { data: walletData } = useGetOwnWallet();
 
   // Chuyển đổi dữ liệu giao dịch thành dữ liệu cho AreaChart với cải tiến
   const moneyChartData = transactions
@@ -97,8 +101,7 @@ const PublisherDashboard: React.FC = () => {
     0
   );
   const netFlow = totalDeposit - totalWithdraw;
-  const currentBalance =
-    moneyChartData[moneyChartData.length - 1]?.balance || 0;
+  const currentBalance = walletData?.result?.balance || 0;
 
   // Chuyển đổi revenue data thành format cho PieChart
   const conversionData = revenueData.map((item) => ({
