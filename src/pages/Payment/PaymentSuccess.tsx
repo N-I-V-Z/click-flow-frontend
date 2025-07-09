@@ -6,11 +6,17 @@ import {
   ArrowLeft,
   Heart,
   Mail,
-  Phone
+  Phone,
+  Star,
+  FileText,
+  Shield,
+  Zap,
+  Trophy
 } from 'lucide-react';
 import { useSearchParams } from 'react-router-dom';
 import BasePages from '@/components/shared/base-pages';
 import { useRouter } from '@/routes/hooks';
+import __helpers from '@/helpers';
 
 interface TransactionData {
   transactionId: string;
@@ -37,6 +43,8 @@ const PayOSSuccessPage: React.FC = () => {
   const [copied, setCopied] = useState<boolean>(false);
   const [isVisible, setIsVisible] = useState<boolean>(false);
   const router = useRouter();
+  const decodedToken = __helpers.decodeTokens(__helpers.cookie_get('AT'));
+  const userRole = decodedToken?.Role;
   useEffect(() => {
     // Animation effect on load
     setIsVisible(true);
@@ -263,7 +271,23 @@ const PayOSSuccessPage: React.FC = () => {
   };
 
   const goHome = (): void => {
-    router.push('/');
+    // Redirect based on user role
+    if (userRole === 'Advertiser') {
+      router.push('/advertiser/dashboard');
+    } else if (userRole === 'Publisher') {
+      router.push('/publisher/dashboard');
+    } else {
+      router.push('/'); // fallback to home
+    }
+  };
+
+  const getDashboardText = (): string => {
+    if (userRole === 'Advertiser') {
+      return 'Trang chủ';
+    } else if (userRole === 'Publisher') {
+      return 'Trang chủ';
+    }
+    return 'Trang chủ';
   };
   const [urlParams] = useSearchParams();
   const getOrderCodeFromURL = (): string => {
@@ -272,7 +296,7 @@ const PayOSSuccessPage: React.FC = () => {
 
   return (
     <BasePages pageHead="Thanh toán thành công">
-      <div className="via-blue-50 flex items-center justify-center bg-gradient-to-br from-emerald-50 to-indigo-100 p-6">
+      <div className="flex items-center justify-center bg-gradient-to-br from-emerald-50 via-blue-50 to-indigo-100 p-6">
         <div
           className={`relative w-full max-w-md overflow-hidden rounded-2xl bg-white p-5 shadow-xl transition-all duration-700 ${
             isVisible
@@ -286,12 +310,12 @@ const PayOSSuccessPage: React.FC = () => {
             className="absolute left-3 top-3 z-20 flex transform items-center gap-1.5 rounded-lg border border-gray-200 bg-white px-2.5 py-1.5 text-xs font-medium text-gray-700 shadow-md transition-all duration-200 hover:scale-105 hover:bg-gray-50 hover:shadow-lg"
           >
             <ArrowLeft className="h-3.5 w-3.5" />
-            <span>Trang chủ</span>
+            <span>{getDashboardText()}</span>
           </button>
 
           {/* Animated background elements */}
           <div className="absolute right-0 top-0 h-32 w-32 -translate-y-16 translate-x-16 animate-pulse rounded-full bg-gradient-to-br from-green-200 to-emerald-300 opacity-30"></div>
-          <div className="absolute bottom-0 left-0 h-24 w-24 -translate-x-12 translate-y-12 animate-pulse rounded-full bg-gradient-to-tr from-blue to-indigo-300 opacity-30"></div>
+          <div className="from-blue absolute bottom-0 left-0 h-24 w-24 -translate-x-12 translate-y-12 animate-pulse rounded-full bg-gradient-to-tr to-indigo-300 opacity-30"></div>
 
           <div className="relative z-10 mt-6">
             {/* Success Animation */}
@@ -302,8 +326,8 @@ const PayOSSuccessPage: React.FC = () => {
                 </div>
                 <div className="absolute inset-0 h-16 w-16 animate-ping rounded-full bg-green-400 opacity-20"></div>
                 <div className="absolute -right-1 -top-1">
-                  <div className="flex h-5 w-5 animate-pulse items-center justify-center rounded-full bg-yellow">
-                    <span className="text-xs">✨</span>
+                  <div className="flex h-5 w-5 animate-pulse items-center justify-center rounded-full bg-yellow-400">
+                    <Star className="h-3 w-3 text-white" fill="currentColor" />
                   </div>
                 </div>
               </div>
@@ -318,7 +342,7 @@ const PayOSSuccessPage: React.FC = () => {
                 Giao dịch đã được xử lý thành công
               </p>
               <div className="mt-1.5 flex items-center justify-center gap-1">
-                <Heart className="text-red-500 h-3.5 w-3.5 animate-pulse" />
+                <Heart className="h-3.5 w-3.5 animate-pulse text-red-500" />
                 <span className="text-xs text-gray-500">
                   Cảm ơn bạn đã tin tưởng payOS
                 </span>
@@ -328,7 +352,8 @@ const PayOSSuccessPage: React.FC = () => {
             {/* Transaction Details */}
             <div className="mb-5 space-y-3 rounded-xl bg-gray-50 p-4">
               <h3 className="mb-3 flex items-center gap-2 text-sm font-semibold text-gray-800">
-                📋 Chi tiết giao dịch
+                <FileText className="h-4 w-4 text-gray-600" />
+                Chi tiết giao dịch
               </h3>
 
               <div className="space-y-2">
@@ -364,7 +389,10 @@ const PayOSSuccessPage: React.FC = () => {
             <div className="space-y-3">
               <button
                 onClick={downloadReceiptPDF}
-                className="hover:to-blue-700 flex w-full transform items-center justify-center gap-2 rounded-lg bg-gradient-to-r from-indigo-600 to-blue px-4 py-3 text-sm font-semibold text-white transition-all duration-200 hover:scale-105 hover:from-indigo-700 hover:shadow-xl"
+                className="flex w-full transform items-center justify-center gap-2 rounded-lg px-4 py-3 text-sm font-semibold text-white transition-all duration-200 hover:scale-105 hover:shadow-xl"
+                style={{
+                  background: 'linear-gradient(to right, #4f46e5, #3b82f6)'
+                }}
               >
                 <Download className="h-4 w-4" />
                 Tải hóa đơn PDF
@@ -385,14 +413,28 @@ const PayOSSuccessPage: React.FC = () => {
                 Nền tảng thanh toán an toàn và đáng tin cậy
               </p>
               <div className="mt-2 flex items-center justify-center gap-3 text-xs text-gray-400">
-                <span>🔒 Bảo mật SSL</span>
-                <span>⚡ Xử lý nhanh</span>
-                <span>🏆 Uy tín cao</span>
+                <span className="flex items-center gap-1">
+                  <Shield className="h-3 w-3" />
+                  Bảo mật SSL
+                </span>
+                <span className="flex items-center gap-1">
+                  <Zap className="h-3 w-3" />
+                  Xử lý nhanh
+                </span>
+                <span className="flex items-center gap-1">
+                  <Trophy className="h-3 w-3" />
+                  Uy tín cao
+                </span>
               </div>
             </div>
           </div>
-          <div className="mt-5 grid grid-cols-2 gap-2">
-            <button className="hover:bg-blue-100 flex items-center justify-center gap-1.5 rounded-md bg-blue px-3 py-2 text-xs font-medium text-white transition-colors">
+          <div className="mt-5 grid grid-cols-1 gap-2 sm:grid-cols-2">
+            <button
+              className="flex items-center justify-center gap-1.5 rounded-md px-3 py-2 text-xs font-medium text-white transition-colors hover:opacity-90"
+              style={{
+                backgroundColor: '#3b82f6'
+              }}
+            >
               <Mail className="h-3.5 w-3.5" />
               clickflow.connect@gmail.com
             </button>

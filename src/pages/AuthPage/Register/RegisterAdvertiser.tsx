@@ -210,7 +210,7 @@ const RegisterAdvertiserPage: React.FC = () => {
                         to="/"
                         className="font-medium text-purple-600 transition-colors hover:text-purple-700"
                       >
-                        ClickFlow.vn
+                        Clickflow.space
                       </Link>
                     </p>
                   </div>

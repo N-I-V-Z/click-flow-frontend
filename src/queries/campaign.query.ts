@@ -106,10 +106,21 @@ export const useCreateCampaign = () => {
   return useMutation({
     mutationKey: ['create-campaign'],
     mutationFn: async (model: CreateCampaignPayload) => {
+      console.log('🚀 Creating campaign:', model.name);
       return await BaseRequest.Post<CampaignApiResponse>(
         `${SUB_URL}/create-campaign`,
-        model
+        model,
+        {
+          timeout: 10000 // Timeout 10 giây
+        }
       );
+    },
+    retry: false, // Tắt retry cho mutation để tránh spam requests
+    onError: (error) => {
+      console.error('❌ Create campaign failed:', error);
+    },
+    onSuccess: (data) => {
+      console.log('✅ Create campaign success:', data);
     }
   });
 };
@@ -118,18 +129,26 @@ export const useUploadImage = () => {
   return useMutation({
     mutationKey: ['upload-image'],
     mutationFn: async (file: File) => {
+      // Kiểm tra size file trước khi upload (giới hạn 5MB)
+      if (file.size > 5 * 1024 * 1024) {
+        throw new Error('File size must be less than 5MB');
+      }
+
       const formData = new FormData();
       formData.append('File', file);
+
       return await BaseRequest.Post<UploadImageResponse>(
         `${SUB_URL_IMAGE}/upload-image`,
         formData,
         {
           headers: {
             'Content-Type': 'multipart/form-data'
-          }
+          },
+          timeout: 15000 // Timeout 15 giây cho upload
         }
       );
-    }
+    },
+    retry: false // Tắt retry cho upload để tránh duplicate uploads
   });
 };
 

@@ -1,6 +1,8 @@
 import React, { useState, useMemo } from 'react';
 import { Modal } from 'antd';
 import { showToast } from '@/utils/toastUtils';
+import { ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 import {
   CheckCircleOutlined,
   CloseCircleOutlined,
@@ -64,9 +66,11 @@ const CampaignRequest: React.FC = () => {
         { id: selectedCampaign.id, status: newStatus },
         {
           onSuccess: () => {
-            showToast.success(
-              `Chiến dịch "${selectedCampaign.name}" đã được cập nhật thành "${newStatus}".`
-            );
+            if (modalAction === 'accept') {
+              showToast.success('Đã duyệt thành công!');
+            } else {
+              showToast.success('Đã từ chối thành công!');
+            }
             refetch();
           },
           onError: (err: Error) => {
@@ -337,6 +341,20 @@ const CampaignRequest: React.FC = () => {
             campaignId={selectedCampaignId}
             visible={isDetailVisible}
             onClose={handleCloseDetail}
+          />
+
+          {/* Toast Notifications */}
+          <ToastContainer
+            position="top-right"
+            autoClose={3000}
+            hideProgressBar={false}
+            newestOnTop={true}
+            closeOnClick={true}
+            rtl={false}
+            pauseOnFocusLoss={false}
+            draggable={true}
+            pauseOnHover={true}
+            theme="colored"
           />
         </div>
       </div>

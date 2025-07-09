@@ -1,8 +1,21 @@
 import React, { useState } from 'react';
 import { FaClock, FaTimesCircle, FaPause, FaCheckCircle } from 'react-icons/fa';
+import {
+  LineChart,
+  Line,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  ResponsiveContainer,
+  BarChart,
+  Bar,
+  Legend
+} from 'recharts';
 import CreateNewCampaign from './CreateNewCampaign';
 import CampaignRequest from './CampaignRequest';
 import { useGetUserDetail } from '@/queries/user.query';
+import { useGetOwnTransaction } from '@/queries/transaction.query';
 import { TokenDecoded } from '@/types';
 import helpers from '@/helpers';
 import __helpers from '@/helpers';
@@ -36,6 +49,40 @@ const AdvertiserDashboard: React.FC = () => {
   const { data: rejectedCount, isLoading: isRejectedLoading } =
     useGetCampaignParticipationCountByStatusForAdvertiser('Rejected');
 
+  // Lấy dữ liệu ví và giao dịch cho biểu đồ
+  const { data: transactionData } = useGetOwnTransaction(1, 50);
+
+  // Tạo dữ liệu cho biểu đồ trạng thái campaign
+  const campaignStatusData = [
+    { name: 'Cần phê duyệt', value: pendingCount ?? 0, fill: '#3b82f6' },
+    { name: 'Đã từ chối', value: rejectedCount ?? 0, fill: '#ef4444' },
+    { name: 'Tạm dừng', value: canceledCount ?? 0, fill: '#f97316' },
+    { name: 'Hoàn thành', value: completedCount ?? 0, fill: '#22c55e' }
+  ];
+
+  // Tạo dữ liệu cho biểu đồ giao dịch theo tháng
+  const monthlyTransactionData = React.useMemo(() => {
+    if (!transactionData?.result?.datas) return [];
+
+    const monthlyData = {};
+    transactionData.result.datas.forEach((transaction) => {
+      const date = new Date(transaction.paymentDate);
+      const monthKey = `Th${date.getMonth() + 1}`;
+
+      if (!monthlyData[monthKey]) {
+        monthlyData[monthKey] = { month: monthKey, deposit: 0, withdraw: 0 };
+      }
+
+      if (transaction.transactionType === 'Deposit') {
+        monthlyData[monthKey].deposit += transaction.amount / 1000000;
+      } else if (transaction.transactionType === 'Withdraw') {
+        monthlyData[monthKey].withdraw += transaction.amount / 1000000;
+      }
+    });
+
+    return Object.values(monthlyData);
+  }, [transactionData]);
+
   return (
     <BasePages pageHead="ClickFlow - Tổng quan ">
       <div className="min-h-screen">
@@ -56,7 +103,10 @@ const AdvertiserDashboard: React.FC = () => {
             <button
               type="button"
               onClick={() => setIsModalVisible(true)}
-              className="transform rounded-lg bg-gradient-to-r from-orange-500 to-red-500 px-6 py-3 font-semibold text-white shadow-lg transition-all duration-300 hover:scale-105 hover:from-orange-600 hover:to-red-600 hover:shadow-xl"
+              className="transform rounded-lg px-6 py-3 font-semibold text-white shadow-lg transition-all duration-300 hover:scale-105 hover:shadow-xl"
+              style={{
+                background: 'linear-gradient(to right, #e11d48, #dc2626)'
+              }}
             >
               ✨ Tạo mới chiến dịch
             </button>
@@ -65,7 +115,12 @@ const AdvertiserDashboard: React.FC = () => {
           {/* Các thẻ thống kê trạng thái chiến dịch */}
           <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 md:grid-cols-4">
             {/* Cần phê duyệt (Pending) */}
-            <div className="transform rounded-xl bg-gradient-to-br from-blue-500 to-blue-600 p-6 text-center text-white backdrop-blur transition-all duration-300 hover:scale-105 hover:shadow-xl">
+            <div
+              className="transform rounded-xl p-6 text-center text-white backdrop-blur transition-all duration-300 hover:scale-105 hover:shadow-xl"
+              style={{
+                background: 'linear-gradient(to bottom right, #2563eb, #3b82f6)'
+              }}
+            >
               <div className="mb-3 flex justify-center">
                 <div className="rounded-full bg-white/20 p-3">
                   <FaClock size={32} />
@@ -80,7 +135,12 @@ const AdvertiserDashboard: React.FC = () => {
             </div>
 
             {/* Đã từ chối (Rejected) */}
-            <div className="transform rounded-xl bg-gradient-to-br from-red-500 to-red-600 p-6 text-center text-white backdrop-blur transition-all duration-300 hover:scale-105 hover:shadow-xl">
+            <div
+              className="transform rounded-xl p-6 text-center text-white backdrop-blur transition-all duration-300 hover:scale-105 hover:shadow-xl"
+              style={{
+                background: 'linear-gradient(to bottom right, #dc2626, #ef4444)'
+              }}
+            >
               <div className="mb-3 flex justify-center">
                 <div className="rounded-full bg-white/20 p-3">
                   <FaTimesCircle size={32} />
@@ -93,7 +153,12 @@ const AdvertiserDashboard: React.FC = () => {
             </div>
 
             {/* Tạm dừng (Canceled) */}
-            <div className="transform rounded-xl bg-gradient-to-br from-orange-500 to-orange-600 p-6 text-center text-white backdrop-blur transition-all duration-300 hover:scale-105 hover:shadow-xl">
+            <div
+              className="transform rounded-xl p-6 text-center text-white backdrop-blur transition-all duration-300 hover:scale-105 hover:shadow-xl"
+              style={{
+                background: 'linear-gradient(to bottom right, #ea580c, #f97316)'
+              }}
+            >
               <div className="mb-3 flex justify-center">
                 <div className="rounded-full bg-white/20 p-3">
                   <FaPause size={32} />
@@ -106,7 +171,12 @@ const AdvertiserDashboard: React.FC = () => {
             </div>
 
             {/* Đã hoàn thành (Completed) */}
-            <div className="transform rounded-xl bg-gradient-to-br from-green-500 to-green-600 p-6 text-center text-white backdrop-blur transition-all duration-300 hover:scale-105 hover:shadow-xl">
+            <div
+              className="transform rounded-xl p-6 text-center text-white backdrop-blur transition-all duration-300 hover:scale-105 hover:shadow-xl"
+              style={{
+                background: 'linear-gradient(to bottom right, #16a34a, #22c55e)'
+              }}
+            >
               <div className="mb-3 flex justify-center">
                 <div className="rounded-full bg-white/20 p-3">
                   <FaCheckCircle size={32} />
@@ -118,6 +188,65 @@ const AdvertiserDashboard: React.FC = () => {
               <p className="text-3xl font-bold">
                 {isCompletedLoading ? '...' : completedCount ?? 0}
               </p>
+            </div>
+          </div>
+
+          {/* Biểu đồ Analytics */}
+          <div className="mt-10 grid grid-cols-1 gap-6 lg:grid-cols-2">
+            {/* Biểu đồ trạng thái campaign */}
+            <div className="rounded-xl bg-white p-6 shadow-lg">
+              <h3 className="mb-4 text-lg font-semibold text-gray-800">
+                Phân bố trạng thái Campaign
+              </h3>
+              <div className="h-64">
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart data={campaignStatusData}>
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis dataKey="name" />
+                    <YAxis />
+                    <Tooltip />
+                    <Bar dataKey="value" fill="#8884d8" />
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
+            </div>
+
+            {/* Biểu đồ giao dịch theo tháng */}
+            <div className="rounded-xl bg-white p-6 shadow-lg">
+              <h3 className="mb-4 text-lg font-semibold text-gray-800">
+                Giao dịch theo tháng (triệu VNĐ)
+              </h3>
+              <div className="h-64">
+                {monthlyTransactionData.length > 0 ? (
+                  <ResponsiveContainer width="100%" height="100%">
+                    <LineChart data={monthlyTransactionData}>
+                      <CartesianGrid strokeDasharray="3 3" />
+                      <XAxis dataKey="month" />
+                      <YAxis />
+                      <Tooltip />
+                      <Legend />
+                      <Line
+                        type="monotone"
+                        dataKey="deposit"
+                        stroke="#22c55e"
+                        strokeWidth={3}
+                        name="Nạp tiền"
+                      />
+                      <Line
+                        type="monotone"
+                        dataKey="withdraw"
+                        stroke="#ef4444"
+                        strokeWidth={3}
+                        name="Rút tiền"
+                      />
+                    </LineChart>
+                  </ResponsiveContainer>
+                ) : (
+                  <div className="flex h-full items-center justify-center">
+                    <p className="text-gray-500">Chưa có dữ liệu giao dịch</p>
+                  </div>
+                )}
+              </div>
             </div>
           </div>
 

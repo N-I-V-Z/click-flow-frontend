@@ -161,7 +161,7 @@ const ChatPage: React.FC = () => {
 
     const interval = setInterval(() => {
       refetchMessages();
-    }, 5000); // Refresh mỗi 5 giây
+    }, 2000); // Refresh mỗi 2 giây (nhanh hơn)
 
     return () => clearInterval(interval);
   }, [selectedConversation?.id, refetchMessages]);
@@ -183,7 +183,7 @@ const ChatPage: React.FC = () => {
   useEffect(() => {
     conversationRefreshIntervalRef.current = setInterval(() => {
       refetchConversations();
-    }, 15000); // Refresh every 15 seconds
+    }, 8000); // Refresh every 8 seconds (nhanh hơn)
 
     return () => {
       if (conversationRefreshIntervalRef.current) {
@@ -251,8 +251,11 @@ const ChatPage: React.FC = () => {
         channel.bind('new-message', () => {
           // Nếu tin nhắn mới từ conversation đang active
           if (conversation.id === selectedConversation?.id) {
-            refetchMessages();
-            setTimeout(() => scrollToBottom('smooth'), 100);
+            // Refetch ngay lập tức
+            setTimeout(() => {
+              refetchMessages();
+            }, 100);
+            setTimeout(() => scrollToBottom('smooth'), 200);
           }
 
           // Luôn refetch conversations để cập nhật unread count và last message

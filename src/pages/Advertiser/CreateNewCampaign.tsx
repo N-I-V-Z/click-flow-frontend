@@ -53,15 +53,16 @@ const ToastNotification = () => {
   return (
     <ToastContainer
       position="top-right"
-      autoClose={5000}
+      autoClose={3000}
       hideProgressBar={false}
-      newestOnTop={false}
-      closeOnClick={false}
+      newestOnTop={true}
+      closeOnClick={true}
       rtl={false}
-      pauseOnFocusLoss
-      draggable
-      pauseOnHover
+      pauseOnFocusLoss={false}
+      draggable={false}
+      pauseOnHover={false}
       theme="colored"
+      limit={3}
     />
   );
 };
@@ -71,22 +72,48 @@ const CreateCampaignModal: React.FC<CreateCampaignModalProps> = ({
   onCancel
 }) => {
   const [form] = Form.useForm();
+  const [isProcessing, setIsProcessing] = React.useState(false); // Ngăn multiple submissions
 
   // Watch form values để theo dõi thay đổi
   const commissionValue = Form.useWatch('commission', form);
   const percentsValue = Form.useWatch('percents', form);
   const startDateValue = Form.useWatch('startDate', form);
-  const budgetValue = Form.useWatch('budget', form);
 
   // Hook tạo campaign
-  const { mutate: createCampaignMutation } = useCreateCampaign();
+  const { mutate: createCampaignMutation, isPending: isCreatingCampaign } =
+    useCreateCampaign();
   // Hook upload image
-  const { mutate: uploadImageMutation } = useUploadImage();
+  const { mutate: uploadImageMutation, isPending: isUploadingImage } =
+    useUploadImage();
+
+  // Tính toán loading state tổng
+  const isSubmitting = isCreatingCampaign || isUploadingImage || isProcessing;
 
   const uploadProps: UploadProps = {
     listType: 'picture-card',
-    beforeUpload: () => false,
-    maxCount: 1
+    beforeUpload: (file) => {
+      // Validation file type
+      const isImage = file.type.startsWith('image/');
+      if (!isImage) {
+        toast.error('Chỉ được upload file ảnh!');
+        return false;
+      }
+
+      // Validation file size (5MB)
+      const isLt5M = file.size / 1024 / 1024 < 5;
+      if (!isLt5M) {
+        toast.error('Kích thước ảnh phải nhỏ hơn 5MB!');
+        return false;
+      }
+
+      return false; // Prevent auto upload
+    },
+    maxCount: 1,
+    accept: 'image/*',
+    showUploadList: {
+      showPreviewIcon: true,
+      showRemoveIcon: true
+    }
   };
 
   // Logic để xác định khi nào disable các trường
@@ -115,33 +142,33 @@ const CreateCampaignModal: React.FC<CreateCampaignModalProps> = ({
     return current.isBefore(startDateValue.startOf('day'));
   };
 
-  // Handle khi clear một trường để enable trường kia
+  // Handle khi clear một trường để enable trường kia (với timeout)
   const handleCommissionChange = (value: number | null) => {
-    if (value === null || value === 0) {
-      return;
-    }
-    // Nếu nhập commission, clear percents
-    if (percentsValue) {
-      form.setFieldValue('percents', undefined);
-    }
-    // Trigger validation nếu commission >= budget
-    if (budgetValue && value >= budgetValue) {
-      form.validateFields(['commission']);
-    }
+    setTimeout(() => {
+      if (value === null || value === 0) {
+        return;
+      }
+      // Nếu nhập commission, clear percents
+      if (percentsValue) {
+        form.setFieldValue('percents', undefined);
+      }
+    }, 300);
   };
 
   const handlePercentsChange = (value: number | null) => {
-    if (value === null || value === 0) {
-      return;
-    }
-    // Nếu nhập percents, clear commission
-    if (commissionValue) {
-      form.setFieldValue('commission', undefined);
-    }
+    setTimeout(() => {
+      if (value === null || value === 0) {
+        return;
+      }
+      // Nếu nhập percents, clear commission
+      if (commissionValue) {
+        form.setFieldValue('commission', undefined);
+      }
+    }, 300);
   };
 
   // Custom validator cho phần trăm
-  const validatePercents = (_: any, value: number) => {
+  const validatePercents = (_: unknown, value: number) => {
     if (value !== undefined && value !== null) {
       if (value < 0) {
         return Promise.reject(new Error('Phần trăm không được âm'));
@@ -154,12 +181,14 @@ const CreateCampaignModal: React.FC<CreateCampaignModalProps> = ({
   };
 
   // Custom validator cho commission
-  const validateCommission = (_: any, value: number) => {
+  const validateCommission = (_: unknown, value: number) => {
     if (value !== undefined && value !== null) {
       if (value < 0) {
         return Promise.reject(new Error('Hoa hồng không được âm'));
       }
-      if (budgetValue && value >= budgetValue) {
+      // Chỉ validate với budget khi budget đã có giá trị và > 0
+      const currentBudget = form.getFieldValue('budget');
+      if (currentBudget && currentBudget > 0 && value >= currentBudget) {
         return Promise.reject(new Error('Hoa hồng phải nhỏ hơn ngân sách'));
       }
     }
@@ -167,7 +196,7 @@ const CreateCampaignModal: React.FC<CreateCampaignModalProps> = ({
   };
 
   // Custom validator cho budget
-  const validateBudget = (_: any, value: number) => {
+  const validateBudget = (_: unknown, value: number) => {
     if (value !== undefined && value !== null && value < 0) {
       return Promise.reject(new Error('Ngân sách không được âm'));
     }
@@ -175,15 +204,81 @@ const CreateCampaignModal: React.FC<CreateCampaignModalProps> = ({
   };
 
   // Handle khi budget thay đổi - validate lại commission
-  const handleBudgetChange = (value: number | null) => {
-    if (value && commissionValue && commissionValue >= value) {
-      // Trigger validation cho commission field
-      form.validateFields(['commission']);
+  const handleBudgetChange = () => {
+    // Loại bỏ setTimeout để tăng performance
+    // Validation sẽ tự động chạy khi submit form
+  };
+
+  // Custom validator cho URL
+  const validateURL = (_: unknown, value: string) => {
+    if (!value) return Promise.resolve();
+
+    // Loại bỏ khoảng trắng đầu cuối
+    const trimmedValue = value.trim();
+
+    // Kiểm tra URL bằng try-catch với URL constructor
+    try {
+      // Thử tạo URL object để validate
+      const testUrl = trimmedValue.startsWith('http')
+        ? new URL(trimmedValue)
+        : new URL(`https://${trimmedValue}`);
+
+      // Kiểm tra domain hợp lệ
+      if (!testUrl.hostname || testUrl.hostname.length < 3) {
+        throw new Error('Invalid domain');
+      }
+
+      return Promise.resolve();
+    } catch {
+      // Nếu URL constructor fail, fallback về regex
+      const urlPattern =
+        /^(https?:\/\/)?([\da-z.-]+\.)*[a-z]{2,}(:[0-9]{1,5})?(\/[^\s]*)?(\?[^\s]*)?(#[^\s]*)?$/i;
+
+      if (!urlPattern.test(trimmedValue)) {
+        return Promise.reject(
+          new Error(
+            'URL không hợp lệ. Ví dụ: youtube.com hoặc https://www.youtube.com/watch?v=...'
+          )
+        );
+      }
+
+      return Promise.resolve();
     }
   };
 
+  // Hàm để chuẩn hóa URL (thêm https:// nếu thiếu)
+  const normalizeURL = (url: string): string => {
+    if (!url) return '';
+
+    const trimmedURL = url.trim();
+
+    // Nếu đã có protocol thì giữ nguyên
+    if (trimmedURL.startsWith('http://') || trimmedURL.startsWith('https://')) {
+      return trimmedURL;
+    }
+
+    // Xử lý các trường hợp đặc biệt
+    // Nếu URL bắt đầu bằng www. thì thêm https://
+    if (trimmedURL.startsWith('www.')) {
+      return `https://${trimmedURL}`;
+    }
+
+    // Nếu có domain và path (ví dụ: youtube.com/watch) thì thêm https://
+    if (trimmedURL.includes('.') && !trimmedURL.startsWith('//')) {
+      return `https://${trimmedURL}`;
+    }
+
+    // Nếu bắt đầu bằng // thì thêm https:
+    if (trimmedURL.startsWith('//')) {
+      return `https:${trimmedURL}`;
+    }
+
+    // Fallback: thêm https://
+    return `https://${trimmedURL}`;
+  };
+
   // Custom validator cho ngày kết thúc
-  const validateEndDate = (_: any, value: Dayjs) => {
+  const validateEndDate = (_: unknown, value: Dayjs) => {
     if (value && startDateValue && value.isBefore(startDateValue, 'day')) {
       return Promise.reject(new Error('Ngày kết thúc phải sau ngày bắt đầu'));
     }
@@ -203,7 +298,59 @@ const CreateCampaignModal: React.FC<CreateCampaignModalProps> = ({
     return value.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',');
   };
 
-  const onFinish = (values: FormValues) => {
+  // Hàm nén ảnh trước khi upload
+  const compressImage = (file: File): Promise<File> => {
+    return new Promise((resolve) => {
+      const canvas = document.createElement('canvas');
+      const ctx = canvas.getContext('2d');
+      const img = new Image();
+
+      img.onload = () => {
+        // Giảm kích thước nếu ảnh quá lớn
+        const maxWidth = 1200;
+        const maxHeight = 800;
+        let { width, height } = img;
+
+        if (width > maxWidth) {
+          height = (height * maxWidth) / width;
+          width = maxWidth;
+        }
+
+        if (height > maxHeight) {
+          width = (width * maxHeight) / height;
+          height = maxHeight;
+        }
+
+        canvas.width = width;
+        canvas.height = height;
+
+        // Vẽ ảnh với kích thước mới
+        ctx?.drawImage(img, 0, 0, width, height);
+
+        // Chuyển đổi canvas thành blob với chất lượng 80%
+        canvas.toBlob(
+          (blob) => {
+            if (blob) {
+              const compressedFile = new File([blob], file.name, {
+                type: 'image/jpeg',
+                lastModified: Date.now()
+              });
+              resolve(compressedFile);
+            } else {
+              resolve(file); // Fallback về file gốc
+            }
+          },
+          'image/jpeg',
+          0.8
+        );
+      };
+
+      img.onerror = () => resolve(file); // Fallback về file gốc nếu lỗi
+      img.src = URL.createObjectURL(file);
+    });
+  };
+
+  const onFinish = async (values: FormValues) => {
     const fileList = values.image || [];
     const startDate = values.startDate
       ? values.startDate.format('DD/MM/YYYY')
@@ -214,48 +361,103 @@ const CreateCampaignModal: React.FC<CreateCampaignModalProps> = ({
     const commission = values.commission ?? 0;
     const percents = values.percents ?? 0;
 
-    const callCreateCampaign = (imageUrl: string) => {
-      const payload: CreateCampaignPayload = {
-        name: values.name,
-        description: values.description,
-        originURL: values.originURL,
-        budget: values.budget,
-        startDate: startDate || '',
-        endDate: endDate || '',
-        typePay: values.typePay,
-        typeCampaign: values.typeCampaign,
-        commission,
-        percents,
-        image: imageUrl
-      };
+    // Chuẩn hóa URL (thêm https:// nếu thiếu)
+    const normalizedURL = normalizeURL(values.originURL);
 
-      createCampaignMutation(payload, {
-        onSuccess: () => {
-          toast.success('Tạo campaign thành công!');
-          form.resetFields();
-          onCancel();
-        },
-        onError: (err) => {
-          console.error('Lỗi khi tạo campaign:', err);
-          toast.error('Lỗi khi tạo campaign!');
-        }
-      });
+    const payload: CreateCampaignPayload = {
+      name: values.name,
+      description: values.description,
+      originURL: normalizedURL,
+      budget: values.budget,
+      startDate: startDate || '',
+      endDate: endDate || '',
+      typePay: values.typePay,
+      typeCampaign: values.typeCampaign,
+      commission,
+      percents,
+      image: '' // Sẽ được cập nhật sau khi upload
     };
 
-    if (fileList.length > 0) {
-      const file = fileList[0].originFileObj as File;
-      uploadImageMutation(file, {
-        onSuccess: (uploadRes: ApiResponse<UploadImageResponse>) => {
-          const imageUrl = uploadRes?.result?.url || '';
-          callCreateCampaign(imageUrl);
-        },
-        onError: (err) => {
-          console.error('Lỗi khi upload ảnh:', err);
-          toast.error('Lỗi khi upload ảnh!');
-        }
+    try {
+      // Hiển thị toast loading ngay lập tức để cải thiện UX
+      const loadingToastId = toast.loading('Đang tạo campaign...', {
+        autoClose: false
       });
-    } else {
-      callCreateCampaign('');
+
+      let imageUrl = '';
+
+      // Nếu có file, upload trước
+      if (fileList.length > 0) {
+        const originalFile = fileList[0].originFileObj as File;
+
+        // Cập nhật trạng thái upload
+        toast.update(loadingToastId, {
+          render: 'Đang nén và upload hình ảnh...',
+          type: 'info',
+          isLoading: true
+        });
+
+        // Nén ảnh trước khi upload để giảm thời gian
+        const compressedFile = await compressImage(originalFile);
+
+        const uploadRes = await new Promise<ApiResponse<UploadImageResponse>>(
+          (resolve, reject) => {
+            uploadImageMutation(compressedFile, {
+              onSuccess: resolve,
+              onError: reject
+            });
+          }
+        );
+
+        imageUrl = uploadRes?.result?.url || '';
+      }
+
+      // Cập nhật payload với image URL
+      payload.image = imageUrl;
+
+      // Cập nhật trạng thái tạo campaign
+      toast.update(loadingToastId, {
+        render: 'Đang tạo campaign...',
+        type: 'info',
+        isLoading: true
+      });
+
+      // Tạo campaign
+      await new Promise<void>((resolve, reject) => {
+        createCampaignMutation(payload, {
+          onSuccess: () => {
+            toast.update(loadingToastId, {
+              render: 'Tạo campaign thành công!',
+              type: 'success',
+              isLoading: false,
+              autoClose: 2000
+            });
+            form.resetFields();
+            onCancel();
+            resolve();
+          },
+          onError: (err: unknown) => {
+            console.error('Lỗi khi tạo campaign:', err);
+            let errorMessage = 'Lỗi khi tạo campaign!';
+            if (err && typeof err === 'object' && 'response' in err) {
+              const response = (
+                err as { response?: { data?: { message?: string } } }
+              ).response;
+              errorMessage = response?.data?.message || errorMessage;
+            }
+            toast.update(loadingToastId, {
+              render: errorMessage,
+              type: 'error',
+              isLoading: false,
+              autoClose: 3000
+            });
+            reject(err);
+          }
+        });
+      });
+    } catch (error) {
+      console.error('Lỗi trong quá trình tạo campaign:', error);
+      // Toast error đã được xử lý ở trên
     }
   };
 
@@ -269,10 +471,12 @@ const CreateCampaignModal: React.FC<CreateCampaignModalProps> = ({
       <Modal
         title="Tạo mới chiến dịch"
         visible={visible}
-        onCancel={handleCancel}
+        onCancel={isSubmitting ? undefined : handleCancel}
         footer={null}
         width={800}
         className="p-4"
+        closable={!isSubmitting}
+        maskClosable={!isSubmitting}
       >
         <Form form={form} layout="vertical" onFinish={onFinish}>
           <Tabs defaultActiveKey="1">
@@ -306,13 +510,10 @@ const CreateCampaignModal: React.FC<CreateCampaignModalProps> = ({
                         required: true,
                         message: 'Vui lòng nhập link giới thiệu sản phẩm'
                       },
-                      {
-                        type: 'url',
-                        message: 'Vui lòng nhập URL hợp lệ'
-                      }
+                      { validator: validateURL }
                     ]}
                   >
-                    <Input placeholder="https://..." />
+                    <Input placeholder="Ví dụ: youtube.com/watch?v=... hoặc https://example.com" />
                   </Form.Item>
                 </Col>
               </Row>
@@ -499,10 +700,19 @@ const CreateCampaignModal: React.FC<CreateCampaignModalProps> = ({
 
           <Form.Item style={{ marginTop: 16, textAlign: 'center' }}>
             <Space>
-              <Button type="primary" htmlType="submit" className="bg-blue-500">
-                Tạo chiến dịch
+              <Button
+                type="primary"
+                htmlType="submit"
+                className="bg-blue-500 transition-colors duration-200 hover:bg-blue-600"
+                loading={isSubmitting}
+                disabled={isSubmitting}
+                size="large"
+              >
+                {isSubmitting ? 'Đang xử lý...' : 'Tạo chiến dịch'}
               </Button>
-              <Button onClick={handleCancel}>Hủy</Button>
+              <Button onClick={handleCancel} disabled={isSubmitting}>
+                Hủy
+              </Button>
             </Space>
           </Form.Item>
         </Form>

@@ -8,16 +8,10 @@ import { HelmetProvider } from 'react-helmet-async';
 import { BrowserRouter } from 'react-router-dom';
 import ThemeProvider from './theme-provider';
 import { SidebarProvider } from '@/hooks/use-sidebar';
-// import { MouseEffectProvider } from './MouseEffectProvider';
+import { getOptimizedQueryConfig } from '@/config/request.config';
 
-const queryClient = new QueryClient({
-  defaultOptions: {
-    queries: {
-      staleTime: 1000 * 60 * 5,
-      retry: 3
-    }
-  }
-});
+// Sử dụng config tối ưu để giảm spam requests
+const queryClient = new QueryClient(getOptimizedQueryConfig());
 
 /**
  * Thành phần giao diện hiển thị khi có lỗi xảy ra.
@@ -28,7 +22,7 @@ const ErrorFallback = ({ error }: FallbackProps) => {
   const router = useRouter();
   return (
     <div
-      className="text-red-500 flex h-screen w-screen flex-col items-center justify-center"
+      className="flex h-screen w-screen flex-col items-center justify-center text-red-500"
       role="alert"
     >
       <h2 className="text-2xl font-semibold">Something went wrong :( </h2>
@@ -67,7 +61,13 @@ export default function AppProvider({
         <BrowserRouter>
           <ErrorBoundary FallbackComponent={ErrorFallback}>
             <QueryClientProvider client={queryClient}>
-              <ReactQueryDevtools />
+              {import.meta.env.DEV && (
+                <ReactQueryDevtools
+                  initialIsOpen={false}
+                  buttonPosition="bottom-left"
+                  position="bottom"
+                />
+              )}
               <ThemeProvider defaultTheme="light" storageKey="vite-ui-theme">
                 <SidebarProvider>
                   {/* <MouseEffectProvider enabled={true}> */}

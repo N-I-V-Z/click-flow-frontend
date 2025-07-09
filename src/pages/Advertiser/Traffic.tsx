@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { ColumnDef } from '@tanstack/react-table';
@@ -67,7 +67,16 @@ export default function Traffic() {
     pageSize
   );
 
-  const campaigns = campaignsData?.result?.datas || [];
+  const campaigns = useMemo(() => {
+    return campaignsData?.result?.datas || [];
+  }, [campaignsData]);
+
+  // Auto-select first campaign when campaigns are loaded
+  useEffect(() => {
+    if (campaigns.length > 0 && selectedCampaignId === null) {
+      setSelectedCampaignId(campaigns[0].id);
+    }
+  }, [campaigns, selectedCampaignId]);
 
   const filteredData = useMemo(() => {
     if (!selectedCampaignId || !trafficData?.result?.datas) {
@@ -106,15 +115,24 @@ export default function Traffic() {
       header: 'Referrer',
       cell: ({ row }) => {
         const ref = row.original.referrerURL;
+        const maxLength = 40; // Giới hạn số ký tự hiển thị
+        const displayText =
+          ref && ref.length > maxLength
+            ? `${ref.substring(0, maxLength)}...`
+            : ref;
+
         return (
-          <a
-            href={ref}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="text-blue-500 underline transition-colors hover:text-blue-700"
-          >
-            {ref}
-          </a>
+          <div className="max-w-[250px]">
+            <a
+              href={ref}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="break-all text-blue-500 underline transition-colors hover:text-blue-700"
+              title={ref} // Tooltip hiển thị URL đầy đủ khi hover
+            >
+              {displayText}
+            </a>
+          </div>
         );
       }
     },
@@ -136,10 +154,6 @@ export default function Traffic() {
     {
       accessorKey: 'deviceType',
       header: 'Device Type'
-    },
-    {
-      accessorKey: 'orderId',
-      header: 'Order ID'
     },
     {
       accessorKey: 'browser',
@@ -219,12 +233,16 @@ export default function Traffic() {
               </div>
             </div>
 
-            {/* Show message when no campaign is selected */}
-            {!selectedCampaignId ? (
+            {/* Show data table or loading/empty state */}
+            {!selectedCampaignId && campaigns.length === 0 ? (
               <div className="py-8 text-center">
                 <p className="text-lg text-gray-500">
-                  Vui lòng chọn một campaign để xem danh sách traffic
+                  Không có campaign nào để hiển thị
                 </p>
+              </div>
+            ) : !selectedCampaignId ? (
+              <div className="py-8 text-center">
+                <p className="text-lg text-gray-500">Đang tải dữ liệu...</p>
               </div>
             ) : (
               <DataTable

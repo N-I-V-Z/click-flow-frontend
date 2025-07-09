@@ -127,7 +127,7 @@ export default function RenewPasswordPage() {
             <p className="text-center text-sm text-gray-500">
               Để truy cập{' '}
               <Link to="/" className="text-[#9B52BF] no-underline">
-                ClickFlow.vn
+                Clickflow.space
               </Link>
               .
               <Link to="/">

@@ -6,10 +6,10 @@ import { Provider } from 'react-redux';
 import { store } from '@/redux/store.ts';
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
-  <React.StrictMode>
-    {/* redux */}
-    <Provider store={store}>
-      <App />
-    </Provider>
-  </React.StrictMode>
+  // Tạm thời comment StrictMode để tránh double requests trong development
+  // <React.StrictMode>
+  <Provider store={store}>
+    <App />
+  </Provider>
+  // </React.StrictMode>
 );

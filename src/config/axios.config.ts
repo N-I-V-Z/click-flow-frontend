@@ -1,18 +1,20 @@
-import axios, { AxiosRequestConfig, AxiosResponse } from 'axios';
+import axios, { AxiosRequestConfig, AxiosResponse, AxiosError } from 'axios';
 import helpers from '../helpers';
 import { ApiResponse, LoginApiResponse } from '@/types';
 
 // const baseURL = import.meta.env.VITE_API_URL;
 const baseURL = '';
-
 // Biến để theo dõi trạng thái refresh token để tránh multiple refresh calls
 let isRefreshing = false;
 let failedQueue: Array<{
-  resolve: (value?: any) => void;
-  reject: (reason?: any) => void;
+  resolve: (value?: unknown) => void;
+  reject: (reason?: unknown) => void;
 }> = [];
 
-const processQueue = (error: any, token: string | null = null) => {
+const processQueue = (
+  error: AxiosError | null,
+  token: string | null = null
+) => {
   failedQueue.forEach(({ resolve, reject }) => {
     if (error) {
       reject(error);

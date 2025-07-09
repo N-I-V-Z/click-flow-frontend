@@ -194,7 +194,7 @@ export default function LoginPage() {
                         to="/"
                         className="font-medium text-purple-600 hover:text-purple-700"
                       >
-                        ClickFlow.vn
+                        Clickflow.space
                       </Link>
                     </p>
                   </div>
@@ -340,7 +340,7 @@ export default function LoginPage() {
                         <Link to="/register-advertiser">
                           <Button
                             variant="outline"
-                            className="border-blue-300 text-blue-700 hover:bg-blue-50 h-10 w-full rounded-lg bg-white"
+                            className="h-10 w-full rounded-lg border-blue-300 bg-white text-blue-700 hover:bg-blue-50"
                             disabled={isPending || isPendingGoogle}
                           >
                             Advertiser

@@ -81,10 +81,10 @@ const sections = [
           <span
             className="cursor-pointer hover:text-purple-800"
             onClick={() =>
-              navigator.clipboard.writeText('support@clickflow.vn')
+              navigator.clipboard.writeText('support@Clickflow.space')
             }
           >
-            support@clickflow.vn
+            support@Clickflow.space
           </span>
         </li>
         <li className="flex items-center">
@@ -124,7 +124,7 @@ const PrivacyPolicy: React.FC = () => {
         <header className="flex h-48 items-center justify-center bg-gradient-to-br from-[#2e035e] to-[#a00bb1] text-white shadow-md">
           <div className="text-center">
             <h1 className="flex items-center justify-center text-4xl font-extrabold tracking-tight">
-              <Lock className="text-yellow-300 mr-2 h-7 w-7 animate-pulse" />
+              <Lock className="mr-2 h-7 w-7 animate-pulse text-yellow-300" />
               Chính Sách Bảo Mật
             </h1>
             <p className="mt-2 text-base">

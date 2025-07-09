@@ -8,7 +8,10 @@ import { useSearchParams } from 'react-router-dom';
 
 const formatTimestamp = (timestamp: Date | string) => {
   const date = typeof timestamp === 'string' ? new Date(timestamp) : timestamp;
-  return format(date, 'dd/MM/yyyy HH:mm:ss');
+  // Chuyển đổi từ UTC sang múi giờ Việt Nam (UTC+7)
+  // Thêm 7 giờ để chuyển từ UTC sang múi giờ Việt Nam
+  const vietnamTime = new Date(date.getTime() + 7 * 60 * 60 * 1000);
+  return format(vietnamTime, 'dd/MM/yyyy HH:mm:ss');
 };
 
 interface TrafficTableProps {
@@ -49,14 +52,6 @@ const TrafficTable: React.FC<TrafficTableProps> = ({
   const columns = useMemo<ColumnDef<TrafficApiResponse>[]>(
     () => [
       {
-        accessorKey: 'id',
-        header: 'ID',
-        size: 60,
-        cell: ({ row }) => (
-          <div className="text-center font-medium">{row.getValue('id')}</div>
-        )
-      },
-      {
         accessorKey: 'ipAddress',
         header: 'IP Address',
         size: 120,
@@ -88,19 +83,21 @@ const TrafficTable: React.FC<TrafficTableProps> = ({
       {
         accessorKey: 'referrerURL',
         header: 'Referrer URL',
-        size: 200,
+        size: 180,
         cell: ({ row }) => {
           const url = row.getValue('referrerURL') as string;
+          const displayUrl =
+            url.length > 30 ? `${url.substring(0, 30)}...` : url;
           return (
-            <div className="max-w-[200px]">
+            <div className="max-w-[180px]">
               <a
                 href={url}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="truncate text-xs text-[#2563EB] hover:text-[#1E40AF] hover:underline"
+                className="block break-all text-xs text-[#2563EB] hover:text-[#1E40AF] hover:underline"
                 title={url}
               >
-                {url}
+                {displayUrl}
               </a>
             </div>
           );
@@ -109,18 +106,20 @@ const TrafficTable: React.FC<TrafficTableProps> = ({
       {
         accessorKey: 'campaignParticipation',
         header: 'Campaign',
-        size: 180,
+        size: 250,
         cell: ({ row }) => {
           const campaignParticipation = row.getValue(
             'campaignParticipation'
           ) as TrafficApiResponse['campaignParticipation'];
+          const campaignName =
+            campaignParticipation?.campaign?.name || 'Không xác định';
           return (
-            <div className="max-w-[180px]">
-              <p className="truncate text-sm font-medium text-[#111827]">
-                {campaignParticipation?.campaign?.name || 'N/A'}
-              </p>
-              <p className="text-xs text-[#6B7280]">
-                ID: #{campaignParticipation?.campaign?.id || 'N/A'}
+            <div className="max-w-[250px]">
+              <p
+                className="text-sm font-medium leading-tight text-[#111827]"
+                title={campaignName}
+              >
+                {campaignName}
               </p>
             </div>
           );
@@ -129,34 +128,42 @@ const TrafficTable: React.FC<TrafficTableProps> = ({
       {
         accessorKey: 'isValid',
         header: 'Status',
-        size: 80,
+        size: 100,
         cell: ({ row }) => {
           const isValid = row.getValue('isValid') as boolean;
           return (
-            <span
-              className={`inline-flex items-center rounded-full px-2 py-1 text-xs font-medium ${
-                isValid
-                  ? 'bg-[#DCFCE7] text-[#166534]'
-                  : 'bg-[#FEE2E2] text-[#991B1B]'
-              }`}
-            >
-              {isValid ? '✓ Valid' : '✗ Invalid'}
-            </span>
+            <div className="flex justify-center">
+              <span
+                className={`inline-flex items-center rounded-full px-2.5 py-1 text-xs font-semibold ${
+                  isValid
+                    ? 'border border-green-200 bg-green-100 text-green-800'
+                    : 'border border-red-200 bg-red-100 text-red-800'
+                }`}
+              >
+                <span
+                  className={`mr-1 h-1.5 w-1.5 rounded-full ${
+                    isValid ? 'bg-green-600' : 'bg-red-600'
+                  }`}
+                ></span>
+                {isValid ? 'Valid' : 'Invalid'}
+              </span>
+            </div>
           );
         }
       },
       {
         accessorKey: 'timestamp',
-        header: 'Time',
-        size: 140,
+        header: 'Thời gian (GMT+7)',
+        size: 160,
         cell: ({ row }) => {
           const timestamp = row.getValue('timestamp') as Date | string;
           const formatted = formatTimestamp(timestamp);
           const [date, time] = formatted.split(' ');
           return (
-            <div className="text-xs">
-              <div className="font-medium text-[#111827]">{date}</div>
-              <div className="text-[#6B7280]">{time}</div>
+            <div className="text-center text-xs">
+              <div className="mb-0.5 font-semibold text-[#111827]">{date}</div>
+              <div className="font-mono text-[#6B7280]">{time}</div>
+              <div className="mt-0.5 text-[10px] text-[#9CA3AF]">GMT+7</div>
             </div>
           );
         }
@@ -169,7 +176,6 @@ const TrafficTable: React.FC<TrafficTableProps> = ({
   const handleExportCSV = () => {
     if (!trafficData.length) return;
     const headers = [
-      'ID',
       'IP',
       'Browser',
       'Device',
@@ -179,7 +185,6 @@ const TrafficTable: React.FC<TrafficTableProps> = ({
       'Timestamp'
     ];
     const rows = trafficData.map((item) => [
-      item.id.toString(),
       item.ipAddress,
       item.browser,
       item.deviceType,
@@ -245,18 +250,22 @@ const TrafficTable: React.FC<TrafficTableProps> = ({
         </button>
       </div>
 
-      {/* DataTable Container - Responsive với scroll */}
+      {/* DataTable Container - Responsive với scroll horizontal */}
       <div className="w-full overflow-hidden rounded-lg border border-[#E5E7EB] bg-white shadow-sm">
-        <div className="overflow-x-auto">
-          <DataTable
-            columns={columns}
-            data={trafficData}
-            pageCount={pageCount}
-            isLoading={isLoading}
-            pageSizeOptions={[10, 20, 30, 50]}
-            heightTable="60dvh"
-            onSearchChange={handleSearchChange}
-          />
+        <div className="min-w-full overflow-x-auto">
+          <div className="min-w-[800px]">
+            {' '}
+            {/* Minimum width để đảm bảo các cột không bị quá nhỏ */}
+            <DataTable
+              columns={columns}
+              data={trafficData}
+              pageCount={pageCount}
+              isLoading={isLoading}
+              pageSizeOptions={[10, 20, 30, 50]}
+              heightTable="60dvh"
+              onSearchChange={handleSearchChange}
+            />
+          </div>
         </div>
       </div>
     </div>
