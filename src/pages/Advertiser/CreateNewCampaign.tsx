@@ -72,7 +72,6 @@ const CreateCampaignModal: React.FC<CreateCampaignModalProps> = ({
   onCancel
 }) => {
   const [form] = Form.useForm();
-  const [isProcessing, setIsProcessing] = React.useState(false); // Ngăn multiple submissions
 
   // Watch form values để theo dõi thay đổi
   const commissionValue = Form.useWatch('commission', form);
@@ -87,7 +86,7 @@ const CreateCampaignModal: React.FC<CreateCampaignModalProps> = ({
     useUploadImage();
 
   // Tính toán loading state tổng
-  const isSubmitting = isCreatingCampaign || isUploadingImage || isProcessing;
+  const isSubmitting = isCreatingCampaign || isUploadingImage;
 
   const uploadProps: UploadProps = {
     listType: 'picture-card',
