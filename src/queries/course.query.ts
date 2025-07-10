@@ -7,7 +7,7 @@ import {
   PagingResponse,
   CourseJoinResponse
 } from '@/types';
-import { useQuery, useMutation } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 
 const SUB_URL = `/api/Courses`;
 
@@ -91,12 +91,23 @@ export const useUpdateCourse = () => {
 };
 
 export const useJoinCourse = () => {
+  const queryClient = useQueryClient();
+
   return useMutation({
     mutationKey: ['join-course'],
     mutationFn: async (campaignId: number) => {
       return await BaseRequest.Post<CourseJoinResponse>(
         `${SUB_URL}/${campaignId}/join`
       );
+    },
+    onSuccess: () => {
+      // Invalidate wallet data sau khi mua khóa học thành công
+      queryClient.invalidateQueries({ queryKey: ['get-own-wallet'] });
+      // Invalidate transaction data để cập nhật lịch sử giao dịch
+      queryClient.invalidateQueries({ queryKey: ['get-own-transaction'] });
+      // Invalidate course queries để cập nhật trạng thái khóa học
+      queryClient.invalidateQueries({ queryKey: ['get-courses'] });
+      queryClient.invalidateQueries({ queryKey: ['get-courses-join'] });
     }
   });
 };

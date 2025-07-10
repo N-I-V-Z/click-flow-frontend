@@ -6,7 +6,7 @@ import {
   Plans,
   UserPlan
 } from '@/types';
-import { useMutation, useQuery } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
 const SUB_URL = `/api/Plans`;
 const SUB_URL_UPGRADE_PLAN = '/api/UserPlans';
@@ -57,6 +57,8 @@ export const useDeletePlan = () => {
 };
 
 export const useAssignPlan = () => {
+  const queryClient = useQueryClient();
+
   return useMutation({
     mutationKey: ['assign-plan'],
     mutationFn: async (payload: PlanAssign) => {
@@ -64,6 +66,12 @@ export const useAssignPlan = () => {
         `${SUB_URL_UPGRADE_PLAN}/assign`,
         payload
       );
+    },
+    onSuccess: () => {
+      // Invalidate và refetch wallet, transaction, current plan data sau khi mua gói thành công
+      queryClient.invalidateQueries({ queryKey: ['get-own-wallet'] });
+      queryClient.invalidateQueries({ queryKey: ['get-own-transaction'] });
+      queryClient.invalidateQueries({ queryKey: ['get-current-plan'] });
     }
   });
 };
