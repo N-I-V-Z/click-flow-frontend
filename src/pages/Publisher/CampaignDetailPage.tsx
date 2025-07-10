@@ -63,7 +63,7 @@ function mapApiCampaignToCampaign(apiCampaign: IApiCampaign): Campaign {
     status: apiCampaign.status,
     category: apiCampaign.typeCampaign,
     commissionType: apiCampaign.percents ? '%' : 'VND',
-    commissionValue: apiCampaign.percents ?? apiCampaign.commission,
+    commissionValue: apiCampaign.percents || apiCampaign.commission,
     imageUrl: apiCampaign.image,
     averageStarRate: apiCampaign.averageStarRate,
     advertiserId: apiCampaign.advertiserId,

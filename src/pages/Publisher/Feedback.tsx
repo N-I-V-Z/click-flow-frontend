@@ -592,16 +592,19 @@ const Feedback: React.FC<{
               <motion.div
                 initial={{ opacity: 0, scale: 0.95 }}
                 animate={{ opacity: 1, scale: 1 }}
-                className="relative mt-6 overflow-hidden rounded-xl border-2 border-gray-200 bg-gradient-to-r from-gray-50 to-slate-50 p-6"
+                className="relative mt-6 overflow-hidden rounded-xl border-2 border-blue-200 bg-gradient-to-r from-blue-50 to-indigo-50 p-6"
               >
-                <div className="absolute inset-0 bg-gradient-to-r from-gray-100/50 to-slate-100/50"></div>
+                <div className="absolute inset-0 bg-gradient-to-r from-blue-100/50 to-indigo-100/50"></div>
                 <div className="relative flex items-center justify-center gap-3">
-                  <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-gray-100">
-                    <MessageSquare className="h-5 w-5 text-gray-600" />
+                  <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-blue-100">
+                    <MessageSquare className="h-5 w-5 text-blue-600" />
                   </div>
                   <div className="text-center">
-                    <p className="text-sm font-semibold text-gray-800">
-                      Cần tham gia chiến dịch để đánh giá
+                    <p className="text-sm font-semibold text-blue-800">
+                      Tham gia chiến dịch để có thể đánh giá
+                    </p>
+                    <p className="mt-1 text-xs text-blue-600">
+                      Bạn có thể xem đánh giá của những người khác bên dưới
                     </p>
                   </div>
                 </div>

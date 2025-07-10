@@ -1,6 +1,6 @@
 import BaseRequest from '@/config/axios.config';
 import { CreateTransactionAPI, PagingResponse, Transaction } from '@/types';
-import { useQuery, useMutation } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 
 const SUB_URL = `/api/Transactions`;
 
@@ -79,10 +79,18 @@ export const useGetAllTransactions = (
  * Hook gọi API tạo transaction mới (Deposit/Withdraw)
  */
 export const useCreateNewTransaction = () => {
+  const queryClient = useQueryClient();
+
   return useMutation({
     mutationKey: ['create-new-transaction'],
     mutationFn: async (model: { amount: number; transactionType: string }) => {
       return await BaseRequest.Post<Transaction>(`${SUB_URL}`, model);
+    },
+    onSuccess: () => {
+      // Invalidate wallet data sau khi tạo transaction thành công
+      queryClient.invalidateQueries({ queryKey: ['get-own-wallet'] });
+      // Invalidate transaction data để cập nhật lịch sử giao dịch
+      queryClient.invalidateQueries({ queryKey: ['get-own-transaction'] });
     }
   });
 };
