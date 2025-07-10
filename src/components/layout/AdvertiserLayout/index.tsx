@@ -5,10 +5,9 @@ import HeaderAd from '@/components/shared/header-advertiser';
 import SidebarAd from '@/components/shared/sidebar-advertiser';
 import Footer from '@/components/shared/footer';
 import ChatBubble from '@/pages/Chat/bubble';
+import ScrollButton from '@/components/shared/scroll-button';
 
-const AdvertiserLayout: React.FC<{ children?: React.ReactNode }> = ({
-  children
-}) => {
+const AdvertiserLayout: React.FC = () => {
   const { Content } = Layout;
 
   return (
@@ -33,6 +32,9 @@ const AdvertiserLayout: React.FC<{ children?: React.ReactNode }> = ({
 
       {/* Chat bubble & window */}
       <ChatBubble />
+
+      {/* Scroll button */}
+      <ScrollButton />
     </Layout>
   );
 };

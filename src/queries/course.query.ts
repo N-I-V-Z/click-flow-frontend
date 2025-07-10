@@ -4,7 +4,8 @@ import {
   CourseResponse,
   CreateCourseFormData,
   UpdateCourseFormData,
-  PagingResponse
+  PagingResponse,
+  CourseJoinResponse
 } from '@/types';
 import { useQuery, useMutation } from '@tanstack/react-query';
 
@@ -93,7 +94,7 @@ export const useJoinCourse = () => {
   return useMutation({
     mutationKey: ['join-course'],
     mutationFn: async (campaignId: number) => {
-      return await BaseRequest.Post<BaseResponse>(
+      return await BaseRequest.Post<CourseJoinResponse>(
         `${SUB_URL}/${campaignId}/join`
       );
     }

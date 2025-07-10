@@ -261,9 +261,6 @@ const Feedback: React.FC<{
   campaignId: number;
   publisherStatus?: string;
 }> = ({ campaignId, publisherStatus }) => {
-  // Debug props
-  console.log('🔍 Feedback Component - Campaign ID:', campaignId);
-
   // Queries - LUÔN gọi hooks trước
   const {
     data: feedbacks = [],
@@ -363,7 +360,6 @@ const Feedback: React.FC<{
     });
   } catch (sortError) {
     console.error('Sort error:', sortError);
-    console.log('Sample feedback data:', safeFeedbacks.slice(0, 2));
   }
 
   // Pagination

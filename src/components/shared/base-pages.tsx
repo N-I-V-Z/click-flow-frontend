@@ -1,5 +1,6 @@
 import PageHead from '@/components/shared/page-head.jsx';
 import { Breadcrumbs } from '@/components/shared/breadcrumbs';
+import ScrollButton from '@/components/shared/scroll-button';
 
 interface IBasePages {
   children?: React.ReactNode;
@@ -34,6 +35,7 @@ const BasePages = ({
         </div>
         {children}
       </div>
+      <ScrollButton />
     </>
   );
 };

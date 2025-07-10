@@ -6,6 +6,8 @@ import HeaderPublisher from '@/components/shared/header-publisher';
 import SidebarPublisher from '@/components/shared/sidebar-publisher';
 
 import ChatBubble from '@/pages/Chat/bubble';
+import ScrollButton from '@/components/shared/scroll-button';
+
 const PublisherLayout: React.FC = () => {
   const { Content, Footer } = Layout;
 
@@ -37,6 +39,9 @@ const PublisherLayout: React.FC = () => {
 
       {/* Chat bubble & window */}
       <ChatBubble />
+
+      {/* Scroll button */}
+      <ScrollButton />
     </Layout>
   );
 };

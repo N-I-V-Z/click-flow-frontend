@@ -1,14 +1,16 @@
-import React from 'react';
-import { Button, Rate, Tabs, Collapse, Modal } from 'antd';
+import React, { useState } from 'react';
+import { Button, Rate, Tabs, Collapse } from 'antd';
 import { showToast } from '@/utils/toastUtils';
 import { motion } from 'framer-motion';
 import Slider from 'react-slick';
 import { LeftOutlined, RightOutlined, LockOutlined } from '@ant-design/icons';
 import { useParams, useNavigate } from 'react-router-dom';
+import { useQueryClient } from '@tanstack/react-query';
 import helpers from '@/helpers';
 import Feedback from './Feedback';
 import ProductLink from './ProductLink';
 import TrafficTable from './traffictable'; // Import component TrafficTable
+import CustomConfirmModal from '@/components/shared/custom-confirm-modal';
 import {
   useGetCampaignByIdd,
   useGetSimilarCampaigns,
@@ -71,7 +73,13 @@ function mapApiCampaignToCampaign(apiCampaign: IApiCampaign): Campaign {
 }
 
 // ====== 3) Arrow custom cho Slider ======
-const SampleNextArrow: React.FC<any> = (props) => {
+interface ArrowProps {
+  className?: string;
+  style?: React.CSSProperties;
+  onClick?: () => void;
+}
+
+const SampleNextArrow: React.FC<ArrowProps> = (props) => {
   const { className, style, onClick } = props;
   return (
     <div
@@ -84,7 +92,7 @@ const SampleNextArrow: React.FC<any> = (props) => {
   );
 };
 
-const SamplePrevArrow: React.FC<any> = (props) => {
+const SamplePrevArrow: React.FC<ArrowProps> = (props) => {
   const { className, style, onClick } = props;
   return (
     <div
@@ -126,6 +134,13 @@ const CampaignDetailPage: React.FC = () => {
 
   // Hook điều hướng
   const navigate = useNavigate();
+
+  // Query client để invalidate cache
+  const queryClient = useQueryClient();
+
+  // State cho custom modals
+  const [isConfirmModalVisible, setIsConfirmModalVisible] =
+    useState<boolean>(false);
 
   // a) Gọi API chi tiết campaign
   // CHÚ Ý: Lấy thêm refetch từ useGetCampaignByIdd
@@ -174,35 +189,30 @@ const CampaignDetailPage: React.FC = () => {
   // ====== 7) Các hàm xử lý ======
   // Hàm đăng ký
   const handleRegister = () => {
-    Modal.confirm({
-      title: 'Xác nhận đăng ký chiến dịch',
-      content: 'Bạn có chắc chắn muốn đăng ký chiến dịch này?',
-      okText: 'Đồng ý',
-      cancelText: 'Hủy',
-      onOk: () => {
-        registerCampaign(
-          { campaignId },
-          {
-            onSuccess: () => {
-              showToast.success('Đăng ký thành công!');
-              // Gọi lại API để lấy dữ liệu mới (publisherStatus có thể đổi thành "Pending")
-              refetch();
-            },
-            onError: () => {
-              showToast.error('Đăng ký thất bại!');
-            }
-          }
-        );
-      }
-    });
+    setIsConfirmModalVisible(true);
   };
 
-  // Hàm hiển thị cảnh báo khi publisherStatus = 'Pending'
-  const handlePendingClick = () => {
-    Modal.warning({
-      title: 'Chờ duyệt chiến dịch',
-      content: 'Vui lòng chờ nhà quảng cáo duyệt chiến dịch.'
-    });
+  // Xử lý xác nhận đăng ký
+  const handleConfirmRegister = () => {
+    registerCampaign(
+      { campaignId },
+      {
+        onSuccess: () => {
+          showToast.success('Đăng ký thành công!');
+          // Gọi lại API để lấy dữ liệu mới (publisherStatus có thể đổi thành "Pending")
+          refetch();
+          // Invalidate cache cho campaigns list để đảm bảo data fresh khi navigate back
+          queryClient.invalidateQueries({
+            queryKey: ['get-all-campaign-for-publisher/']
+          });
+          setIsConfirmModalVisible(false);
+        },
+        onError: () => {
+          showToast.error('Đăng ký thất bại!');
+          setIsConfirmModalVisible(false);
+        }
+      }
+    );
   };
 
   // Hàm xử lý khi click vào campaign tương tự
@@ -245,12 +255,10 @@ const CampaignDetailPage: React.FC = () => {
       return (
         <Button
           type="default"
-          onClick={handlePendingClick}
-          className="mt-4 rounded-full border-none bg-[#9B52BF] 
-                     bg-gradient-to-r from-purple-600 to-indigo-600 text-white 
-                     hover:!border-[#9B52BF] hover:!bg-white hover:!text-[#9B52BF]"
+          disabled
+          className="mt-4 cursor-not-allowed rounded-full border-none bg-gray-400 text-white opacity-75"
         >
-          Lấy link
+          Đang chờ duyệt
         </Button>
       );
     } else if (campaign.publisherStatus === 'Participated') {
@@ -477,6 +485,19 @@ const CampaignDetailPage: React.FC = () => {
             </Tabs>
           </div>
         </motion.div>
+
+        {/* Custom Confirm Modal */}
+        {isConfirmModalVisible && (
+          <CustomConfirmModal
+            title="Xác nhận đăng ký chiến dịch"
+            content="Bạn có chắc chắn muốn đăng ký chiến dịch này?"
+            okText="Đồng ý"
+            cancelText="Hủy"
+            loading={isRegisterLoading}
+            onOk={handleConfirmRegister}
+            onCancel={() => setIsConfirmModalVisible(false)}
+          />
+        )}
       </div>
     </BasePages>
   );

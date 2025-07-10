@@ -640,25 +640,44 @@ const UdemyBody = () => {
     course.title.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
-  const handleJoinCourse = async (courseId: number) => {
+  const handleJoinCourse = async (courseId: number, closeModal = false) => {
     try {
-      await joinCourse(courseId);
-      setToast({
-        message: 'Đăng ký khóa học thành công! Chúc bạn học tập hiệu quả.',
-        type: 'success'
-      });
+      const response = await joinCourse(courseId);
 
-      // Close modal after successful purchase
-      setSelectedCourse(null);
+      // Kiểm tra nested result trong response
+      if (response?.result?.isSuccess) {
+        setToast({
+          message: 'Đăng ký khóa học thành công! Chúc bạn học tập hiệu quả.',
+          type: 'success'
+        });
 
-      // Refresh course data
-      refetchAvailableCourses();
-      refetchJoinedCourses();
+        // Close modal after successful purchase (if requested)
+        if (closeModal) {
+          setSelectedCourse(null);
+        }
+
+        // Refresh course data
+        refetchAvailableCourses();
+        refetchJoinedCourses();
+
+        return true; // Indicate success
+      } else {
+        // Hiển thị message từ result.message nếu có lỗi
+        const errorMessage =
+          response?.result?.message ||
+          'Có lỗi xảy ra khi đăng ký khóa học. Vui lòng thử lại.';
+        setToast({
+          message: errorMessage,
+          type: 'error'
+        });
+        return false; // Indicate failure
+      }
     } catch (error) {
       setToast({
         message: 'Có lỗi xảy ra khi đăng ký khóa học. Vui lòng thử lại.',
         type: 'error'
       });
+      return false; // Indicate failure
     }
   };
 
@@ -676,12 +695,16 @@ const UdemyBody = () => {
 
   const handleConfirmPurchase = async () => {
     if (confirmDialog.courseId) {
-      await handleJoinCourse(confirmDialog.courseId);
-      setConfirmDialog({
-        isOpen: false,
-        courseId: null,
-        courseName: ''
-      });
+      const success = await handleJoinCourse(confirmDialog.courseId);
+
+      // Close dialog only on success
+      if (success) {
+        setConfirmDialog({
+          isOpen: false,
+          courseId: null,
+          courseName: ''
+        });
+      }
     }
   };
 

@@ -106,7 +106,6 @@ export const useCreateCampaign = () => {
   return useMutation({
     mutationKey: ['create-campaign'],
     mutationFn: async (model: CreateCampaignPayload) => {
-      console.log('🚀 Creating campaign:', model.name);
       return await BaseRequest.Post<CampaignApiResponse>(
         `${SUB_URL}/create-campaign`,
         model,
@@ -115,13 +114,7 @@ export const useCreateCampaign = () => {
         }
       );
     },
-    retry: false, // Tắt retry cho mutation để tránh spam requests
-    onError: (error) => {
-      console.error('❌ Create campaign failed:', error);
-    },
-    onSuccess: (data) => {
-      console.log('✅ Create campaign success:', data);
-    }
+    retry: false // Tắt retry cho mutation để tránh spam requests
   });
 };
 
@@ -202,7 +195,9 @@ export const useGetAllCampaignForPublisher = (
       >(`${SUB_URL}/get-all-campaign-for-publisher/${pageIndex}/${pageSize}`);
       return response;
     },
-    staleTime: 1000 * 60 * 5,
+    staleTime: 1000 * 30, // 30 giây thay vì 5 phút để fresh hơn
+    refetchOnWindowFocus: true, // Refetch khi user focus lại window
+    refetchOnMount: true, // Refetch khi component mount
     retry: 3
   });
 };

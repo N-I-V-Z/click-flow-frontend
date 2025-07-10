@@ -22,6 +22,7 @@ import {
 } from 'lucide-react';
 import { Industry, RegisterAdvertiserRequest, Role } from '@/types';
 import { useRouter } from '@/routes/hooks';
+import { extractErrorMessage } from '@/utils/errorUtils';
 
 type FormError = Partial<RegisterAdvertiserRequest>;
 
@@ -53,7 +54,6 @@ const RegisterAdvertiserPage: React.FC = () => {
       staffSize: '',
       industry: ''
     });
-  const [error, setError] = useState<FormError>({});
   const [showPassword, setShowPassword] = useState(false);
   const router = useRouter();
   const validateInputs = (): FormError => {
@@ -115,22 +115,19 @@ const RegisterAdvertiserPage: React.FC = () => {
 
   const handleRegister = async () => {
     const errors = validateInputs();
-    setError(errors);
 
     if (Object.keys(errors).length > 0) {
+      // Hiển thị lỗi validation đầu tiên bằng toast
+      const firstError = Object.values(errors)[0];
+      toast.error(firstError);
       return;
     }
 
     try {
       await register(formAdvertiser);
-    } catch (err) {
-      if (err instanceof Error) {
-        toast.error(`Lỗi: ${err.message}`);
-        setError({ email: err.message });
-      } else {
-        toast.error('Không thể đăng ký. Vui lòng thử lại.');
-        setError({ email: 'Không thể đăng ký. Vui lòng thử lại.' });
-      }
+    } catch (err: unknown) {
+      const errorMessage = extractErrorMessage(err);
+      toast.error(errorMessage);
     }
   };
   if (isSuccess) {
@@ -250,11 +247,6 @@ const RegisterAdvertiserPage: React.FC = () => {
                             }
                           />
                         </div>
-                        {error.userName && (
-                          <p className="mt-1 text-xs text-red-600">
-                            {error.userName}
-                          </p>
-                        )}
                       </div>
 
                       {/* Full Name */}
@@ -275,11 +267,6 @@ const RegisterAdvertiserPage: React.FC = () => {
                             }
                           />
                         </div>
-                        {error.fullName && (
-                          <p className="mt-1 text-xs text-red-600">
-                            {error.fullName}
-                          </p>
-                        )}
                       </div>
 
                       {/* Email */}
@@ -301,11 +288,6 @@ const RegisterAdvertiserPage: React.FC = () => {
                             }
                           />
                         </div>
-                        {error.email && (
-                          <p className="mt-1 text-xs text-red-600">
-                            {error.email}
-                          </p>
-                        )}
                       </div>
 
                       {/* Phone */}
@@ -326,11 +308,6 @@ const RegisterAdvertiserPage: React.FC = () => {
                             }
                           />
                         </div>
-                        {error.phoneNumber && (
-                          <p className="mt-1 text-xs text-red-600">
-                            {error.phoneNumber}
-                          </p>
-                        )}
                       </div>
 
                       {/* Password */}
@@ -363,11 +340,6 @@ const RegisterAdvertiserPage: React.FC = () => {
                             )}
                           </button>
                         </div>
-                        {error.password && (
-                          <p className="mt-1 text-xs text-red-600">
-                            {error.password}
-                          </p>
-                        )}
                       </div>
 
                       {/* Confirm Password */}
@@ -400,11 +372,6 @@ const RegisterAdvertiserPage: React.FC = () => {
                             )}
                           </button>
                         </div>
-                        {error.confirmPassword && (
-                          <p className="mt-1 text-xs text-red-600">
-                            {error.confirmPassword}
-                          </p>
-                        )}
                       </div>
 
                       {/* Company Name */}
@@ -425,11 +392,6 @@ const RegisterAdvertiserPage: React.FC = () => {
                             }
                           />
                         </div>
-                        {error.companyName && (
-                          <p className="mt-1 text-xs text-red-600">
-                            {error.companyName}
-                          </p>
-                        )}
                       </div>
 
                       {/* Website */}
@@ -451,11 +413,6 @@ const RegisterAdvertiserPage: React.FC = () => {
                             }
                           />
                         </div>
-                        {error.introductionWebsite && (
-                          <p className="mt-1 text-xs text-red-600">
-                            {error.introductionWebsite}
-                          </p>
-                        )}
                       </div>
 
                       {/* Staff Size */}
@@ -469,7 +426,7 @@ const RegisterAdvertiserPage: React.FC = () => {
                           </div>
                           <Input
                             className="h-10 rounded-lg border-gray-300 pl-10 text-gray-900 placeholder:text-gray-500 focus:border-purple-500 focus:ring-purple-500"
-                            placeholder="Ví dụ: 1-10 nhân viên"
+                            placeholder="Ví dụ: 10 "
                             value={formAdvertiser.staffSize}
                             onChange={(e) =>
                               setFormAdvertiser({
@@ -479,11 +436,6 @@ const RegisterAdvertiserPage: React.FC = () => {
                             }
                           />
                         </div>
-                        {error.staffSize && (
-                          <p className="mt-1 text-xs text-red-600">
-                            {error.staffSize}
-                          </p>
-                        )}
                       </div>
 
                       {/* Industry */}
@@ -513,11 +465,6 @@ const RegisterAdvertiserPage: React.FC = () => {
                             ))}
                           </select>
                         </div>
-                        {error.industry && (
-                          <p className="mt-1 text-xs text-red-600">
-                            {error.industry}
-                          </p>
-                        )}
                       </div>
                     </div>
                   </div>
