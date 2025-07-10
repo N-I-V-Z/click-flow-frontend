@@ -11,6 +11,7 @@ import 'react-toastify/dist/ReactToastify.css';
 import { Eye, EyeOff, User, Mail, Phone, Lock, ArrowRight } from 'lucide-react';
 import { RegisterPublisherRequest, Role } from '@/types';
 import { useRouter } from '@/routes/hooks';
+import { extractErrorMessage } from '@/utils/errorUtils';
 
 type FormError = Partial<RegisterPublisherRequest>;
 
@@ -32,8 +33,6 @@ export default function RegisterPublisherPage() {
   });
 
   const router = useRouter();
-
-  const [error, setError] = useState<FormError>({});
 
   const validateInputs = (): FormError => {
     const errors: FormError = {};
@@ -87,22 +86,19 @@ export default function RegisterPublisherPage() {
 
   const handleRegister = async () => {
     const errors = validateInputs();
-    setError(errors);
 
     if (Object.keys(errors).length > 0) {
+      // Hiển thị lỗi validation đầu tiên bằng toast
+      const firstError = Object.values(errors)[0];
+      toast.error(firstError);
       return;
     }
 
     try {
       await register(formPublisher);
-    } catch (err) {
-      if (err instanceof Error) {
-        toast.error(`Lỗi: ${err.message}`);
-        setError({ email: err.message });
-      } else {
-        toast.error('Không thể đăng ký. Vui lòng thử lại.');
-        setError({ email: 'Không thể đăng ký. Vui lòng thử lại.' });
-      }
+    } catch (err: unknown) {
+      const errorMessage = extractErrorMessage(err);
+      toast.error(errorMessage);
     }
   };
   if (isSuccess) {
@@ -217,11 +213,6 @@ export default function RegisterPublisherPage() {
                             }
                           />
                         </div>
-                        {error.userName && (
-                          <p className="mt-2 text-sm text-red-600">
-                            {error.userName}
-                          </p>
-                        )}
                       </div>
 
                       {/* Full Name */}
@@ -242,11 +233,6 @@ export default function RegisterPublisherPage() {
                             }
                           />
                         </div>
-                        {error.fullName && (
-                          <p className="mt-2 text-sm text-red-600">
-                            {error.fullName}
-                          </p>
-                        )}
                       </div>
                     </div>
 
@@ -271,11 +257,6 @@ export default function RegisterPublisherPage() {
                             }
                           />
                         </div>
-                        {error.email && (
-                          <p className="mt-2 text-sm text-red-600">
-                            {error.email}
-                          </p>
-                        )}
                       </div>
 
                       {/* Phone */}
@@ -296,11 +277,6 @@ export default function RegisterPublisherPage() {
                             }
                           />
                         </div>
-                        {error.phoneNumber && (
-                          <p className="mt-2 text-sm text-red-600">
-                            {error.phoneNumber}
-                          </p>
-                        )}
                       </div>
                     </div>
 
@@ -336,11 +312,6 @@ export default function RegisterPublisherPage() {
                             )}
                           </button>
                         </div>
-                        {error.password && (
-                          <p className="mt-2 text-sm text-red-600">
-                            {error.password}
-                          </p>
-                        )}
                       </div>
 
                       {/* Confirm Password */}
@@ -373,11 +344,6 @@ export default function RegisterPublisherPage() {
                             )}
                           </button>
                         </div>
-                        {error.confirmPassword && (
-                          <p className="mt-2 text-sm text-red-600">
-                            {error.confirmPassword}
-                          </p>
-                        )}
                       </div>
                     </div>
 

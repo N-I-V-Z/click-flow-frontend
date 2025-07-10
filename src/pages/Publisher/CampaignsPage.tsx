@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { Form, Select, Button, Modal, Rate } from 'antd';
+import { Form, Select, Button, Rate } from 'antd';
 import { showToast } from '@/utils/toastUtils';
-import { useNavigate, useSearchParams } from 'react-router-dom';
+import { useNavigate, useSearchParams, useLocation } from 'react-router-dom';
 import { TokenDecoded, CampaignApiResponse } from '@/types';
 import {
   useGetAllCampaignForPublisher,
@@ -42,6 +42,7 @@ const CampaignsPage: React.FC = () => {
 
   // --- Pagination state from URL ---
   const [searchParams, setSearchParams] = useSearchParams();
+  const location = useLocation();
   const initialPage = parseInt(searchParams.get('page') || '1', 10);
   const initialLimit = parseInt(searchParams.get('limit') || '12', 10);
 
@@ -73,6 +74,38 @@ const CampaignsPage: React.FC = () => {
       setCampaigns(campaignsResponse.result.datas);
     }
   }, [campaignsResponse]);
+
+  // Refetch data khi component mount lại hoặc navigate back từ detail page
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible') {
+        refetchCampaigns();
+      }
+    };
+
+    const handleFocus = () => {
+      refetchCampaigns();
+    };
+
+    // Listen for page visibility changes
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    window.addEventListener('focus', handleFocus);
+
+    // Refetch when component mounts
+    refetchCampaigns();
+
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+      window.removeEventListener('focus', handleFocus);
+    };
+  }, [refetchCampaigns]);
+
+  // Refetch data khi location change (navigate back từ detail page)
+  useEffect(() => {
+    if (location.pathname === '/publisher/campaigns') {
+      refetchCampaigns();
+    }
+  }, [location.pathname, refetchCampaigns]);
 
   // Sync URL when currentPage or pageSize changes - use simple approach
   useEffect(() => {
@@ -145,13 +178,10 @@ const CampaignsPage: React.FC = () => {
     setSelectedCampaignId(null);
   };
 
-  // Hàm hiển thị cảnh báo khi publisherStatus === "Pending"
+  // Hàm xử lý khi click vào nút pending (không làm gì, chỉ để disabled)
   const handlePendingClick = (e: React.MouseEvent) => {
     e.stopPropagation();
-    Modal.warning({
-      title: 'Chờ duyệt chiến dịch',
-      content: 'Vui lòng chờ nhà quảng cáo duyệt chiến dịch.'
-    });
+    // Không làm gì, nút đã disabled và có text rõ ràng
   };
 
   // Lọc phía client khi submit form
@@ -243,6 +273,40 @@ const CampaignsPage: React.FC = () => {
 
   return (
     <BasePages pageHead="ClickFlow - Danh sách chiến dịch">
+      <style>{`
+        .register-campaign-modal .ant-modal-content {
+          overflow: visible !important;
+          max-height: 90vh !important;
+          border-radius: 24px !important;
+        }
+        
+        .register-campaign-modal .ant-modal-body {
+          overflow: visible !important;
+          max-height: 85vh !important;
+          padding: 0 !important;
+        }
+        
+        .register-campaign-modal {
+          z-index: 1050 !important;
+        }
+        
+        /* Đảm bảo modal không bị che */
+        .ant-modal-mask {
+          z-index: 1049 !important;
+        }
+        
+        .ant-modal-wrap {
+          z-index: 1050 !important;
+        }
+        
+        /* Fix responsive cho mobile */
+        @media (max-width: 768px) {
+          .register-campaign-modal .ant-modal {
+            margin: 16px !important;
+            max-width: calc(100vw - 32px) !important;
+          }
+        }
+      `}</style>
       <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-purple-50 to-pink-50">
         {/* Hero Section */}
         <div className="relative overflow-hidden bg-gradient-to-r from-purple-600 via-indigo-600 to-blue-600 py-16">
@@ -588,11 +652,12 @@ const CampaignsPage: React.FC = () => {
                             ) : (
                               <Button
                                 type="default"
-                                className="flex h-12 w-full items-center justify-center gap-2 rounded-xl border-0 bg-gradient-to-r from-yellow-400 to-orange-400 font-semibold text-white shadow-lg"
+                                disabled
+                                className="flex h-12 w-full cursor-not-allowed items-center justify-center gap-2 rounded-xl border-0 bg-gradient-to-r from-gray-400 to-gray-500 font-semibold text-white opacity-75 shadow-lg"
                                 onClick={handlePendingClick}
                               >
                                 <ClockIcon size={16} />
-                                <span>Chờ duyệt</span>
+                                <span>Đang chờ duyệt</span>
                               </Button>
                             )
                           ) : (
@@ -813,79 +878,80 @@ const CampaignsPage: React.FC = () => {
           </div>
         </div>
 
-        {/* Enhanced Modal */}
-        <Modal
-          title={null}
-          open={isModalVisible}
-          onOk={handleConfirmRegister}
-          onCancel={handleCancelRegister}
-          footer={null}
-          width={500}
-          centered
-          className="register-campaign-modal"
-          styles={{
-            content: { padding: 0, borderRadius: 24 },
-            body: { padding: 0 }
-          }}
-        >
-          <div className="relative overflow-hidden rounded-3xl bg-white">
-            {/* Beautiful Header */}
-            <div className="relative bg-gradient-to-r from-purple-600 to-indigo-600 px-8 py-6 text-white">
-              <div className="flex items-center gap-4">
-                <div className="flex h-12 w-12 items-center justify-center rounded-full bg-white/20 backdrop-blur-sm">
-                  <RocketIcon size={20} className="text-white" />
-                </div>
-                <div>
-                  <h2 className="text-xl font-bold">Xác nhận đăng ký</h2>
-                  <p className="text-purple-100">Tham gia chiến dịch này</p>
-                </div>
-              </div>
-            </div>
+        {/* Custom Modal thay thế Antd Modal */}
+        {isModalVisible && (
+          <div className="fixed inset-0 z-[9999] flex items-center justify-center">
+            {/* Backdrop */}
+            <div
+              className="absolute inset-0 bg-black/50 backdrop-blur-sm"
+              onClick={handleCancelRegister}
+            ></div>
 
-            {/* Content */}
-            <div className="p-8">
-              <div className="mb-6 rounded-xl border border-purple-100 bg-gradient-to-r from-purple-50 to-indigo-50 p-4">
-                <div className="flex items-center justify-center gap-3 text-center">
-                  <TargetIcon size={24} className="text-purple-600" />
+            {/* Modal Content */}
+            <div className="relative z-[10000] mx-4 w-full max-w-md transform overflow-hidden rounded-3xl bg-white shadow-2xl transition-all duration-300 ease-out animate-in fade-in-0 zoom-in-95">
+              {/* Beautiful Header */}
+              <div className="relative bg-gradient-to-r from-purple-600 to-indigo-600 px-8 py-6 text-white">
+                <div className="flex items-center gap-4">
+                  <div className="flex h-12 w-12 items-center justify-center rounded-full bg-white/20 backdrop-blur-sm">
+                    <RocketIcon size={20} className="text-white" />
+                  </div>
                   <div>
-                    <p className="text-gray-700">
-                      Bạn có chắc muốn đăng ký chiến dịch này không?
-                    </p>
-                    <span className="mt-2 block text-sm text-gray-500">
-                      Sau khi đăng ký, bạn sẽ cần chờ nhà quảng cáo phê duyệt
-                    </span>
+                    <h2 className="text-xl font-bold">Xác nhận đăng ký</h2>
+                    <p className="text-purple-100">Tham gia chiến dịch này</p>
                   </div>
                 </div>
               </div>
 
-              <div className="flex gap-4">
-                <Button
-                  onClick={handleCancelRegister}
-                  className="flex h-12 flex-1 items-center justify-center gap-2 rounded-xl border-2 border-gray-300 bg-white font-semibold text-gray-700"
-                >
-                  <XIcon size={16} />
-                  <span>Hủy bỏ</span>
-                </Button>
-                <Button
-                  onClick={handleConfirmRegister}
-                  className="flex h-12 flex-1 items-center justify-center gap-2 rounded-xl border-0 bg-gradient-to-r from-purple-600 to-indigo-600 font-semibold text-white shadow-lg"
-                >
-                  {isRegisterLoading ? (
-                    <>
-                      <ClockIcon size={16} />
-                      <span>Đang đăng ký...</span>
-                    </>
-                  ) : (
-                    <>
-                      <CheckCircleIcon size={16} />
-                      <span>Xác nhận đăng ký</span>
-                    </>
-                  )}
-                </Button>
+              {/* Content */}
+              <div className="p-8 pb-6">
+                <div className="mb-6 rounded-xl border border-purple-100 bg-gradient-to-r from-purple-50 to-indigo-50 p-4">
+                  <div className="flex items-center justify-center gap-3 text-center">
+                    <TargetIcon
+                      size={24}
+                      className="flex-shrink-0 text-purple-600"
+                    />
+                    <div>
+                      <p className="text-gray-700">
+                        Bạn có chắc muốn đăng ký chiến dịch này không?
+                      </p>
+                      <span className="mt-2 block text-sm text-gray-500">
+                        Sau khi đăng ký, bạn sẽ cần chờ nhà quảng cáo phê duyệt
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="flex gap-4 pt-2">
+                  <button
+                    onClick={handleCancelRegister}
+                    disabled={isRegisterLoading}
+                    className="flex h-12 flex-1 items-center justify-center gap-2 rounded-xl border-2 border-gray-300 bg-white font-semibold text-gray-700 transition-all duration-200 hover:bg-gray-50 disabled:opacity-50"
+                  >
+                    <XIcon size={16} />
+                    <span>Hủy</span>
+                  </button>
+                  <button
+                    onClick={handleConfirmRegister}
+                    disabled={isRegisterLoading}
+                    className="flex h-12 flex-1 items-center justify-center gap-2 rounded-xl border-0 bg-gradient-to-r from-purple-600 to-indigo-600 font-semibold text-white shadow-lg transition-all duration-200 hover:from-purple-700 hover:to-indigo-700 disabled:opacity-50"
+                  >
+                    {isRegisterLoading ? (
+                      <>
+                        <ClockIcon size={16} className="animate-spin" />
+                        <span>Đang xử lý...</span>
+                      </>
+                    ) : (
+                      <>
+                        <CheckCircleIcon size={16} />
+                        <span>Đồng ý</span>
+                      </>
+                    )}
+                  </button>
+                </div>
               </div>
             </div>
           </div>
-        </Modal>
+        )}
       </div>
     </BasePages>
   );

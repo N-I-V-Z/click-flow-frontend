@@ -424,6 +424,26 @@ export interface BaseResponse {
   message: string;
 }
 
+export interface CourseJoinResponse {
+  statusCode: string;
+  isSuccess: boolean;
+  message: string;
+  result?: {
+    isSuccess: boolean;
+    message?: string;
+  };
+}
+
+export interface RegisterErrorResponse {
+  statusCode: string;
+  isSuccess: boolean;
+  message: string;
+  errors?: Array<{
+    key: string;
+    value: string;
+  }>;
+}
+
 export interface UploadImageResponse {
   publicId: string;
   url: string;

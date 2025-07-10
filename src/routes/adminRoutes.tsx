@@ -24,6 +24,7 @@ const WithdrawTransactionsPending = lazy(
 const WithdrawTransactionsApproved = lazy(
   () => import('@/pages/Admin/WithdrawTransactionsApproved')
 );
+const AdminChangePassword = lazy(() => import('@/pages/Admin/ChangePassword'));
 
 const adminRoutes = [
   {
@@ -104,6 +105,14 @@ const adminRoutes = [
         element: (
           <RoleRoute allowedRoles={['Admin']}>
             <WithdrawTransactionsApproved />
+          </RoleRoute>
+        )
+      },
+      {
+        path: 'change-password',
+        element: (
+          <RoleRoute allowedRoles={['Admin']}>
+            <AdminChangePassword />
           </RoleRoute>
         )
       },

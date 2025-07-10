@@ -11,7 +11,8 @@ import {
   GiftOutlined,
   DollarCircleOutlined,
   ClockCircleOutlined,
-  CheckCircleOutlined
+  CheckCircleOutlined,
+  KeyOutlined
 } from '@ant-design/icons';
 
 import { NavLink, useLocation } from 'react-router-dom';
@@ -254,9 +255,19 @@ const SidebarAdmin: React.FC = () => {
         </Menu.Item>
       </Menu>
 
-      {/* Khu vực dưới cùng (Hồ sơ, Đăng xuất) */}
+      {/* Khu vực dưới cùng (Đổi mật khẩu, Đăng xuất) */}
       <div className="mb-5 border-t">
         <Menu mode="inline" className="border-r-0">
+          <Menu.Item
+            key="/admin/change-password"
+            icon={<KeyOutlined />}
+            className={`
+              hover:!border-[#9B52BF] hover:bg-white hover:!text-[#9B52BF]
+              ${selectedKey === '/admin/change-password' ? '!bg-[#9B52BF] !text-white' : ''}
+            `}
+          >
+            <NavLink to="/admin/change-password">Đổi mật khẩu</NavLink>
+          </Menu.Item>
           <Menu.Item
             key="logout"
             icon={<LogoutOutlined />}
