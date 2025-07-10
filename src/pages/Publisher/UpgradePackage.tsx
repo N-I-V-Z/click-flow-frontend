@@ -69,12 +69,22 @@ export default function UpgradePackage() {
       setShowUpgradeModal(false);
       setShowConfirmModal(false);
       setSelectedPlan(null);
-    } catch (error) {
-      toast.error('Có lỗi xảy ra khi nâng cấp gói. Vui lòng thử lại!', {
+    } catch (error: any) {
+      // Xử lý lỗi từ API
+      let errorMessage = 'Có lỗi xảy ra khi nâng cấp gói. Vui lòng thử lại!';
+
+      // Kiểm tra nếu lỗi từ API có message cụ thể
+      if (error?.response?.data?.message) {
+        errorMessage = error.response.data.message;
+      } else if (error?.message) {
+        errorMessage = error.message;
+      }
+
+      toast.error(errorMessage, {
         toastId: 'upgrade-error',
-        autoClose: 3000,
+        autoClose: 5000, // Tăng thời gian hiển thị cho thông báo lỗi
         closeOnClick: true,
-        pauseOnHover: false,
+        pauseOnHover: true, // Cho phép hover để đọc message dài
         pauseOnFocusLoss: false,
         draggable: false
       });
@@ -400,51 +410,51 @@ export default function UpgradePackage() {
             className="absolute inset-0 bg-gradient-to-br from-purple-900/60 via-pink-900/60 to-indigo-900/60 backdrop-blur-sm"
             onClick={handleCancelUpgrade}
           />
-          <div className="relative w-full max-w-lg overflow-hidden rounded-3xl bg-white shadow-2xl">
+          <div className="relative w-full max-w-md overflow-hidden rounded-2xl bg-white shadow-2xl">
             {/* Header with gradient */}
-            <div className="bg-gradient-to-r from-purple-600 to-pink-600 p-6 text-center">
-              <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-white/20 backdrop-blur-sm">
-                <div className="text-2xl">⚡</div>
+            <div className="bg-gradient-to-r from-purple-600 to-pink-600 p-4 text-center">
+              <div className="mx-auto mb-2 flex h-12 w-12 items-center justify-center rounded-full bg-white/20 backdrop-blur-sm">
+                <div className="text-xl">⚡</div>
               </div>
-              <h3 className="text-2xl font-bold text-white">
+              <h3 className="text-xl font-bold text-white">
                 Xác nhận nâng cấp gói
               </h3>
-              <p className="mt-2 text-purple-100">
+              <p className="mt-1 text-sm text-purple-100">
                 Bạn đang nâng cấp lên gói{' '}
                 <span className="font-bold">{selectedPlan.name}</span>
               </p>
             </div>
 
             {/* Body */}
-            <div className="p-6">
+            <div className="p-4">
               {/* Price highlight */}
-              <div className="mb-6 rounded-2xl bg-gradient-to-r from-purple-50 to-pink-50 p-6 text-center">
-                <div className="mb-2 text-sm text-gray-600">
+              <div className="mb-4 rounded-xl bg-gradient-to-r from-purple-50 to-pink-50 p-4 text-center">
+                <div className="mb-1 text-xs text-gray-600">
                   Tổng chi phí hàng tháng
                 </div>
                 <div className="flex items-baseline justify-center">
-                  <span className="text-4xl font-bold text-gray-900">
+                  <span className="text-2xl font-bold text-gray-900">
                     {formatPrice(selectedPlan.price)}
                   </span>
-                  <span className="ml-1 text-lg text-gray-600">₫/tháng</span>
+                  <span className="ml-1 text-sm text-gray-600">₫/tháng</span>
                 </div>
-                <div className="mt-2 text-sm font-medium text-green-600">
+                <div className="mt-1 text-xs font-medium text-green-600">
                   Miễn phí {selectedPlan.durationDays} ngày đầu
                 </div>
               </div>
 
               {/* Features preview */}
-              <div className="mb-6 rounded-2xl bg-gray-50 p-6">
-                <h4 className="mb-4 font-bold text-gray-900">
+              <div className="mb-4 rounded-xl bg-gray-50 p-4">
+                <h4 className="mb-3 text-sm font-bold text-gray-900">
                   Tính năng của gói {selectedPlan.name}:
                 </h4>
-                <ul className="space-y-3">
+                <ul className="space-y-2">
                   {getPlanFeatures(selectedPlan).map((feature, idx) => (
                     <li key={idx} className="flex items-start">
-                      <div className="mr-3 mt-0.5 flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full bg-gradient-to-r from-purple-500 to-pink-500">
+                      <div className="mr-2 mt-0.5 flex h-4 w-4 flex-shrink-0 items-center justify-center rounded-full bg-gradient-to-r from-purple-500 to-pink-500">
                         <div className="text-xs text-white">✓</div>
                       </div>
-                      <span className="font-medium text-gray-700">
+                      <span className="text-sm font-medium text-gray-700">
                         {feature}
                       </span>
                     </li>
@@ -453,22 +463,22 @@ export default function UpgradePackage() {
               </div>
 
               {/* Action buttons */}
-              <div className="flex gap-4">
+              <div className="flex gap-3">
                 <button
                   onClick={handleCancelUpgrade}
                   disabled={isPending}
-                  className="flex-1 rounded-xl border-2 border-gray-300 bg-white px-6 py-3 font-bold text-gray-700 transition-all duration-200 hover:border-gray-400 hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50"
+                  className="flex-1 rounded-xl border-2 border-gray-300 bg-white px-4 py-2.5 text-sm font-bold text-gray-700 transition-all duration-200 hover:border-gray-400 hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50"
                 >
                   Hủy bỏ
                 </button>
                 <button
                   onClick={handleConfirmUpgrade}
                   disabled={isPending}
-                  className="flex-1 rounded-xl bg-gradient-to-r from-purple-600 to-pink-600 px-6 py-3 font-bold text-white shadow-lg transition-all duration-200 hover:scale-105 hover:from-purple-700 hover:to-pink-700 hover:shadow-xl disabled:cursor-not-allowed disabled:opacity-50"
+                  className="flex-1 rounded-xl bg-gradient-to-r from-purple-600 to-pink-600 px-4 py-2.5 text-sm font-bold text-white shadow-lg transition-all duration-200 hover:scale-105 hover:from-purple-700 hover:to-pink-700 hover:shadow-xl disabled:cursor-not-allowed disabled:opacity-50"
                 >
                   {isPending ? (
                     <div className="flex items-center justify-center">
-                      <div className="mr-2 h-5 w-5 animate-spin rounded-full border-2 border-white border-t-transparent" />
+                      <div className="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
                       Đang xử lý...
                     </div>
                   ) : (
@@ -478,8 +488,8 @@ export default function UpgradePackage() {
               </div>
 
               {/* Terms */}
-              <div className="mt-6 rounded-xl bg-blue-50 p-4 text-center">
-                <p className="text-sm text-blue-700">
+              <div className="mt-4 rounded-lg bg-blue-50 p-3 text-center">
+                <p className="text-xs text-blue-700">
                   <span className="font-medium">Lưu ý:</span> Bạn có thể hủy
                   hoặc thay đổi gói bất kỳ lúc nào. Không có phí ràng buộc.
                 </p>

@@ -235,9 +235,7 @@ const CreateCampaignModal: React.FC<CreateCampaignModalProps> = ({
 
       if (!urlPattern.test(trimmedValue)) {
         return Promise.reject(
-          new Error(
-            'URL không hợp lệ. Ví dụ: youtube.com hoặc https://www.youtube.com/watch?v=...'
-          )
+          new Error('URL không hợp lệ. Ví dụ: https://abc.def/ghj')
         );
       }
 
@@ -512,7 +510,7 @@ const CreateCampaignModal: React.FC<CreateCampaignModalProps> = ({
                       { validator: validateURL }
                     ]}
                   >
-                    <Input placeholder="Ví dụ: youtube.com/watch?v=... hoặc https://example.com" />
+                    <Input placeholder="Ví dụ: https://abc.def/ghj" />
                   </Form.Item>
                 </Col>
               </Row>
