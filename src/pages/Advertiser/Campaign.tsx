@@ -10,10 +10,14 @@ import { usePageTitle } from '@/hooks/use-pagetitle';
 import { TokenDecoded } from '@/types';
 import helpers from '@/helpers';
 import __helpers from '@/helpers';
-import { useGetCampaignAdvertiser } from '@/queries/campaign.query';
+import {
+  useGetCampaignAdvertiser,
+  useDeleteCampaign
+} from '@/queries/campaign.query';
 import { ApiResponse, CampaignApiResponse, PagingResponse } from '@/types';
 import BasePages from '@/components/shared/base-pages';
 import Loading from '@/components/ui/loading';
+import EditCampaignModal from '@/components/shared/EditCampaignModal';
 
 const decodedToken: TokenDecoded | null = helpers.decodeTokens(
   __helpers.cookie_get('AT')
@@ -88,11 +92,6 @@ const getStatusBadge = (status: string) => {
   );
 };
 
-const editableStatusOptions = [
-  { name: 'Paused', displayName: 'Tạm dừng', color: 'bg-orange' },
-  { name: 'Completed', displayName: 'Hoàn thành', color: 'bg-gray' }
-];
-
 type AdvertiserCampaignStatus =
   | 'All'
   | 'Pending'
@@ -144,7 +143,7 @@ const AdvertiserCampaigns = () => {
   const { pageIndex, pageSize } = __helpers.usePaginationParams();
   const advertiserId =
     decodedToken?.Id !== undefined ? parseInt(decodedToken?.Id) : 0;
-  const { data, isLoading, isError } = useGetCampaignAdvertiser(
+  const { data, isLoading, isError, refetch } = useGetCampaignAdvertiser(
     advertiserId,
     campaignStatus === 'All' ? undefined : campaignStatus,
     pageIndex,
@@ -156,6 +155,10 @@ const AdvertiserCampaigns = () => {
   const [isViewOpen, setIsViewOpen] = useState(false);
   const [isEditOpen, setIsEditOpen] = useState(false);
   const [isDeleteOpen, setIsDeleteOpen] = useState(false);
+
+  // Delete campaign mutation
+  const { mutate: deleteCampaignMutation, isPending: isDeleting } =
+    useDeleteCampaign();
 
   const campaigns = useMemo(() => {
     return (
@@ -313,12 +316,27 @@ const AdvertiserCampaigns = () => {
     }
   ];
 
-  const handleDeleteSingle = () => {
-    if (selectedProject) {
-      toast.success(`Xóa chiến dịch "${selectedProject.name}" thành công!`);
+  const handleDeleteSingle = async () => {
+    if (!selectedProject) return;
+
+    try {
+      deleteCampaignMutation(selectedProject.id, {
+        onSuccess: () => {
+          toast.success(`Xóa chiến dịch "${selectedProject.name}" thành công!`);
+          // Refresh data after successful deletion
+          refetch();
+          setIsDeleteOpen(false);
+          setSelectedProject(null);
+        },
+        onError: (error) => {
+          console.error('Delete campaign error:', error);
+          toast.error('Có lỗi xảy ra khi xóa chiến dịch. Vui lòng thử lại!');
+        }
+      });
+    } catch (error) {
+      console.error('Delete campaign process error:', error);
+      toast.error('Có lỗi xảy ra khi xóa chiến dịch');
     }
-    setIsDeleteOpen(false);
-    setSelectedProject(null);
   };
 
   if (isLoading) {
@@ -416,17 +434,32 @@ const AdvertiserCampaigns = () => {
         </div>
 
         {isDeleteOpen && selectedProject && (
-          <Modal title="Xác nhận xóa" onClose={() => setIsDeleteOpen(false)}>
+          <Modal
+            title="Xác nhận xóa"
+            onClose={() => !isDeleting && setIsDeleteOpen(false)}
+          >
             <p className="mb-6 text-sm">
               Bạn có chắc chắn muốn xóa chiến dịch{' '}
               <span className="font-medium">{selectedProject.name}</span>?
+              <br />
+              <span className="mt-2 block text-xs text-red-500">
+                Lưu ý: Hành động này không thể hoàn tác!
+              </span>
             </p>
             <div className="flex justify-end space-x-2">
-              <Button variant="outline" onClick={() => setIsDeleteOpen(false)}>
+              <Button
+                variant="outline"
+                onClick={() => setIsDeleteOpen(false)}
+                disabled={isDeleting}
+              >
                 Hủy
               </Button>
-              <Button variant="destructive" onClick={handleDeleteSingle}>
-                Xóa
+              <Button
+                variant="destructive"
+                onClick={handleDeleteSingle}
+                disabled={isDeleting}
+              >
+                {isDeleting ? 'Đang xóa...' : 'Xóa'}
               </Button>
             </div>
           </Modal>
@@ -575,57 +608,18 @@ const AdvertiserCampaigns = () => {
         )}
 
         {isEditOpen && selectedProject && (
-          <Modal
-            title={`Sửa: ${selectedProject.name}`}
-            onClose={() => setIsEditOpen(false)}
-          >
-            <div className="flex flex-col gap-3">
-              <div>
-                <label className="mb-1 block font-medium">Tên chiến dịch</label>
-                <input
-                  type="text"
-                  value={selectedProject.name}
-                  onChange={(e) =>
-                    setSelectedProject((prev) =>
-                      prev ? { ...prev, name: e.target.value } : null
-                    )
-                  }
-                  className="w-full rounded border p-2"
-                />
-              </div>
-              <div>
-                <label className="mb-1 block font-medium">Trạng thái</label>
-                <select
-                  value={selectedProject.status}
-                  onChange={(e) =>
-                    setSelectedProject((prev) =>
-                      prev ? { ...prev, status: e.target.value } : null
-                    )
-                  }
-                  className="w-full rounded border p-2"
-                >
-                  {editableStatusOptions.map((option) => (
-                    <option key={option.name} value={option.name}>
-                      {option.displayName}
-                    </option>
-                  ))}
-                </select>
-              </div>
-            </div>
-            <div className="mt-4 flex justify-end space-x-2">
-              <Button variant="outline" onClick={() => setIsEditOpen(false)}>
-                Hủy
-              </Button>
-              <Button
-                onClick={() => {
-                  toast.success(`Đã cập nhật "${selectedProject.name}"!`);
-                  setIsEditOpen(false);
-                }}
-              >
-                Lưu
-              </Button>
-            </div>
-          </Modal>
+          <EditCampaignModal
+            open={isEditOpen}
+            campaign={selectedProject}
+            onClose={() => {
+              setIsEditOpen(false);
+              setSelectedProject(null);
+            }}
+            onSuccess={() => {
+              // Refetch data instead of reloading page
+              refetch();
+            }}
+          />
         )}
 
         <ToastContainer

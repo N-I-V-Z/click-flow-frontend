@@ -103,7 +103,7 @@ const AdvertiserDashboard: React.FC = () => {
             <button
               type="button"
               onClick={() => setIsModalVisible(true)}
-              className="transform rounded-lg px-6 py-3 font-semibold text-white shadow-lg transition-all duration-300 hover:scale-105 hover:shadow-xl"
+              className="rounded-lg px-6 py-3 font-semibold text-white shadow-lg"
               style={{
                 background: 'linear-gradient(to right, #e11d48, #dc2626)'
               }}
@@ -116,7 +116,7 @@ const AdvertiserDashboard: React.FC = () => {
           <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 md:grid-cols-4">
             {/* Cần phê duyệt (Pending) */}
             <div
-              className="transform rounded-xl p-6 text-center text-white backdrop-blur transition-all duration-300 hover:scale-105 hover:shadow-xl"
+              className="rounded-xl p-6 text-center text-white backdrop-blur"
               style={{
                 background: 'linear-gradient(to bottom right, #2563eb, #3b82f6)'
               }}
@@ -136,7 +136,7 @@ const AdvertiserDashboard: React.FC = () => {
 
             {/* Đã từ chối (Rejected) */}
             <div
-              className="transform rounded-xl p-6 text-center text-white backdrop-blur transition-all duration-300 hover:scale-105 hover:shadow-xl"
+              className="rounded-xl p-6 text-center text-white backdrop-blur"
               style={{
                 background: 'linear-gradient(to bottom right, #dc2626, #ef4444)'
               }}
@@ -154,7 +154,7 @@ const AdvertiserDashboard: React.FC = () => {
 
             {/* Tạm dừng (Canceled) */}
             <div
-              className="transform rounded-xl p-6 text-center text-white backdrop-blur transition-all duration-300 hover:scale-105 hover:shadow-xl"
+              className="rounded-xl p-6 text-center text-white backdrop-blur"
               style={{
                 background: 'linear-gradient(to bottom right, #ea580c, #f97316)'
               }}
@@ -172,7 +172,7 @@ const AdvertiserDashboard: React.FC = () => {
 
             {/* Đã hoàn thành (Completed) */}
             <div
-              className="transform rounded-xl p-6 text-center text-white backdrop-blur transition-all duration-300 hover:scale-105 hover:shadow-xl"
+              className="rounded-xl p-6 text-center text-white backdrop-blur"
               style={{
                 background: 'linear-gradient(to bottom right, #16a34a, #22c55e)'
               }}

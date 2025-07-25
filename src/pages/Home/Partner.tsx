@@ -13,12 +13,12 @@ const partners = [
   },
   {
     name: 'CodeGrow',
-    src: 'https://scontent.fsgn5-10.fna.fbcdn.net/v/t39.30808-1/500267341_122099064008885619_6219018770397838645_n.jpg?stp=cp6_dst-jpg_s200x200_tt6&_nc_cat=110&ccb=1-7&_nc_sid=2d3e12&_nc_eui2=AeEacWcg1fFLc9R5V-IDw5s07xY3hLGqPefvFjeEsao951fvP98HuyYUfNEb-QAG9GfnUCKL9TOpHuodoqSQCuqX&_nc_ohc=QBPp6ps4cCEQ7kNvwE0Zuro&_nc_oc=Adnmu7sZea0TwzhGqfuoZw4HB5jO3Ds-FD5KXIFWIfCMo2m48KaC1-WO-kcME9wzyYc&_nc_zt=24&_nc_ht=scontent.fsgn5-10.fna&_nc_gid=xyzHX2zv2sxUT3P7Cr94YA&oh=00_AfRiSS4Oou0jQTHOn6naDxYhgMgnpFP5t5FMeQ6Ng9CcNw&oe=68740B75',
+    src: 'https://codegrow.vercel.app/_next/image?url=%2FLogo.png&w=128&q=75',
     url: 'https://codegrow.vercel.app/'
   },
   {
     name: 'Artline',
-    src: 'https://scontent.fsgn5-14.fna.fbcdn.net/v/t39.30808-1/502375120_122124079940838750_6658613640590130202_n.jpg?stp=dst-jpg_s200x200_tt6&_nc_cat=101&ccb=1-7&_nc_sid=2d3e12&_nc_eui2=AeHPCPx14plMDO-xRAYsBdNmF8ib38TQhVoXyJvfxNCFWgqa6olkacQCB3R0F04Zks8JfzNIWn8bz4CtDG2odizD&_nc_ohc=TGirzxap7ugQ7kNvwHXiXK8&_nc_oc=AdmnW5pFdi4yyAbyDdqZeiRjMU63bQWM3CCPfStoC5Qwz0m1vEG0Yjt7MJ0jT0BD8qs&_nc_zt=24&_nc_ht=scontent.fsgn5-14.fna&_nc_gid=bIC14BWbr-is1OkA6Tpp9g&oh=00_AfQYj3txQaR5EOl36v6dyd39HkTCe7xwd6FO4y6ww319Zw&oe=68742D0D',
+    src: 'https://artline-creative.com/assets/marketing/logo_mini_orange.png',
     url: 'https://artline-creative.com/'
   },
   {

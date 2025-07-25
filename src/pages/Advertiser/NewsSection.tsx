@@ -35,7 +35,8 @@ const NewsSection: React.FC = () => {
     setTimeout(() => {
       setFeaturedNews(news);
       setSelectedNewsId(news.id);
-      setCurrentPage(1);
+      // Không reset về trang 1, giữ nguyên currentPage
+      // setCurrentPage(1); // ← Bỏ dòng này
       setAnimateKey((prev) => prev + 1);
       setIsTransitioning(false);
     }, 300);
@@ -273,21 +274,6 @@ const NewsSection: React.FC = () => {
                       <span className="relative">Đọc tiếp</span>
                       <ChevronRightIcon className="ml-1 h-4 w-4 transition-transform duration-300 group-hover/btn:translate-x-1" />
                     </a>
-
-                    <div className="flex items-center space-x-3 text-gray-400">
-                      <div className="flex items-center">
-                        <span className="text-sm">👁️</span>
-                        <span className="ml-1 text-xs font-medium">
-                          {Math.floor(Math.random() * 1000) + 100}
-                        </span>
-                      </div>
-                      <div className="flex items-center">
-                        <span className="text-sm">❤️</span>
-                        <span className="ml-1 text-xs font-medium">
-                          {Math.floor(Math.random() * 50) + 10}
-                        </span>
-                      </div>
-                    </div>
                   </div>
                 </div>
               </div>

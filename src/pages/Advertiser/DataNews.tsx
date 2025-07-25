@@ -11,6 +11,76 @@ export interface NewsItem {
 
 export const newsData: NewsItem[] = [
   {
+    id: 16,
+    title:
+      "Vietnam's 2025 Legal Overhaul: What E-Commerce & Advertising Businesses Must Know",
+    content:
+      'Việt Nam đang bước vào kỷ nguyên mới của luật thương mại điện tử và quy định quảng cáo kỹ thuật số, giới thiệu những thay đổi sâu rộng trong tiếp thị người ảnh hưởng, bán hàng livestream và thương mại xuyên biên giới. Hiểu rõ những thay đổi này là điều cần thiết để duy trì tuân thủ và cạnh tranh trong thị trường Việt Nam.',
+    image:
+      'https://cdn.prod.website-files.com/66398a128daf987056d4054a/687f0059bc11a3b9c3fe4960_Vietnam%E2%80%99s%202025%20Legal%20Overhaul%202%20-%20Article-01.jpg',
+    publishedAt: '2025-07-22',
+    tag: 'other',
+    url: 'https://www.feedforce.vn/articles/what-e-commerce-advertising-businesses-must-know'
+  },
+  {
+    id: 11,
+    title: 'True value helps e-commerce sellers reach sustainability',
+    content:
+      'Bài viết từ Vietnam News này nhấn mạnh việc cạnh tranh dựa trên giá trị thay vì giá cả sẽ giúp người bán thương mại điện tử đạt được sự phát triển bền vững. Tại hội nghị TikTok Shop Vietnam Summit 2025, các chuyên gia đã thảo luận về những xu hướng mới, số liệu tăng trưởng ấn tượng của TikTok Shop và vai trò của affiliate marketing, livestream, short video trong việc thúc đẩy tăng trưởng.',
+    image:
+      'https://image.vietnamnews.vn/uploadvnnews/Article/2025/7/18/437888_IMG_3668.jpeg',
+    publishedAt: '2025-07-18',
+    tag: 'other',
+    url: 'https://vietnamnews.vn/economy/1721661/true-value-helps-e-commerce-sellers-reach-sustainability.html'
+  },
+  {
+    id: 9,
+    title:
+      '30+ SỐ LIỆU AFFILIATE MARKETING THỊ TRƯỜNG TOÀN CẦU VÀ VIỆT NAM NĂM 2025',
+    content:
+      'Bài viết tổng hợp hơn 30 số liệu quan trọng về thị trường affiliate marketing toàn cầu và Việt Nam trong năm 2025. Nội dung bao gồm các xu hướng nổi bật, thu nhập trung bình từ affiliate, thách thức và rủi ro, cùng với dự báo về tương lai của ngành, đặc biệt nhấn mạnh vai trò của video và các sàn thương mại điện tử lớn.',
+    image:
+      'https://rentracks.com.vn/wp-content/uploads/2025/06/30-SO-LIEU-930x620.jpg',
+    publishedAt: '2025-07-08',
+    tag: 'other',
+    url: 'https://rentracks.com.vn/30-so-lieu-affiliate-marketing-quan-trong-2025/'
+  },
+  {
+    id: 3,
+    title: 'Digital sellers embrace affiliate marketing in Vietnam',
+    content:
+      'Bài viết này phân tích sự phát triển mạnh mẽ của affiliate marketing tại Việt Nam như một động lực thúc đẩy tăng trưởng thương mại điện tử. Báo cáo từ Business Research Insight và AccessTrade cũng được đề cập, cho thấy thị trường Việt Nam đạt 700 triệu đến 1 tỷ USD vào năm 2024 và dự kiến sẽ tiếp tục bùng nổ.',
+    image:
+      'https://vir.com.vn/stores/news_dataimages/2025/052025/30/09/digital-sellers-embrace-affiliate-marketing-20250530093620.jpg?rt=20250530093622',
+    publishedAt: '2025-05-30',
+    tag: 'other',
+    url: 'https://vir.com.vn/digital-sellers-embrace-affiliate-marketing-129494.html'
+  },
+  {
+    id: 12,
+    title:
+      'Navee Media tổ chức thành công Họp báo công bố sự kiện Permate Affiliate Fest 2025',
+    content:
+      'Navee Media đã tổ chức thành công buổi họp báo công bố sự kiện Permate Affiliate Fest 2025, một lễ hội quy mô lớn với hơn 10.000 người tham dự, đánh dấu kỷ nguyên mới của affiliate marketing tại Việt Nam với sự định hình của hành vi người dùng, dữ liệu và công nghệ.',
+    image:
+      'https://www.navee.media/wp-content/uploads/2025/05/image-1-1392x927.jpeg',
+    publishedAt: '2025-05-22',
+    tag: 'other',
+    url: 'https://www.navee.media/navee-media-to-chuc-thanh-cong-hop-bao-cong-bo-su-kien-permate-affiliate-fest-2025/'
+  },
+  {
+    id: 10,
+    title:
+      'Dấu mốc mới cho ngành Tiếp thị liên kết tại Việt Nam: Permate Affiliate Fest 2025',
+    content:
+      'Ngày 31/5/2025, sự kiện Permate Affiliate Fest 2025 đã diễn ra tại The Global City, TP. Thủ Đức, TP. Hồ Chí Minh. Đây là lần đầu tiên một lễ hội ngoài trời quy mô lớn dành riêng cho lĩnh vực tiếp thị liên kết được tổ chức tại Việt Nam, đánh dấu một cột mốc quan trọng cho sự phát triển của ngành.',
+    image:
+      'https://media.tapchitaichinh.vn/w1480/images/upload//2025/05/20/img-9754.JPG',
+    publishedAt: '2025-05-20',
+    tag: 'other',
+    url: 'https://tapchitaichinh.vn/dau-moc-moi-cho-nganh-tiep-thi-lien-ket-tai-viet-nam.html'
+  },
+  {
     id: 1,
     title:
       'AnyMind Group thâu tóm Vibula – Đẩy mạnh affiliate marketing tại Việt Nam',
@@ -23,6 +93,29 @@ export const newsData: NewsItem[] = [
     url: 'https://anymindgroup.com/news/press-release/vibula-agreement-0425'
   },
   {
+    id: 13,
+    title: 'XU HƯỚNG AFFILIATE TIKTOK VÀ NHỮNG THAY ĐỔI QUAN TRỌNG NĂM 2025',
+    content:
+      'Bài viết phân tích các xu hướng nổi bật của affiliate marketing trên TikTok trong năm 2025, bao gồm sự bùng nổ của TikTok Shop, nhu cầu cá nhân hóa, tầm ảnh hưởng của KOL/KOC, mua sắm qua livestream độc quyền và xuyên biên giới, cùng với tiềm năng phát triển của UGC và việc áp dụng AI.',
+    image:
+      'https://lh7-rt.googleusercontent.com/docsz/AD_4nXcK_GmpDnzqaDbsnj4eY1hUbE-RemX4P82hqviBXIg4a_s4ds-mF-1p-mycJNdUZPPNNrJlbeWfMzh1wlZ-t-7yDPPXXlIurXCjpZj_Gp3aH9jhEtXXwBon5NH5Q-rQVwN4iBsm2g?key=8fYmlQHX70tjK1v0JbRKuwP_',
+    publishedAt: '2025-04-05',
+    tag: 'other',
+    url: 'https://rentracks.com.vn/en/xu-huong-affiliate-tiktok-va-nhung-thay-doi-2025/'
+  },
+  {
+    id: 8,
+    title:
+      'Quy định pháp lý mới về quảng cáo và Affiliate Marketing tại Việt Nam',
+    content:
+      'Cập nhật về các thay đổi trong quy định pháp luật liên quan đến quảng cáo trực tuyến và hoạt động affiliate marketing tại Việt Nam, bao gồm các yêu cầu về minh bạch thông tin, bảo vệ dữ liệu người dùng và trách nhiệm của các bên liên quan.',
+    image:
+      'https://image.luatvietnam.vn/uploaded//665twebp/images/original/2021/10/06/ha-noi-ban-hanh-moi-33-thu-tuc-linh-vuc-doanh-nghiep_0610120200.jpg',
+    publishedAt: '2025-03-20',
+    tag: 'other',
+    url: 'https://luatvietnam.vn/thuong-mai/quy-dinh-quang-cao-online-2025-567-33333-article.html'
+  },
+  {
     id: 2,
     title:
       'Bức tranh Affiliate Marketing Việt Nam 2025: Xu hướng, thách thức và cơ hội bứt phá',
@@ -33,17 +126,6 @@ export const newsData: NewsItem[] = [
     publishedAt: '2025-03-13',
     tag: 'other',
     url: 'https://shortlink.vn/affiliate-marketing-viet-nam-2025-xu-huong-thach-thuc-va-co-hoi-but-pha-14907/'
-  },
-  {
-    id: 3,
-    title: 'Digital sellers embrace affiliate marketing in Vietnam',
-    content:
-      'Bài viết này phân tích sự phát triển mạnh mẽ của affiliate marketing tại Việt Nam như một động lực thúc đẩy tăng trưởng thương mại điện tử. Báo cáo từ Business Research Insight và AccessTrade cũng được đề cập, cho thấy thị trường Việt Nam đạt 700 triệu đến 1 tỷ USD vào năm 2024 và dự kiến sẽ tiếp tục bùng nổ.',
-    image:
-      'https://vir.com.vn/stores/news_dataimages/2025/052025/30/09/digital-sellers-embrace-affiliate-marketing-20250530093620.jpg?rt=20250530093622',
-    publishedAt: '2025-05-30',
-    tag: 'other',
-    url: 'https://vir.com.vn/digital-sellers-embrace-affiliate-marketing-129494.html'
   },
   {
     id: 4,
@@ -80,18 +162,6 @@ export const newsData: NewsItem[] = [
     publishedAt: '2025-01-02',
     tag: 'other',
     url: 'https://www.brandsvietnam.com/congdong/topic/345451-buc-tranh-toan-canh-affiliate-2024-va-du-bao-xu-huong-2025'
-  },
-  {
-    id: 8,
-    title:
-      'Quy định pháp lý mới về quảng cáo và Affiliate Marketing tại Việt Nam',
-    content:
-      'Cập nhật về các thay đổi trong quy định pháp luật liên quan đến quảng cáo trực tuyến và hoạt động affiliate marketing tại Việt Nam, bao gồm các yêu cầu về minh bạch thông tin, bảo vệ dữ liệu người dùng và trách nhiệm của các bên liên quan.',
-    image:
-      'https://image.luatvietnam.vn/uploaded//665twebp/images/original/2021/10/06/ha-noi-ban-hanh-moi-33-thu-tuc-linh-vuc-doanh-nghiep_0610120200.jpg',
-    publishedAt: '2025-03-20',
-    tag: 'other',
-    url: 'https://luatvietnam.vn/thuong-mai/quy-dinh-quang-cao-online-2025-567-33333-article.html'
   }
 ];
 

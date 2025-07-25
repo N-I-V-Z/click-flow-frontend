@@ -81,19 +81,19 @@ const sections = [
           <span
             className="cursor-pointer hover:text-purple-800"
             onClick={() =>
-              navigator.clipboard.writeText('support@Clickflow.space')
+              navigator.clipboard.writeText('clickflow.connect@gmail.com')
             }
           >
-            support@Clickflow.space
+            clickflow.connect@gmail.com
           </span>
         </li>
         <li className="flex items-center">
           <Phone className="mr-2 h-5 w-5 text-purple-600" />
           <span
             className="cursor-pointer hover:text-purple-800"
-            onClick={() => navigator.clipboard.writeText('0123456789')}
+            onClick={() => navigator.clipboard.writeText('0852793879')}
           >
-            0123456789
+            0852793879
           </span>
         </li>
       </ul>
