@@ -163,7 +163,7 @@ export default function RegisterChoiceModal({
 
                 <p className="mt-4 text-center text-sm text-purple-200">
                   Tham gia cùng{' '}
-                  <span className="font-bold text-yellow-300">8,500+</span>{' '}
+                  <span className="font-bold text-yellow-300">20+</span>{' '}
                   Publishers thành công
                 </p>
               </div>
@@ -242,7 +242,7 @@ export default function RegisterChoiceModal({
                       Tiếp cận đại chúng
                     </h4>
                     <p className="text-sm text-gray-600">
-                      Kết nối với 8,500+ creators có ảnh hưởng
+                      Kết nối với 20+ creators có ảnh hưởng
                     </p>
                   </div>
                 </div>
@@ -328,7 +328,7 @@ export default function RegisterChoiceModal({
 
                 <p className="mt-4 text-center text-sm text-gray-600">
                   Được tin tưởng bởi{' '}
-                  <span className="font-bold text-blue-600">1,200+</span> doanh
+                  <span className="font-bold text-blue-600">5+</span> doanh
                   nghiệp
                 </p>
               </div>

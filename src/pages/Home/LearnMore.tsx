@@ -160,17 +160,17 @@ const LearnMorePage: React.FC = () => {
             </h2>
             <div className="grid grid-cols-1 gap-8 md:grid-cols-3">
               <div className="rounded-lg bg-white p-8 text-center shadow-lg">
-                <h3 className="text-5xl font-extrabold text-indigo-600">1+</h3>
+                <h3 className="text-5xl font-extrabold text-indigo-600">20+</h3>
                 <p className="mt-2 text-xl text-gray-700">Publisher đăng ký</p>
               </div>
               <div className="rounded-lg bg-white p-8 text-center shadow-lg">
-                <h3 className="text-5xl font-extrabold text-indigo-600">1+</h3>
+                <h3 className="text-5xl font-extrabold text-indigo-600">5+</h3>
                 <p className="mt-2 text-xl text-gray-700">
                   Chiến dịch hiệu quả
                 </p>
               </div>
               <div className="rounded-lg bg-white p-8 text-center shadow-lg">
-                <h3 className="text-5xl font-extrabold text-indigo-600">1+</h3>
+                <h3 className="text-5xl font-extrabold text-indigo-600">10+</h3>
                 <p className="mt-2 text-xl text-gray-700">
                   Advertiser tham gia
                 </p>

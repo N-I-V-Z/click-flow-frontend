@@ -310,6 +310,21 @@ export type CreateCampaignPayload = {
   image: string;
 };
 
+export type UpdateCampaignPayload = {
+  id: number;
+  name: string;
+  description: string;
+  originURL: string;
+  budget: number;
+  startDate: string;
+  endDate: string;
+  typePay: string;
+  typeCampaign: string;
+  commission: number;
+  percents: number;
+  image: string;
+};
+
 export type IFeedbackAPIResponse = {
   statusCode: string; // "OK"
   isSuccess: boolean; // true / false

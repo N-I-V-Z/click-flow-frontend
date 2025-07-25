@@ -14,6 +14,7 @@ const RegisterPublisherPage = lazy(
   () => import('@/pages/AuthPage/Register/RegisterPublisher')
 );
 const Privacy = lazy(() => import('@/pages/OtherPage/privacy'));
+const TermsOfService = lazy(() => import('@/pages/OtherPage/TermsOfService'));
 const LearnMorePage = lazy(() => import('./../pages/Home/LearnMore'));
 const homeRoutes = [
   {
@@ -33,6 +34,7 @@ const homeRoutes = [
       { path: 'forgot-password', element: <ForgotPasswordPage /> },
       { path: 'register-publisher', element: <RegisterPublisherPage /> },
       { path: 'privacy', element: <Privacy /> },
+      { path: 'terms', element: <TermsOfService /> },
       { path: 'learn-more', element: <LearnMorePage /> },
       { path: 'renew-password', element: <RenewPasswordPage /> }
     ]

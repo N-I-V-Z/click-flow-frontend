@@ -6,6 +6,7 @@ import {
   PagingResponse,
   UploadImageResponse,
   CreateCampaignPayload,
+  UpdateCampaignPayload,
   PublisherInCampaignApiResponse
 } from '@/types';
 import { useMutation, useQuery } from '@tanstack/react-query';
@@ -38,6 +39,27 @@ export const useUpdateCampaignStatus = () => {
       return await BaseRequest.Put<BaseResponse>(
         `${SUB_URL}/update-campaign-status`,
         payload
+      );
+    }
+  });
+};
+
+export const useUpdateCampaign = () => {
+  return useMutation({
+    mutationFn: async (payload: UpdateCampaignPayload) => {
+      return await BaseRequest.Put<BaseResponse>(
+        `${SUB_URL}/update-campaign`,
+        payload
+      );
+    }
+  });
+};
+
+export const useDeleteCampaign = () => {
+  return useMutation({
+    mutationFn: async (id: number) => {
+      return await BaseRequest.Delete<BaseResponse>(
+        `${SUB_URL}/delete-campaign/${id}`
       );
     }
   });

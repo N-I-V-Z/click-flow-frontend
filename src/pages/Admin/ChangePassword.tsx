@@ -376,7 +376,8 @@ const AdminChangePassword: React.FC = () => {
                       </p>
                       <div className="space-y-2">
                         <p className="text-sm">
-                          <strong>Email:</strong> admin.support@clickflow.space
+                          <strong>Email:</strong>{' '}
+                          admin.clickflow.connect@gmail.com
                         </p>
                         <p className="text-sm">
                           <strong>Hotline:</strong> 1900-xxxx (24/7)

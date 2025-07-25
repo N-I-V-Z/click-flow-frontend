@@ -40,7 +40,7 @@ const FooterAd: React.FC = () => {
             Chính sách bảo mật
           </Link>
           <Link
-            to="/"
+            to="/terms"
             className="transition-all hover:text-yellow-400 hover:underline"
           >
             Điều khoản sử dụng
