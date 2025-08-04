@@ -13,8 +13,9 @@ const ForumDetailPage = lazy(
 );
 
 const adverAndPubRoutes = [
+  // Route cho all common layout
   {
-    path: '/all', // hay bạn muốn gọi là '/common' cũng được
+    path: '/all',
     element: (
       <LoginRoute>
         <Suspense>

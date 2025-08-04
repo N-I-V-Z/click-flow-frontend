@@ -164,6 +164,7 @@ const ManageCourse: React.FC = () => {
       // Pre-fill the form with current data
       editForm.setFieldsValue({
         title: record.title,
+        price: record.price,
         description: record.description,
         content: record.content,
         lessonLearned: record.lessonLearned
@@ -851,22 +852,56 @@ const ManageCourse: React.FC = () => {
                 onFinish={handleEditCourseSubmit}
                 className="space-y-4"
               >
-                <Form.Item
-                  name="title"
-                  label={
-                    <span className="text-sm font-medium text-gray-700">
-                      Tiêu đề khóa học
-                    </span>
-                  }
-                  rules={[
-                    {
-                      required: true,
-                      message: 'Vui lòng nhập tiêu đề khóa học!'
+                <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+                  <Form.Item
+                    name="title"
+                    label={
+                      <span className="text-sm font-medium text-gray-700">
+                        Tiêu đề khóa học
+                      </span>
                     }
-                  ]}
-                >
-                  <Input placeholder="Nhập tiêu đề khóa học" className="h-10" />
-                </Form.Item>
+                    rules={[
+                      {
+                        required: true,
+                        message: 'Vui lòng nhập tiêu đề khóa học!'
+                      }
+                    ]}
+                  >
+                    <Input
+                      placeholder="Nhập tiêu đề khóa học"
+                      className="h-10"
+                    />
+                  </Form.Item>
+
+                  <Form.Item
+                    name="price"
+                    label={
+                      <span className="text-sm font-medium text-gray-700">
+                        Giá khóa học (VND)
+                      </span>
+                    }
+                    rules={[
+                      {
+                        required: true,
+                        message: 'Vui lòng nhập giá khóa học!'
+                      },
+                      {
+                        type: 'number',
+                        min: 0,
+                        message: 'Giá phải lớn hơn hoặc bằng 0!'
+                      }
+                    ]}
+                  >
+                    <InputNumber
+                      placeholder="Nhập giá khóa học"
+                      className="h-10 w-full"
+                      formatter={(value) =>
+                        `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')
+                      }
+                      parser={(value) => value!.replace(/\$\s?|(,*)/g, '')}
+                    />
+                  </Form.Item>
+                </div>
 
                 <Form.Item
                   name="lessonLearned"

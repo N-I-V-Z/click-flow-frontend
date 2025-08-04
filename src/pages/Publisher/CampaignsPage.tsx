@@ -10,6 +10,7 @@ import {
 import helpers from '@/helpers';
 import __helpers from '@/helpers';
 import BasePages from '@/components/shared/base-pages';
+import { useAutoRefresh } from '@/hooks/use-auto-refresh';
 import {
   TargetIcon,
   MoneyIcon,
@@ -65,6 +66,9 @@ const CampaignsPage: React.FC = () => {
   // Hook mutation đăng ký
   const { mutate: registerCampaign, isPending: isRegisterLoading } =
     useRegisterCampaign();
+
+  // Auto-refresh dữ liệu khi chuyển tab
+  useAutoRefresh([refetchCampaigns]);
 
   const navigate = useNavigate();
 

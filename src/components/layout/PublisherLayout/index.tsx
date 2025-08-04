@@ -5,8 +5,8 @@ import { Layout } from 'antd';
 import HeaderPublisher from '@/components/shared/header-publisher';
 import SidebarPublisher from '@/components/shared/sidebar-publisher';
 
-import ChatBubble from '@/pages/Chat/bubble';
 import ScrollButton from '@/components/shared/scroll-button';
+import AIChatWidget from '@/components/shared/ai-chat-widget';
 
 const PublisherLayout: React.FC = () => {
   const { Content, Footer } = Layout;
@@ -22,7 +22,7 @@ const PublisherLayout: React.FC = () => {
       </div>
 
       {/* Nội dung chính */}
-      <Content className="relative ml-64 mt-[64px] h-[calc(100vh-64px-64px-30px)] bg-white p-6 pb-8">
+      <Content className="relative ml-56 mt-[45px] h-[calc(100vh-64px-64px-30px)] bg-white p-6 pb-8">
         {/* 
           Suspense + Outlet cho phép render mọi route con nằm dưới "/publisher/*" 
           Ví dụ: /publisher/dashboard, /publisher/mission, /publisher/forum, v.v.
@@ -37,8 +37,8 @@ const PublisherLayout: React.FC = () => {
         © {new Date().getFullYear()} ClickFlow. All rights reserved.
       </Footer>
 
-      {/* Chat bubble & window */}
-      <ChatBubble />
+      {/* AI Chat Widget - thay thế ChatBubble */}
+      <AIChatWidget />
 
       {/* Scroll button */}
       <ScrollButton />

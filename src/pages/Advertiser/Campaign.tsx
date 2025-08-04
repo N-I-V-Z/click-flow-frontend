@@ -18,6 +18,7 @@ import { ApiResponse, CampaignApiResponse, PagingResponse } from '@/types';
 import BasePages from '@/components/shared/base-pages';
 import Loading from '@/components/ui/loading';
 import EditCampaignModal from '@/components/shared/EditCampaignModal';
+import { useAutoRefresh } from '@/hooks/use-auto-refresh';
 
 const decodedToken: TokenDecoded | null = helpers.decodeTokens(
   __helpers.cookie_get('AT')
@@ -159,6 +160,9 @@ const AdvertiserCampaigns = () => {
   // Delete campaign mutation
   const { mutate: deleteCampaignMutation, isPending: isDeleting } =
     useDeleteCampaign();
+
+  // Auto-refresh dữ liệu khi chuyển tab
+  useAutoRefresh([refetch]);
 
   const campaigns = useMemo(() => {
     return (

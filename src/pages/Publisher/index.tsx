@@ -26,6 +26,7 @@ import {
 } from '@/queries/traffic.query';
 import { useGetOwnTransaction } from '@/queries/transaction.query';
 import { useGetOwnWallet } from '@/queries/wallet.query';
+import { useAutoRefresh } from '@/hooks/use-auto-refresh';
 // import __helpers from '@/helpers';
 // import helpers from '@/helpers';
 
@@ -38,31 +39,41 @@ const PublisherDashboard: React.FC = () => {
   // const decodedToken = helpers.decodeTokens(__helpers.cookie_get('AT'));
   // const publisherId = decodedToken?.Id ? Number(decodedToken.Id) : undefined;
 
-  // Lấy dữ liệu trình duyệt thực tế từ API
-  const { data: browserStatsData, isLoading: browserStatsLoading } =
-    useGetPublisherBrowserStats();
+  // Lấy dữ liệu trình duyệt thực tế từ API với auto-refresh
+  const {
+    data: browserStatsData,
+    isLoading: browserStatsLoading,
+    refetch: refetchBrowserStats
+  } = useGetPublisherBrowserStats();
   const browserData = browserStatsData?.result || [];
   const totalBrowserClicks = browserData.reduce(
     (acc, browser) => acc + browser.clickCount,
     0
   );
 
-  // Lấy dữ liệu thiết bị thực tế từ API
-  const { data: deviceStatsData, isLoading: deviceStatsLoading } =
-    useGetPublisherDeviceStats();
+  // Lấy dữ liệu thiết bị thực tế từ API với auto-refresh
+  const {
+    data: deviceStatsData,
+    isLoading: deviceStatsLoading,
+    refetch: refetchDeviceStats
+  } = useGetPublisherDeviceStats();
   const devicePlatforms = deviceStatsData?.result || [];
 
-  // Lấy dữ liệu revenue thực tế từ API
-  const { data: revenueStatsData, isLoading: revenueStatsLoading } =
-    useGetPublisherRevenueStats();
+  // Lấy dữ liệu revenue thực tế từ API với auto-refresh
+  const {
+    data: revenueStatsData,
+    isLoading: revenueStatsLoading,
+    refetch: refetchRevenueStats
+  } = useGetPublisherRevenueStats();
   const revenueData = revenueStatsData?.result || [];
 
-  // Lấy dữ liệu giao dịch thực tế từ API
-  const { data: transactionData } = useGetOwnTransaction(1, 10);
+  // Lấy dữ liệu giao dịch thực tế từ API với auto-refresh
+  const { data: transactionData, refetch: refetchTransactionData } =
+    useGetOwnTransaction(1, 10);
   const transactions = transactionData?.result?.datas || [];
 
-  // Lấy thống kê tổng quan từ các API
-  const { data: walletData } = useGetOwnWallet();
+  // Lấy thống kê tổng quan từ các API với auto-refresh
+  const { data: walletData, refetch: refetchWalletData } = useGetOwnWallet();
 
   // Chuyển đổi dữ liệu giao dịch thành dữ liệu cho AreaChart với cải tiến
   const moneyChartData = transactions
@@ -102,6 +113,15 @@ const PublisherDashboard: React.FC = () => {
   );
   const netFlow = totalDeposit - totalWithdraw;
   const currentBalance = walletData?.result?.balance || 0;
+
+  // Sử dụng custom hook để auto-refresh
+  useAutoRefresh([
+    refetchBrowserStats,
+    refetchDeviceStats,
+    refetchRevenueStats,
+    refetchTransactionData,
+    refetchWalletData
+  ]);
 
   // Chuyển đổi revenue data thành format cho PieChart
   const conversionData = revenueData.map((item) => ({

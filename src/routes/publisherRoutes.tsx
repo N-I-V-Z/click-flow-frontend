@@ -19,6 +19,7 @@ const PublisherProfile = lazy(
 );
 const Wallet = lazy(() => import('@/pages/Publisher/Wallet'));
 const Courses = lazy(() => import('@/pages/Publisher/Course'));
+const SimpleChatPage = lazy(() => import('@/pages/Chat/SimpleChatPage'));
 const PublisherRoutes = [
   {
     path: '/publisher',
@@ -87,6 +88,14 @@ const PublisherRoutes = [
         element: (
           <RoleRoute allowedRoles={['Advertiser', 'Publisher']}>
             <Courses />
+          </RoleRoute>
+        )
+      },
+      {
+        path: 'chat',
+        element: (
+          <RoleRoute allowedRoles={['Publisher']}>
+            <SimpleChatPage />
           </RoleRoute>
         )
       }

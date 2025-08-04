@@ -7,11 +7,27 @@ import {
 import { Plans } from '@/types';
 import { toast } from 'react-toastify';
 import __helpers from '@/helpers';
+import { useInsufficientBalance } from '@/hooks/use-insufficient-balance';
+import InsufficientBalanceModal from '@/components/shared/insufficient-balance-modal';
 
 export default function UpgradePackage() {
   const [showUpgradeModal, setShowUpgradeModal] = useState<boolean>(false);
   const [showConfirmModal, setShowConfirmModal] = useState<boolean>(false);
   const [selectedPlan, setSelectedPlan] = useState<Plans | null>(null);
+
+  // Hook kiểm tra số dư
+  const {
+    isModalVisible: isInsufficientBalanceVisible,
+    hideModal: hideInsufficientBalanceModal,
+    checkBalance,
+    currentBalance
+  } = useInsufficientBalance({
+    action: 'nâng cấp gói dịch vụ',
+    onSuccess: () => {
+      // Khi đủ số dư, tiếp tục với confirm modal
+      setShowConfirmModal(true);
+    }
+  });
 
   // Lấy danh sách gói từ API
   const {
@@ -46,7 +62,9 @@ export default function UpgradePackage() {
   const handleSelectPlan = (plan: Plans): void => {
     if (plan.id === currentPlanId) return; // chặn chọn gói đang dùng
     setSelectedPlan(plan);
-    setShowConfirmModal(true);
+
+    // Kiểm tra số dư trước khi proceed
+    checkBalance(plan.price);
   };
 
   const handleConfirmUpgrade = async (): Promise<void> => {
@@ -69,15 +87,21 @@ export default function UpgradePackage() {
       setShowUpgradeModal(false);
       setShowConfirmModal(false);
       setSelectedPlan(null);
-    } catch (error: any) {
+    } catch (error: unknown) {
       // Xử lý lỗi từ API
       let errorMessage = 'Có lỗi xảy ra khi nâng cấp gói. Vui lòng thử lại!';
 
       // Kiểm tra nếu lỗi từ API có message cụ thể
-      if (error?.response?.data?.message) {
-        errorMessage = error.response.data.message;
-      } else if (error?.message) {
-        errorMessage = error.message;
+      if (error && typeof error === 'object' && 'response' in error) {
+        const apiError = error as {
+          response?: { data?: { message?: string } };
+          message?: string;
+        };
+        if (apiError.response?.data?.message) {
+          errorMessage = apiError.response.data.message;
+        } else if (apiError.message) {
+          errorMessage = apiError.message;
+        }
       }
 
       toast.error(errorMessage, {
@@ -315,10 +339,10 @@ export default function UpgradePackage() {
     <>
       <button
         onClick={() => setShowUpgradeModal(true)}
-        className="group relative overflow-hidden rounded-xl border-2 border-purple-200 bg-white px-6 py-3 font-bold shadow-lg transition-all duration-200 hover:scale-105 hover:border-purple-300 hover:shadow-xl"
+        className="group relative overflow-hidden rounded-lg border-2 border-purple-200 bg-white px-3 py-1.5 text-sm font-bold shadow-md transition-all duration-200 hover:scale-105 hover:border-purple-300 hover:shadow-lg"
       >
         <span className="relative z-10 flex items-center bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
-          <div className="mr-2 text-lg">⚡</div>
+          <div className="mr-1 text-sm">⚡</div>
           Nâng cấp gói
         </span>
         <div className="absolute inset-0 bg-gradient-to-r from-purple-50 to-pink-50 opacity-0 transition-opacity duration-200 group-hover:opacity-100" />
@@ -498,6 +522,21 @@ export default function UpgradePackage() {
           </div>
         </div>
       )}
+
+      {/* Insufficient Balance Modal */}
+      <InsufficientBalanceModal
+        visible={isInsufficientBalanceVisible}
+        onCancel={hideInsufficientBalanceModal}
+        requiredAmount={selectedPlan?.price}
+        currentBalance={currentBalance}
+        action="nâng cấp gói dịch vụ"
+        onRecharge={() => {
+          // Đóng tất cả modal trước khi chuyển trang
+          setShowUpgradeModal(false);
+          setShowConfirmModal(false);
+          setSelectedPlan(null);
+        }}
+      />
     </>
   );
 }

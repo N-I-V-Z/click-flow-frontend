@@ -101,7 +101,9 @@ export const useGetCampaignAdvertiser = (
       }
       return await BaseRequest.Get<PagingResponse<CampaignApiResponse>>(url);
     },
-    staleTime: 1000 * 60 * 5,
+    staleTime: 1000 * 60 * 2, // Giảm staleTime để refresh thường xuyên hơn
+    refetchOnWindowFocus: true, // Tự động refetch khi window focus
+    refetchOnMount: true, // Tự động refetch khi component mount
     retry: 3
   });
 };
@@ -422,6 +424,27 @@ export const useGetCampaignCountByStatus = (statuses: string) => {
       );
     },
     staleTime: 1000 * 60 * 5,
+    retry: 3
+  });
+};
+
+// Query mới cho API status-count
+export const useGetCampaignStatusCount = () => {
+  return useQuery({
+    queryKey: ['get-campaign-status-count'],
+    queryFn: async () => {
+      return await BaseRequest.Get<{
+        pendingCount: number;
+        approvedCount: number;
+        activingCount: number;
+        pausedCount: number;
+        canceledCount: number;
+        completedCount: number;
+      }>(`${SUB_URL}/status-count`);
+    },
+    staleTime: 1000 * 60 * 2, // Giảm staleTime để refresh thường xuyên hơn
+    refetchOnWindowFocus: true, // Tự động refetch khi window focus
+    refetchOnMount: true, // Tự động refetch khi component mount
     retry: 3
   });
 };

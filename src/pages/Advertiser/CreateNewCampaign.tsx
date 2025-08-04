@@ -25,6 +25,8 @@ import {
   ApiResponse,
   UploadImageResponse
 } from '@/types';
+import { useInsufficientBalance } from '@/hooks/use-insufficient-balance';
+import InsufficientBalanceModal from '@/components/shared/insufficient-balance-modal';
 
 const { Option } = Select;
 const { TabPane } = Tabs;
@@ -84,6 +86,16 @@ const CreateCampaignModal: React.FC<CreateCampaignModalProps> = ({
   // Hook upload image
   const { mutate: uploadImageMutation, isPending: isUploadingImage } =
     useUploadImage();
+
+  // Hook kiểm tra số dư
+  const {
+    isModalVisible: isInsufficientBalanceVisible,
+    hideModal: hideInsufficientBalanceModal,
+    checkBalance,
+    currentBalance
+  } = useInsufficientBalance({
+    action: 'tạo chiến dịch'
+  });
 
   // Tính toán loading state tổng
   const isSubmitting = isCreatingCampaign || isUploadingImage;
@@ -348,6 +360,12 @@ const CreateCampaignModal: React.FC<CreateCampaignModalProps> = ({
   };
 
   const onFinish = async (values: FormValues) => {
+    // Kiểm tra số dư trước khi tạo campaign
+    const hasEnoughBalance = checkBalance(values.budget);
+    if (!hasEnoughBalance) {
+      return; // Dừng tại đây nếu không đủ số dư, modal sẽ hiển thị
+    }
+
     const fileList = values.image || [];
     const startDate = values.startDate
       ? values.startDate.format('DD/MM/YYYY')
@@ -714,6 +732,20 @@ const CreateCampaignModal: React.FC<CreateCampaignModalProps> = ({
           </Form.Item>
         </Form>
       </Modal>
+
+      {/* Insufficient Balance Modal */}
+      <InsufficientBalanceModal
+        visible={isInsufficientBalanceVisible}
+        onCancel={hideInsufficientBalanceModal}
+        requiredAmount={form.getFieldValue('budget')}
+        currentBalance={currentBalance}
+        action="tạo chiến dịch"
+        onRecharge={() => {
+          // Đóng modal tạo campaign trước khi chuyển trang
+          onCancel();
+          form.resetFields();
+        }}
+      />
 
       {/* Toast Notification Component */}
       <ToastNotification />

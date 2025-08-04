@@ -11,6 +11,7 @@ import Loading from '@/components/ui/loading';
 import { TrafficItem, TrafficApiResponse, TokenDecoded } from '@/types';
 import __helpers from '@/helpers';
 import { useSearchParams } from 'react-router-dom';
+import { useAutoRefresh } from '@/hooks/use-auto-refresh';
 
 // Mapping function to convert API response to UI model
 function mapTrafficApiToTrafficItem(apiItem: TrafficApiResponse): TrafficItem {
@@ -53,19 +54,24 @@ export default function Traffic() {
   const {
     data: campaignsData,
     isLoading: campaignsLoading,
-    isError: campaignsError
+    isError: campaignsError,
+    refetch: refetchCampaigns
   } = useGetCampaignAdvertiser(advertiserId, undefined, 1, 100); // Get all campaigns
 
   // Fetch traffic data for selected campaign with current pagination
   const {
     data: trafficData,
     isLoading: trafficLoading,
-    isError: trafficError
+    isError: trafficError,
+    refetch: refetchTraffics
   } = useGetTraffics(
     selectedCampaignId || undefined,
     currentPage, // Use currentPage directly (1-based)
     pageSize
   );
+
+  // Auto-refresh dữ liệu khi chuyển tab
+  useAutoRefresh([refetchCampaigns, refetchTraffics]);
 
   const campaigns = useMemo(() => {
     return campaignsData?.result?.datas || [];
