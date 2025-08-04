@@ -21,7 +21,9 @@ export const useGetTraffics = (
         `${SUB_URL}/campaign/${campaignId}?PageIndex=${pageIndex}&PageSize=${pageSize}`
       );
     },
-    staleTime: 1000 * 60 * 5,
+    staleTime: 1000 * 60 * 2, // Giảm staleTime để refresh thường xuyên hơn
+    refetchOnWindowFocus: true, // Tự động refetch khi window focus
+    refetchOnMount: true, // Tự động refetch khi component mount
     retry: 3
   });
 };
@@ -84,7 +86,9 @@ export const useGetPublisherBrowserStats = () => {
         `${SUB_URL}/publishers/statistics/browsers`
       );
     },
-    staleTime: 1000 * 60 * 5,
+    staleTime: 1000 * 60 * 2, // Giảm staleTime để refresh thường xuyên hơn
+    refetchOnWindowFocus: true, // Tự động refetch khi window focus
+    refetchOnMount: true, // Tự động refetch khi component mount
     retry: 3
   });
 };
@@ -103,7 +107,9 @@ export const useGetPublisherDeviceStats = () => {
         `${SUB_URL}/publishers/statistics/devices`
       );
     },
-    staleTime: 1000 * 60 * 5,
+    staleTime: 1000 * 60 * 2, // Giảm staleTime để refresh thường xuyên hơn
+    refetchOnWindowFocus: true, // Tự động refetch khi window focus
+    refetchOnMount: true, // Tự động refetch khi component mount
     retry: 3
   });
 };
@@ -122,7 +128,9 @@ export const useGetPublisherRevenueStats = () => {
         `${SUB_URL}/publisher/revenue`
       );
     },
-    staleTime: 1000 * 60 * 5,
+    staleTime: 1000 * 60 * 2, // Giảm staleTime để refresh thường xuyên hơn
+    refetchOnWindowFocus: true, // Tự động refetch khi window focus
+    refetchOnMount: true, // Tự động refetch khi component mount
     retry: 3
   });
 };

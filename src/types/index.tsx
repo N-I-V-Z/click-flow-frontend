@@ -395,6 +395,8 @@ export interface Wallet {
   id: number;
   balance: number;
   userId: number;
+  bankCode?: string;
+  bankName?: string;
 }
 
 export interface Transaction {
@@ -405,6 +407,7 @@ export interface Transaction {
   transactionType: TransactionType;
   walletId: number;
   status: boolean;
+  wallet?: Wallet;
 }
 
 export enum TransactionType {

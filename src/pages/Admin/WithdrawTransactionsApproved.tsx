@@ -536,6 +536,93 @@ const WithdrawTransactionsApproved: React.FC = () => {
                         </div>
                       </div>
                     </div>
+
+                    {/* Bank Information Section */}
+                    {selectedTransaction.wallet ? (
+                      <div className="mt-4">
+                        <h4 className="mb-3 text-base font-semibold text-gray-800">
+                          Thông tin ngân hàng
+                        </h4>
+                        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                          <div className="flex items-center gap-3 rounded-lg border border-blue-200 bg-gradient-to-r from-blue-50 to-indigo-50 p-3">
+                            <div className="rounded-full bg-blue-500 p-2">
+                              <svg
+                                className="h-4 w-4 text-white"
+                                fill="none"
+                                stroke="currentColor"
+                                viewBox="0 0 24 24"
+                              >
+                                <path
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                  strokeWidth={2}
+                                  d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"
+                                />
+                              </svg>
+                            </div>
+                            <div>
+                              <label className="text-xs font-medium text-gray-500">
+                                Tên ngân hàng
+                              </label>
+                              <p className="text-sm font-semibold text-gray-900">
+                                {selectedTransaction.wallet.bankName ||
+                                  'Chưa cập nhật'}
+                              </p>
+                            </div>
+                          </div>
+
+                          <div className="flex items-center gap-3 rounded-lg border border-green-200 bg-gradient-to-r from-green-50 to-emerald-50 p-3">
+                            <div className="rounded-full bg-green-500 p-2">
+                              <svg
+                                className="h-4 w-4 text-white"
+                                fill="none"
+                                stroke="currentColor"
+                                viewBox="0 0 24 24"
+                              >
+                                <path
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                  strokeWidth={2}
+                                  d="M7 20l4-16m2 16l4-16M6 9h14M4 15h14"
+                                />
+                              </svg>
+                            </div>
+                            <div>
+                              <label className="text-xs font-medium text-gray-500">
+                                Số tài khoản
+                              </label>
+                              <p className="font-mono text-sm font-semibold text-gray-900">
+                                {selectedTransaction.wallet.bankCode ||
+                                  'Chưa cập nhật'}
+                              </p>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="mt-4">
+                        <div className="rounded-lg border border-orange-200 bg-orange-50 p-3">
+                          <div className="flex items-center gap-2">
+                            <svg
+                              className="h-4 w-4 text-orange-600"
+                              fill="none"
+                              stroke="currentColor"
+                              viewBox="0 0 24 24"
+                            >
+                              <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth={2}
+                                d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                              />
+                            </svg>
+                            <span className="text-sm font-medium text-orange-800">
+                              Thông tin ngân hàng chưa được tải
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                    )}
                   </div>
                 </div>
 

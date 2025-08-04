@@ -7,7 +7,9 @@ import {
   LinkOutlined,
   UnorderedListOutlined,
   WechatOutlined,
-  BellOutlined
+  BellOutlined,
+  MessageOutlined,
+  TeamOutlined
 } from '@ant-design/icons';
 import { NavLink, useLocation } from 'react-router-dom';
 import { ToastContainer } from 'react-toastify';
@@ -18,12 +20,16 @@ import { useDispatch } from 'react-redux';
 import { useRouter } from '@/routes/hooks';
 import { logout } from '@/redux/auth.slice';
 
+const { SubMenu } = Menu;
+
 const SidebarAdvertiser: React.FC = () => {
   const { mutateAsync: logoutAccount } = useLogout();
   const router = useRouter();
   const dispatch = useDispatch();
   const { isPending } = useLogout();
   const [isModalVisible, setIsModalVisible] = useState(false);
+  const [openKeys, setOpenKeys] = useState<string[]>([]);
+
   const handleCancelLogout = () => {
     setIsModalVisible(false);
   };
@@ -73,9 +79,9 @@ const SidebarAdvertiser: React.FC = () => {
   return (
     <div
       className="
-        mt-[35px] flex
+        mt-[15px] flex
         h-[calc(87vh-60px)]
-        w-60 flex-col
+        w-56 flex-col
         border-r
         border-gray-200
       "
@@ -84,6 +90,8 @@ const SidebarAdvertiser: React.FC = () => {
       <Menu
         mode="inline"
         selectedKeys={[selectedKey]}
+        openKeys={openKeys}
+        onOpenChange={setOpenKeys}
         className="flex-grow border-r-0"
         onClick={(e) => setSelectedKey(e.key)}
       >
@@ -91,28 +99,64 @@ const SidebarAdvertiser: React.FC = () => {
           key="/advertiser/dashboard"
           icon={<HomeOutlined />}
           className={`
-            hover:!border-[#9B52BF] hover:bg-white hover:!text-[#9B52BF]
-            ${selectedKey === '/advertiser/dashboard' ? '!bg-[#9B52BF] !text-white' : ''}
+            transition-all duration-200
+            ${
+              selectedKey === '/advertiser/dashboard'
+                ? '!bg-[#9B52BF] !text-white [&_.ant-menu-title-content]:!text-white [&_span]:!text-white'
+                : '[&:hover]:border-l-4 [&:hover]:!border-l-[#9B52BF] [&:hover]:!bg-white [&:hover]:!text-[#9B52BF] [&:hover_.ant-menu-title-content]:!text-[#9B52BF] [&:hover_span]:!text-[#9B52BF]'
+            }
           `}
         >
           <NavLink to="/advertiser/dashboard">Tổng quan</NavLink>
         </Menu.Item>
-        <Menu.Item
-          key="/advertiser/campaigns"
+
+        <SubMenu
+          key="campaigns"
           icon={<UnorderedListOutlined />}
-          className={`
-            hover:!border-[#9B52BF] hover:bg-white hover:!text-[#9B52BF]
-            ${selectedKey === '/advertiser/campaigns' ? '!bg-[#9B52BF] !text-white' : ''}
-          `}
+          title="Chiến dịch"
+          className="transition-all duration-200 [&:hover]:border-l-4 [&:hover]:!border-l-[#9B52BF] [&:hover_.ant-menu-submenu-title]:!bg-white [&:hover_.ant-menu-submenu-title]:!text-[#9B52BF] [&:hover_.anticon]:!text-[#9B52BF]"
         >
-          <NavLink to="/advertiser/campaigns">Chiến dịch</NavLink>
-        </Menu.Item>
+          <Menu.Item
+            key="/advertiser/campaigns"
+            icon={<UnorderedListOutlined />}
+            className={`
+              transition-all duration-200
+              ${
+                selectedKey === '/advertiser/campaigns'
+                  ? '!bg-[#9B52BF] !text-white [&_.ant-menu-title-content]:!text-white [&_span]:!text-white'
+                  : '[&:hover]:border-l-4 [&:hover]:!border-l-[#9B52BF] [&:hover]:!bg-white [&:hover]:!text-[#9B52BF] [&:hover_.ant-menu-title-content]:!text-[#9B52BF] [&:hover_span]:!text-[#9B52BF]'
+              }
+            `}
+          >
+            <NavLink to="/advertiser/campaigns">Quản lý chiến dịch</NavLink>
+          </Menu.Item>
+          <Menu.Item
+            key="/advertiser/publisher-requests"
+            icon={<TeamOutlined />}
+            className={`
+              transition-all duration-200
+              ${
+                selectedKey === '/advertiser/publisher-requests'
+                  ? '!bg-[#9B52BF] !text-white [&_.ant-menu-title-content]:!text-white [&_span]:!text-white'
+                  : '[&:hover]:border-l-4 [&:hover]:!border-l-[#9B52BF] [&:hover]:!bg-white [&:hover]:!text-[#9B52BF] [&:hover_.ant-menu-title-content]:!text-[#9B52BF] [&:hover_span]:!text-[#9B52BF]'
+              }
+            `}
+          >
+            <NavLink to="/advertiser/publisher-requests">
+              Yêu cầu tham gia
+            </NavLink>
+          </Menu.Item>
+        </SubMenu>
         <Menu.Item
           key="/advertiser/traffics"
           icon={<LinkOutlined />}
           className={`
-            hover:!border-[#9B52BF] hover:bg-white hover:!text-[#9B52BF]
-            ${selectedKey === '/advertiser/traffics' ? '!bg-[#9B52BF] !text-white' : ''}
+            transition-all duration-200
+            ${
+              selectedKey === '/advertiser/traffics'
+                ? '!bg-[#9B52BF] !text-white [&_.ant-menu-title-content]:!text-white [&_span]:!text-white'
+                : '[&:hover]:border-l-4 [&:hover]:!border-l-[#9B52BF] [&:hover]:!bg-white [&:hover]:!text-[#9B52BF] [&:hover_.ant-menu-title-content]:!text-[#9B52BF] [&:hover_span]:!text-[#9B52BF]'
+            }
           `}
         >
           <NavLink to="/advertiser/traffics">Truy cập</NavLink>
@@ -121,8 +165,12 @@ const SidebarAdvertiser: React.FC = () => {
           key="/all/forum"
           icon={<WechatOutlined />}
           className={`
-            hover:!border-[#9B52BF] hover:bg-white hover:!text-[#9B52BF]
-            ${selectedKey === '/all/forum' ? '!bg-[#9B52BF] !text-white' : ''}
+            transition-all duration-200
+            ${
+              selectedKey === '/all/forum'
+                ? '!bg-[#9B52BF] !text-white [&_.ant-menu-title-content]:!text-white [&_span]:!text-white'
+                : '[&:hover]:border-l-4 [&:hover]:!border-l-[#9B52BF] [&:hover]:!bg-white [&:hover]:!text-[#9B52BF] [&:hover_.ant-menu-title-content]:!text-[#9B52BF] [&:hover_span]:!text-[#9B52BF]'
+            }
           `}
         >
           <NavLink to="/all/forum">Diễn đàn</NavLink>
@@ -131,18 +179,40 @@ const SidebarAdvertiser: React.FC = () => {
           key="/all/news"
           icon={<BellOutlined />}
           className={`
-            hover:!border-[#9B52BF] hover:bg-white hover:!text-[#9B52BF]
-            ${selectedKey === '/all/news' ? '!bg-[#9B52BF] !text-white' : ''}
+            transition-all duration-200
+            ${
+              selectedKey === '/all/news'
+                ? '!bg-[#9B52BF] !text-white [&_.ant-menu-title-content]:!text-white [&_span]:!text-white'
+                : '[&:hover]:border-l-4 [&:hover]:!border-l-[#9B52BF] [&:hover]:!bg-white [&:hover]:!text-[#9B52BF] [&:hover_.ant-menu-title-content]:!text-[#9B52BF] [&:hover_span]:!text-[#9B52BF]'
+            }
           `}
         >
           <NavLink to="/all/news">Tin tức</NavLink>
+        </Menu.Item>
+        <Menu.Item
+          key="/advertiser/chat"
+          icon={<MessageOutlined />}
+          className={`
+            transition-all duration-200
+            ${
+              selectedKey === '/advertiser/chat'
+                ? '!bg-[#9B52BF] !text-white [&_.ant-menu-title-content]:!text-white [&_span]:!text-white'
+                : '[&:hover]:border-l-4 [&:hover]:!border-l-[#9B52BF] [&:hover]:!bg-white [&:hover]:!text-[#9B52BF] [&:hover_.ant-menu-title-content]:!text-[#9B52BF] [&:hover_span]:!text-[#9B52BF]'
+            }
+          `}
+        >
+          <NavLink to="/advertiser/chat">Trò chuyện</NavLink>
         </Menu.Item>
       </Menu>
 
       {/* Khu vực dưới cùng (Hồ sơ, Đăng xuất) */}
       <div className="border-t">
         <Menu mode="inline" className="border-r-0">
-          <Menu.Item key="profile" icon={<UserOutlined />}>
+          <Menu.Item
+            key="profile"
+            icon={<UserOutlined />}
+            className="transition-all duration-200 [&:hover]:border-l-4 [&:hover]:!border-l-[#9B52BF] [&:hover]:!bg-white [&:hover]:!text-[#9B52BF] [&:hover_.ant-menu-title-content]:!text-[#9B52BF] [&:hover_span]:!text-[#9B52BF]"
+          >
             <NavLink to="/advertiser/advertiser-profile">Hồ sơ</NavLink>
           </Menu.Item>
           <Menu.Item

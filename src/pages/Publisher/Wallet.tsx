@@ -98,6 +98,18 @@ const PublisherWallet = () => {
 
   const currentPage = pageIndex + 1; // Convert về 1-based cho display
 
+  // Tự động mở popup nạp tiền nếu có parameter autoRecharge
+  useEffect(() => {
+    const autoRecharge = searchParams?.get('autoRecharge');
+    if (autoRecharge === 'true') {
+      setIsDepositDialogOpen(true);
+      // Xóa parameter sau khi đã mở popup
+      const newSearchParams = new URLSearchParams(searchParams);
+      newSearchParams.delete('autoRecharge');
+      setSearchParams(newSearchParams);
+    }
+  }, [searchParams, setSearchParams]);
+
   // API calls
   const {
     data: walletData,

@@ -10,12 +10,17 @@ import {
   ResponsiveContainer,
   Legend
 } from 'recharts';
+import { ChevronLeft } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { useRouter } from '@/routes/hooks';
 import { useGetOwnWallet } from '@/queries/wallet.query';
 import { useGetOwnTransaction } from '@/queries/transaction.query';
 import { Transaction, TransactionType } from '@/types';
 import Recharge from '../Publisher/Recharge';
 
 const Wallet: React.FC = () => {
+  const router = useRouter();
+
   // State cho modal nạp tiền
   const [isDepositDialogOpen, setIsDepositDialogOpen] = useState(false);
 
@@ -157,9 +162,17 @@ const Wallet: React.FC = () => {
         <div className="mx-auto max-w-6xl">
           {/* Header với tiêu đề và card thông tin */}
           <div className="mb-8 flex flex-col items-center justify-between sm:flex-row">
-            <h1 className="mb-4 text-4xl font-bold text-gray-800 sm:mb-0">
-              Ví cá nhân
-            </h1>
+            <div className="mb-4 flex items-center gap-4 sm:mb-0">
+              <Button
+                variant="ghost"
+                size="sm"
+                className="rounded-xl p-2 transition-colors hover:bg-slate-100"
+                onClick={() => router.push('/advertiser/advertiser-profile')}
+              >
+                <ChevronLeft className="h-5 w-5 text-slate-600" />
+              </Button>
+              <h1 className="text-4xl font-bold text-gray-800">Ví cá nhân</h1>
+            </div>
             <div className="flex gap-6">
               {/* Card Tài sản của bạn */}
               <div className="flex transform items-center rounded-xl bg-white p-5 shadow-lg transition hover:scale-105">

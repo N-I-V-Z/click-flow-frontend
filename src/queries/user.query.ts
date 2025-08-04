@@ -22,9 +22,10 @@ export const useGetUserDetail = (userId: number | undefined) => {
       );
     },
     enabled: !!userId && !isNaN(userId), // Chỉ chạy khi có userId hợp lệ
-    staleTime: 1000 * 60 * 5,
+    staleTime: 1000 * 60 * 2, // Giảm staleTime để refresh thường xuyên hơn
     retry: false, // Don't retry on error so we can show form immediately
-    refetchOnWindowFocus: false
+    refetchOnWindowFocus: true, // Bật auto-refresh khi window focus
+    refetchOnMount: true // Tự động refetch khi component mount
   });
 };
 

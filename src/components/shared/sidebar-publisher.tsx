@@ -8,7 +8,8 @@ import {
   // SolutionOutlined,
   SnippetsOutlined,
   WechatOutlined,
-  BellOutlined
+  BellOutlined,
+  MessageOutlined
 } from '@ant-design/icons';
 import { NavLink, useLocation } from 'react-router-dom';
 import { ToastContainer } from 'react-toastify';
@@ -75,9 +76,9 @@ const SidebarPublisher: React.FC = () => {
   return (
     <div
       className="
-        mt-[35px] flex
+        mt-[25px] flex
         h-[calc(87vh-60px)]
-        w-60 flex-col
+        w-56 flex-col
         border-r
         border-gray-200
       "
@@ -93,8 +94,12 @@ const SidebarPublisher: React.FC = () => {
           key="/publisher/dashboard"
           icon={<HomeOutlined />}
           className={`
-            hover:!border-[#9B52BF] hover:bg-white hover:!text-[#9B52BF] 
-            ${selectedKey === '/publisher/dashboard' ? '!bg-[#9B52BF] !text-white' : ''}
+            transition-all duration-200
+            ${
+              selectedKey === '/publisher/dashboard'
+                ? '!bg-[#9B52BF] !text-white [&_.ant-menu-title-content]:!text-white [&_span]:!text-white'
+                : '[&:hover]:border-l-4 [&:hover]:!border-l-[#9B52BF] [&:hover]:!bg-white [&:hover]:!text-[#9B52BF] [&:hover_.ant-menu-title-content]:!text-[#9B52BF] [&:hover_span]:!text-[#9B52BF]'
+            }
           `}
         >
           <NavLink to="/publisher/dashboard">Tổng quan</NavLink>
@@ -103,8 +108,12 @@ const SidebarPublisher: React.FC = () => {
           key="/publisher/campaign"
           icon={<ReadOutlined />}
           className={`
-            hover:!border-[#9B52BF] hover:bg-white hover:!text-[#9B52BF] 
-            ${selectedKey === '/publisher/campaign' ? '!bg-[#9B52BF] !text-white' : ''}
+            transition-all duration-200
+            ${
+              selectedKey === '/publisher/campaign'
+                ? '!bg-[#9B52BF] !text-white [&_.ant-menu-title-content]:!text-white [&_span]:!text-white'
+                : '[&:hover]:border-l-4 [&:hover]:!border-l-[#9B52BF] [&:hover]:!bg-white [&:hover]:!text-[#9B52BF] [&:hover_.ant-menu-title-content]:!text-[#9B52BF] [&:hover_span]:!text-[#9B52BF]'
+            }
           `}
         >
           <NavLink to="/publisher/campaign">Chiến dịch</NavLink>
@@ -123,9 +132,13 @@ const SidebarPublisher: React.FC = () => {
           key="/all/forum"
           icon={<WechatOutlined />}
           className={`
-    hover:!border-[#9B52BF] hover:bg-white hover:!text-[#9B52BF]
-    ${selectedKey === '/all/forum' ? '!bg-[#9B52BF] !text-white' : ''}
-  `}
+            transition-all duration-200
+            ${
+              selectedKey === '/all/forum'
+                ? '!bg-[#9B52BF] !text-white [&_.ant-menu-title-content]:!text-white [&_span]:!text-white'
+                : '[&:hover]:border-l-4 [&:hover]:!border-l-[#9B52BF] [&:hover]:!bg-white [&:hover]:!text-[#9B52BF] [&:hover_.ant-menu-title-content]:!text-[#9B52BF] [&:hover_span]:!text-[#9B52BF]'
+            }
+          `}
         >
           <NavLink to="/all/forum">Diễn đàn</NavLink>
         </Menu.Item>
@@ -134,9 +147,13 @@ const SidebarPublisher: React.FC = () => {
           key="/publisher/courses"
           icon={<SnippetsOutlined />}
           className={`
-    hover:!border-[#9B52BF] hover:bg-white hover:!text-[#9B52BF]
-    ${selectedKey === '/publisher/courses' ? '!bg-[#9B52BF] !text-white' : ''}
-  `}
+            transition-all duration-200
+            ${
+              selectedKey === '/publisher/courses'
+                ? '!bg-[#9B52BF] !text-white [&_.ant-menu-title-content]:!text-white [&_span]:!text-white'
+                : '[&:hover]:border-l-4 [&:hover]:!border-l-[#9B52BF] [&:hover]:!bg-white [&:hover]:!text-[#9B52BF] [&:hover_.ant-menu-title-content]:!text-[#9B52BF] [&:hover_span]:!text-[#9B52BF]'
+            }
+          `}
         >
           <NavLink to="/publisher/courses">Khóa học</NavLink>
         </Menu.Item>
@@ -144,11 +161,29 @@ const SidebarPublisher: React.FC = () => {
           key="/all/news"
           icon={<BellOutlined />}
           className={`
-    hover:!border-[#9B52BF] hover:bg-white hover:!text-[#9B52BF]
-    ${selectedKey === '/all/news' ? '!bg-[#9B52BF] !text-white' : ''}
-  `}
+            transition-all duration-200
+            ${
+              selectedKey === '/all/news'
+                ? '!bg-[#9B52BF] !text-white [&_.ant-menu-title-content]:!text-white [&_span]:!text-white'
+                : '[&:hover]:border-l-4 [&:hover]:!border-l-[#9B52BF] [&:hover]:!bg-white [&:hover]:!text-[#9B52BF] [&:hover_.ant-menu-title-content]:!text-[#9B52BF] [&:hover_span]:!text-[#9B52BF]'
+            }
+          `}
         >
           <NavLink to="/all/news">Tin tức</NavLink>
+        </Menu.Item>
+        <Menu.Item
+          key="/publisher/chat"
+          icon={<MessageOutlined />}
+          className={`
+            transition-all duration-200
+            ${
+              selectedKey === '/publisher/chat'
+                ? '!bg-[#9B52BF] !text-white [&_.ant-menu-title-content]:!text-white [&_span]:!text-white'
+                : '[&:hover]:border-l-4 [&:hover]:!border-l-[#9B52BF] [&:hover]:!bg-white [&:hover]:!text-[#9B52BF] [&:hover_.ant-menu-title-content]:!text-[#9B52BF] [&:hover_span]:!text-[#9B52BF]'
+            }
+          `}
+        >
+          <NavLink to="/publisher/chat">Trò chuyện</NavLink>
         </Menu.Item>
       </Menu>
 
@@ -158,7 +193,7 @@ const SidebarPublisher: React.FC = () => {
           <Menu.Item
             key="profile"
             icon={<UserOutlined />}
-            className="hover:!border-[#9B52BF] hover:bg-white hover:!text-[#9B52BF]"
+            className="transition-all duration-200 [&:hover]:border-l-4 [&:hover]:!border-l-[#9B52BF] [&:hover]:!bg-white [&:hover]:!text-[#9B52BF] [&:hover_.ant-menu-title-content]:!text-[#9B52BF] [&:hover_span]:!text-[#9B52BF]"
           >
             <NavLink to="/publisher/publisher-profile">Hồ sơ</NavLink>
           </Menu.Item>

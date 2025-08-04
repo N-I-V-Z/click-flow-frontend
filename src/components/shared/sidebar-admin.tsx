@@ -114,7 +114,7 @@ const SidebarAdmin: React.FC = () => {
   return (
     <div
       className="
-        mt-[35px] flex
+        mt-[25px] flex
         h-[calc(90vh-64px)]
         w-64 flex-col
         border-r
@@ -133,8 +133,12 @@ const SidebarAdmin: React.FC = () => {
           key="/admin/dashboard"
           icon={<HomeOutlined />}
           className={`
-            hover:!border-[#9B52BF] hover:bg-white hover:!text-[#9B52BF]
-            ${selectedKey === '/admin/dashboard' ? '!bg-[#9B52BF] !text-white' : ''}
+            transition-all duration-200
+            ${
+              selectedKey === '/admin/dashboard'
+                ? '!bg-[#9B52BF] !text-white [&_.ant-menu-title-content]:!text-white [&_span]:!text-white'
+                : '[&:hover]:border-l-4 [&:hover]:!border-l-[#9B52BF] [&:hover]:!bg-white [&:hover]:!text-[#9B52BF] [&:hover_.ant-menu-title-content]:!text-[#9B52BF] [&:hover_span]:!text-[#9B52BF]'
+            }
           `}
         >
           <NavLink to="/admin/dashboard">Tổng quan</NavLink>
@@ -144,14 +148,18 @@ const SidebarAdmin: React.FC = () => {
           key="campaign"
           icon={<FileTextOutlined />}
           title="Chiến dịch"
-          className="hover:!border-[#9B52BF] hover:bg-white hover:!text-[#9B52BF]"
+          className="transition-all duration-200 [&:hover]:border-l-4 [&:hover]:!border-l-[#9B52BF] [&:hover_.ant-menu-submenu-title]:!bg-white [&:hover_.ant-menu-submenu-title]:!text-[#9B52BF] [&:hover_.anticon]:!text-[#9B52BF]"
         >
           <Menu.Item
             key="/admin/campaignlist"
             icon={<OrderedListOutlined />}
             className={`
-              hover:!border-[#9B52BF] hover:bg-white hover:!text-[#9B52BF]
-              ${selectedKey === '/admin/campaignlist' ? '!bg-[#9B52BF] !text-white' : ''}
+              transition-all duration-200
+              ${
+                selectedKey === '/admin/campaignlist'
+                  ? '!bg-[#9B52BF] !text-white [&_.ant-menu-title-content]:!text-white [&_span]:!text-white'
+                  : '[&:hover]:border-l-4 [&:hover]:!border-l-[#9B52BF] [&:hover]:!bg-white [&:hover]:!text-[#9B52BF] [&:hover_.ant-menu-title-content]:!text-[#9B52BF] [&:hover_span]:!text-[#9B52BF]'
+              }
             `}
           >
             <NavLink to="/admin/campaignlist">Danh sách chiến dịch</NavLink>
@@ -160,8 +168,12 @@ const SidebarAdmin: React.FC = () => {
             key="/admin/campaignrequest"
             icon={<PullRequestOutlined />}
             className={`
-              hover:!border-[#9B52BF] hover:bg-white hover:!text-[#9B52BF]
-              ${selectedKey === '/admin/campaignrequest' ? '!bg-[#9B52BF] !text-white' : ''}
+              transition-all duration-200
+              ${
+                selectedKey === '/admin/campaignrequest'
+                  ? '!bg-[#9B52BF] !text-white [&_.ant-menu-title-content]:!text-white [&_span]:!text-white'
+                  : '[&:hover]:border-l-4 [&:hover]:!border-l-[#9B52BF] [&:hover]:!bg-white [&:hover]:!text-[#9B52BF] [&:hover_.ant-menu-title-content]:!text-[#9B52BF] [&:hover_span]:!text-[#9B52BF]'
+              }
             `}
           >
             <NavLink to="/admin/campaignrequest">Yêu cầu chiến dịch</NavLink>
@@ -172,8 +184,12 @@ const SidebarAdmin: React.FC = () => {
           key="/admin/manageadvertiser"
           icon={<BiBuildings />}
           className={`
-            hover:!border-[#9B52BF] hover:bg-white hover:!text-[#9B52BF]
-            ${selectedKey === '/admin/manageadvertiser' ? '!bg-[#9B52BF] !text-white' : ''}
+            transition-all duration-200
+            ${
+              selectedKey === '/admin/manageadvertiser'
+                ? '!bg-[#9B52BF] !text-white [&_.ant-menu-title-content]:!text-white [&_span]:!text-white'
+                : '[&:hover]:border-l-4 [&:hover]:!border-l-[#9B52BF] [&:hover]:!bg-white [&:hover]:!text-[#9B52BF] [&:hover_.ant-menu-title-content]:!text-[#9B52BF] [&:hover_span]:!text-[#9B52BF]'
+            }
           `}
         >
           <NavLink to="/admin/manageadvertiser">Nhà quảng cáo</NavLink>
@@ -183,8 +199,12 @@ const SidebarAdmin: React.FC = () => {
           key="/admin/managepublisher"
           icon={<UserOutlined />}
           className={`
-            hover:!border-[#9B52BF] hover:bg-white hover:!text-[#9B52BF]
-            ${selectedKey === '/admin/managepublisher' ? '!bg-[#9B52BF] !text-white' : ''}
+            transition-all duration-200
+            ${
+              selectedKey === '/admin/managepublisher'
+                ? '!bg-[#9B52BF] !text-white [&_.ant-menu-title-content]:!text-white [&_span]:!text-white'
+                : '[&:hover]:border-l-4 [&:hover]:!border-l-[#9B52BF] [&:hover]:!bg-white [&:hover]:!text-[#9B52BF] [&:hover_.ant-menu-title-content]:!text-[#9B52BF] [&:hover_span]:!text-[#9B52BF]'
+            }
           `}
         >
           <NavLink to="/admin/managepublisher">Nhà tiếp thị</NavLink>
@@ -194,14 +214,19 @@ const SidebarAdmin: React.FC = () => {
           key="withdraw-transactions"
           icon={<DollarCircleOutlined />}
           title="Giao dịch rút tiền"
-          className="hover:!border-[#9B52BF] hover:bg-white hover:!text-[#9B52BF]"
+          className="transition-all duration-200 [&:hover]:border-l-4 [&:hover]:!border-l-[#9B52BF] [&:hover_.ant-menu-submenu-title]:!bg-white [&:hover_.ant-menu-submenu-title]:!text-[#9B52BF] [&:hover_.anticon]:!text-[#9B52BF]"
         >
           <Menu.Item
             key="/admin/withdraw-transactions/pending"
             icon={<ClockCircleOutlined />}
             className={`
-              hover:!border-[#9B52BF] hover:bg-white hover:!text-[#9B52BF]
-              ${selectedKey === '/admin/withdraw-transactions/pending' || selectedKey.includes('/admin/withdraw-transactions/pending') ? '!bg-[#9B52BF] !text-white' : ''}
+              transition-all duration-200
+              ${
+                selectedKey === '/admin/withdraw-transactions/pending' ||
+                selectedKey.includes('/admin/withdraw-transactions/pending')
+                  ? '!bg-[#9B52BF] !text-white [&_.ant-menu-title-content]:!text-white [&_span]:!text-white'
+                  : '[&:hover]:border-l-4 [&:hover]:!border-l-[#9B52BF] [&:hover]:!bg-white [&:hover]:!text-[#9B52BF] [&:hover_.ant-menu-title-content]:!text-[#9B52BF] [&:hover_span]:!text-[#9B52BF]'
+              }
             `}
           >
             <NavLink to="/admin/withdraw-transactions/pending">
@@ -212,8 +237,13 @@ const SidebarAdmin: React.FC = () => {
             key="/admin/withdraw-transactions/approved"
             icon={<CheckCircleOutlined />}
             className={`
-              hover:!border-[#9B52BF] hover:bg-white hover:!text-[#9B52BF]
-              ${selectedKey === '/admin/withdraw-transactions/approved' || selectedKey.includes('/admin/withdraw-transactions/approved') ? '!bg-[#9B52BF] !text-white' : ''}
+              transition-all duration-200
+              ${
+                selectedKey === '/admin/withdraw-transactions/approved' ||
+                selectedKey.includes('/admin/withdraw-transactions/approved')
+                  ? '!bg-[#9B52BF] !text-white [&_.ant-menu-title-content]:!text-white [&_span]:!text-white'
+                  : '[&:hover]:border-l-4 [&:hover]:!border-l-[#9B52BF] [&:hover]:!bg-white [&:hover]:!text-[#9B52BF] [&:hover_.ant-menu-title-content]:!text-[#9B52BF] [&:hover_span]:!text-[#9B52BF]'
+              }
             `}
           >
             <NavLink to="/admin/withdraw-transactions/approved">
@@ -226,8 +256,12 @@ const SidebarAdmin: React.FC = () => {
           key="/admin/support"
           icon={<MessageOutlined />}
           className={`
-            hover:!border-[#9B52BF] hover:bg-white hover:!text-[#9B52BF]
-            ${selectedKey === '/admin/support' ? '!bg-[#9B52BF] !text-white' : ''}
+            transition-all duration-200
+            ${
+              selectedKey === '/admin/support'
+                ? '!bg-[#9B52BF] !text-white [&_.ant-menu-title-content]:!text-white [&_span]:!text-white'
+                : '[&:hover]:border-l-4 [&:hover]:!border-l-[#9B52BF] [&:hover]:!bg-white [&:hover]:!text-[#9B52BF] [&:hover_.ant-menu-title-content]:!text-[#9B52BF] [&:hover_span]:!text-[#9B52BF]'
+            }
           `}
         >
           <NavLink to="/admin/support">Hỗ trợ</NavLink>
@@ -237,8 +271,12 @@ const SidebarAdmin: React.FC = () => {
           key="/admin/course"
           icon={<FileTextOutlined />}
           className={`
-            hover:!border-[#9B52BF] hover:bg-white hover:!text-[#9B52BF]
-            ${selectedKey === '/admin/course' ? '!bg-[#9B52BF] !text-white' : ''}
+            transition-all duration-200
+            ${
+              selectedKey === '/admin/course'
+                ? '!bg-[#9B52BF] !text-white [&_.ant-menu-title-content]:!text-white [&_span]:!text-white'
+                : '[&:hover]:border-l-4 [&:hover]:!border-l-[#9B52BF] [&:hover]:!bg-white [&:hover]:!text-[#9B52BF] [&:hover_.ant-menu-title-content]:!text-[#9B52BF] [&:hover_span]:!text-[#9B52BF]'
+            }
           `}
         >
           <NavLink to="/admin/course">Khóa học</NavLink>
@@ -247,8 +285,12 @@ const SidebarAdmin: React.FC = () => {
           key="/admin/plan"
           icon={<GiftOutlined />}
           className={`
-            hover:!border-[#9B52BF] hover:bg-white hover:!text-[#9B52BF]
-            ${selectedKey === '/admin/plan' ? '!bg-[#9B52BF] !text-white' : ''}
+            transition-all duration-200
+            ${
+              selectedKey === '/admin/plan'
+                ? '!bg-[#9B52BF] !text-white [&_.ant-menu-title-content]:!text-white [&_span]:!text-white'
+                : '[&:hover]:border-l-4 [&:hover]:!border-l-[#9B52BF] [&:hover]:!bg-white [&:hover]:!text-[#9B52BF] [&:hover_.ant-menu-title-content]:!text-[#9B52BF] [&:hover_span]:!text-[#9B52BF]'
+            }
           `}
         >
           <NavLink to="/admin/plan">Quản lí gói</NavLink>
@@ -262,8 +304,12 @@ const SidebarAdmin: React.FC = () => {
             key="/admin/change-password"
             icon={<KeyOutlined />}
             className={`
-              hover:!border-[#9B52BF] hover:bg-white hover:!text-[#9B52BF]
-              ${selectedKey === '/admin/change-password' ? '!bg-[#9B52BF] !text-white' : ''}
+              transition-all duration-200
+              ${
+                selectedKey === '/admin/change-password'
+                  ? '!bg-[#9B52BF] !text-white [&_.ant-menu-title-content]:!text-white [&_span]:!text-white'
+                  : '[&:hover]:border-l-4 [&:hover]:!border-l-[#9B52BF] [&:hover]:!bg-white [&:hover]:!text-[#9B52BF] [&:hover_.ant-menu-title-content]:!text-[#9B52BF] [&:hover_span]:!text-[#9B52BF]'
+              }
             `}
           >
             <NavLink to="/admin/change-password">Đổi mật khẩu</NavLink>

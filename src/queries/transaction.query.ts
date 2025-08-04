@@ -21,7 +21,9 @@ export const useGetOwnTransaction = (
       }
       return await BaseRequest.Get<PagingResponse<Transaction>>(url);
     },
-    staleTime: 1000 * 60 * 5,
+    staleTime: 1000 * 60 * 2, // Giảm staleTime để refresh thường xuyên hơn
+    refetchOnWindowFocus: true, // Tự động refetch khi window focus
+    refetchOnMount: true, // Tự động refetch khi component mount
     retry: 3
   });
 };

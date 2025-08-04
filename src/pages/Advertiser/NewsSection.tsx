@@ -179,27 +179,7 @@ const NewsSection: React.FC = () => {
       </div>
 
       <div className="relative z-10 p-4">
-        {/* Compact Header */}
-        <div className="relative mt-12">
-          <div className="text-center">
-            <div className="mb-3 flex items-center justify-center">
-              <SparklesIcon className="animate-spin-slow mr-2 h-12 w-12 text-yellow-400" />
-              <div className="relative mb-8 text-center">
-                <div className="relative">
-                  <div className="mb-3 flex items-center justify-center">
-                    <h1 className="relative bg-gradient-to-r from-white via-purple-200 to-pink-200 bg-clip-text text-3xl font-black text-transparent drop-shadow-lg">
-                      Tin Tức Affiliate Network
-                      <div className="absolute -bottom-1 left-1/2 h-0.5 w-24 -translate-x-1/2 transform rounded-full bg-gradient-to-r from-purple-400 to-pink-400"></div>
-                    </h1>
-                  </div>
-                </div>
-              </div>
-              <SparklesIcon className="animate-spin-slow ml-2 h-12 w-12 text-yellow-400" />
-            </div>
-          </div>
-        </div>
-
-        <div className="grid grid-cols-1 gap-4 lg:grid-cols-5">
+        <div className="grid grid-cols-1 gap-4 pt-10 lg:grid-cols-5">
           {/* Compact Featured News (F) */}
           <div className="lg:col-span-3">
             <div

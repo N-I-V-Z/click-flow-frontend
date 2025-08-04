@@ -8,6 +8,9 @@ const AdvertiserLayout = lazy(
 );
 const AdvertiserDashboard = lazy(() => import('@/pages/Advertiser'));
 const AdvertiserCampaigns = lazy(() => import('@/pages/Advertiser/Campaign'));
+const PublisherRequests = lazy(
+  () => import('@/pages/Advertiser/PublisherRequests')
+);
 const AdvertiserProfile = lazy(
   () => import('@/pages/Advertiser/AdvertiserProfile')
 );
@@ -17,6 +20,7 @@ const ChangePassword = lazy(
 const Wallet = lazy(() => import('@/pages/Advertiser/Wallet'));
 const Traffic = lazy(() => import('@/pages/Advertiser/Traffic'));
 const Forum = lazy(() => import('@/pages/Advertiser/Forum'));
+const SimpleChatPage = lazy(() => import('@/pages/Chat/SimpleChatPage'));
 const advertiserRoutes = [
   {
     path: '/advertiser',
@@ -44,6 +48,14 @@ const advertiserRoutes = [
           <RoleRoute allowedRoles={['Advertiser']}>
             {' '}
             <AdvertiserCampaigns />
+          </RoleRoute>
+        )
+      },
+      {
+        path: 'publisher-requests',
+        element: (
+          <RoleRoute allowedRoles={['Advertiser']}>
+            <PublisherRequests />
           </RoleRoute>
         )
       },
@@ -85,6 +97,14 @@ const advertiserRoutes = [
         element: (
           <RoleRoute allowedRoles={['Advertiser']}>
             <Forum />
+          </RoleRoute>
+        )
+      },
+      {
+        path: 'chat',
+        element: (
+          <RoleRoute allowedRoles={['Advertiser']}>
+            <SimpleChatPage />
           </RoleRoute>
         )
       }
