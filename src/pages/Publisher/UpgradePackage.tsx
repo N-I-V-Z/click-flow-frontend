@@ -20,8 +20,7 @@ export default function UpgradePackage() {
     isModalVisible: isInsufficientBalanceVisible,
     hideModal: hideInsufficientBalanceModal,
     checkBalance,
-    currentBalance,
-    requiredAmount
+    currentBalance
   } = useInsufficientBalance({
     action: 'nâng cấp gói dịch vụ',
     onSuccess: () => {

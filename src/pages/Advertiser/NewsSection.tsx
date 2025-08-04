@@ -3,8 +3,7 @@ import {
   ChevronLeftIcon,
   ChevronRightIcon,
   CalendarDaysIcon,
-  TagIcon,
-  SparklesIcon
+  TagIcon
 } from '@heroicons/react/24/outline';
 import { newsData, NewsItem, getTagLabel, getTagColor } from './DataNews';
 
@@ -23,9 +22,9 @@ const NewsSection: React.FC = () => {
   const paginatedNews = otherNews.slice(startIndex, startIndex + itemsPerPage);
 
   // Fill empty slots if not enough news for the page
-  const filledPaginatedNews = [...paginatedNews];
+  const filledPaginatedNews: (NewsItem | null)[] = [...paginatedNews];
   while (filledPaginatedNews.length < itemsPerPage && totalPages > 1) {
-    filledPaginatedNews.push(null as any);
+    filledPaginatedNews.push(null);
   }
 
   const handleNewsClick = (news: NewsItem) => {

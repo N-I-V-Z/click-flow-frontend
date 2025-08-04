@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Avatar, Typography, Spin, Input } from 'antd';
-import { UserOutlined, SearchOutlined } from '@ant-design/icons';
+import { Avatar, Typography, Spin } from 'antd';
+import { UserOutlined } from '@ant-design/icons';
 import { Send, Smile, Search } from 'lucide-react';
 import {
   useGetMessagesByConversationId,
