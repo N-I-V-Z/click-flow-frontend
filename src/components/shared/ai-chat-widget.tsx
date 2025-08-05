@@ -128,7 +128,7 @@ const AIChatWidget: React.FC<AIChatWidgetProps> = ({ className }) => {
           </div>
 
           {/* Messages */}
-          <div className="scrollbar-thin scrollbar-thumb-purple-400 scrollbar-track-transparent flex flex-1 flex-col gap-3 overflow-y-auto bg-transparent p-3">
+          <div className="scrollbar-thin scrollbar-thumb-purple-400 scrollbar-track-transparent flex flex-1 flex-col gap-3 overflow-y-auto bg-white/5 p-3 backdrop-blur-sm">
             {messages.map((msg) => (
               <div key={msg.id}>
                 <div
@@ -194,10 +194,10 @@ const AIChatWidget: React.FC<AIChatWidgetProps> = ({ className }) => {
           </div>
 
           {/* Input */}
-          <div className="rounded-b-2xl border-t border-purple-300 bg-gradient-to-r from-purple-500 to-blue-500 p-3 backdrop-blur-sm">
+          <div className="rounded-b-2xl border-t border-white/20 bg-gradient-to-r from-purple-200/30 via-pink-200/20 to-blue-200/30 p-3 backdrop-blur-xl">
             <div className="flex items-end gap-2">
               <textarea
-                className="max-h-16 min-h-[20px] flex-1 resize-none rounded-2xl border border-purple-300 bg-white/95 px-3 py-2 font-sans text-sm text-gray-800 placeholder-gray-500 outline-none backdrop-blur-sm transition-all duration-200 focus:border-purple-500 focus:bg-white focus:shadow-lg focus:shadow-purple-400/20"
+                className="max-h-16 min-h-[20px] flex-1 resize-none rounded-2xl border-2 border-purple-300/50 bg-white/40 px-3 py-2 font-sans text-sm text-gray-700 placeholder-gray-500 outline-none backdrop-blur-xl transition-all duration-200 focus:border-purple-400/70 focus:bg-white/50 focus:shadow-lg focus:shadow-purple-400/20"
                 placeholder="Nhập câu hỏi của bạn..."
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
@@ -216,6 +216,7 @@ const AIChatWidget: React.FC<AIChatWidgetProps> = ({ className }) => {
                   target.style.height = target.scrollHeight + 'px';
                 }}
               />
+
               <button
                 className="flex h-8 w-8 cursor-pointer items-center justify-center rounded-full border-none bg-gradient-to-br from-purple-400 via-pink-400 to-blue-400 text-sm font-semibold text-white backdrop-blur-sm transition-all duration-200 hover:scale-105 hover:from-purple-500 hover:via-pink-500 hover:to-blue-500 hover:shadow-lg hover:shadow-purple-400/50 disabled:transform-none disabled:cursor-not-allowed disabled:bg-gray-400 disabled:shadow-none"
                 onClick={handleSend}
@@ -224,7 +225,7 @@ const AIChatWidget: React.FC<AIChatWidgetProps> = ({ className }) => {
                 <Send className="h-3 w-3" />
               </button>
             </div>
-            <div className="mt-2 text-center text-xs italic text-white">
+            <div className="mt-2 text-center text-xs italic text-gray-600">
               Nhấn Enter để gửi tin nhắn
             </div>
           </div>

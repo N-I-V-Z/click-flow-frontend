@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Modal, Form, Input, message, Tooltip } from 'antd';
 import {
   VideoCameraOutlined,
@@ -55,6 +55,16 @@ const VideoManagement: React.FC<VideoManagementProps> = ({
   const videos = Array.isArray(videosResponse?.result)
     ? videosResponse.result
     : [];
+
+  // Clear selected video and forms when courseId changes
+  useEffect(() => {
+    setSelectedVideo(null);
+    setIsAddModalVisible(false);
+    setIsEditModalVisible(false);
+    setIsDeleteModalVisible(false);
+    addForm.resetFields();
+    editForm.resetFields();
+  }, [courseId, addForm, editForm]);
 
   // Handlers for Add Video
   const handleAddVideo = () => {

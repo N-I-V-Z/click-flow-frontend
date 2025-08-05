@@ -129,43 +129,56 @@ const PublisherDashboard: React.FC = () => {
     value: item.revenue
   }));
 
-  // Tạo màu sắc động dựa trên số lượng campaign (tone màu xanh dương)
+  // Tạo màu sắc động cho biểu đồ - tone hài hòa với 4 màu chính
   const generateColors = (count: number) => {
     const baseColors = [
-      '#0088FE', // Xanh dương chính
-      '#00C49F', // Xanh lá
-      '#FFBB28', // Vàng
-      '#FF8042', // Cam
-      '#8884D8', // Tím
-      '#82CA9D', // Xanh lá nhạt
-      '#FFC658', // Vàng nhạt
-      '#FF7C7C', // Đỏ nhạt
-      '#8DD1E1', // Xanh dương nhạt
-      '#D084D0' // Tím nhạt
+      '#0088FE', // Blue - màu chính stat card
+      '#00C49F', // Emerald - màu chính stat card
+      '#FFBB28', // Yellow/Orange - màu chính stat card
+      '#AA66CC', // Purple - màu chính stat card
+      '#0078E6', // Blue đậm hơn
+      '#00B88A', // Emerald đậm hơn
+      '#FFB020', // Orange đậm hơn
+      '#9955BB', // Purple đậm hơn
+      '#4D9AFF', // Blue nhạt hơn
+      '#33D4B0', // Emerald nhạt hơn
+      '#FFCB48', // Yellow nhạt hơn
+      '#BB77DD' // Purple nhạt hơn
     ];
 
     if (count <= baseColors.length) {
       return baseColors.slice(0, count);
     }
 
-    // Nếu có nhiều hơn 10 campaign, tạo thêm màu
+    // Nếu có nhiều hơn 12 campaign, tạo thêm màu
     const colors = [...baseColors];
     for (let i = baseColors.length; i < count; i++) {
       const hue = (i * 137.508) % 360; // Golden angle approximation
-      colors.push(`hsl(${hue}, 70%, 50%)`);
+      colors.push(`hsl(${hue}, 65%, 55%)`);
     }
     return colors;
   };
 
   const COLORS = generateColors(conversionData.length);
 
+  // Tạo màu riêng cho biểu đồ trình duyệt và thiết bị
+  const BROWSER_COLORS = [
+    '#0088FE', // Blue cho Chrome
+    '#00C49F', // Emerald cho Firefox
+    '#FFBB28', // Yellow/Orange cho Safari
+    '#AA66CC', // Purple cho Edge
+    '#0078E6', // Blue đậm cho Opera
+    '#FF6B6B' // Red cho các trình duyệt khác
+  ];
+
   // Mã màu 16: #8B5CF6
   // const COLOR_16 = '#8B5CF6';
 
-  // Định nghĩa lại màu đa dạng cho từng loại dữ liệu
-  const COLOR_DEPOSIT = '#0088FE'; // Tổng nạp
-  const COLOR_WITHDRAW = '#00C49F'; // Tổng rút
-  const COLOR_BALANCE = '#AA66CC'; // Số dư
+  // Định nghĩa màu sắc hài hòa với 4 màu chính của stat cards
+  const COLOR_DEPOSIT = '#0088FE'; // Blue - từ stat card
+  const COLOR_WITHDRAW = '#00C49F'; // Emerald - từ stat card
+  const COLOR_BALANCE = '#AA66CC'; // Purple - từ stat card
+
   // Framer Motion
   const fadeInUp = {
     initial: { opacity: 0, y: 20 },
@@ -450,25 +463,25 @@ const PublisherDashboard: React.FC = () => {
                           />
                         </linearGradient>
                       </defs>
-                      <CartesianGrid strokeDasharray="3 3" stroke="#ede9fe" />
+                      <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
                       <XAxis
                         dataKey="time"
-                        stroke="#8B5CF6"
+                        stroke="#64748b"
                         fontSize={13}
-                        tick={{ fill: '#8B5CF6', fontWeight: 600 }}
+                        tick={{ fill: '#64748b', fontWeight: 600 }}
                         height={40}
                       />
                       <YAxis
-                        stroke="#8B5CF6"
+                        stroke="#64748b"
                         fontSize={13}
-                        tick={{ fill: '#8B5CF6', fontWeight: 600 }}
+                        tick={{ fill: '#64748b', fontWeight: 600 }}
                         tickFormatter={formatYAxis}
                         width={70}
                       />
                       <Tooltip
                         content={<CustomTooltip />}
                         cursor={{
-                          stroke: '#8B5CF6',
+                          stroke: '#64748b',
                           strokeWidth: 1,
                           opacity: 0.2
                         }}
@@ -528,24 +541,24 @@ const PublisherDashboard: React.FC = () => {
                       data={moneyChartData}
                       margin={{ top: 24, right: 32, left: 8, bottom: 8 }}
                     >
-                      <CartesianGrid strokeDasharray="3 3" stroke="#ede9fe" />
+                      <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
                       <XAxis
                         dataKey="time"
-                        stroke="#8B5CF6"
+                        stroke="#64748b"
                         fontSize={13}
-                        tick={{ fill: '#8B5CF6', fontWeight: 600 }}
+                        tick={{ fill: '#64748b', fontWeight: 600 }}
                         height={40}
                       />
                       <YAxis
-                        stroke="#8B5CF6"
+                        stroke="#64748b"
                         fontSize={13}
-                        tick={{ fill: '#8B5CF6', fontWeight: 600 }}
+                        tick={{ fill: '#64748b', fontWeight: 600 }}
                         tickFormatter={formatYAxis}
                         width={70}
                       />
                       <Tooltip
                         content={<CustomTooltip />}
-                        cursor={{ fill: '#ede9fe' }}
+                        cursor={{ fill: '#f1f5f9' }}
                       />
                       <Legend
                         iconType="circle"
@@ -595,24 +608,24 @@ const PublisherDashboard: React.FC = () => {
                           />
                         </linearGradient>
                       </defs>
-                      <CartesianGrid strokeDasharray="3 3" stroke="#ede9fe" />
+                      <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
                       <XAxis
                         dataKey="time"
-                        stroke="#8B5CF6"
+                        stroke="#64748b"
                         fontSize={13}
-                        tick={{ fill: '#8B5CF6', fontWeight: 600 }}
+                        tick={{ fill: '#64748b', fontWeight: 600 }}
                         height={40}
                       />
                       <YAxis
-                        stroke="#8B5CF6"
+                        stroke="#64748b"
                         fontSize={13}
-                        tick={{ fill: '#8B5CF6', fontWeight: 600 }}
+                        tick={{ fill: '#64748b', fontWeight: 600 }}
                         tickFormatter={formatYAxis}
                         width={70}
                       />
                       <Tooltip
                         content={<CustomTooltip />}
-                        cursor={{ fill: '#ede9fe' }}
+                        cursor={{ fill: '#f1f5f9' }}
                       />
                       <Legend
                         iconType="circle"
@@ -647,6 +660,135 @@ const PublisherDashboard: React.FC = () => {
                     </ComposedChart>
                   )}
                 </ResponsiveContainer>
+              </div>
+            </motion.div>
+          </div>
+
+          {/* 2 Biểu đồ mới cho Publisher */}
+          <div className="mb-10 grid grid-cols-1 gap-6 md:grid-cols-2">
+            {/* Biểu đồ Click theo Trình duyệt */}
+            <motion.div
+              initial="initial"
+              animate="animate"
+              variants={fadeInUp}
+              className="rounded-lg bg-white p-6 shadow-2xl transition-transform duration-300 hover:scale-105"
+            >
+              <h2 className="mb-4 text-lg font-semibold text-gray-700">
+                Phân tích Click theo Trình duyệt
+              </h2>
+              <div className="h-[350px] w-full">
+                {browserStatsLoading ? (
+                  <div className="flex h-full items-center justify-center">
+                    <div className="text-gray-500">Đang tải dữ liệu...</div>
+                  </div>
+                ) : browserData.length === 0 ? (
+                  <div className="flex h-full items-center justify-center">
+                    <div className="text-gray-500">
+                      Chưa có dữ liệu trình duyệt
+                    </div>
+                  </div>
+                ) : (
+                  <ResponsiveContainer width="100%" height="100%">
+                    <BarChart data={browserData}>
+                      <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
+                      <XAxis
+                        dataKey="browser"
+                        stroke="#64748b"
+                        fontSize={12}
+                        tick={{ fill: '#64748b', fontWeight: 600 }}
+                      />
+                      <YAxis
+                        stroke="#64748b"
+                        fontSize={12}
+                        tick={{ fill: '#64748b', fontWeight: 600 }}
+                      />
+                      <Tooltip
+                        formatter={(value) => [
+                          new Intl.NumberFormat('vi-VN').format(Number(value)),
+                          'Clicks'
+                        ]}
+                        contentStyle={{
+                          backgroundColor: 'white',
+                          border: '1px solid #e2e8f0',
+                          borderRadius: '8px',
+                          boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
+                        }}
+                      />
+                      <Bar
+                        dataKey="clickCount"
+                        radius={[4, 4, 0, 0]}
+                        name="Clicks"
+                      >
+                        {browserData.map((entry, index) => (
+                          <Cell
+                            key={`cell-${index}`}
+                            fill={BROWSER_COLORS[index % BROWSER_COLORS.length]}
+                          />
+                        ))}
+                      </Bar>
+                    </BarChart>
+                  </ResponsiveContainer>
+                )}
+              </div>
+            </motion.div>
+
+            {/* Biểu đồ Revenue theo Thiết bị */}
+            <motion.div
+              initial="initial"
+              animate="animate"
+              variants={fadeInUp}
+              className="rounded-lg bg-white p-6 shadow-2xl transition-transform duration-300 hover:scale-105"
+            >
+              <h2 className="mb-4 text-lg font-semibold text-gray-700">
+                Revenue theo Thiết bị
+              </h2>
+              <div className="h-[350px] w-full">
+                {deviceStatsLoading ? (
+                  <div className="flex h-full items-center justify-center">
+                    <div className="text-gray-500">Đang tải dữ liệu...</div>
+                  </div>
+                ) : devicePlatforms.length === 0 ? (
+                  <div className="flex h-full items-center justify-center">
+                    <div className="text-gray-500">
+                      Chưa có dữ liệu thiết bị
+                    </div>
+                  </div>
+                ) : (
+                  <ResponsiveContainer width="100%" height="100%">
+                    <PieChart>
+                      <Pie
+                        data={devicePlatforms.map((device, index) => ({
+                          name: device.deviceType,
+                          value: device.count,
+                          fill: BROWSER_COLORS[index % BROWSER_COLORS.length]
+                        }))}
+                        dataKey="value"
+                        nameKey="name"
+                        cx="50%"
+                        cy="50%"
+                        outerRadius={100}
+                        label={({ name, percent }) =>
+                          `${name} ${(percent * 100).toFixed(1)}%`
+                        }
+                        paddingAngle={5}
+                      >
+                        {devicePlatforms.map((entry, index) => (
+                          <Cell
+                            key={`cell-${index}`}
+                            fill={BROWSER_COLORS[index % BROWSER_COLORS.length]}
+                          />
+                        ))}
+                      </Pie>
+                      <Tooltip
+                        formatter={(value) => [
+                          new Intl.NumberFormat('vi-VN').format(Number(value)),
+                          'Số lượng'
+                        ]}
+                      />
+                      <Legend />
+                    </PieChart>
+                  </ResponsiveContainer>
+                )}
               </div>
             </motion.div>
           </div>

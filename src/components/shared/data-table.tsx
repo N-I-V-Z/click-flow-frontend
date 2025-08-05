@@ -37,6 +37,7 @@ import {
   ChevronDownIcon,
   ChevronsUpDownIcon
 } from 'lucide-react';
+import { RefreshCw } from 'lucide-react';
 import { useSearchParams } from 'react-router-dom';
 import { Input } from '../ui/input';
 import { DataTableSkeleton } from './data-table-skeleton';
@@ -49,6 +50,8 @@ interface DataTableProps<TData, TValue> {
   heightTable?: string;
   // Search callback for parent component
   onSearchChange?: (searchTerm: string) => void;
+  // Refresh callback for parent component
+  onRefresh?: () => void;
   // Loading state
   isLoading?: boolean;
 }
@@ -63,6 +66,7 @@ export default function DataTable<TData, TValue>({
   pageSizeOptions = [10, 20, 30, 40, 50],
   heightTable = '80dvh',
   onSearchChange,
+  onRefresh,
   isLoading = false
 }: DataTableProps<TData, TValue>) {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -152,6 +156,17 @@ export default function DataTable<TData, TValue>({
             onChange={(e) => setSearchTerm(e.target.value)}
             className="w-1/3 rounded-md border px-4 py-2"
           />
+          {onRefresh && (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={onRefresh}
+              className="flex items-center gap-2"
+            >
+              <RefreshCw className="h-4 w-4" />
+              Làm mới
+            </Button>
+          )}
         </div>
       </div>
 

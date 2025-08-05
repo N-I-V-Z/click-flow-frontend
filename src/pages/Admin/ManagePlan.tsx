@@ -368,6 +368,7 @@ const ManagePlansPage: React.FC = () => {
                   data={plans?.result?.datas ?? []}
                   pageCount={plans?.result?.totalPages ?? 0}
                   isLoading={isLoading}
+                  onRefresh={refetch}
                 />
               </div>
             </div>

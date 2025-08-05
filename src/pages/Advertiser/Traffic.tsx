@@ -256,6 +256,7 @@ export default function Traffic() {
                 data={filteredData}
                 pageCount={trafficData?.result?.totalPages || 1}
                 isLoading={trafficLoading}
+                onRefresh={refetchTraffics}
               />
             )}
           </div>

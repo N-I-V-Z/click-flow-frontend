@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Button, Rate, Tabs, Collapse } from 'antd';
 import { showToast } from '@/utils/toastUtils';
 import { motion } from 'framer-motion';
@@ -141,6 +141,11 @@ const CampaignDetailPage: React.FC = () => {
   // State cho custom modals
   const [isConfirmModalVisible, setIsConfirmModalVisible] =
     useState<boolean>(false);
+
+  // Clear state when campaignId changes
+  useEffect(() => {
+    setIsConfirmModalVisible(false);
+  }, [campaignId]);
 
   // a) Gọi API chi tiết campaign
   // CHÚ Ý: Lấy thêm refetch từ useGetCampaignByIdd

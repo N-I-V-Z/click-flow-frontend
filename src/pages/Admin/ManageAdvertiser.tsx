@@ -78,7 +78,7 @@ const AdvertiserList: React.FC = () => {
   const limit = parseInt(searchParams.get('limit') || '10');
 
   // Use query with pagination parameters
-  const { data, isLoading, error } = useGetUsersByRole(
+  const { data, isLoading, error, refetch } = useGetUsersByRole(
     'Advertiser',
     page,
     limit
@@ -270,6 +270,7 @@ const AdvertiserList: React.FC = () => {
           data={dataSource}
           pageCount={pageCount}
           pageSizeOptions={[10, 20, 50, 100]}
+          onRefresh={refetch}
         />
 
         {/* Modal xem chi tiết */}

@@ -123,3 +123,14 @@
     opacity: 1;
   }
 }
+
+/* React Toastify z-index fix */
+.Toastify__toast-container {
+  z-index: 10000 !important;
+  top: 80px !important; /* Đẩy xuống dưới header */
+  right: 20px !important; /* Đảm bảo ở góc phải */
+}
+
+.Toastify__toast {
+  z-index: 10001 !important;
+}

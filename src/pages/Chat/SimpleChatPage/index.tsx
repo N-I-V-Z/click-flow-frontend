@@ -6,7 +6,10 @@ import {
   useGetMessagesByConversationId,
   useSendMessage
 } from '@/queries/message.query';
-import { useGetOwnConversations } from '@/queries/conversation.query';
+import {
+  useGetOwnConversations,
+  useCreateConversation
+} from '@/queries/conversation.query';
 import { MessageType, ConversationListApiResponse } from '@/types';
 import __helpers from '@/helpers';
 import Pusher from 'pusher-js';
@@ -23,6 +26,7 @@ const SimpleChatPage: React.FC = () => {
   const [isSending, setIsSending] = useState(false);
   const [adminConversation, setAdminConversation] =
     useState<ConversationListApiResponse | null>(null);
+  const [isConversationLoaded, setIsConversationLoaded] = useState(false);
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const [showSearch, setShowSearch] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
@@ -36,10 +40,12 @@ const SimpleChatPage: React.FC = () => {
   });
 
   // Queries
-  const { data: conversations } = useGetOwnConversations();
+  const { data: conversations, refetch: refetchConversations } =
+    useGetOwnConversations();
   const { data: messages, refetch: refetchMessages } =
     useGetMessagesByConversationId(adminConversation?.id);
   const { mutateAsync: sendMessage } = useSendMessage();
+  const { mutateAsync: createConversation } = useCreateConversation();
 
   // Refs
   const messagesEndRef = useRef<HTMLDivElement | null>(null);
@@ -47,18 +53,14 @@ const SimpleChatPage: React.FC = () => {
 
   // Tìm conversation với admin (role = 'Admin')
   useEffect(() => {
-    if (conversations?.result && conversations.result.length > 0) {
+    if (conversations?.result) {
       // Tìm conversation có partner là admin
       const adminConv = conversations.result.find(
         (conv) => conv.parner?.role === 'Admin'
       );
 
-      if (adminConv) {
-        setAdminConversation(adminConv);
-      } else {
-        // Nếu chưa có conversation với admin, có thể tạo mới hoặc hiển thị thông báo
-        console.log('Chưa có cuộc trò chuyện với Admin');
-      }
+      setAdminConversation(adminConv || null);
+      setIsConversationLoaded(true);
     }
   }, [conversations]);
 
@@ -151,15 +153,33 @@ const SimpleChatPage: React.FC = () => {
 
   // Handle send message
   const handleSendMessage = async () => {
-    if (!message.trim() || !adminConversation?.id || isSending) return;
+    if (!message.trim() || isSending) return;
 
     setIsSending(true);
     try {
+      let conversationId = adminConversation?.id;
+
+      // Nếu chưa có conversation với admin, tạo mới
+      if (!conversationId) {
+        const adminId = 1; // ID của admin (có thể lấy từ config hoặc API khác)
+        const response = await createConversation({ targetUserId: adminId });
+
+        if (response.isSuccess && response.result) {
+          conversationId = response.result.id;
+          // Refresh conversations để cập nhật state
+          await refetchConversations();
+        } else {
+          throw new Error('Không thể tạo cuộc trò chuyện với Admin');
+        }
+      }
+
+      // Gửi tin nhắn
       await sendMessage({
-        conversationId: adminConversation.id,
+        conversationId: conversationId!,
         text: message.trim(),
         type: MessageType.Text
       });
+
       setMessage('');
       scrollToBottom();
     } catch (error) {
@@ -286,16 +306,27 @@ const SimpleChatPage: React.FC = () => {
     return decoded ? parseInt(decoded.Id) : 0;
   };
 
-  // Format message time
-  const formatTime = (dateString: string) => {
-    const date = new Date(dateString);
-    return date.toLocaleTimeString('vi-VN', {
-      hour: '2-digit',
-      minute: '2-digit'
-    });
+  // Format message time - Convert UTC to Vietnam time (+7 hours)
+  const formatTime = (timestamp: string | Date) => {
+    try {
+      const date = new Date(timestamp);
+      if (isNaN(date.getTime())) {
+        return '--:--';
+      }
+
+      // Add 7 hours to convert UTC to Vietnam time
+      const vietnamTime = new Date(date.getTime() + 7 * 60 * 60 * 1000);
+
+      return vietnamTime.toLocaleTimeString('vi-VN', {
+        hour: '2-digit',
+        minute: '2-digit'
+      });
+    } catch (error) {
+      return '--:--';
+    }
   };
 
-  if (!adminConversation) {
+  if (!isConversationLoaded) {
     return (
       <div className="flex h-full items-center justify-center">
         <PageHead title="Trò chuyện với Admin" />
@@ -304,6 +335,121 @@ const SimpleChatPage: React.FC = () => {
           <div className="mt-4">
             <Text type="secondary">Đang tải cuộc trò chuyện...</Text>
           </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (!adminConversation) {
+    return (
+      <div className="flex h-[calc(100vh-120px)] flex-col bg-gradient-to-br from-purple-50 via-white to-indigo-50">
+        <PageHead title="Trò chuyện với Admin" />
+
+        {/* Header */}
+        <div className="border-b border-purple-100 bg-white/70 p-4 shadow-sm backdrop-blur-sm">
+          <div className="flex items-center space-x-3">
+            <div className="relative">
+              <Avatar
+                icon={<UserOutlined />}
+                className="bg-gradient-to-r from-purple-500 to-indigo-500"
+              />
+              <div className="absolute bottom-0 right-0 h-3 w-3 rounded-full border-2 border-white bg-gray-400"></div>
+            </div>
+            <div>
+              <div className="font-semibold text-gray-800">Admin ClickFlow</div>
+              <div className="text-sm text-gray-500">Hỗ trợ khách hàng</div>
+            </div>
+          </div>
+        </div>
+
+        {/* Empty State */}
+        <div className="flex flex-1 items-center justify-center p-8">
+          <div className="max-w-md text-center">
+            <div className="mb-6">
+              <div className="mx-auto flex h-24 w-24 items-center justify-center rounded-full bg-gradient-to-br from-purple-100 to-indigo-100">
+                <svg
+                  className="h-12 w-12 text-purple-500"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={1.5}
+                    d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"
+                  />
+                </svg>
+              </div>
+            </div>
+
+            <h3 className="mb-3 text-xl font-semibold text-gray-800">
+              Chưa có cuộc trò chuyện
+            </h3>
+
+            <p className="mb-6 leading-relaxed text-gray-600">
+              Bạn chưa có cuộc trò chuyện nào với Admin. Hãy gửi tin nhắn đầu
+              tiên để bắt đầu nhận hỗ trợ từ đội ngũ ClickFlow.
+            </p>
+          </div>
+        </div>
+
+        {/* Input Area */}
+        <div className="border-t border-purple-100 bg-white/70 p-4 backdrop-blur-sm">
+          <div className="flex items-end space-x-3">
+            <div className="flex-1">
+              <textarea
+                placeholder="Nhập tin nhắn đầu tiên của bạn..."
+                className="w-full resize-none rounded-2xl border border-purple-200 bg-white px-4 py-3 text-gray-800 placeholder-gray-500 shadow-sm transition-all duration-200 focus:border-purple-500 focus:outline-none focus:ring-2 focus:ring-purple-500/20"
+                rows={1}
+                style={{ minHeight: '44px', maxHeight: '120px' }}
+                value={message}
+                onChange={(e) => setMessage(e.target.value)}
+                onKeyDown={handleKeyPress}
+                onInput={(e) => {
+                  const target = e.target as HTMLTextAreaElement;
+                  target.style.height = 'auto';
+                  target.style.height = `${Math.min(target.scrollHeight, 120)}px`;
+                }}
+              />
+            </div>
+
+            <div className="flex space-x-2">
+              <button
+                onClick={toggleEmojiPicker}
+                className="flex h-11 w-11 items-center justify-center rounded-full bg-purple-100 text-purple-600 transition-all duration-200 hover:scale-105 hover:bg-purple-200"
+              >
+                <Smile className="h-5 w-5" />
+              </button>
+
+              <ImageUpload onSendFile={handleSendFile} />
+
+              <button
+                onClick={handleSendMessage}
+                disabled={!message.trim() || isSending}
+                className="flex h-11 w-11 items-center justify-center rounded-full bg-gradient-to-r from-purple-500 to-indigo-500 text-white shadow-lg transition-all duration-200 hover:scale-105 hover:from-purple-600 hover:to-indigo-600 hover:shadow-xl disabled:transform-none disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                <Send className="h-5 w-5" />
+              </button>
+            </div>
+          </div>
+
+          {/* Emoji Picker */}
+          {showEmojiPicker && (
+            <>
+              <div
+                className="fixed inset-0 z-10"
+                onClick={closeEmojiPicker}
+              ></div>
+              <div className="absolute bottom-20 right-4 z-20">
+                <EmojiPicker
+                  isVisible={showEmojiPicker}
+                  onEmojiSelect={handleEmojiSelect}
+                  onClose={closeEmojiPicker}
+                />
+              </div>
+            </>
+          )}
         </div>
       </div>
     );

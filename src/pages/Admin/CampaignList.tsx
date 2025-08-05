@@ -88,7 +88,10 @@ const CampaignList: React.FC = () => {
   };
 
   const formatDate = (dateString: string | Date) => {
-    return new Date(dateString).toLocaleDateString('vi-VN');
+    const date = new Date(dateString);
+    // Add 7 hours to convert UTC to Vietnam time
+    const vietnamTime = new Date(date.getTime() + 7 * 60 * 60 * 1000);
+    return vietnamTime.toLocaleDateString('vi-VN');
   };
 
   const columns = useMemo<ColumnDef<CampaignApiResponse>[]>(
@@ -283,6 +286,7 @@ const CampaignList: React.FC = () => {
               pageSizeOptions={[10, 20, 50, 100]}
               heightTable="80dvh"
               isLoading={isLoading}
+              onRefresh={refetch}
             />
           </div>
 

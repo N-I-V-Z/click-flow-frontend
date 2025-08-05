@@ -1,94 +1,100 @@
-import React, { useState } from 'react';
-import { Input, Button, Table, Tag, Space, Modal, message, Select } from 'antd';
+import React, { useState, useMemo, useEffect } from 'react';
+import { Input, Button, Table, Tag, Space, Modal, Select } from 'antd';
+import { useLocation } from 'react-router-dom';
 import {
   SearchOutlined,
   EyeOutlined,
   CheckOutlined,
   CloseOutlined,
-  FilterOutlined
+  FilterOutlined,
+  StopOutlined,
+  ReloadOutlined
 } from '@ant-design/icons';
 import type { ColumnsType } from 'antd/es/table';
 import BasePages from '@/components/shared/base-pages';
+import CustomConfirmPopup from '@/components/shared/custom-confirm-popup';
+import {
+  useGetPublisherParticipationByStatusForAdvertiser,
+  useUpdateParticipationStatus
+} from '@/queries/campaign.query';
+import { CampaignParticipationApiResponse } from '@/types';
+import { toast } from 'react-toastify';
 
-interface PublisherRequest {
-  key: string;
-  stt: number;
-  publisher: string;
-  campaign: string;
-  status: 'pending' | 'approved' | 'rejected';
-  requestDate: string;
-  publisherInfo: {
-    name: string;
-    email: string;
-    website: string;
-    traffic: number;
-    description: string;
-  };
+// Extended type for API response that includes additional fields
+interface ExtendedParticipationResponse
+  extends CampaignParticipationApiResponse {
+  totalCampaigns?: number;
+  dailyTraffic?: number;
 }
 
 const PublisherRequests: React.FC = () => {
+  const location = useLocation();
   const [searchText, setSearchText] = useState('');
   const [selectedRequest, setSelectedRequest] =
-    useState<PublisherRequest | null>(null);
+    useState<CampaignParticipationApiResponse | null>(null);
   const [isDetailModalVisible, setIsDetailModalVisible] = useState(false);
-  const [statusFilter, setStatusFilter] = useState<string>('pending'); // Default to pending
+  const [statusFilter, setStatusFilter] = useState<
+    'Pending' | 'Participated' | 'Rejected'
+  >('Pending'); // Default to pending
+  const [currentPage, setCurrentPage] = useState(1);
+  const pageSize = 10;
 
-  // Dữ liệu mẫu - trong thực tế sẽ lấy từ API
-  const mockData: PublisherRequest[] = [
-    {
-      key: '1',
-      stt: 1,
-      publisher: 'Publisher ABC',
-      campaign: 'Chiến dịch Marketing Q4',
-      status: 'pending',
-      requestDate: '2024-01-15',
-      publisherInfo: {
-        name: 'Publisher ABC',
-        email: 'abc@publisher.com',
-        website: 'https://publisher-abc.com',
-        traffic: 50000,
-        description: 'Website chuyên về công nghệ với lượng truy cập ổn định'
-      }
-    },
-    {
-      key: '2',
-      stt: 2,
-      publisher: 'Publisher XYZ',
-      campaign: 'Chiến dịch Giáng sinh',
-      status: 'approved',
-      requestDate: '2024-01-10',
-      publisherInfo: {
-        name: 'Publisher XYZ',
-        email: 'xyz@publisher.com',
-        website: 'https://publisher-xyz.com',
-        traffic: 80000,
-        description: 'Website tin tức với độ phủ rộng'
-      }
-    },
-    {
-      key: '3',
-      stt: 3,
-      publisher: 'Publisher DEF',
-      campaign: 'Chiến dịch Black Friday',
-      status: 'rejected',
-      requestDate: '2024-01-12',
-      publisherInfo: {
-        name: 'Publisher DEF',
-        email: 'def@publisher.com',
-        website: 'https://publisher-def.com',
-        traffic: 30000,
-        description: 'Website thương mại điện tử'
-      }
-    }
-  ];
+  // Custom popup state
+  const [confirmPopup, setConfirmPopup] = useState({
+    isVisible: false,
+    title: '',
+    message: '',
+    type: 'confirm' as 'confirm' | 'warning' | 'info',
+    onConfirm: () => {},
+    loading: false
+  }); // API calls
+  const {
+    data: participationData,
+    isLoading,
+    refetch
+  } = useGetPublisherParticipationByStatusForAdvertiser(
+    currentPage,
+    pageSize,
+    statusFilter
+  );
+  const { mutateAsync: updateParticipationStatus } =
+    useUpdateParticipationStatus();
+
+  // Refetch API when component mounts or when navigating to this page
+  useEffect(() => {
+    console.log('PublisherRequests: Component mounted, refetching data...');
+    refetch();
+  }, [refetch]);
+
+  // Refetch API when location/route changes (when clicking sidebar)
+  useEffect(() => {
+    console.log('PublisherRequests: Route changed to:', location.pathname);
+    refetch();
+  }, [location.pathname, refetch]);
+
+  // Refetch API when status filter changes
+  useEffect(() => {
+    refetch();
+  }, [statusFilter, refetch]);
+
+  // Lấy dữ liệu từ API
+  const publisherRequests = useMemo(() => {
+    if (!participationData?.result?.datas) return [];
+
+    return participationData.result.datas.map((item, index) => ({
+      ...item,
+      key: item.id.toString(),
+      stt: (currentPage - 1) * pageSize + index + 1
+    }));
+  }, [participationData, currentPage, pageSize]);
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'pending':
+      case 'Pending':
         return 'orange';
-      case 'approved':
+      case 'Participated':
         return 'green';
-      case 'rejected':
+      case 'Rejected':
         return 'red';
       default:
         return 'default';
@@ -97,45 +103,135 @@ const PublisherRequests: React.FC = () => {
 
   const getStatusText = (status: string) => {
     switch (status) {
-      case 'pending':
+      case 'Pending':
         return 'Chờ duyệt';
-      case 'approved':
-        return 'Đã duyệt';
-      case 'rejected':
+      case 'Participated':
+        return 'Đã tham gia';
+      case 'Rejected':
         return 'Đã từ chối';
       default:
         return status;
     }
   };
 
-  const handleApprove = (record: PublisherRequest) => {
-    Modal.confirm({
-      title: 'Xác nhận duyệt',
-      content: `Bạn có chắc chắn muốn duyệt yêu cầu từ ${record.publisher}?`,
-      onOk() {
-        message.success('Đã duyệt yêu cầu thành công!');
-        // TODO: Call API to approve request
+  const handleApprove = (record: CampaignParticipationApiResponse) => {
+    setConfirmPopup({
+      isVisible: true,
+      title: 'Phê duyệt yêu cầu',
+      message: `Bạn có chắc chắn muốn phê duyệt yêu cầu từ ${record.publisher?.applicationUser?.fullName}?`,
+      type: 'confirm',
+      loading: false,
+      onConfirm: async () => {
+        setConfirmPopup((prev) => ({ ...prev, loading: true }));
+        try {
+          await updateParticipationStatus({
+            publisherId: record.publisherId!,
+            campaignParticipationId: record.id,
+            newStatus: 'Participated'
+          });
+          toast.success('Đã duyệt yêu cầu thành công!', {
+            position: 'top-right',
+            style: { zIndex: 10000 }
+          });
+          setConfirmPopup((prev) => ({
+            ...prev,
+            isVisible: false,
+            loading: false
+          }));
+        } catch (error) {
+          toast.error('Có lỗi xảy ra khi duyệt yêu cầu!', {
+            position: 'top-right',
+            style: { zIndex: 10000 }
+          });
+          setConfirmPopup((prev) => ({ ...prev, loading: false }));
+        }
       }
     });
   };
 
-  const handleReject = (record: PublisherRequest) => {
-    Modal.confirm({
-      title: 'Xác nhận từ chối',
-      content: `Bạn có chắc chắn muốn từ chối yêu cầu từ ${record.publisher}?`,
-      onOk() {
-        message.success('Đã từ chối yêu cầu!');
-        // TODO: Call API to reject request
+  const handleReject = (record: CampaignParticipationApiResponse) => {
+    setConfirmPopup({
+      isVisible: true,
+      title: 'Từ chối yêu cầu',
+      message: `Bạn có chắc chắn muốn từ chối yêu cầu từ ${record.publisher?.applicationUser?.fullName}?`,
+      type: 'warning',
+      loading: false,
+      onConfirm: async () => {
+        setConfirmPopup((prev) => ({ ...prev, loading: true }));
+        try {
+          await updateParticipationStatus({
+            publisherId: record.publisherId!,
+            campaignParticipationId: record.id,
+            newStatus: 'Rejected'
+          });
+          toast.success('Đã từ chối yêu cầu!', {
+            position: 'top-right',
+            style: { zIndex: 10000 }
+          });
+          setConfirmPopup((prev) => ({
+            ...prev,
+            isVisible: false,
+            loading: false
+          }));
+        } catch (error) {
+          toast.error('Có lỗi xảy ra khi từ chối yêu cầu!', {
+            position: 'top-right',
+            style: { zIndex: 10000 }
+          });
+          setConfirmPopup((prev) => ({ ...prev, loading: false }));
+        }
       }
     });
   };
 
-  const showDetail = (record: PublisherRequest) => {
+  // Chức năng: Chỉ cho phép từ chối publisher đang tham gia
+  const handleStopParticipation = (
+    record: CampaignParticipationApiResponse
+  ) => {
+    const actionText = 'ngừng tham gia chiến dịch';
+
+    setConfirmPopup({
+      isVisible: true,
+      title: `Xác nhận ${actionText}`,
+      message: `Bạn có chắc chắn muốn ${actionText} Publisher ${record.publisher?.applicationUser?.fullName}?`,
+      type: 'warning',
+      loading: false,
+      onConfirm: async () => {
+        setConfirmPopup((prev) => ({ ...prev, loading: true }));
+        try {
+          await updateParticipationStatus({
+            publisherId: record.publisherId!,
+            campaignParticipationId: record.id,
+            newStatus: 'Rejected'
+          });
+          toast.success(`Đã ${actionText} thành công!`, {
+            position: 'top-right',
+            style: { zIndex: 10000 }
+          });
+          setConfirmPopup((prev) => ({
+            ...prev,
+            isVisible: false,
+            loading: false
+          }));
+        } catch (error) {
+          toast.error(`Có lỗi xảy ra khi ${actionText}!`, {
+            position: 'top-right',
+            style: { zIndex: 10000 }
+          });
+          setConfirmPopup((prev) => ({ ...prev, loading: false }));
+        }
+      }
+    });
+  };
+
+  const showDetail = (record: CampaignParticipationApiResponse) => {
     setSelectedRequest(record);
     setIsDetailModalVisible(true);
   };
 
-  const columns: ColumnsType<PublisherRequest> = [
+  const columns: ColumnsType<
+    CampaignParticipationApiResponse & { key: string; stt: number }
+  > = [
     {
       title: 'STT',
       dataIndex: 'stt',
@@ -145,19 +241,24 @@ const PublisherRequests: React.FC = () => {
     },
     {
       title: 'Publisher',
-      dataIndex: 'publisher',
       key: 'publisher',
+      render: (_, record) =>
+        record.publisher?.applicationUser?.fullName || 'N/A',
       filteredValue: searchText ? [searchText] : null,
-      onFilter: (value, record) =>
-        record.publisher
-          .toLowerCase()
-          .includes(value.toString().toLowerCase()) ||
-        record.campaign.toLowerCase().includes(value.toString().toLowerCase())
+      onFilter: (value, record) => {
+        const publisherName = record.publisher?.applicationUser?.fullName || '';
+        const campaignName = record.campaign?.name || '';
+        const searchValue = value.toString().toLowerCase();
+        return (
+          publisherName.toLowerCase().includes(searchValue) ||
+          campaignName.toLowerCase().includes(searchValue)
+        );
+      }
     },
     {
       title: 'Chiến dịch',
-      dataIndex: 'campaign',
-      key: 'campaign'
+      key: 'campaign',
+      render: (_, record) => record.campaign?.name || 'N/A'
     },
     {
       title: 'Trạng thái',
@@ -167,18 +268,23 @@ const PublisherRequests: React.FC = () => {
         <Tag color={getStatusColor(status)}>{getStatusText(status)}</Tag>
       ),
       filters: [
-        { text: 'Chờ duyệt', value: 'pending' },
-        { text: 'Đã duyệt', value: 'approved' },
-        { text: 'Đã từ chối', value: 'rejected' }
+        { text: 'Chờ duyệt', value: 'Pending' },
+        { text: 'Đã tham gia', value: 'Participated' },
+        { text: 'Đã từ chối', value: 'Rejected' }
       ],
       onFilter: (value, record) => record.status === value
     },
     {
       title: 'Ngày tạo',
-      dataIndex: 'requestDate',
-      key: 'requestDate',
+      dataIndex: 'createAt',
+      key: 'createAt',
+      render: (date: string) => {
+        const utcDate = new Date(date);
+        const vietnamTime = new Date(utcDate.getTime() + 7 * 60 * 60 * 1000);
+        return vietnamTime.toLocaleDateString('vi-VN');
+      },
       sorter: (a, b) =>
-        new Date(a.requestDate).getTime() - new Date(b.requestDate).getTime()
+        new Date(a.createAt).getTime() - new Date(b.createAt).getTime()
     },
     {
       title: 'Thao tác',
@@ -192,7 +298,8 @@ const PublisherRequests: React.FC = () => {
           >
             <EyeOutlined className="text-sm" size={16} />
           </button>
-          {record.status === 'pending' && (
+
+          {record.status === 'Pending' && (
             <>
               <button
                 onClick={() => handleApprove(record)}
@@ -210,24 +317,36 @@ const PublisherRequests: React.FC = () => {
               </button>
             </>
           )}
+
+          {record.status === 'Participated' && (
+            <button
+              onClick={() => handleStopParticipation(record)}
+              className="rounded-full bg-red-50 p-2 text-red-500 transition-colors duration-200 hover:bg-red-100"
+              title="Ngừng tham gia"
+            >
+              <StopOutlined className="text-sm" size={16} />
+            </button>
+          )}
         </div>
       )
     }
   ];
 
-  const filteredData = mockData.filter((item) => {
-    // Text search filter
-    const matchesSearch =
-      !searchText ||
-      item.publisher.toLowerCase().includes(searchText.toLowerCase()) ||
-      item.campaign.toLowerCase().includes(searchText.toLowerCase());
+  const filteredData = useMemo(() => {
+    if (!publisherRequests) return [];
 
-    // Status filter
-    const matchesStatus =
-      statusFilter === 'all' || item.status === statusFilter;
+    return publisherRequests.filter((item) => {
+      // Text search filter
+      const publisherName = item.publisher?.applicationUser?.fullName || '';
+      const campaignName = item.campaign?.name || '';
+      const matchesSearch =
+        !searchText ||
+        publisherName.toLowerCase().includes(searchText.toLowerCase()) ||
+        campaignName.toLowerCase().includes(searchText.toLowerCase());
 
-    return matchesSearch && matchesStatus;
-  });
+      return matchesSearch;
+    });
+  }, [publisherRequests, searchText]);
 
   return (
     <BasePages pageHead="ClickFlow - Yêu cầu tham gia Publisher">
@@ -257,15 +376,30 @@ const PublisherRequests: React.FC = () => {
                 <FilterOutlined className="text-gray-500" />
                 <Select
                   value={statusFilter}
-                  onChange={setStatusFilter}
+                  onChange={(value) => {
+                    setStatusFilter(value);
+                    setCurrentPage(1); // Reset to first page when filter changes
+                  }}
                   className="w-48"
                   placeholder="Lọc theo trạng thái"
                 >
-                  <Select.Option value="all">Tất cả trạng thái</Select.Option>
-                  <Select.Option value="pending">Chờ duyệt</Select.Option>
-                  <Select.Option value="approved">Đã duyệt</Select.Option>
-                  <Select.Option value="rejected">Đã từ chối</Select.Option>
+                  <Select.Option value="Pending">Chờ duyệt</Select.Option>
+                  <Select.Option value="Participated">
+                    Đã tham gia
+                  </Select.Option>
+                  <Select.Option value="Rejected">Đã từ chối</Select.Option>
                 </Select>
+
+                {/* Refresh Button */}
+                <Button
+                  type="primary"
+                  icon={<ReloadOutlined />}
+                  onClick={() => refetch()}
+                  loading={isLoading}
+                  className="border-0 bg-gradient-to-r from-purple-500 to-blue-500 hover:from-purple-600 hover:to-blue-600"
+                >
+                  Làm mới
+                </Button>
               </div>
             </div>
 
@@ -283,13 +417,16 @@ const PublisherRequests: React.FC = () => {
               columns={columns}
               dataSource={filteredData}
               pagination={{
-                pageSize: 10,
+                current: currentPage,
+                pageSize: pageSize,
+                total: participationData?.result?.totalItems || 0,
                 showSizeChanger: true,
                 showQuickJumper: true,
                 showTotal: (total, range) =>
-                  `${range[0]}-${range[1]} của ${total} yêu cầu`
+                  `${range[0]}-${range[1]} của ${total} yêu cầu`,
+                onChange: (page) => setCurrentPage(page)
               }}
-              loading={false}
+              loading={isLoading}
               className="rounded-xl"
             />
           </div>
@@ -314,8 +451,10 @@ const PublisherRequests: React.FC = () => {
               >
                 Đóng
               </Button>,
-              selectedRequest?.status === 'pending' && (
-                <Space key="actions">
+
+              // Actions for Pending status
+              selectedRequest?.status === 'Pending' && (
+                <Space key="pending-actions">
                   <button
                     onClick={() => {
                       if (selectedRequest) {
@@ -341,7 +480,54 @@ const PublisherRequests: React.FC = () => {
                     Duyệt yêu cầu
                   </button>
                 </Space>
-              )
+              ),
+
+              // Actions for Participated status
+              selectedRequest?.status === 'Participated' && (
+                <button
+                  key="participated-action"
+                  onClick={() => {
+                    if (selectedRequest) {
+                      handleStopParticipation(selectedRequest);
+                      setIsDetailModalVisible(false);
+                    }
+                  }}
+                  className="inline-flex h-10 items-center gap-2 rounded-lg bg-gradient-to-r from-red-500 to-red-600 px-4 text-white shadow-md transition-all duration-200 hover:-translate-y-0.5 hover:from-red-600 hover:to-red-700 hover:shadow-lg"
+                >
+                  <StopOutlined />
+                  Ngừng tham gia
+                </button>
+              ),
+
+              // Actions for Pending status
+              selectedRequest?.status === 'Pending' && [
+                <button
+                  key="approve-action"
+                  onClick={() => {
+                    if (selectedRequest) {
+                      handleApprove(selectedRequest);
+                      setIsDetailModalVisible(false);
+                    }
+                  }}
+                  className="inline-flex h-10 items-center gap-2 rounded-lg bg-gradient-to-r from-green-500 to-green-600 px-4 text-white shadow-md transition-all duration-200 hover:-translate-y-0.5 hover:from-green-600 hover:to-green-700 hover:shadow-lg"
+                >
+                  <CheckOutlined />
+                  Phê duyệt
+                </button>,
+                <button
+                  key="reject-action"
+                  onClick={() => {
+                    if (selectedRequest) {
+                      handleReject(selectedRequest);
+                      setIsDetailModalVisible(false);
+                    }
+                  }}
+                  className="inline-flex h-10 items-center gap-2 rounded-lg bg-gradient-to-r from-red-500 to-red-600 px-4 text-white shadow-md transition-all duration-200 hover:-translate-y-0.5 hover:from-red-600 hover:to-red-700 hover:shadow-lg"
+                >
+                  <CloseOutlined />
+                  Từ chối
+                </button>
+              ]
             ]}
             width={700}
             className="rounded-xl"
@@ -354,7 +540,8 @@ const PublisherRequests: React.FC = () => {
                       Publisher
                     </label>
                     <p className="text-lg font-medium text-gray-800">
-                      {selectedRequest.publisherInfo.name}
+                      {selectedRequest.publisher?.applicationUser?.fullName ||
+                        'N/A'}
                     </p>
                   </div>
                   <div className="rounded-lg bg-gradient-to-br from-green-50 to-emerald-50 p-4">
@@ -362,41 +549,55 @@ const PublisherRequests: React.FC = () => {
                       Email
                     </label>
                     <p className="text-lg font-medium text-gray-800">
-                      {selectedRequest.publisherInfo.email}
+                      {selectedRequest.publisher?.applicationUser?.email ||
+                        'N/A'}
                     </p>
                   </div>
                 </div>
 
                 <div className="rounded-lg bg-gradient-to-br from-purple-50 to-pink-50 p-4">
                   <label className="mb-2 block text-sm font-semibold text-gray-700">
-                    Website
+                    Short Link
                   </label>
-                  <a
-                    href={selectedRequest.publisherInfo.website}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-lg font-medium text-blue-600 hover:text-blue-700 hover:underline"
-                  >
-                    {selectedRequest.publisherInfo.website}
-                  </a>
+                  {selectedRequest.shortLink ? (
+                    <a
+                      href={selectedRequest.shortLink}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-lg font-medium text-blue-600 hover:text-blue-700 hover:underline"
+                    >
+                      {selectedRequest.shortLink}
+                    </a>
+                  ) : (
+                    <p className="text-lg font-medium text-gray-500">
+                      Chưa có link
+                    </p>
+                  )}
                 </div>
 
                 <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
                   <div className="rounded-lg bg-gradient-to-br from-yellow-50 to-orange-50 p-4">
                     <label className="mb-2 block text-sm font-semibold text-gray-700">
-                      Lượng truy cập tháng
+                      Tổng số chiến dịch
                     </label>
                     <p className="text-xl font-bold text-orange-600">
-                      {selectedRequest.publisherInfo.traffic.toLocaleString()}{' '}
-                      lượt
+                      {(selectedRequest as ExtendedParticipationResponse)
+                        .totalCampaigns || 0}{' '}
+                      chiến dịch
                     </p>
                   </div>
                   <div className="rounded-lg bg-gradient-to-br from-cyan-50 to-blue-50 p-4">
                     <label className="mb-2 block text-sm font-semibold text-gray-700">
-                      Ngày yêu cầu
+                      Ngày tạo
                     </label>
                     <p className="text-lg font-medium text-gray-800">
-                      {selectedRequest.requestDate}
+                      {(() => {
+                        const utcDate = new Date(selectedRequest.createAt);
+                        const vietnamTime = new Date(
+                          utcDate.getTime() + 7 * 60 * 60 * 1000
+                        );
+                        return vietnamTime.toLocaleDateString('vi-VN');
+                      })()}
                     </p>
                   </div>
                 </div>
@@ -406,8 +607,13 @@ const PublisherRequests: React.FC = () => {
                     Chiến dịch
                   </label>
                   <p className="text-lg font-medium text-gray-800">
-                    {selectedRequest.campaign}
+                    {selectedRequest.campaign?.name || 'N/A'}
                   </p>
+                  {selectedRequest.campaign?.description && (
+                    <p className="mt-2 text-sm text-gray-600">
+                      {selectedRequest.campaign.description}
+                    </p>
+                  )}
                 </div>
 
                 <div className="rounded-lg bg-gradient-to-br from-slate-50 to-gray-50 p-4">
@@ -422,19 +628,45 @@ const PublisherRequests: React.FC = () => {
                   </Tag>
                 </div>
 
-                <div className="rounded-lg bg-gradient-to-br from-emerald-50 to-teal-50 p-4">
-                  <label className="mb-2 block text-sm font-semibold text-gray-700">
-                    Mô tả
-                  </label>
-                  <p className="leading-relaxed text-gray-700">
-                    {selectedRequest.publisherInfo.description}
-                  </p>
-                </div>
+                {selectedRequest.campaign?.budget && (
+                  <div className="rounded-lg bg-gradient-to-br from-emerald-50 to-teal-50 p-4">
+                    <label className="mb-2 block text-sm font-semibold text-gray-700">
+                      Ngân sách chiến dịch
+                    </label>
+                    <p className="text-xl font-bold text-emerald-600">
+                      {selectedRequest.campaign.budget.toLocaleString('vi-VN')}{' '}
+                      VNĐ
+                    </p>
+                    <p className="text-sm text-gray-600">
+                      Hoa hồng:{' '}
+                      {selectedRequest.campaign.commission?.toLocaleString(
+                        'vi-VN'
+                      )}{' '}
+                      VNĐ ({selectedRequest.campaign.percents}%)
+                    </p>
+                  </div>
+                )}
               </div>
             )}
           </Modal>
         </div>
       </div>
+
+      {/* Custom Confirmation Popup */}
+      <CustomConfirmPopup
+        isVisible={confirmPopup.isVisible}
+        title={confirmPopup.title}
+        message={confirmPopup.message}
+        type={confirmPopup.type}
+        confirmLoading={confirmPopup.loading}
+        onConfirm={confirmPopup.onConfirm}
+        onCancel={() =>
+          setConfirmPopup((prev) => ({ ...prev, isVisible: false }))
+        }
+        onClose={() =>
+          setConfirmPopup((prev) => ({ ...prev, isVisible: false }))
+        }
+      />
     </BasePages>
   );
 };

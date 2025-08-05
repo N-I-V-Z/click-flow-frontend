@@ -9,7 +9,7 @@ import {
   UpdateCampaignPayload,
   PublisherInCampaignApiResponse
 } from '@/types';
-import { useMutation, useQuery } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
 const SUB_URL = `/api/Campaigns`;
 const SUB_URL_IMAGE = `/api/Upload`;
@@ -358,12 +358,14 @@ export const useGetPublisherParticipationByStatusForAdvertiser = (
         `${SUB_URL}/get-publisher-paticipation-by-status-for-advertiser/${pageIndex}/${pageSize}?campaignParticipationStatus=${campaignParticipationStatus}`
       );
     },
-    staleTime: 1000 * 60 * 5,
+    staleTime: 0, // Always fetch fresh data
     retry: 3
   });
 };
 
 export const useUpdateParticipationStatus = () => {
+  const queryClient = useQueryClient();
+
   return useMutation({
     mutationFn: async (payload: {
       publisherId: number;
@@ -375,6 +377,12 @@ export const useUpdateParticipationStatus = () => {
         `${SUB_URL}/update-status/${publisherId}/${campaignParticipationId}/${newStatus}`,
         {}
       );
+    },
+    onSuccess: () => {
+      // Invalidate publisher participation queries để refresh danh sách
+      queryClient.invalidateQueries({
+        queryKey: ['get-publisher-participation-by-status-for-advertiser']
+      });
     }
   });
 };

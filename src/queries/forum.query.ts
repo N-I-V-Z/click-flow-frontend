@@ -5,7 +5,7 @@ import {
   ForumApiResponse,
   CreateForumPostPayload
 } from '@/types';
-import { useMutation, useQuery } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
 const SUB_URL = `/api/Posts`;
 
@@ -97,10 +97,18 @@ export const useSearchPosts = () => {
  * Hook tạo bài viết mới
  */
 export const useCreatePost = () => {
+  const queryClient = useQueryClient();
+
   return useMutation({
     mutationKey: ['create-post'],
     mutationFn: async (model: CreateForumPostPayload) => {
       return await BaseRequest.Post<ForumPost>(`${SUB_URL}/create-post`, model);
+    },
+    onSuccess: () => {
+      // Invalidate forum posts để refresh danh sách
+      queryClient.invalidateQueries({
+        queryKey: ['forum-posts']
+      });
     }
   });
 };
@@ -109,6 +117,8 @@ export const useCreatePost = () => {
  * Hook cập nhật bài viết
  */
 export const useUpdatePost = () => {
+  const queryClient = useQueryClient();
+
   return useMutation({
     mutationKey: ['update-post'],
     mutationFn: async (payload: {
@@ -123,6 +133,12 @@ export const useUpdatePost = () => {
         content: payload.content,
         topic: payload.topic
       });
+    },
+    onSuccess: () => {
+      // Invalidate forum posts để refresh danh sách
+      queryClient.invalidateQueries({
+        queryKey: ['forum-posts']
+      });
     }
   });
 };
@@ -131,12 +147,20 @@ export const useUpdatePost = () => {
  * Hook xóa bài viết
  */
 export const useDeletePost = () => {
+  const queryClient = useQueryClient();
+
   return useMutation({
     mutationKey: ['delete-post'],
     mutationFn: async (id: number) => {
       return await BaseRequest.Delete<BaseResponse>(
         `${SUB_URL}/delete-post/${id}`
       );
+    },
+    onSuccess: () => {
+      // Invalidate forum posts để refresh danh sách
+      queryClient.invalidateQueries({
+        queryKey: ['forum-posts']
+      });
     }
   });
 };

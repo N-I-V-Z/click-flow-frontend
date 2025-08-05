@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useGetVideoCourses } from '@/queries/video.query';
 import { ArrowLeft, Play, PlayCircle, BookOpen } from 'lucide-react';
 import Loading from '@/components/ui/loading';
@@ -29,15 +29,20 @@ const VideoCoursePage: React.FC<VideoCoursePageProps> = ({
   } = useGetVideoCourses(courseId);
 
   // Fix: Ensure videos is always an array of VideoCourseResponse
-  const videos: VideoCourseResponse[] = Array.isArray(apiResponse?.result)
-    ? apiResponse.result
-    : [];
+  const videos: VideoCourseResponse[] = useMemo(() => {
+    return Array.isArray(apiResponse?.result) ? apiResponse.result : [];
+  }, [apiResponse?.result]);
 
   useEffect(() => {
     if (videos.length > 0 && !selectedVideo) {
       setSelectedVideo(videos[0]);
     }
   }, [videos, selectedVideo]);
+
+  // Clear selected video when courseId changes
+  useEffect(() => {
+    setSelectedVideo(null);
+  }, [courseId]);
 
   const currentVideoIndex = selectedVideo
     ? videos.findIndex((v) => v.id === selectedVideo.id)
@@ -56,7 +61,7 @@ const VideoCoursePage: React.FC<VideoCoursePageProps> = ({
           </h2>
           <button
             onClick={onBack}
-            className="hover:bg-blue-700 rounded-lg bg-blue px-6 py-3 font-medium text-white transition-colors"
+            className="bg-blue rounded-lg px-6 py-3 font-medium text-white transition-colors hover:bg-blue-700"
           >
             Quay lại
           </button>
@@ -81,7 +86,7 @@ const VideoCoursePage: React.FC<VideoCoursePageProps> = ({
               </button>
               <div className="h-6 w-px bg-slate-300"></div>
               <div className="flex items-center space-x-2">
-                <BookOpen className="text-blue-600 h-5 w-5" />
+                <BookOpen className="h-5 w-5 text-blue-600" />
                 <span className="font-semibold text-slate-900">
                   Khóa học #{courseId}
                 </span>
@@ -164,7 +169,7 @@ const VideoCoursePage: React.FC<VideoCoursePageProps> = ({
                       key={video.id}
                       className={`cursor-pointer border-b border-slate-100 p-4 transition-all duration-200 ${
                         isSelected
-                          ? 'bg-blue-50 border-l-4 border-l-blue'
+                          ? 'border-l-blue border-l-4 bg-blue-50'
                           : 'hover:bg-slate-50'
                       }`}
                       onClick={() => setSelectedVideo(video)}
