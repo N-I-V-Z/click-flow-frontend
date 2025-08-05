@@ -22,12 +22,14 @@ import { useRouter } from '@/routes/hooks';
 import { useLogout } from '@/queries/auth.query';
 import helpers from '@/helpers';
 import { logout } from '@/redux/auth.slice';
+import { useQueryClient } from '@tanstack/react-query';
 const { SubMenu } = Menu;
 
 const SidebarAdmin: React.FC = () => {
   const { mutateAsync: logoutAccount, isPending } = useLogout();
   const router = useRouter();
   const dispatch = useDispatch();
+  const queryClient = useQueryClient();
   const location = useLocation();
   const [selectedKey, setSelectedKey] = useState(location.pathname);
   const [isModalVisible, setIsModalVisible] = useState(false);
@@ -93,6 +95,9 @@ const SidebarAdmin: React.FC = () => {
       localStorage.removeItem('refreshToken');
       localStorage.removeItem('accessToken');
 
+      // Clear all React Query cache
+      queryClient.clear();
+
       // Dispatch logout action
       dispatch(logout());
 
@@ -106,6 +111,10 @@ const SidebarAdmin: React.FC = () => {
       helpers.cookie_delete('RT');
       localStorage.removeItem('refreshToken');
       localStorage.removeItem('accessToken');
+
+      // Clear all React Query cache
+      queryClient.clear();
+
       dispatch(logout());
       router.push('/login');
     }

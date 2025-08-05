@@ -29,10 +29,13 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({
       if (isNaN(date.getTime())) {
         return '--:--';
       }
-      return date.toLocaleTimeString('vi-VN', {
+
+      // Add 7 hours to convert UTC to Vietnam time
+      const vietnamTime = new Date(date.getTime() + 7 * 60 * 60 * 1000);
+
+      return vietnamTime.toLocaleTimeString('vi-VN', {
         hour: '2-digit',
-        minute: '2-digit',
-        timeZone: 'Asia/Ho_Chi_Minh'
+        minute: '2-digit'
       });
     } catch (error) {
       return '--:--';
@@ -45,18 +48,19 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({
       if (isNaN(date.getTime())) {
         return 'Không xác định';
       }
-      const today = new Date();
+
+      // Add 7 hours to convert UTC to Vietnam time
+      const vietnamTime = new Date(date.getTime() + 7 * 60 * 60 * 1000);
+      const today = new Date(new Date().getTime() + 7 * 60 * 60 * 1000);
       const yesterday = new Date(today);
       yesterday.setDate(yesterday.getDate() - 1);
 
-      if (date.toDateString() === today.toDateString()) {
+      if (vietnamTime.toDateString() === today.toDateString()) {
         return 'Hôm nay';
-      } else if (date.toDateString() === yesterday.toDateString()) {
+      } else if (vietnamTime.toDateString() === yesterday.toDateString()) {
         return 'Hôm qua';
       } else {
-        return date.toLocaleDateString('vi-VN', {
-          timeZone: 'Asia/Ho_Chi_Minh'
-        });
+        return vietnamTime.toLocaleDateString('vi-VN');
       }
     } catch (error) {
       return 'Không xác định';

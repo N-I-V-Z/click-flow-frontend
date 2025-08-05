@@ -61,8 +61,9 @@ function getRoleColor(role?: string) {
 function formatTimeAgoVi(utcString?: string) {
   if (!utcString) return '';
   try {
-    const now = new Date();
-    const date = new Date(utcString);
+    // Cộng 7 tiếng cho cả thời gian hiện tại và thời gian bài đăng
+    const now = new Date(Date.now() + 7 * 60 * 60 * 1000);
+    const date = new Date(new Date(utcString).getTime() + 7 * 60 * 60 * 1000);
     const diffMs = now.getTime() - date.getTime();
     const diffMin = Math.floor(diffMs / 60000);
     const diffHour = Math.floor(diffMin / 60);

@@ -384,7 +384,9 @@ const RatingButton = ({
 
 const formatDate = (dateString: string) => {
   const date = new Date(dateString);
-  return date.toLocaleDateString('vi-VN', {
+  // Add 7 hours to convert UTC to Vietnam time
+  const vietnamTime = new Date(date.getTime() + 7 * 60 * 60 * 1000);
+  return vietnamTime.toLocaleDateString('vi-VN', {
     year: 'numeric',
     month: 'long',
     day: 'numeric'

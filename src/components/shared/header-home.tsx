@@ -11,6 +11,7 @@ import { useSelector } from 'react-redux';
 import { RootState } from '@/redux/store';
 import { logout } from '@/redux/auth.slice';
 import { useLogout } from '@/queries/auth.query';
+import { useQueryClient } from '@tanstack/react-query';
 import { useDispatch } from 'react-redux';
 import { logoURL } from '@/constants/data';
 
@@ -21,6 +22,7 @@ export default function HeaderNav() {
   const [isRegisterOpen, setRegisterOpen] = useState(false);
   const { mutateAsync: logoutAccount, isPending } = useLogout();
   const dispatch = useDispatch();
+  const queryClient = useQueryClient();
   const [isModalVisible, setIsModalVisible] = useState(false);
 
   const handleCancelLogout = () => {
@@ -47,6 +49,9 @@ export default function HeaderNav() {
       localStorage.removeItem('refreshToken');
       localStorage.removeItem('accessToken');
 
+      // Clear all React Query cache
+      queryClient.clear();
+
       dispatch(logout());
       router.push('/login');
     } catch (error) {
@@ -56,6 +61,10 @@ export default function HeaderNav() {
       helpers.cookie_delete('RT');
       localStorage.removeItem('refreshToken');
       localStorage.removeItem('accessToken');
+
+      // Clear all React Query cache
+      queryClient.clear();
+
       dispatch(logout());
       router.push('/login');
     }

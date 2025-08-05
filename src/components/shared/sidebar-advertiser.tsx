@@ -19,6 +19,7 @@ import { useLogout } from '@/queries/auth.query';
 import { useDispatch } from 'react-redux';
 import { useRouter } from '@/routes/hooks';
 import { logout } from '@/redux/auth.slice';
+import { useQueryClient } from '@tanstack/react-query';
 
 const { SubMenu } = Menu;
 
@@ -26,6 +27,7 @@ const SidebarAdvertiser: React.FC = () => {
   const { mutateAsync: logoutAccount } = useLogout();
   const router = useRouter();
   const dispatch = useDispatch();
+  const queryClient = useQueryClient();
   const { isPending } = useLogout();
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [openKeys, setOpenKeys] = useState<string[]>([]);
@@ -55,6 +57,9 @@ const SidebarAdvertiser: React.FC = () => {
       localStorage.removeItem('refreshToken');
       localStorage.removeItem('accessToken');
 
+      // Clear all React Query cache
+      queryClient.clear();
+
       // Dispatch logout action
       dispatch(logout());
 
@@ -68,6 +73,10 @@ const SidebarAdvertiser: React.FC = () => {
       helpers.cookie_delete('RT');
       localStorage.removeItem('refreshToken');
       localStorage.removeItem('accessToken');
+
+      // Clear all React Query cache
+      queryClient.clear();
+
       dispatch(logout());
       router.push('/login');
     }
@@ -201,7 +210,7 @@ const SidebarAdvertiser: React.FC = () => {
             }
           `}
         >
-          <NavLink to="/advertiser/chat">Trò chuyện</NavLink>
+          <NavLink to="/advertiser/chat">Hỗ Trợ</NavLink>
         </Menu.Item>
       </Menu>
 

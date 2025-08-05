@@ -19,12 +19,14 @@ import { useLogout } from '@/queries/auth.query';
 import { useDispatch } from 'react-redux';
 import { useRouter } from '@/routes/hooks';
 import { logout } from '@/redux/auth.slice';
+import { useQueryClient } from '@tanstack/react-query';
 
 const SidebarPublisher: React.FC = () => {
   const { mutateAsync: logoutAccount, isPending } = useLogout();
   const location = useLocation();
   const router = useRouter();
   const dispatch = useDispatch();
+  const queryClient = useQueryClient();
   const [selectedKey, setSelectedKey] = useState(location.pathname);
   const [isModalVisible, setIsModalVisible] = useState(false);
 
@@ -55,6 +57,9 @@ const SidebarPublisher: React.FC = () => {
       localStorage.removeItem('refreshToken');
       localStorage.removeItem('accessToken');
 
+      // Clear all React Query cache
+      queryClient.clear();
+
       // Dispatch logout action
       dispatch(logout());
 
@@ -68,6 +73,10 @@ const SidebarPublisher: React.FC = () => {
       helpers.cookie_delete('RT');
       localStorage.removeItem('refreshToken');
       localStorage.removeItem('accessToken');
+
+      // Clear all React Query cache
+      queryClient.clear();
+
       dispatch(logout());
       router.push('/login');
     }
@@ -183,7 +192,7 @@ const SidebarPublisher: React.FC = () => {
             }
           `}
         >
-          <NavLink to="/publisher/chat">Trò chuyện</NavLink>
+          <NavLink to="/publisher/chat">Hỗ Trợ</NavLink>
         </Menu.Item>
       </Menu>
 

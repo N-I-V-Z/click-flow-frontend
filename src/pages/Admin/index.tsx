@@ -26,12 +26,19 @@ const AdminDashboard: React.FC = () => {
   const navigate = useNavigate();
 
   // Lấy số lượng chiến dịch đang hoạt động
-  const { data: activeCampaignData, isLoading: campaignLoading } =
-    useGetCampaignCountByStatus('Activing');
+  const {
+    data: activeCampaignData,
+    isLoading: campaignLoading,
+    refetch: refetchCampaigns
+  } = useGetCampaignCountByStatus('Activing');
   const activeCampaignCount = activeCampaignData?.result ?? 0;
 
   // Lấy tổng số khóa học - với cấu hình aggressive để luôn fetch fresh data
-  const { data: courseData, isLoading: courseLoading } = useQuery({
+  const {
+    data: courseData,
+    isLoading: courseLoading,
+    refetch: refetchCourses
+  } = useQuery({
     queryKey: ['admin-dashboard-courses'],
     queryFn: async () => {
       return await BaseRequest.Get<PagingResponse<CourseResponse>>(
@@ -46,17 +53,26 @@ const AdminDashboard: React.FC = () => {
   const totalCourses = courseData?.result?.totalItems ?? 0;
 
   // Lấy số lượng Publisher và Advertiser
-  const { data: publisherData, isLoading: publisherLoading } =
-    useGetUsersByRole('Publisher', 1, 100);
+  const {
+    data: publisherData,
+    isLoading: publisherLoading,
+    refetch: refetchPublishers
+  } = useGetUsersByRole('Publisher', 1, 100);
   const publisherCount = publisherData?.result?.totalItems ?? 0;
 
-  const { data: advertiserData, isLoading: advertiserLoading } =
-    useGetUsersByRole('Advertiser', 1, 100);
+  const {
+    data: advertiserData,
+    isLoading: advertiserLoading,
+    refetch: refetchAdvertisers
+  } = useGetUsersByRole('Advertiser', 1, 100);
   const advertiserCount = advertiserData?.result?.totalItems ?? 0;
 
   // Lấy dữ liệu giao dịch để tạo biểu đồ doanh thu (tất cả giao dịch hệ thống)
-  const { data: transactionData, isLoading: transactionLoading } =
-    useGetAllTransactions(1, 100);
+  const {
+    data: transactionData,
+    isLoading: transactionLoading,
+    refetch: refetchTransactions
+  } = useGetAllTransactions(1, 100);
 
   // Lấy danh sách tất cả gói (active và inactive) để thống kê
   const { data: activePlansData, isLoading: activePlansLoading } = useGetPlan(
@@ -234,6 +250,37 @@ const AdminDashboard: React.FC = () => {
   return (
     <BasePages pageHead="ClickFlow - Dashboard">
       <div className="mb-10 w-full px-6 py-8">
+        {/* Nút refresh tất cả data tổng quan - BÍ MẬT */}
+        <div className="relative mb-6">
+          <button
+            onClick={async () => {
+              // Gọi lại TẤT CẢ API cho phần tổng quan
+              console.log('🔄 Refreshing all dashboard data...');
+
+              try {
+                await Promise.all([
+                  refetchCampaigns(), // Chiến dịch đang hoạt động
+                  refetchCourses(), // Khóa học đang hoạt động
+                  refetchPublishers(), // Số lượng Publisher
+                  refetchAdvertisers(), // Số lượng Advertiser
+                  refetchTransactions() // Doanh thu tháng này
+                ]);
+                console.log('✅ All dashboard data refreshed successfully!');
+              } catch (error) {
+                console.error('❌ Error refreshing dashboard data:', error);
+              }
+            }}
+            className="absolute right-0 top-0 z-10 h-16 w-20 cursor-default bg-transparent opacity-0"
+            style={{
+              border: 'none',
+              outline: 'none',
+              userSelect: 'none',
+              pointerEvents: 'auto'
+            }}
+            aria-hidden="true"
+          />
+        </div>
+
         {/* 4 ô thống kê (canh đều) */}
         <div className="mb-6 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
           {/* Doanh thu tháng này */}

@@ -34,7 +34,7 @@ const TrafficTable: React.FC<TrafficTableProps> = ({
   const fallbackPerPage = isNaN(perPageAsNumber) ? 10 : perPageAsNumber;
 
   // Lấy traffic data với pagination từ URL
-  const { data, isLoading, isError, error } = useGetPublisherTraffic(
+  const { data, isLoading, isError, error, refetch } = useGetPublisherTraffic(
     fallbackPage, // Dùng page từ URL
     fallbackPerPage, // Dùng pageSize từ URL
     selectedCampaignId
@@ -264,6 +264,7 @@ const TrafficTable: React.FC<TrafficTableProps> = ({
               pageSizeOptions={[10, 20, 30, 50]}
               heightTable="60dvh"
               onSearchChange={handleSearchChange}
+              onRefresh={refetch}
             />
           </div>
         </div>

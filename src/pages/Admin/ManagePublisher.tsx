@@ -57,7 +57,7 @@ const PublisherList: React.FC = () => {
   const limit = parseInt(searchParams.get('limit') || '10');
 
   // Use query with pagination parameters
-  const { data, isLoading, error } = useGetUsersByRole(
+  const { data, isLoading, error, refetch } = useGetUsersByRole(
     'Publisher',
     page,
     limit
@@ -249,6 +249,7 @@ const PublisherList: React.FC = () => {
           data={dataSource}
           pageCount={pageCount}
           pageSizeOptions={[10, 20, 30, 40, 50]}
+          onRefresh={refetch}
         />
 
         {/* Modal xem chi tiết */}

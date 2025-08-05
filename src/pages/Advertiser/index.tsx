@@ -70,22 +70,22 @@ const AdvertiserDashboard: React.FC = () => {
     {
       name: 'Cần phê duyệt',
       value: statusCountData?.result?.pendingCount ?? 0,
-      fill: '#3b82f6'
+      fill: '#6366f1'
     },
     {
       name: 'Đang chạy',
       value: statusCountData?.result?.activingCount ?? 0,
-      fill: '#22c55e'
+      fill: '#10b981'
     },
     {
       name: 'Đã bị từ chối',
       value: statusCountData?.result?.canceledCount ?? 0,
-      fill: '#ef4444'
+      fill: '#f59e0b'
     },
     {
       name: 'Đã hoàn thành',
       value: statusCountData?.result?.completedCount ?? 0,
-      fill: '#f97316'
+      fill: '#8b5cf6'
     }
   ];
 
@@ -142,7 +142,10 @@ const AdvertiserDashboard: React.FC = () => {
     );
 
     // Tạo dữ liệu theo định dạng phù hợp với timeRange
-    const chartData = {};
+    const chartData = {} as Record<
+      string,
+      { time: string; deposit: number; withdraw: number }
+    >;
 
     filteredTransactions.forEach((transaction) => {
       const transactionDate = convertToVietnamTime(
@@ -180,20 +183,23 @@ const AdvertiserDashboard: React.FC = () => {
   const trafficStatsData = useMemo(() => {
     if (!trafficData?.result?.datas) return [];
 
-    const stats = trafficData.result.datas.reduce((acc, traffic) => {
-      const date = convertToVietnamTime(traffic.timestamp.toString());
-      const dateKey = date.toLocaleDateString('vi-VN');
+    const stats = trafficData.result.datas.reduce(
+      (acc, traffic) => {
+        const date = convertToVietnamTime(traffic.timestamp.toString());
+        const dateKey = date.toLocaleDateString('vi-VN');
 
-      if (!acc[dateKey]) {
-        acc[dateKey] = { date: dateKey, clicks: 0, views: 0 };
-      }
+        if (!acc[dateKey]) {
+          acc[dateKey] = { date: dateKey, clicks: 0, views: 0 };
+        }
 
-      acc[dateKey].clicks += 1;
-      // Giả định views cao hơn clicks (có thể adjust dựa trên dữ liệu thực)
-      acc[dateKey].views += Math.floor(Math.random() * 3) + 2;
+        acc[dateKey].clicks += 1;
+        // Giả định views cao hơn clicks (có thể adjust dựa trên dữ liệu thực)
+        acc[dateKey].views += Math.floor(Math.random() * 3) + 2;
 
-      return acc;
-    }, {});
+        return acc;
+      },
+      {} as Record<string, { date: string; clicks: number; views: number }>
+    );
 
     return Object.values(stats).slice(-10); // Lấy 10 ngày gần nhất
   }, [trafficData]);
@@ -202,20 +208,23 @@ const AdvertiserDashboard: React.FC = () => {
   const deviceStatsData = useMemo(() => {
     if (!trafficData?.result?.datas) return [];
 
-    const deviceStats = trafficData.result.datas.reduce((acc, traffic) => {
-      const device = traffic.deviceType || 'Unknown';
-      acc[device] = (acc[device] || 0) + 1;
-      return acc;
-    }, {});
+    const deviceStats = trafficData.result.datas.reduce(
+      (acc, traffic) => {
+        const device = traffic.deviceType || 'Unknown';
+        acc[device] = (acc[device] || 0) + 1;
+        return acc;
+      },
+      {} as Record<string, number>
+    );
 
     return Object.entries(deviceStats).map(([device, count]) => ({
       name: device,
-      value: count,
+      value: count as number,
       fill:
         device === 'Mobile'
-          ? '#10b981'
+          ? '#06b6d4'
           : device === 'Desktop'
-            ? '#3b82f6'
+            ? '#6366f1'
             : '#f59e0b'
     }));
   }, [trafficData]);
@@ -224,16 +233,19 @@ const AdvertiserDashboard: React.FC = () => {
   const browserStatsData = useMemo(() => {
     if (!trafficData?.result?.datas) return [];
 
-    const browserStats = trafficData.result.datas.reduce((acc, traffic) => {
-      const browser = traffic.browser || 'Unknown';
-      acc[browser] = (acc[browser] || 0) + 1;
-      return acc;
-    }, {});
+    const browserStats = trafficData.result.datas.reduce(
+      (acc, traffic) => {
+        const browser = traffic.browser || 'Unknown';
+        acc[browser] = (acc[browser] || 0) + 1;
+        return acc;
+      },
+      {} as Record<string, number>
+    );
 
-    const colors = ['#8b5cf6', '#06b6d4', '#10b981', '#f59e0b', '#ef4444'];
+    const colors = ['#8b5cf6', '#06b6d4', '#10b981', '#f59e0b', '#6366f1'];
     return Object.entries(browserStats).map(([browser, count], index) => ({
       name: browser,
-      value: count,
+      value: count as number,
       fill: colors[index % colors.length]
     }));
   }, [trafficData]);
@@ -242,7 +254,10 @@ const AdvertiserDashboard: React.FC = () => {
   const monthlyRevenueData = useMemo(() => {
     if (!transactionData?.result?.datas) return [];
 
-    const monthlyData = {};
+    const monthlyData = {} as Record<
+      string,
+      { month: string; revenue: number; expense: number; profit: number }
+    >;
     const currentYear = new Date().getFullYear();
 
     // Khởi tạo dữ liệu cho 12 tháng
@@ -407,7 +422,7 @@ const AdvertiserDashboard: React.FC = () => {
                     <XAxis dataKey="name" />
                     <YAxis />
                     <Tooltip />
-                    <Bar dataKey="value" fill="#8884d8" />
+                    <Bar dataKey="value" fill="#6366f1" />
                   </BarChart>
                 </ResponsiveContainer>
               </div>
@@ -452,14 +467,14 @@ const AdvertiserDashboard: React.FC = () => {
                       <Line
                         type="monotone"
                         dataKey="deposit"
-                        stroke="#22c55e"
+                        stroke="#10b981"
                         strokeWidth={3}
                         name="Nạp tiền"
                       />
                       <Line
                         type="monotone"
                         dataKey="withdraw"
-                        stroke="#ef4444"
+                        stroke="#f59e0b"
                         strokeWidth={3}
                         name="Rút tiền"
                       />
@@ -492,8 +507,8 @@ const AdvertiserDashboard: React.FC = () => {
                       <YAxis />
                       <Tooltip />
                       <Legend />
-                      <Bar dataKey="clicks" fill="#3b82f6" name="Click" />
-                      <Bar dataKey="views" fill="#10b981" name="View" />
+                      <Bar dataKey="clicks" fill="#8b5cf6" name="Click" />
+                      <Bar dataKey="views" fill="#06b6d4" name="View" />
                     </BarChart>
                   </ResponsiveContainer>
                 ) : (
@@ -510,27 +525,39 @@ const AdvertiserDashboard: React.FC = () => {
                 Tỷ lệ trạng thái Campaign
               </h3>
               <div className="h-64">
-                <ResponsiveContainer width="100%" height="100%">
-                  <PieChart>
-                    <Pie
-                      data={campaignStatusData}
-                      cx="50%"
-                      cy="50%"
-                      labelLine={false}
-                      label={({ name, percent }) =>
-                        `${name} ${(percent * 100).toFixed(0)}%`
-                      }
-                      outerRadius={80}
-                      fill="#8884d8"
-                      dataKey="value"
-                    >
-                      {campaignStatusData.map((entry, index) => (
-                        <Cell key={`cell-${index}`} fill={entry.fill} />
-                      ))}
-                    </Pie>
-                    <Tooltip />
-                  </PieChart>
-                </ResponsiveContainer>
+                {campaignStatusData.some((item) => item.value > 0) ? (
+                  <ResponsiveContainer width="100%" height="100%">
+                    <PieChart>
+                      <Pie
+                        data={campaignStatusData.filter(
+                          (item) => item.value > 0
+                        )}
+                        cx="50%"
+                        cy="50%"
+                        labelLine={false}
+                        label={({ name, percent }) =>
+                          percent > 0
+                            ? `${name} ${(percent * 100).toFixed(0)}%`
+                            : ''
+                        }
+                        outerRadius={80}
+                        fill="#8884d8"
+                        dataKey="value"
+                      >
+                        {campaignStatusData
+                          .filter((item) => item.value > 0)
+                          .map((entry, index) => (
+                            <Cell key={`cell-${index}`} fill={entry.fill} />
+                          ))}
+                      </Pie>
+                      <Tooltip />
+                    </PieChart>
+                  </ResponsiveContainer>
+                ) : (
+                  <div className="flex h-full items-center justify-center">
+                    <p className="text-gray-500">Chưa có dữ liệu campaign</p>
+                  </div>
+                )}
               </div>
             </div>
           </div>
@@ -543,24 +570,29 @@ const AdvertiserDashboard: React.FC = () => {
                 Thống kê theo thiết bị
               </h3>
               <div className="h-64">
-                {deviceStatsData.length > 0 ? (
+                {deviceStatsData.length > 0 &&
+                deviceStatsData.some((item) => item.value > 0) ? (
                   <ResponsiveContainer width="100%" height="100%">
                     <PieChart>
                       <Pie
-                        data={deviceStatsData}
+                        data={deviceStatsData.filter((item) => item.value > 0)}
                         cx="50%"
                         cy="50%"
                         labelLine={false}
                         label={({ name, percent }) =>
-                          `${name} ${(percent * 100).toFixed(0)}%`
+                          percent > 0
+                            ? `${name} ${(percent * 100).toFixed(0)}%`
+                            : ''
                         }
                         outerRadius={60}
                         fill="#8884d8"
                         dataKey="value"
                       >
-                        {deviceStatsData.map((entry, index) => (
-                          <Cell key={`cell-${index}`} fill={entry.fill} />
-                        ))}
+                        {deviceStatsData
+                          .filter((item) => item.value > 0)
+                          .map((entry, index) => (
+                            <Cell key={`cell-${index}`} fill={entry.fill} />
+                          ))}
                       </Pie>
                       <Tooltip />
                     </PieChart>
@@ -581,10 +613,10 @@ const AdvertiserDashboard: React.FC = () => {
               <div className="h-64">
                 {browserStatsData.length > 0 ? (
                   <ResponsiveContainer width="100%" height="100%">
-                    <BarChart data={browserStatsData} layout="horizontal">
+                    <BarChart data={browserStatsData}>
                       <CartesianGrid strokeDasharray="3 3" />
-                      <XAxis type="number" />
-                      <YAxis dataKey="name" type="category" width={60} />
+                      <XAxis dataKey="name" />
+                      <YAxis />
                       <Tooltip />
                       <Bar dataKey="value" fill="#8b5cf6" />
                     </BarChart>
@@ -620,14 +652,14 @@ const AdvertiserDashboard: React.FC = () => {
                     <Line
                       type="monotone"
                       dataKey="expense"
-                      stroke="#ef4444"
+                      stroke="#f59e0b"
                       strokeWidth={2}
                       name="Chi phí"
                     />
                     <Line
                       type="monotone"
                       dataKey="profit"
-                      stroke="#3b82f6"
+                      stroke="#6366f1"
                       strokeWidth={3}
                       name="Lợi nhuận"
                     />

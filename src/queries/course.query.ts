@@ -114,11 +114,12 @@ export const useJoinCourse = () => {
 
 export const useGetVideoCheck = (courseId?: number) => {
   return useQuery({
-    queryKey: ['get-courses-check'],
+    queryKey: ['get-courses-check', courseId],
     queryFn: async () => {
       return await BaseRequest.Get<boolean>(`${SUB_URL}/${courseId}/check`);
     },
-    staleTime: 1000 * 60 * 5,
+    enabled: !!courseId, // Only run when courseId exists
+    staleTime: 0, // Always fetch fresh data
     retry: 3
   });
 };

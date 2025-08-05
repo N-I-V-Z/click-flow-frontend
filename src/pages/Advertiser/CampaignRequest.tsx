@@ -21,9 +21,12 @@ function formatDate(dateString?: string | Date): string {
 
   if (isNaN(date.getTime())) return '';
 
-  const day = date.getDate().toString().padStart(2, '0');
-  const month = (date.getMonth() + 1).toString().padStart(2, '0');
-  const year = date.getFullYear();
+  // Add 7 hours to convert UTC to Vietnam time
+  const vietnamTime = new Date(date.getTime() + 7 * 60 * 60 * 1000);
+
+  const day = vietnamTime.getDate().toString().padStart(2, '0');
+  const month = (vietnamTime.getMonth() + 1).toString().padStart(2, '0');
+  const year = vietnamTime.getFullYear();
   return `${day}/${month}/${year}`;
 }
 
@@ -349,6 +352,7 @@ const AttractivePublisherParticipationRequest: React.FC = () => {
                 pageCount={participations?.result?.totalPages ?? 0}
                 isLoading={isLoading}
                 onSearchChange={setKeyWord}
+                onRefresh={refetch}
               />
             </div>
           </div>

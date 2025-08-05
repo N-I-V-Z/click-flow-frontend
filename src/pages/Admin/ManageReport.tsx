@@ -39,7 +39,11 @@ function mapApiReportToLocal(apiItem: ReportApiResponse): Report {
       apiItem.advertiser?.applicationUser?.fullName ??
       `Advertiser ${apiItem.advertiserId}`,
     accusedId: String(apiItem.advertiserId ?? ''),
-    date: new Date(apiItem.createdAt).toLocaleDateString('vi-VN'),
+    date: (() => {
+      const utcDate = new Date(apiItem.createdAt);
+      const vietnamTime = new Date(utcDate.getTime() + 7 * 60 * 60 * 1000);
+      return vietnamTime.toLocaleDateString('vi-VN');
+    })(),
     status:
       apiItem.status === 'Pending'
         ? 'Đang chờ'
@@ -58,7 +62,7 @@ export default function ReportTable() {
   const [detailReport, setDetailReport] = useState<Report | null>(null);
   const [responseOpen, setResponseOpen] = useState(false);
   const [responseReport, setResponseReport] = useState<Report | null>(null);
-  const { data, isLoading, error } = useGetReports(1, 10);
+  const { data, isLoading, error, refetch } = useGetReports(1, 10);
 
   useEffect(() => {
     if (
@@ -176,6 +180,7 @@ export default function ReportTable() {
           data={filteredReports}
           pageCount={-1}
           pageSizeOptions={[5, 10, 20]}
+          onRefresh={refetch}
         />
 
         <ReportDetailModal
