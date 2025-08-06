@@ -17,7 +17,7 @@ const ToastNotification: React.FC = () => {
       pauseOnHover={false}
       theme="light"
       style={{
-        zIndex: 9999
+        zIndex: 10000
       }}
     />
   );

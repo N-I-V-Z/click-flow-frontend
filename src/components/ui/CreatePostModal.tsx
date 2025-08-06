@@ -132,7 +132,7 @@ const CreatePostModal: React.FC<CreatePostModalProps> = ({
                 initial={{ opacity: 0, y: -50, x: '-50%' }}
                 animate={{ opacity: 1, y: 0, x: '-50%' }}
                 exit={{ opacity: 0, y: -50, x: '-50%' }}
-                className="fixed left-1/2 top-8 z-[60] transform"
+                className="fixed left-1/2 top-8 z-[10000] transform"
               >
                 <div
                   className={`flex items-center space-x-3 rounded-xl border px-6 py-3 shadow-lg backdrop-blur-sm ${

@@ -135,7 +135,7 @@ const AIChatWidget: React.FC<AIChatWidgetProps> = ({ className }) => {
                   className={`flex w-full ${msg.fromAI ? 'justify-start' : 'justify-end'} duration-300 animate-in slide-in-from-bottom-2`}
                 >
                   <div
-                    className={`flex max-w-[85%] ${msg.fromAI ? 'flex-row' : 'flex-row-reverse'}`}
+                    className={`flex min-w-0 max-w-[85%] ${msg.fromAI ? 'flex-row' : 'flex-row-reverse'}`}
                   >
                     {msg.fromAI && (
                       <div className="mr-2 mt-0.5 flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-cyan-400 to-blue-500 text-white shadow-lg">
@@ -143,13 +143,18 @@ const AIChatWidget: React.FC<AIChatWidgetProps> = ({ className }) => {
                       </div>
                     )}
                     <div
-                      className={`rounded-2xl px-3 py-2 text-sm shadow-lg backdrop-blur-sm transition-all ${
+                      className={`min-w-0 max-w-full flex-1 overflow-hidden rounded-2xl px-3 py-2 text-sm shadow-lg backdrop-blur-sm transition-all ${
                         msg.fromAI
                           ? 'rounded-bl-lg border border-purple-200 bg-gradient-to-br from-white/90 to-purple-50 text-gray-800'
                           : 'ml-2 rounded-br-lg bg-gradient-to-br from-purple-400 via-pink-400 to-blue-400 text-white shadow-purple-400/40'
                       }`}
+                      style={{
+                        wordBreak: 'break-word',
+                        overflowWrap: 'break-word',
+                        hyphens: 'auto'
+                      }}
                     >
-                      <p className="m-0 break-words leading-relaxed">
+                      <p className="overflow-wrap-break-word m-0 whitespace-pre-wrap break-words leading-relaxed">
                         {msg.text}
                       </p>
                     </div>
@@ -171,11 +176,11 @@ const AIChatWidget: React.FC<AIChatWidgetProps> = ({ className }) => {
             {chatAI.isPending && (
               <div>
                 <div className="flex w-full justify-start duration-300 animate-in slide-in-from-bottom-2">
-                  <div className="flex max-w-[85%]">
+                  <div className="flex min-w-0 max-w-[85%]">
                     <div className="mr-2 mt-0.5 flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-cyan-400 to-blue-500 text-white shadow-lg">
                       <Bot className="h-3 w-3" />
                     </div>
-                    <div className="rounded-2xl rounded-bl-lg border border-purple-200 bg-gradient-to-br from-white/90 to-purple-50 px-3 py-2 text-gray-800 shadow-lg backdrop-blur-sm">
+                    <div className="min-w-0 max-w-full flex-1 overflow-hidden rounded-2xl rounded-bl-lg border border-purple-200 bg-gradient-to-br from-white/90 to-purple-50 px-3 py-2 text-gray-800 shadow-lg backdrop-blur-sm">
                       <div className="flex items-center gap-1">
                         <div className="h-1.5 w-1.5 animate-bounce rounded-full bg-cyan-500 [animation-delay:-0.3s]"></div>
                         <div className="h-1.5 w-1.5 animate-bounce rounded-full bg-purple-500 [animation-delay:-0.15s]"></div>

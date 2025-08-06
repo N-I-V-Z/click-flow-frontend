@@ -248,7 +248,7 @@ const AIChatWidgetAdvanced: React.FC<AIChatWidgetAdvancedProps> = ({
                     className={`flex w-full ${msg.fromAI ? 'justify-start' : 'justify-end'} duration-300 animate-in slide-in-from-bottom-2`}
                   >
                     <div
-                      className={`flex max-w-[85%] ${msg.fromAI ? 'flex-row' : 'flex-row-reverse'}`}
+                      className={`flex min-w-0 max-w-[85%] ${msg.fromAI ? 'flex-row' : 'flex-row-reverse'}`}
                     >
                       {msg.fromAI && (
                         <div
@@ -258,13 +258,18 @@ const AIChatWidgetAdvanced: React.FC<AIChatWidgetAdvancedProps> = ({
                         </div>
                       )}
                       <div
-                        className={`rounded-2xl px-4 py-3 shadow-sm transition-all ${
+                        className={`min-w-0 max-w-full flex-1 overflow-hidden rounded-2xl px-4 py-3 shadow-sm transition-all ${
                           msg.fromAI
                             ? 'rounded-bl-lg border border-purple-200 bg-white text-gray-800'
                             : `${colors.primary} ml-2 rounded-br-lg text-white`
                         }`}
+                        style={{
+                          wordBreak: 'break-word',
+                          overflowWrap: 'break-word',
+                          hyphens: 'auto'
+                        }}
                       >
-                        <p className="m-0 break-words text-sm leading-relaxed">
+                        <p className="overflow-wrap-break-word m-0 whitespace-pre-wrap break-words text-sm leading-relaxed">
                           {msg.text}
                         </p>
                         <div
@@ -284,13 +289,13 @@ const AIChatWidgetAdvanced: React.FC<AIChatWidgetAdvancedProps> = ({
                 {/* Loading indicator */}
                 {chatAI.isPending && (
                   <div className="flex w-full justify-start duration-300 animate-in slide-in-from-bottom-2">
-                    <div className="flex max-w-[85%]">
+                    <div className="flex min-w-0 max-w-[85%]">
                       <div
                         className={`h-8 w-8 rounded-full ${colors.primary} mr-2 mt-0.5 flex flex-shrink-0 items-center justify-center text-white`}
                       >
                         <Bot className="h-4 w-4" />
                       </div>
-                      <div className="rounded-2xl rounded-bl-lg border border-purple-200 bg-white px-4 py-3 text-gray-800 shadow-sm">
+                      <div className="min-w-0 max-w-full flex-1 overflow-hidden rounded-2xl rounded-bl-lg border border-purple-200 bg-white px-4 py-3 text-gray-800 shadow-sm">
                         <div className="flex items-center gap-1">
                           <div className="h-2 w-2 animate-bounce rounded-full bg-gray-400 [animation-delay:-0.3s]"></div>
                           <div className="h-2 w-2 animate-bounce rounded-full bg-gray-400 [animation-delay:-0.15s]"></div>

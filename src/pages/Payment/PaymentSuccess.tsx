@@ -377,7 +377,7 @@ const PayOSSuccessPage: React.FC = () => {
 
             {/* Copy Success Notification */}
             {copied && (
-              <div className="animate-fade-in fixed right-4 top-4 z-50 rounded-lg bg-green-500 px-4 py-2 text-sm text-white shadow-lg">
+              <div className="animate-fade-in fixed right-4 top-4 z-[10000] rounded-lg bg-green-500 px-4 py-2 text-sm text-white shadow-lg">
                 <div className="flex items-center gap-1.5">
                   <CheckCircle className="h-4 w-4" />
                   Đã sao chép mã giao dịch!

@@ -244,7 +244,7 @@ const MissionPage = () => {
 
   return (
     <BasePages pageHead="ClickFlow - Nhiệm vụ">
-      <div className="to-blue-100 min-h-screen bg-gradient-to-br from-indigo-100 via-purple-50 px-4 pb-12 pt-6">
+      <div className="min-h-screen bg-gradient-to-br from-indigo-100 via-purple-50 to-blue-100 px-4 pb-12 pt-6">
         <style>{`
           @keyframes fall {
             0% {
@@ -290,7 +290,7 @@ const MissionPage = () => {
         {/* Thông báo */}
         {showNotification && (
           <div
-            className="fixed left-1/2 top-6 z-50 -translate-x-1/2 transform rounded-lg bg-gradient-to-r from-indigo-600 to-purple-600 px-5 py-3 text-white shadow-lg"
+            className="fixed left-1/2 top-6 z-[10000] -translate-x-1/2 transform rounded-lg bg-gradient-to-r from-indigo-600 to-purple-600 px-5 py-3 text-white shadow-lg"
             style={{ animation: 'fadeIn 0.3s ease-out' }}
           >
             {notificationMessage}
@@ -384,12 +384,12 @@ const MissionPage = () => {
               <div className="rounded-xl bg-white px-6 py-3 text-center shadow-lg">
                 <p className="text-sm text-gray-500">Check-in streak</p>
                 <div className="flex items-center justify-center gap-1">
-                  <span className="text-orange-500 text-2xl font-bold">
+                  <span className="text-2xl font-bold text-orange-500">
                     {streak}
                   </span>
                   <span className="text-orange-500">🔥</span>
                 </div>
-                <p className="text-orange-600 mt-1 text-xs">
+                <p className="mt-1 text-xs text-orange-600">
                   Liên tục {streak} ngày
                 </p>
               </div>
@@ -450,7 +450,7 @@ const MissionPage = () => {
           )}
 
           {/* Tabs */}
-          <div className="to-blue-100 sticky top-0 z-10 mb-6 flex space-x-4 bg-gradient-to-r from-indigo-100 via-purple-50 py-2">
+          <div className="sticky top-0 z-10 mb-6 flex space-x-4 bg-gradient-to-r from-indigo-100 via-purple-50 to-blue-100 py-2">
             <button
               onClick={() => setActiveTab('missions')}
               className={`rounded-lg px-6 py-2 font-semibold transition-all ${
@@ -587,7 +587,7 @@ const MissionPage = () => {
                 <div>
                   <h2 className="mb-4 flex items-center gap-2 text-lg font-bold text-gray-700">
                     🚀 Nhiệm vụ nâng cao
-                    <span className="bg-orange-100 text-orange-600 rounded-full px-2 py-0.5 text-xs">
+                    <span className="rounded-full bg-orange-100 px-2 py-0.5 text-xs text-orange-600">
                       Cao cấp
                     </span>
                   </h2>
@@ -788,7 +788,7 @@ const MissionPage = () => {
                                 {challenge.title}
                               </h3>
                               {challenge.isLimited && (
-                                <span className="bg-red-100 text-red-600 ml-2 rounded-full px-2 py-0.5 text-xs">
+                                <span className="ml-2 rounded-full bg-red-100 px-2 py-0.5 text-xs text-red-600">
                                   Giới hạn
                                 </span>
                               )}
@@ -831,7 +831,7 @@ const MissionPage = () => {
                   <div className="p-5">
                     <div className="grid grid-cols-3 gap-4">
                       <div className="flex flex-col items-center">
-                        <div className="from-yellow-400 to-yellow-600 flex h-16 w-16 items-center justify-center rounded-full bg-gradient-to-br shadow-md">
+                        <div className="flex h-16 w-16 items-center justify-center rounded-full bg-gradient-to-br from-yellow-400 to-yellow-600 shadow-md">
                           <Users size={24} className="text-white" />
                         </div>
                         <p className="mt-2 text-center text-xs font-medium">
@@ -959,7 +959,7 @@ const MissionPage = () => {
               <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
                 {/* Reward cards */}
                 <div className="overflow-hidden rounded-xl bg-white shadow-md transition-shadow hover:shadow-lg">
-                  <div className="from-blue-500 flex h-40 items-center justify-center bg-gradient-to-r to-indigo-600">
+                  <div className="flex h-40 items-center justify-center bg-gradient-to-r from-blue-500 to-indigo-600">
                     <img
                       src="https://www.gamecardsvn.com/img/1678907"
                       alt="Reward 1"
@@ -1029,7 +1029,7 @@ const MissionPage = () => {
                       <h3 className="font-semibold text-gray-800">
                         Thẻ Shopee 200K
                       </h3>
-                      <span className="bg-red-100 text-red-600 ml-2 rounded-full px-2 py-0.5 text-xs">
+                      <span className="ml-2 rounded-full bg-red-100 px-2 py-0.5 text-xs text-red-600">
                         Hot
                       </span>
                     </div>
