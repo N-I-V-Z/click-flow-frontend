@@ -1,18 +1,7 @@
 import BasePages from '@/components/shared/base-pages';
 import React, { useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import {
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  Legend,
-  ResponsiveContainer,
-  BarChart,
-  Bar,
-  Area,
-  AreaChart
-} from 'recharts';
+import Chart from 'react-apexcharts';
 import { gsap } from 'gsap';
 import { useQuery } from '@tanstack/react-query';
 import BaseRequest from '@/config/axios.config';
@@ -116,80 +105,115 @@ const AdminDashboard: React.FC = () => {
     }, 0);
   }, [transactionData]);
 
-  // Dữ liệu cho biểu đồ cột user
-  const userStatsData = [
-    { name: 'Publishers', count: publisherCount, fill: '#10B981' },
-    { name: 'Advertisers', count: advertiserCount, fill: '#3B82F6' }
-  ];
+  // Dữ liệu cho biểu đồ donut user
+  const userStatsData = [publisherCount, advertiserCount];
+  const userLabels = ['Publishers', 'Advertisers'];
 
-  // Dữ liệu cho biểu đồ thống kê gói
+  // Cấu hình ApexCharts cho biểu đồ người dùng
+  const userChartOptions = {
+    chart: {
+      type: 'donut' as const,
+      height: 280,
+      animations: {
+        enabled: true,
+        easing: 'easeinout',
+        speed: 800
+      }
+    },
+    labels: userLabels,
+    colors: ['#00C49F', '#FFBB28'], // Xanh lá và vàng giống Publisher dashboard
+    legend: {
+      position: 'bottom' as const,
+      fontSize: '14px',
+      fontFamily: 'Inter, sans-serif'
+    },
+    tooltip: {
+      y: {
+        formatter: (value: number) => `${value} người`
+      }
+    },
+    plotOptions: {
+      pie: {
+        donut: {
+          size: '60%',
+          labels: {
+            show: true,
+            total: {
+              show: true,
+              label: 'Tổng',
+              fontSize: '16px',
+              fontWeight: 600,
+              color: '#374151',
+              formatter: () => `${publisherCount + advertiserCount}`
+            }
+          }
+        }
+      }
+    },
+    dataLabels: {
+      enabled: true,
+      formatter: (val: number) => `${val.toFixed(0)}%`
+    }
+  };
+
+  // Dữ liệu cho biểu đồ gói dịch vụ
   const planStatsData = React.useMemo(() => {
     const activePlans = activePlansData?.result?.datas || [];
     const inactivePlans = inactivePlansData?.result?.datas || [];
 
-    return [
-      { name: 'Gói hoạt động', count: activePlans.length, fill: '#059669' },
-      { name: 'Gói tạm dừng', count: inactivePlans.length, fill: '#DC2626' },
-      {
-        name: 'Tổng gói',
-        count: activePlans.length + inactivePlans.length,
-        fill: '#7C3AED'
-      }
-    ];
+    return {
+      data: [activePlans.length, inactivePlans.length],
+      labels: ['Gói hoạt động', 'Gói tạm dừng']
+    };
   }, [activePlansData, inactivePlansData]);
 
-  // Dữ liệu monthly growth cho area chart
-  const monthlyGrowthData = React.useMemo(() => {
-    if (!transactionData?.result?.datas) {
-      return [
-        { month: 'Th3', users: 45, campaigns: 12, revenue: 150 },
-        { month: 'Th4', users: 52, campaigns: 15, revenue: 200 },
-        { month: 'Th5', users: 61, campaigns: 18, revenue: 250 },
-        { month: 'Th6', users: 68, campaigns: 22, revenue: 180 },
-        { month: 'Th7', users: 75, campaigns: 25, revenue: 300 },
-        { month: 'Th8', users: 82, campaigns: 28, revenue: 220 }
-      ];
-    }
-    // Có thể tính toán từ dữ liệu thực nếu cần
-    return [
-      {
-        month: 'Th3',
-        users: publisherCount - 15,
-        campaigns: activeCampaignCount - 8,
-        revenue: 150
-      },
-      {
-        month: 'Th4',
-        users: publisherCount - 10,
-        campaigns: activeCampaignCount - 5,
-        revenue: 200
-      },
-      {
-        month: 'Th5',
-        users: publisherCount - 5,
-        campaigns: activeCampaignCount - 3,
-        revenue: 250
-      },
-      {
-        month: 'Th6',
-        users: publisherCount - 2,
-        campaigns: activeCampaignCount - 1,
-        revenue: 180
-      },
-      {
-        month: 'Th7',
-        users: publisherCount,
-        campaigns: activeCampaignCount,
-        revenue: 300
-      },
-      {
-        month: 'Th8',
-        users: publisherCount + advertiserCount,
-        campaigns: activeCampaignCount + 2,
-        revenue: 220
+  // Cấu hình ApexCharts cho biểu đồ gói
+  const planChartOptions = {
+    chart: {
+      type: 'donut' as const,
+      height: 280,
+      animations: {
+        enabled: true,
+        easing: 'easeinout',
+        speed: 800
       }
-    ];
-  }, [transactionData, publisherCount, advertiserCount, activeCampaignCount]);
+    },
+    labels: planStatsData.labels,
+    colors: ['#0088FE', '#AA66CC'], // Xanh dương và tím giống Publisher dashboard
+    legend: {
+      position: 'bottom' as const,
+      fontSize: '14px',
+      fontFamily: 'Inter, sans-serif'
+    },
+    tooltip: {
+      y: {
+        formatter: (value: number) => `${value} gói`
+      }
+    },
+    plotOptions: {
+      pie: {
+        donut: {
+          size: '60%',
+          labels: {
+            show: true,
+            total: {
+              show: true,
+              label: 'Tổng',
+              fontSize: '16px',
+              fontWeight: 600,
+              color: '#374151',
+              formatter: () =>
+                `${planStatsData.data.reduce((a, b) => a + b, 0)}`
+            }
+          }
+        }
+      }
+    },
+    dataLabels: {
+      enabled: true,
+      formatter: (val: number) => `${val.toFixed(0)}%`
+    }
+  };
 
   // GSAP animation refs
   const chartRefs = useRef<(HTMLDivElement | null)[]>([]);
@@ -363,9 +387,9 @@ const AdminDashboard: React.FC = () => {
         {/* Dashboard với biểu đồ chuyên nghiệp */}
         <h2 className="mb-4 text-2xl font-bold">Dashboard</h2>
 
-        {/* 4 biểu đồ được chia thành 2 hàng, mỗi hàng 2 biểu đồ */}
+        {/* 2 biểu đồ được chia thành 1 hàng, 2 biểu đồ */}
         <div className="mb-6 grid grid-cols-1 gap-6 md:grid-cols-2">
-          {/* Biểu đồ cột - Thống kê User */}
+          {/* Donut Chart - Thống kê User */}
           <div
             ref={(el) => (chartRefs.current[0] = el)}
             className="rounded-xl bg-white p-6 shadow-lg"
@@ -378,34 +402,18 @@ const AdminDashboard: React.FC = () => {
                 <div className="text-gray-500">Đang tải dữ liệu...</div>
               </div>
             ) : (
-              <ResponsiveContainer width="100%" height={280}>
-                <BarChart
-                  data={userStatsData}
-                  margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
-                >
-                  <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
-                  <XAxis dataKey="name" stroke="#666" fontSize={12} />
-                  <YAxis stroke="#666" fontSize={12} />
-                  <Tooltip
-                    contentStyle={{
-                      backgroundColor: '#fff',
-                      border: '1px solid #e5e7eb',
-                      borderRadius: '8px',
-                      boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
-                    }}
-                    formatter={(value: number) => [
-                      `${value} người`,
-                      'Số lượng'
-                    ]}
-                  />
-                  <Legend />
-                  <Bar dataKey="count" radius={[4, 4, 0, 0]} name="Số lượng" />
-                </BarChart>
-              </ResponsiveContainer>
+              <div className="h-80">
+                <Chart
+                  options={userChartOptions}
+                  series={userStatsData}
+                  type="donut"
+                  height={280}
+                />
+              </div>
             )}
           </div>
 
-          {/* Bar Chart - Thống kê gói */}
+          {/* Donut Chart - Thống kê gói */}
           <div
             ref={(el) => (chartRefs.current[1] = el)}
             className="rounded-xl bg-white p-6 shadow-lg"
@@ -418,115 +426,15 @@ const AdminDashboard: React.FC = () => {
                 <div className="text-gray-500">Đang tải dữ liệu...</div>
               </div>
             ) : (
-              <ResponsiveContainer width="100%" height={280}>
-                <BarChart
-                  data={planStatsData}
-                  margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
-                >
-                  <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
-                  <XAxis
-                    dataKey="name"
-                    stroke="#666"
-                    fontSize={12}
-                    angle={-45}
-                    textAnchor="end"
-                    height={80}
-                  />
-                  <YAxis stroke="#666" fontSize={12} />
-                  <Tooltip
-                    contentStyle={{
-                      backgroundColor: '#fff',
-                      border: '1px solid #e5e7eb',
-                      borderRadius: '8px',
-                      boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
-                    }}
-                    formatter={(value: number) => [`${value} gói`, 'Số lượng']}
-                  />
-                  <Legend />
-                  <Bar dataKey="count" radius={[4, 4, 0, 0]} name="Gói" />
-                </BarChart>
-              </ResponsiveContainer>
+              <div className="h-80">
+                <Chart
+                  options={planChartOptions}
+                  series={planStatsData.data}
+                  type="donut"
+                  height={280}
+                />
+              </div>
             )}
-          </div>
-        </div>
-
-        {/* Hàng dưới: 2 biểu đồ phân tích */}
-        <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
-          {/* Area Chart - Tăng trưởng theo tháng */}
-          <div
-            ref={(el) => (chartRefs.current[2] = el)}
-            className="rounded-xl bg-white p-6 shadow-lg"
-          >
-            <h3 className="mb-4 text-lg font-semibold text-gray-800">
-              Tăng trưởng người dùng
-            </h3>
-            <ResponsiveContainer width="100%" height={280}>
-              <AreaChart
-                data={monthlyGrowthData}
-                margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
-              >
-                <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
-                <XAxis dataKey="month" stroke="#666" fontSize={12} />
-                <YAxis stroke="#666" fontSize={12} />
-                <Tooltip
-                  contentStyle={{
-                    backgroundColor: '#fff',
-                    border: '1px solid #e5e7eb',
-                    borderRadius: '8px',
-                    boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
-                  }}
-                />
-                <Legend />
-                <Area
-                  type="monotone"
-                  dataKey="users"
-                  stackId="1"
-                  stroke="#3b82f6"
-                  fill="#3b82f6"
-                  fillOpacity={0.6}
-                  name="Người dùng"
-                />
-              </AreaChart>
-            </ResponsiveContainer>
-          </div>
-
-          {/* Bar Chart - Chiến dịch theo tháng */}
-          <div
-            ref={(el) => (chartRefs.current[3] = el)}
-            className="rounded-xl bg-white p-6 shadow-lg"
-          >
-            <h3 className="mb-4 text-lg font-semibold text-gray-800">
-              Chiến dịch theo tháng
-            </h3>
-            <ResponsiveContainer width="100%" height={280}>
-              <BarChart
-                data={monthlyGrowthData}
-                margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
-              >
-                <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
-                <XAxis dataKey="month" stroke="#666" fontSize={12} />
-                <YAxis stroke="#666" fontSize={12} />
-                <Tooltip
-                  contentStyle={{
-                    backgroundColor: '#fff',
-                    border: '1px solid #e5e7eb',
-                    borderRadius: '8px',
-                    boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
-                  }}
-                  formatter={(value: number) => [
-                    `${value} chiến dịch`,
-                    'Số lượng'
-                  ]}
-                />
-                <Legend />
-                <Bar
-                  dataKey="campaigns"
-                  fill="#10b981"
-                  radius={[4, 4, 0, 0]}
-                  name="Chiến dịch"
-                />
-              </BarChart>
-            </ResponsiveContainer>
           </div>
         </div>
       </div>

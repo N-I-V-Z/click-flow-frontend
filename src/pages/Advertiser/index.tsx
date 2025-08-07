@@ -1,20 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { FaClock, FaTimesCircle, FaCheckCircle, FaPlay } from 'react-icons/fa';
-import {
-  LineChart,
-  Line,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  ResponsiveContainer,
-  BarChart,
-  Bar,
-  Legend,
-  PieChart,
-  Pie,
-  Cell
-} from 'recharts';
+import Chart from 'react-apexcharts';
 import CreateNewCampaign from './CreateNewCampaign';
 import { useGetUserDetail } from '@/queries/user.query';
 import { useGetOwnTransaction } from '@/queries/transaction.query';
@@ -22,7 +8,6 @@ import { useGetTrafficForAdvertiser } from '@/queries/traffic.query';
 import { TokenDecoded } from '@/types';
 import helpers from '@/helpers';
 import __helpers from '@/helpers';
-
 import { useGetCampaignStatusCount } from '@/queries/campaign.query';
 import BasePages from '@/components/shared/base-pages';
 import { useAutoRefresh } from '@/hooks/use-auto-refresh';
@@ -70,22 +55,22 @@ const AdvertiserDashboard: React.FC = () => {
     {
       name: 'Cần phê duyệt',
       value: statusCountData?.result?.pendingCount ?? 0,
-      fill: '#6366f1'
+      fill: '#2563eb' // Màu xanh dương giống ô thống kê
     },
     {
       name: 'Đang chạy',
       value: statusCountData?.result?.activingCount ?? 0,
-      fill: '#10b981'
+      fill: '#16a34a' // Màu xanh lá giống ô thống kê
     },
     {
       name: 'Đã bị từ chối',
       value: statusCountData?.result?.canceledCount ?? 0,
-      fill: '#f59e0b'
+      fill: '#dc2626' // Màu đỏ giống ô thống kê
     },
     {
       name: 'Đã hoàn thành',
       value: statusCountData?.result?.completedCount ?? 0,
-      fill: '#8b5cf6'
+      fill: '#ea580c' // Màu cam giống ô thống kê
     }
   ];
 
@@ -416,15 +401,47 @@ const AdvertiserDashboard: React.FC = () => {
                 Phân bố trạng thái Campaign
               </h3>
               <div className="h-64">
-                <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={campaignStatusData}>
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="name" />
-                    <YAxis />
-                    <Tooltip />
-                    <Bar dataKey="value" fill="#6366f1" />
-                  </BarChart>
-                </ResponsiveContainer>
+                <Chart
+                  options={{
+                    chart: {
+                      type: 'bar',
+                      height: 256,
+                      toolbar: { show: false }
+                    },
+                    plotOptions: {
+                      bar: {
+                        borderRadius: 4,
+                        horizontal: false,
+                        columnWidth: '60%'
+                      }
+                    },
+                    dataLabels: { enabled: false },
+                    stroke: { show: true, width: 2, colors: ['transparent'] },
+                    xaxis: {
+                      categories: campaignStatusData.map((item) => item.name)
+                    },
+                    yaxis: { title: { text: 'Số lượng' } },
+                    fill: { opacity: 1 },
+                    tooltip: {
+                      y: {
+                        formatter: (val: number) => `${val} campaign`
+                      }
+                    },
+                    colors: campaignStatusData.map((item) => item.fill),
+                    grid: {
+                      borderColor: '#f1f5f9',
+                      strokeDashArray: 3
+                    }
+                  }}
+                  series={[
+                    {
+                      name: 'Số lượng',
+                      data: campaignStatusData.map((item) => item.value)
+                    }
+                  ]}
+                  type="bar"
+                  height={256}
+                />
               </div>
             </div>
 
@@ -457,29 +474,50 @@ const AdvertiserDashboard: React.FC = () => {
               </div>
               <div className="h-64">
                 {transactionChartData.length > 0 ? (
-                  <ResponsiveContainer width="100%" height="100%">
-                    <LineChart data={transactionChartData}>
-                      <CartesianGrid strokeDasharray="3 3" />
-                      <XAxis dataKey="time" />
-                      <YAxis />
-                      <Tooltip />
-                      <Legend />
-                      <Line
-                        type="monotone"
-                        dataKey="deposit"
-                        stroke="#10b981"
-                        strokeWidth={3}
-                        name="Nạp tiền"
-                      />
-                      <Line
-                        type="monotone"
-                        dataKey="withdraw"
-                        stroke="#f59e0b"
-                        strokeWidth={3}
-                        name="Rút tiền"
-                      />
-                    </LineChart>
-                  </ResponsiveContainer>
+                  <Chart
+                    options={{
+                      chart: {
+                        type: 'line',
+                        height: 256,
+                        toolbar: { show: false }
+                      },
+                      stroke: {
+                        width: 3,
+                        curve: 'smooth'
+                      },
+                      xaxis: {
+                        categories: transactionChartData.map(
+                          (item) => item.time
+                        )
+                      },
+                      yaxis: { title: { text: 'Triệu VNĐ' } },
+                      tooltip: {
+                        y: {
+                          formatter: (val: number) => `${val} triệu VNĐ`
+                        }
+                      },
+                      colors: ['#10b981', '#f59e0b'],
+                      grid: {
+                        borderColor: '#f1f5f9',
+                        strokeDashArray: 3
+                      },
+                      legend: {
+                        position: 'top'
+                      }
+                    }}
+                    series={[
+                      {
+                        name: 'Nạp tiền',
+                        data: transactionChartData.map((item) => item.deposit)
+                      },
+                      {
+                        name: 'Rút tiền',
+                        data: transactionChartData.map((item) => item.withdraw)
+                      }
+                    ]}
+                    type="line"
+                    height={256}
+                  />
                 ) : (
                   <div className="flex h-full items-center justify-center">
                     <p className="text-gray-500">
@@ -500,17 +538,54 @@ const AdvertiserDashboard: React.FC = () => {
               </h3>
               <div className="h-64">
                 {trafficStatsData.length > 0 ? (
-                  <ResponsiveContainer width="100%" height="100%">
-                    <BarChart data={trafficStatsData}>
-                      <CartesianGrid strokeDasharray="3 3" />
-                      <XAxis dataKey="date" />
-                      <YAxis />
-                      <Tooltip />
-                      <Legend />
-                      <Bar dataKey="clicks" fill="#8b5cf6" name="Click" />
-                      <Bar dataKey="views" fill="#06b6d4" name="View" />
-                    </BarChart>
-                  </ResponsiveContainer>
+                  <Chart
+                    options={{
+                      chart: {
+                        type: 'bar',
+                        height: 256,
+                        toolbar: { show: false }
+                      },
+                      plotOptions: {
+                        bar: {
+                          borderRadius: 4,
+                          horizontal: false,
+                          columnWidth: '60%'
+                        }
+                      },
+                      dataLabels: { enabled: false },
+                      stroke: { show: true, width: 2, colors: ['transparent'] },
+                      xaxis: {
+                        categories: trafficStatsData.map((item) => item.date)
+                      },
+                      yaxis: { title: { text: 'Số lượng' } },
+                      fill: { opacity: 1 },
+                      tooltip: {
+                        y: {
+                          formatter: (val: number) => `${val} lượt`
+                        }
+                      },
+                      colors: ['#8b5cf6', '#06b6d4'],
+                      grid: {
+                        borderColor: '#f1f5f9',
+                        strokeDashArray: 3
+                      },
+                      legend: {
+                        position: 'top'
+                      }
+                    }}
+                    series={[
+                      {
+                        name: 'Click',
+                        data: trafficStatsData.map((item) => item.clicks)
+                      },
+                      {
+                        name: 'View',
+                        data: trafficStatsData.map((item) => item.views)
+                      }
+                    ]}
+                    type="bar"
+                    height={256}
+                  />
                 ) : (
                   <div className="flex h-full items-center justify-center">
                     <p className="text-gray-500">Chưa có dữ liệu traffic</p>
@@ -526,33 +601,44 @@ const AdvertiserDashboard: React.FC = () => {
               </h3>
               <div className="h-64">
                 {campaignStatusData.some((item) => item.value > 0) ? (
-                  <ResponsiveContainer width="100%" height="100%">
-                    <PieChart>
-                      <Pie
-                        data={campaignStatusData.filter(
-                          (item) => item.value > 0
-                        )}
-                        cx="50%"
-                        cy="50%"
-                        labelLine={false}
-                        label={({ name, percent }) =>
-                          percent > 0
-                            ? `${name} ${(percent * 100).toFixed(0)}%`
-                            : ''
+                  <Chart
+                    options={{
+                      chart: {
+                        type: 'pie',
+                        height: 256
+                      },
+                      labels: campaignStatusData
+                        .filter((item) => item.value > 0)
+                        .map((item) => item.name),
+                      colors: campaignStatusData
+                        .filter((item) => item.value > 0)
+                        .map((item) => item.fill),
+                      legend: {
+                        position: 'bottom'
+                      },
+                      tooltip: {
+                        y: {
+                          formatter: (val: number) => `${val} campaign`
                         }
-                        outerRadius={80}
-                        fill="#8884d8"
-                        dataKey="value"
-                      >
-                        {campaignStatusData
-                          .filter((item) => item.value > 0)
-                          .map((entry, index) => (
-                            <Cell key={`cell-${index}`} fill={entry.fill} />
-                          ))}
-                      </Pie>
-                      <Tooltip />
-                    </PieChart>
-                  </ResponsiveContainer>
+                      },
+                      dataLabels: {
+                        enabled: true,
+                        formatter: (val: number) => `${val.toFixed(0)}%`
+                      },
+                      plotOptions: {
+                        pie: {
+                          donut: {
+                            size: '0%'
+                          }
+                        }
+                      }
+                    }}
+                    series={campaignStatusData
+                      .filter((item) => item.value > 0)
+                      .map((item) => item.value)}
+                    type="pie"
+                    height={256}
+                  />
                 ) : (
                   <div className="flex h-full items-center justify-center">
                     <p className="text-gray-500">Chưa có dữ liệu campaign</p>
@@ -572,31 +658,44 @@ const AdvertiserDashboard: React.FC = () => {
               <div className="h-64">
                 {deviceStatsData.length > 0 &&
                 deviceStatsData.some((item) => item.value > 0) ? (
-                  <ResponsiveContainer width="100%" height="100%">
-                    <PieChart>
-                      <Pie
-                        data={deviceStatsData.filter((item) => item.value > 0)}
-                        cx="50%"
-                        cy="50%"
-                        labelLine={false}
-                        label={({ name, percent }) =>
-                          percent > 0
-                            ? `${name} ${(percent * 100).toFixed(0)}%`
-                            : ''
+                  <Chart
+                    options={{
+                      chart: {
+                        type: 'pie',
+                        height: 256
+                      },
+                      labels: deviceStatsData
+                        .filter((item) => item.value > 0)
+                        .map((item) => item.name),
+                      colors: deviceStatsData
+                        .filter((item) => item.value > 0)
+                        .map((item) => item.fill),
+                      legend: {
+                        position: 'bottom'
+                      },
+                      tooltip: {
+                        y: {
+                          formatter: (val: number) => `${val} lượt`
                         }
-                        outerRadius={60}
-                        fill="#8884d8"
-                        dataKey="value"
-                      >
-                        {deviceStatsData
-                          .filter((item) => item.value > 0)
-                          .map((entry, index) => (
-                            <Cell key={`cell-${index}`} fill={entry.fill} />
-                          ))}
-                      </Pie>
-                      <Tooltip />
-                    </PieChart>
-                  </ResponsiveContainer>
+                      },
+                      dataLabels: {
+                        enabled: true,
+                        formatter: (val: number) => `${val.toFixed(0)}%`
+                      },
+                      plotOptions: {
+                        pie: {
+                          donut: {
+                            size: '0%'
+                          }
+                        }
+                      }
+                    }}
+                    series={deviceStatsData
+                      .filter((item) => item.value > 0)
+                      .map((item) => item.value)}
+                    type="pie"
+                    height={256}
+                  />
                 ) : (
                   <div className="flex h-full items-center justify-center">
                     <p className="text-gray-500">Chưa có dữ liệu thiết bị</p>
@@ -612,15 +711,47 @@ const AdvertiserDashboard: React.FC = () => {
               </h3>
               <div className="h-64">
                 {browserStatsData.length > 0 ? (
-                  <ResponsiveContainer width="100%" height="100%">
-                    <BarChart data={browserStatsData}>
-                      <CartesianGrid strokeDasharray="3 3" />
-                      <XAxis dataKey="name" />
-                      <YAxis />
-                      <Tooltip />
-                      <Bar dataKey="value" fill="#8b5cf6" />
-                    </BarChart>
-                  </ResponsiveContainer>
+                  <Chart
+                    options={{
+                      chart: {
+                        type: 'bar',
+                        height: 256,
+                        toolbar: { show: false }
+                      },
+                      plotOptions: {
+                        bar: {
+                          borderRadius: 4,
+                          horizontal: false,
+                          columnWidth: '60%'
+                        }
+                      },
+                      dataLabels: { enabled: false },
+                      stroke: { show: true, width: 2, colors: ['transparent'] },
+                      xaxis: {
+                        categories: browserStatsData.map((item) => item.name)
+                      },
+                      yaxis: { title: { text: 'Số lượng' } },
+                      fill: { opacity: 1 },
+                      tooltip: {
+                        y: {
+                          formatter: (val: number) => `${val} lượt`
+                        }
+                      },
+                      colors: browserStatsData.map((item) => item.fill),
+                      grid: {
+                        borderColor: '#f1f5f9',
+                        strokeDashArray: 3
+                      }
+                    }}
+                    series={[
+                      {
+                        name: 'Số lượng',
+                        data: browserStatsData.map((item) => item.value)
+                      }
+                    ]}
+                    type="bar"
+                    height={256}
+                  />
                 ) : (
                   <div className="flex h-full items-center justify-center">
                     <p className="text-gray-500">Chưa có dữ liệu trình duyệt</p>
@@ -635,36 +766,52 @@ const AdvertiserDashboard: React.FC = () => {
                 Doanh thu năm {new Date().getFullYear()} (triệu VNĐ)
               </h3>
               <div className="h-64">
-                <ResponsiveContainer width="100%" height="100%">
-                  <LineChart data={monthlyRevenueData}>
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="month" />
-                    <YAxis />
-                    <Tooltip />
-                    <Legend />
-                    <Line
-                      type="monotone"
-                      dataKey="revenue"
-                      stroke="#10b981"
-                      strokeWidth={2}
-                      name="Doanh thu"
-                    />
-                    <Line
-                      type="monotone"
-                      dataKey="expense"
-                      stroke="#f59e0b"
-                      strokeWidth={2}
-                      name="Chi phí"
-                    />
-                    <Line
-                      type="monotone"
-                      dataKey="profit"
-                      stroke="#6366f1"
-                      strokeWidth={3}
-                      name="Lợi nhuận"
-                    />
-                  </LineChart>
-                </ResponsiveContainer>
+                <Chart
+                  options={{
+                    chart: {
+                      type: 'line',
+                      height: 256,
+                      toolbar: { show: false }
+                    },
+                    stroke: {
+                      width: [2, 2, 3],
+                      curve: 'smooth'
+                    },
+                    xaxis: {
+                      categories: monthlyRevenueData.map((item) => item.month)
+                    },
+                    yaxis: { title: { text: 'Triệu VNĐ' } },
+                    tooltip: {
+                      y: {
+                        formatter: (val: number) => `${val} triệu VNĐ`
+                      }
+                    },
+                    colors: ['#10b981', '#f59e0b', '#6366f1'],
+                    grid: {
+                      borderColor: '#f1f5f9',
+                      strokeDashArray: 3
+                    },
+                    legend: {
+                      position: 'top'
+                    }
+                  }}
+                  series={[
+                    {
+                      name: 'Doanh thu',
+                      data: monthlyRevenueData.map((item) => item.revenue)
+                    },
+                    {
+                      name: 'Chi phí',
+                      data: monthlyRevenueData.map((item) => item.expense)
+                    },
+                    {
+                      name: 'Lợi nhuận',
+                      data: monthlyRevenueData.map((item) => item.profit)
+                    }
+                  ]}
+                  type="line"
+                  height={256}
+                />
               </div>
             </div>
           </div>
