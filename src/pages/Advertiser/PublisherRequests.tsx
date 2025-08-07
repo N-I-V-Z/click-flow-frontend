@@ -18,7 +18,8 @@ import {
   useUpdateParticipationStatus
 } from '@/queries/campaign.query';
 import { CampaignParticipationApiResponse } from '@/types';
-import { toast } from 'react-toastify';
+import { toast, ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 // Extended type for API response that includes additional fields
 interface ExtendedParticipationResponse
@@ -129,21 +130,36 @@ const PublisherRequests: React.FC = () => {
             campaignParticipationId: record.id,
             newStatus: 'Participated'
           });
-          toast.success('Đã duyệt yêu cầu thành công!', {
-            position: 'top-right',
-            style: { zIndex: 10000 }
-          });
+
+          // Đóng popup trước
           setConfirmPopup((prev) => ({
             ...prev,
             isVisible: false,
             loading: false
           }));
-        } catch (error) {
-          toast.error('Có lỗi xảy ra khi duyệt yêu cầu!', {
+
+          // Refresh dữ liệu
+          await refetch();
+
+          // Hiển thị toast thành công
+          toast.success('Đã duyệt yêu cầu thành công!', {
             position: 'top-right',
+            autoClose: 3000,
+            hideProgressBar: false,
+            closeOnClick: true,
+            pauseOnHover: true,
             style: { zIndex: 10000 }
           });
+        } catch (error) {
           setConfirmPopup((prev) => ({ ...prev, loading: false }));
+          toast.error('Có lỗi xảy ra khi duyệt yêu cầu!', {
+            position: 'top-right',
+            autoClose: 4000,
+            hideProgressBar: false,
+            closeOnClick: true,
+            pauseOnHover: true,
+            style: { zIndex: 10000 }
+          });
         }
       }
     });
@@ -164,21 +180,36 @@ const PublisherRequests: React.FC = () => {
             campaignParticipationId: record.id,
             newStatus: 'Rejected'
           });
-          toast.success('Đã từ chối yêu cầu!', {
-            position: 'top-right',
-            style: { zIndex: 10000 }
-          });
+
+          // Đóng popup trước
           setConfirmPopup((prev) => ({
             ...prev,
             isVisible: false,
             loading: false
           }));
-        } catch (error) {
-          toast.error('Có lỗi xảy ra khi từ chối yêu cầu!', {
+
+          // Refresh dữ liệu
+          await refetch();
+
+          // Hiển thị toast thành công
+          toast.success('Đã từ chối yêu cầu!', {
             position: 'top-right',
+            autoClose: 3000,
+            hideProgressBar: false,
+            closeOnClick: true,
+            pauseOnHover: true,
             style: { zIndex: 10000 }
           });
+        } catch (error) {
           setConfirmPopup((prev) => ({ ...prev, loading: false }));
+          toast.error('Có lỗi xảy ra khi từ chối yêu cầu!', {
+            position: 'top-right',
+            autoClose: 4000,
+            hideProgressBar: false,
+            closeOnClick: true,
+            pauseOnHover: true,
+            style: { zIndex: 10000 }
+          });
         }
       }
     });
@@ -204,21 +235,36 @@ const PublisherRequests: React.FC = () => {
             campaignParticipationId: record.id,
             newStatus: 'Rejected'
           });
-          toast.success(`Đã ${actionText} thành công!`, {
-            position: 'top-right',
-            style: { zIndex: 10000 }
-          });
+
+          // Đóng popup trước
           setConfirmPopup((prev) => ({
             ...prev,
             isVisible: false,
             loading: false
           }));
-        } catch (error) {
-          toast.error(`Có lỗi xảy ra khi ${actionText}!`, {
+
+          // Refresh dữ liệu
+          await refetch();
+
+          // Hiển thị toast thành công
+          toast.success(`Đã ${actionText} thành công!`, {
             position: 'top-right',
+            autoClose: 3000,
+            hideProgressBar: false,
+            closeOnClick: true,
+            pauseOnHover: true,
             style: { zIndex: 10000 }
           });
+        } catch (error) {
           setConfirmPopup((prev) => ({ ...prev, loading: false }));
+          toast.error(`Có lỗi xảy ra khi ${actionText}!`, {
+            position: 'top-right',
+            autoClose: 4000,
+            hideProgressBar: false,
+            closeOnClick: true,
+            pauseOnHover: true,
+            style: { zIndex: 10000 }
+          });
         }
       }
     });
@@ -666,6 +712,21 @@ const PublisherRequests: React.FC = () => {
         onClose={() =>
           setConfirmPopup((prev) => ({ ...prev, isVisible: false }))
         }
+      />
+
+      {/* Toast Container */}
+      <ToastContainer
+        position="top-right"
+        autoClose={3000}
+        hideProgressBar={false}
+        newestOnTop={true}
+        closeOnClick={true}
+        rtl={false}
+        pauseOnFocusLoss={false}
+        draggable={true}
+        pauseOnHover={true}
+        theme="colored"
+        style={{ zIndex: 10000 }}
       />
     </BasePages>
   );
